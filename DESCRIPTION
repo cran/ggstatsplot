@@ -1,0 +1,33 @@
+Type: Package
+Package: ggstatsplot
+Title: 'ggplot2' Based Plots with Statistical Details
+Version: 0.0.1
+Authors@R: person(given = "Indrajeet", 
+  family = "Patil", 
+  email = "patilindrajeet.science@gmail.com", 
+  role = c("aut", "cre"), 
+  comment = c(ORCID = "0000-0003-1995-6531"))
+Maintainer: Indrajeet Patil <patilindrajeet.science@gmail.com>
+Description: Extension of 'ggplot2', 'ggstatsplot' creates graphics with details from statistical tests 
+  (parametric, non-parametric, or robust) included in the plots themselves. It is targeted primarily at 
+  behavioral sciences community to provide a one-line code to generate information-rich plots for 
+  statistical analysis of continuous (violin plots, scatterplots, histograms) or categorical (pie charts) data.
+License: GPL-3 | file LICENSE
+BugReports: https://github.com/IndrajeetPatil/ggstatsplot/issues
+Depends: R (>= 3.3.0)
+Imports: apaTables (>= 2.0.2), broom, coin (>= 1.2-2), cowplot, crayon
+        (>= 1.3.4), DescTools (>= 0.99.23), dplyr, effsize (>= 0.7.1),
+        ggcorrplot, ggExtra (>= 0.7), ggplot2 (>= 2.2.1), ggrepel (>=
+        0.7.0), grid, gtable, jmv, magrittr, MASS (>= 7.3-47), nortest,
+        purrr, rlang (>= 0.2.0), RVAideMemoire (>= 0.9-69), sfsmisc (>=
+        1.1-1), stats, tibble, tidyr, userfriendlyscience (>= 0.7.0),
+        WRS2 (>= 0.9-2)
+Suggests: datasets, grDevices, knitr, rmarkdown
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1.9000
+NeedsCompilation: no
+Packaged: 2018-03-30 03:41:42 UTC; Indrajeet Patil
+Author: Indrajeet Patil [aut, cre] (<https://orcid.org/0000-0003-1995-6531>)
+Repository: CRAN
+Date/Publication: 2018-04-03 19:52:57 UTC
