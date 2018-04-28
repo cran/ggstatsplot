@@ -2,7 +2,7 @@
 % Please edit documentation in R/gghistostats.R
 \name{gghistostats}
 \alias{gghistostats}
-\title{histogram for distribution of a numeric variable}
+\title{Histogram for distribution of a numeric variable}
 \arguments{
 \item{data}{Dataframe from which variables specified are preferentially to be
 taken.}
@@ -18,26 +18,35 @@ from one sample test to be displayed.}
 
 \item{caption}{The text for the plot caption.}
 
-\item{type}{Type of statistic expected ("parametric" or "nonparametric").
-Abbreviations accepted are "p" or "np".}
+\item{type}{Type of statistic expected (\code{"parametric"} or \code{"nonparametric"} or
+\code{"bayes"}). Abbreviations accepted are \code{"p"} or \code{"np"} or \code{"bf"}, respectively.}
 
 \item{test.value}{A number specifying the value of the null hypothesis.}
+
+\item{bf.prior}{A number between 0.5 and 2 (default 0.707), the prior width
+to use in calculating Bayes factors.}
+
+\item{bf.message}{Logical. Decides whether to display Bayes Factor in favor
+of null hypothesis for parametric test if the null hypothesis can't be
+rejected (Default: \code{bf.message = TRUE}).}
 
 \item{k}{Number of decimal places expected for results.}
 
 \item{results.subtitle}{Decides whether the results of statistical tests are
-to be displayed as subtitle.}
+to be displayed as subtitle (Default: \code{results.subtitle = TRUE}). If set to
+\code{FALSE}, no statistical tests will be run.}
 
-\item{density.plot}{Decides whether kernel density estimate, which is a
-smoothed version of the histogram, is to be overlayed on top of the
-histogram.}
+\item{centrality.para}{Decides \emph{which} measure of central tendency (\code{"mean"} or
+\code{"median"}) is to be displayed as a vertical line.}
 
-\item{density.colour}{Decides colour for the density plot.}
+\item{centrality.colour}{Decides colour for the vertical line for centrality
+parameter (Default: \code{"blue"}).}
 
-\item{centrality.para}{Decides \emph{which} measure of central tendency ("mean" or
-"median") is to be displayed as a vertical line.}
+\item{test.value.line}{Decides whether test value is to be displayed as a
+vertical line (Default: \code{FALSE}).}
 
-\item{centrality.colour}{Decides colour for the vertical line.}
+\item{test.value.colour}{Decides colour for the vertical line denoting test
+value (Default: \code{"black"}).}
 
 \item{binwidth.adjust}{If set to \code{TRUE}, you can use it to pick better value
 with the \code{binwidth} argument to \code{stat_bin()}.}
@@ -57,26 +66,36 @@ in the plot as a subtitle.
 }
 \examples{
 
-library(datasets)
-library(ggplot2)
-
 # most basic function call with the defaults
 ggstatsplot::gghistostats(
-data = ggplot2::diamonds,
-x = carat)
+data = datasets::ToothGrowth,
+x = len,
+xlab = "Tooth length")
+
+# another example
+ggstatsplot::gghistostats(
+data = NULL,
+x = stats::rnorm(n = 1000, mean = 0, sd = 1),
+centrality.para = "mean",
+type = "np"
+)
 
 # more detailed function call
 ggstatsplot::gghistostats(
 data = datasets::iris,
 x = Sepal.Length,
-type = "parametric",
+type = "bf",
+bf.prior = 0.8,
 test.value = 3,
 centrality.para = "mean",
-density.plot = TRUE,
+test.value.line = TRUE,
 binwidth.adjust = TRUE,
 binwidth = 0.10
 )
 
+}
+\seealso{
+\code{\link{grouped_gghistostats}}
 }
 \author{
 Indrajeet Patil

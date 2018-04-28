@@ -6,13 +6,14 @@
 'ggplot2'/'ggcorrplot'}
 \usage{
 ggcorrmat(data, cor.vars, cor.vars.names = NULL, output = "plot",
-  type = "full", method = "square", corr.method = "pearson", digits = 2,
-  sig.level = 0.05, hc.order = FALSE, hc.method = "complete",
-  lab = TRUE, colors = c("#6D9EC1", "white", "#E46726"),
-  outline.color = "black", ggtheme = ggplot2::theme_gray, title = NULL,
-  subtitle = NULL, caption = NULL, lab_col = "black", lab_size = 4.5,
-  insig = "pch", pch = 4, pch.col = "blue", pch.cex = 10, tl.cex = 12,
-  tl.col = "black", tl.srt = 45)
+  type = "full", method = "square", corr.method = "pearson",
+  exact = FALSE, continuity = TRUE, digits = 2, sig.level = 0.05,
+  hc.order = FALSE, hc.method = "complete", lab = TRUE,
+  colors = c("#6D9EC1", "white", "#E46726"), outline.color = "black",
+  ggtheme = ggplot2::theme_gray, title = NULL, subtitle = NULL,
+  caption = NULL, caption.default = TRUE, lab_col = "black",
+  lab_size = 4.5, insig = "pch", pch = 4, pch.col = "blue",
+  pch.cex = 10, tl.cex = 12, tl.col = "black", tl.srt = 45)
 }
 \arguments{
 \item{data}{Dataframe from which variables specified are preferentially to be
@@ -24,25 +25,33 @@ computed and visualized.}
 \item{cor.vars.names}{Optional list of names to be used for \code{cor.vars}. The
 names should be entered in the same order.}
 
-\item{output}{Expected output from this function: "plot" (visualization
-matrix) or "correlations" (correlation matrix) or #' "p-values" (matrix of
+\item{output}{Expected output from this function: \code{"plot"} (visualization
+matrix) or \code{"correlations"} (correlation matrix) or \code{"p-values"} (matrix of
 p-values).}
 
-\item{type}{Character, "full" (default), "upper" or "lower", display full
+\item{type}{Character, \code{"full"} (default), \code{"upper"} or \code{"lower"}, display full
 matrix, lowe triangular or upper triangular matrix.}
 
 \item{method}{Character argument that decides the visualization method of
-correlation matrix to be used. Allowed values are "square" (default),
-"circle".}
+correlation matrix to be used. Allowed values are \code{"square"} (default),
+\code{"circle"}}
 
 \item{corr.method}{A character string indicating which correlation
-coefficient is to be computed ("pearson" (default) or "kendall", or
-"spearman").}
+coefficient is to be computed (\code{"pearson"} (default) or \code{"kendall"} or
+\code{"spearman"}). Abbreviations will \strong{not} work.}
+
+\item{exact}{A logical indicating whether an exact \emph{p}-value should be
+computed. Used for Kendall's \emph{tau} and Spearman's \emph{rho}. For more details,
+see \code{?stats::cor.test}.}
+
+\item{continuity}{A logical. If \code{TRUE}, a continuity correction is used for
+Kendall's \emph{tau} and Spearman's \emph{rho} when not computed exactly (Default:
+\code{TRUE}).}
 
 \item{digits}{Decides the number of decimal digits to be added into the plot
-(Default: 2).}
+(Default: \code{2}).}
 
-\item{sig.level}{Significance level (Dafault: 0.05). If the p-value in p-mat
+\item{sig.level}{Significance level (Dafault: \code{0.05}). If the p-value in p-mat
 is bigger than sig.level, then the correspondi#' ng correlation coefficient
 is regarded as insignificant.}
 
@@ -69,7 +78,11 @@ etc.}
 
 \item{subtitle}{The text for the plot subtitle.}
 
-\item{caption}{The text for the plot caption.}
+\item{caption}{The text for the plot caption. If not specified (if it is
+\code{NULL}, i.e.), a default caption will be shown.}
+
+\item{caption.default}{Logical decides whether the default caption should be
+shown.}
 
 \item{lab_col}{Color to be used for the correlation coefficient labels
 (applicable only when \code{lab = TRUE}).}
@@ -78,12 +91,12 @@ etc.}
 (applicable only when \code{lab = TRUE}).}
 
 \item{insig}{Character used to show specialized insignificant correlation
-coefficients ("pch" (default) or "blank"). If "blank", the corresponding
-glyphs will be removed; if "pch" is used, characters (see \code{pch} for
-details) will be added on #' the corresponding glyphs.}
+coefficients (\code{"pch"} (default) or \code{"blank"}). If \code{"blank"}, the
+corresponding glyphs will be removed; if "pch" is used, characters (see
+\code{?pch} for details) will be added on the corresponding glyphs.}
 
 \item{pch}{Decides the glyphs to be used for insignificant correlation
-coefficients (only valid when \code{insig = "pch"}). Default value is 4.}
+coefficients (only valid when \code{insig = "pch"}). Default value is \code{pch = 4}.}
 
 \item{pch.col, pch.cex}{The color and the cex (size) of \code{pch} (only valid when
 \code{insig = "pch"}). Defaults are \code{pch.col = "blue"} and \code{pch.cex = 10}.}
@@ -101,21 +114,19 @@ Visualization of a correlalogram (or correlation matrix) using
 }
 \examples{
 
-library(datasets)
-library(ggplot2)
-
 # to get the correlalogram
 ggstatsplot::ggcorrmat(
 data = datasets::iris,
-cor.vars = c(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width)
+cor.vars = c(Sepal.Length:Petal.Width)
 )
 
 # to get the correlation matrix
 ggstatsplot::ggcorrmat(
 data = datasets::iris,
-cor.vars = c(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width),
+cor.vars = c(Sepal.Length:Petal.Width),
 output = "correlations"
 )
+
 # setting output = "p-values" will return the p-value matrix
 
 # modifying few elements of the correlation matrix by changing function defaults
@@ -125,8 +136,7 @@ cor.vars = c(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width),
 sig.level = 0.01,
 ggtheme = ggplot2::theme_gray,
 hc.order = TRUE, type = "lower", outline.col = "white",
-title = "Dataset: Iris",
-subtitle = "The threshold of significance = 0.01"
+title = "Dataset: Iris"
 )
 
 }

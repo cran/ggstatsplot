@@ -2,7 +2,7 @@
 % Please edit documentation in R/ggpiestats.R
 \name{ggpiestats}
 \alias{ggpiestats}
-\title{pie charts with statistical tests}
+\title{Pie charts with statistical tests}
 \arguments{
 \item{data}{The data as a data frame.}
 
@@ -39,7 +39,7 @@ Pie charts for categorical data with statistical details
 included in the plot as a subtitle.
 }
 \examples{
-library(datasets)
+
 library(ggplot2)
 
 # simple function call with the defaults

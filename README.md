@@ -4,8 +4,7 @@
 # ggstatsplot: `ggplot2` Based Plots with Statistical Details
 
 [![CRAN\_Release\_Badge](http://www.r-pkg.org/badges/version-ago/ggstatsplot)](https://CRAN.R-project.org/package=ggstatsplot)
-[![CRAN version
-badge](https://www.r-pkg.org/badges/version/ggstatsplot)](https://CRAN.R-project.org/package=ggstatsplot)
+[![packageversion](https://img.shields.io/badge/Package%20version-0.0.2-orange.svg?style=flat-square)](commits/master)
 [![Daily downloads
 badge](https://cranlogs.r-pkg.org/badges/last-day/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot)
 [![Weekly downloads
@@ -14,7 +13,6 @@ badge](https://cranlogs.r-pkg.org/badges/last-week/ggstatsplot?color=blue)](http
 badge](https://cranlogs.r-pkg.org/badges/last-month/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot)
 [![Total downloads
 badge](https://cranlogs.r-pkg.org/badges/grand-total/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot)
-[![packageversion](https://img.shields.io/badge/Package%20version-0.0.1-orange.svg?style=flat-square)](commits/master)
 [![Travis Build
 Status](https://travis-ci.org/IndrajeetPatil/ggstatsplot.svg?branch=master)](https://travis-ci.org/IndrajeetPatil/ggstatsplot)
 [![AppVeyor Build
@@ -23,14 +21,17 @@ Status](https://ci.appveyor.com/api/projects/status/github/IndrajeetPatil/ggstat
 [![Project Status: Active - The project has reached a stable, usable
 state and is being actively
 developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
-[![Last-changedate](https://img.shields.io/badge/last%20change-2018--03--29-yellowgreen.svg)](/commits/master)
-[![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#experimental)
+[![Last-changedate](https://img.shields.io/badge/last%20change-2018--04--28-yellowgreen.svg)](/commits/master)
+[![lifecycle](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://www.tidyverse.org/lifecycle/#stable)
 [![minimal R
 version](https://img.shields.io/badge/R%3E%3D-3.3.0-6666ff.svg)](https://cran.r-project.org/)
+
 <!-- 
+[![CRAN version badge](https://www.r-pkg.org/badges/version/ggstatsplot)](https://CRAN.R-project.org/package=ggstatsplot)
+[![Open issues](http://img.shields.io/github/issues/badges/ggstatsplot.svg)](https://github.com/IndrajeetPatil/ggstatsplot/issues/)
+[![Research software impact](http://depsy.org/api/package/cran/ggstatsplot/badge.svg)](http://depsy.org/package/r/ggstatsplot)
 [![Coverage Status](https://img.shields.io/codecov/c/github/IndrajeetPatil/ggstatsplot/master.svg)](https://codecov.io/github/IndrajeetPatil/ggstatsplot?branch=master)
 [![Dependency Status](http://img.shields.io/gemnasium/IndrajeetPatil/ggstatsplot.svg)](https://gemnasium.com/IndrajeetPatil/ggstatsplot) 
-[![Documentation badge](https://www.rdocumentation.org/badges/version/ggstatsplot)](https://www.rdocumentation.org/badges/version/ggstatsplot)
 -->
 
 ## Overview
@@ -52,8 +53,14 @@ Future versions will include other types of analyses and plots as well.
 
 ## Installation
 
-You can get the development version from GitHub. If you are in hurry and
-want to reduce the time of installation,
+To get the latest, stable CRAN release:
+
+``` r
+utils::install.packages(pkgs = "ggstatsplot")
+```
+
+You can get the **development** version from GitHub. If you are in hurry
+and want to reduce the time of installation,
 prefer-
 
 ``` r
@@ -84,6 +91,15 @@ rmarkdown::pandoc_available()
 #> [1] TRUE
 ```
 
+## Citation
+
+If you want to cite this package in a scientific journal or in any other
+context, run the following code in your R console:
+
+``` r
+utils::citation(package = "ggstatsplot")
+```
+
 ## Help
 
 Documentation for any function can be accessed with the standard `help`
@@ -96,6 +112,7 @@ command-
 ?ggpiestats
 ?ggcorrmat
 ?combine_plots
+?grouped_gghistostats
 ```
 
 ## Usage
@@ -129,7 +146,7 @@ ggstatsplot::ggbetweenstats(data = datasets::iris,
                             messages = FALSE)
 ```
 
-![](man/figures/README-ggbetweenstats1-1.png)<!-- -->
+<img src="man/figures/README-ggbetweenstats1-1.png" width="100%" />
 
 Number of other arguments can be specified to make this plot even more
 informative and, additionally, this function returns a `ggplot2` object
@@ -153,12 +170,12 @@ ggstatsplot::ggbetweenstats(
     paste(italic("Note"), ": this is a demo")
   ),
   messages = FALSE
-) +                                             # further modifcation outside of ggstatsplot
+) +                                               # further modification outside of ggstatsplot
   ggplot2::coord_cartesian(ylim = c(3, 8)) + 
   ggplot2::scale_y_continuous(breaks = seq(3, 8, by = 1)) 
 ```
 
-![](man/figures/README-ggbetweenstats2-1.png)<!-- -->
+<img src="man/figures/README-ggbetweenstats2-1.png" width="100%" />
 
 The `type` (of test) argument also accepts the following abbreviations:
 “p” (for *parametric*), “np” (for *nonparametric*), “r” (for
@@ -208,7 +225,7 @@ cowplot::plot_grid(p1, p2, p3,
 )
 ```
 
-![](man/figures/README-ggbetweenstats3-1.png)<!-- -->
+<img src="man/figures/README-ggbetweenstats3-1.png" width="100%" />
 
 Variant of this function `ggwithinstats` is currently under work. You
 *can* still use this function just to prepare the **plot**, but the
@@ -231,7 +248,7 @@ ggstatsplot::ggscatterstats(data = datasets::iris,
                             messages = FALSE)
 ```
 
-![](man/figures/README-ggscatterstats1-1.png)<!-- -->
+<img src="man/figures/README-ggscatterstats1-1.png" width="100%" />
 
 Number of other arguments can be specified to modify this basic plot-
 
@@ -253,14 +270,14 @@ ggstatsplot::ggscatterstats(
   marginal.type = "density",                     # type of marginal distribution to be displayed
   xfill = "blue",                                # colour fill for x-axis marginal distribution 
   yfill = "red",                                 # colour fill for y-axis marginal distribution
-  intercept = "median",                          # which type of intercept line is to be displayed  
+  centrality.para = "median",                          # which type of central tendency lines are to be displayed  
   width.jitter = 0.2,                            # amount of horizontal jitter for data points
   height.jitter = 0.4,                           # amount of vertical jitter for data points
   messages = FALSE                               # turn off messages and notes
 ) 
 ```
 
-![](man/figures/README-ggscatterstats2-1.png)<!-- -->
+<img src="man/figures/README-ggscatterstats2-1.png" width="100%" />
 
 The `type` (of test) argument also accepts the following abbreviations:
 “p” (for *parametric*/pearson’s), “np” (for *nonparametric*/spearman),
@@ -285,7 +302,7 @@ ggstatsplot::ggpiestats(data = datasets::iris,
                         messages = FALSE)
 ```
 
-![](man/figures/README-ggpiestats1-1.png)<!-- -->
+<img src="man/figures/README-ggpiestats1-1.png" width="100%" />
 
 This function can also be used to study an interaction between two
 categorical variables. Additionally, as with the other functions in
@@ -300,10 +317,10 @@ ggstatsplot::ggpiestats(data = datasets::mtcars,
                         main = cyl,
                         condition = am,
                         messages = FALSE) +
-  ggplot2::scale_fill_brewer(palette = "Dark2")   # further modifcation outside of ggstatsplot    
+  ggplot2::scale_fill_brewer(palette = "Dark2")   # further modification outside of ggstatsplot    
 ```
 
-![](man/figures/README-ggpiestats2-1.png)<!-- -->
+<img src="man/figures/README-ggpiestats2-1.png" width="100%" />
 
 As with the other functions, this basic plot can further be modified
 with additional arguments:
@@ -328,7 +345,7 @@ ggstatsplot::ggpiestats(
 ) 
 ```
 
-![](man/figures/README-ggpiestats3-1.png)<!-- -->
+<img src="man/figures/README-ggpiestats3-1.png" width="100%" />
 
   - `gghistostats`
 
@@ -348,18 +365,53 @@ ggstatsplot::gghistostats(
   test.value = 3,                 # default value is 0
   centrality.para = "mean",       # which measure of central tendency is to be plotted
   centrality.colour = "red",      # decides colour of vertical line representing central tendency
-  density.plot = TRUE,            # whether density plot is to be overlayed on a histogram
   binwidth.adjust = TRUE,         # whether binwidth needs to be adjusted
   binwidth = 0.10,                # binwidth value (needs to be toyed around with until you find the best one)
   messages = FALSE                # turn off the messages
 ) +              
-  viridis::scale_fill_viridis()   # further modifcation outside of ggstatsplot
+  viridis::scale_fill_viridis()   # further modification outside of ggstatsplot
 ```
 
-![](man/figures/README-gghistostats-1.png)<!-- -->
+<img src="man/figures/README-gghistostats1-1.png" width="100%" />
 
 The `type` (of test) argument also accepts the following abbreviations:
-“p” (for *parametric*) or “np” (for *nonparametric*).
+“p” (for *parametric*) or “np” (for *nonparametric*) or “bf” (for
+*Bayes Factor*).
+
+``` r
+ggstatsplot::gghistostats(
+  data = NULL,
+  x = stats::rnorm(n = 1000, mean = 0, sd = 1),
+  centrality.para = "mean",
+  type = "bf",
+  bf.prior = 0.8,
+  messages = FALSE
+)
+```
+
+<img src="man/figures/README-gghistostats2-1.png" width="100%" />
+
+As seen here, by default, Bayes Factor quantifies the support for the
+alternative hypothesis (H1) over the null hypothesis (H0) (i.e., BF10 is
+displayed). In case you run parametric t-test and the effect is not
+significant, caption will be displayed containing information about
+evidence in favor of the null hypothesis (H0). This is not recommended,
+but if you want to turn off this behavior, you can use the argument
+`bf.message = FALSE`.
+
+``` r
+ggstatsplot::gghistostats(
+  data = datasets::ToothGrowth,
+  x = len,
+  centrality.para = "mean",
+  test.value = 20,
+  test.value.line = TRUE,
+  xlab = "Tooth length",
+  messages = FALSE
+)
+```
+
+<img src="man/figures/README-gghistostats3-1.png" width="100%" />
 
   - `ggcorrmat`
 
@@ -372,9 +424,9 @@ matrices. (Wrapper around
 # as a default this function outputs a correlalogram plot
 ggstatsplot::ggcorrmat(
   data = datasets::iris,
-  corr.method = "spearman",      # correlation method
-  sig.level = 0.005,              # threshold of significance
-  cor.vars = c(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width),
+  corr.method = "spearman",                # correlation method
+  sig.level = 0.005,                       # threshold of significance
+  cor.vars = Sepal.Length:Petal.Width,     # a range of variables can be selected  
   cor.vars.names = c("Sepal Length", "Sepal Width", "Petal Length", "Petal Width"),
   title = "Correlalogram for length measures for Iris species",
   subtitle = "Iris dataset by Anderson",
@@ -389,7 +441,7 @@ ggstatsplot::ggcorrmat(
 )
 ```
 
-![](man/figures/README-ggcorrmat1-1.png)<!-- -->
+<img src="man/figures/README-ggcorrmat1-1.png" width="100%" />
 
 Alternatively, you can use it just to get the correlation matrices and
 their corresponding p-values (in a
@@ -399,28 +451,28 @@ their corresponding p-values (in a
 # getting correlations 
 ggstatsplot::ggcorrmat(
   data = datasets::iris,
-  cor.vars = c(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width),
+  cor.vars = Sepal.Length:Petal.Width,
   output = "correlations"
 )
 #> # A tibble: 4 x 5
 #>   variable     Sepal.Length Sepal.Width Petal.Length Petal.Width
 #>   <chr>               <dbl>       <dbl>        <dbl>       <dbl>
-#> 1 Sepal.Length        1.00       -0.120        0.870       0.820
-#> 2 Sepal.Width        -0.120       1.00        -0.430      -0.370
-#> 3 Petal.Length        0.870      -0.430        1.00        0.960
-#> 4 Petal.Width         0.820      -0.370        0.960       1.00
+#> 1 Sepal.Length         1          -0.12         0.87        0.82
+#> 2 Sepal.Width         -0.12        1           -0.43       -0.37
+#> 3 Petal.Length         0.87       -0.43         1           0.96
+#> 4 Petal.Width          0.82       -0.37         0.96        1
 
 # getting p-values
 ggstatsplot::ggcorrmat(
   data = datasets::iris,
-  cor.vars = c(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width),
+  cor.vars = Sepal.Length:Petal.Width,
   output = "p-values"
 )
 #> # A tibble: 4 x 5
 #>   variable     Sepal.Length  Sepal.Width Petal.Length Petal.Width
 #>   <chr>               <dbl>        <dbl>        <dbl>       <dbl>
 #> 1 Sepal.Length     0.       0.152            1.04e-47    2.33e-37
-#> 2 Sepal.Width      1.52e- 1 0.               4.51e- 8    4.07e- 6
+#> 2 Sepal.Width      1.52e- 1 0                4.51e- 8    4.07e- 6
 #> 3 Petal.Length     1.04e-47 0.0000000451     0.          4.68e-86
 #> 4 Petal.Width      2.33e-37 0.00000407       4.68e-86    0.
 ```
@@ -438,8 +490,7 @@ programming package like [`purrr`](http://purrr.tidyverse.org/) that
 replaces many for loops with code that is both more succinct and easier
 to read and, therefore, `purrr` should be preferrred.
 
-An example is provided below. Notice how little code is needed not only
-to prepare the plots but also to plot the statistical test results.
+An example is provided below.
 
 ``` r
 
@@ -496,7 +547,7 @@ ggstatsplot::combine_plots(
 )
 ```
 
-![](man/figures/README-combine_plots_purrr1-1.png)<!-- -->
+<img src="man/figures/README-combine_plots_purrr1-1.png" width="100%" />
 
 Here is another example with `ggbetweenstats`-
 
@@ -534,9 +585,9 @@ plots
 #> # A tibble: 3 x 3
 #>     cyl data               plot    
 #>   <dbl> <list>             <list>  
-#> 1    6. <tibble [7 x 11]>  <S3: gg>
-#> 2    4. <tibble [11 x 11]> <S3: gg>
-#> 3    8. <tibble [14 x 11]> <S3: gg>
+#> 1     6 <tibble [7 x 11]>  <S3: gg>
+#> 2     4 <tibble [11 x 11]> <S3: gg>
+#> 3     8 <tibble [14 x 11]> <S3: gg>
 
 ### creating a grid with cowplot
 ggstatsplot::combine_plots(plotlist = plots$plot,       # list column containing all ggstatsplot objects
@@ -555,7 +606,7 @@ ggstatsplot::combine_plots(plotlist = plots$plot,       # list column containing
                            ))
 ```
 
-![](man/figures/README-combine_plots_purrr2-1.png)<!-- -->
+<img src="man/figures/README-combine_plots_purrr2-1.png" width="100%" />
 
   - `theme_mprl`
 
@@ -571,9 +622,10 @@ ggplot2::ggplot(data = datasets::mtcars,
   ggplot2::geom_point()
 ```
 
-![](man/figures/README-theme_mprl-1.png)<!-- -->
+<img src="man/figures/README-theme_mprl-1.png" width="100%" />
 
 ``` r
+
 # Basic scatter plot with theme_mprl() added
 ggplot2::ggplot(data = datasets::mtcars, 
                 mapping = ggplot2::aes(x = wt, y = mpg)) + 
@@ -581,7 +633,7 @@ ggplot2::ggplot(data = datasets::mtcars,
   ggstatsplot::theme_mprl()
 ```
 
-![](man/figures/README-theme_mprl-2.png)<!-- -->
+<img src="man/figures/README-theme_mprl-2.png" width="100%" />
 
 Please note that this project is released with a [Contributor Code of
 Conduct](https://github.com/IndrajeetPatil/ggstatsplot/blob/master/CONDUCT.md).

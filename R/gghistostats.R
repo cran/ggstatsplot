@@ -1,5 +1,5 @@
 #'
-#' @title histogram for distribution of a numeric variable
+#' @title Histogram for distribution of a numeric variable
 #' @name gghistostats
 #' @aliases gghistostats
 #' @description Histogram with statistical details from one-sample test included
@@ -14,19 +14,26 @@
 #' @param subtitle The text for the plot subtitle *if* you don't want results
 #'   from one sample test to be displayed.
 #' @param caption The text for the plot caption.
-#' @param type Type of statistic expected ("parametric" or "nonparametric").
-#'   Abbreviations accepted are "p" or "np".
+#' @param type Type of statistic expected (`"parametric"` or `"nonparametric"` or
+#'   `"bayes"`). Abbreviations accepted are `"p"` or `"np"` or `"bf"`, respectively.
 #' @param test.value A number specifying the value of the null hypothesis.
+#' @param bf.prior A number between 0.5 and 2 (default 0.707), the prior width
+#'   to use in calculating Bayes factors.
+#' @param bf.message Logical. Decides whether to display Bayes Factor in favor
+#'   of null hypothesis for parametric test if the null hypothesis can't be
+#'   rejected (Default: `bf.message = TRUE`).
 #' @param k Number of decimal places expected for results.
 #' @param results.subtitle Decides whether the results of statistical tests are
-#'   to be displayed as subtitle.
-#' @param density.plot Decides whether kernel density estimate, which is a
-#'   smoothed version of the histogram, is to be overlayed on top of the
-#'   histogram.
-#' @param density.colour Decides colour for the density plot.
-#' @param centrality.para Decides *which* measure of central tendency ("mean" or
-#'   "median") is to be displayed as a vertical line.
-#' @param centrality.colour Decides colour for the vertical line.
+#'   to be displayed as subtitle (Default: `results.subtitle = TRUE`). If set to
+#'   `FALSE`, no statistical tests will be run.
+#' @param centrality.para Decides *which* measure of central tendency (`"mean"` or
+#'   `"median"`) is to be displayed as a vertical line.
+#' @param centrality.colour Decides colour for the vertical line for centrality
+#'   parameter (Default: `"blue"`).
+#' @param test.value.line Decides whether test value is to be displayed as a
+#'   vertical line (Default: `FALSE`).
+#' @param test.value.colour Decides colour for the vertical line denoting test
+#'   value (Default: `"black"`).
 #' @param binwidth.adjust If set to `TRUE`, you can use it to pick better value
 #'   with the `binwidth` argument to `stat_bin()`.
 #' @param binwidth The width of the bins. Can be specified as a numeric value,
@@ -42,28 +49,41 @@
 #' @importFrom jmv ttestOneS
 #' @importFrom stats dnorm
 #' @importFrom nortest ad.test
+#' @importFrom crayon green
+#' @importFrom crayon blue
+#' @importFrom crayon yellow
+#' @importFrom crayon red
 #'
 #' @examples
 #'
-#' library(datasets)
-#' library(ggplot2)
-#'
 #' # most basic function call with the defaults
 #' ggstatsplot::gghistostats(
-#' data = ggplot2::diamonds,
-#' x = carat)
+#' data = datasets::ToothGrowth,
+#' x = len,
+#' xlab = "Tooth length")
+#'
+#' # another example
+#' ggstatsplot::gghistostats(
+#' data = NULL,
+#' x = stats::rnorm(n = 1000, mean = 0, sd = 1),
+#' centrality.para = "mean",
+#' type = "np"
+#' )
 #'
 #' # more detailed function call
 #' ggstatsplot::gghistostats(
 #' data = datasets::iris,
 #' x = Sepal.Length,
-#' type = "parametric",
+#' type = "bf",
+#' bf.prior = 0.8,
 #' test.value = 3,
 #' centrality.para = "mean",
-#' density.plot = TRUE,
+#' test.value.line = TRUE,
 #' binwidth.adjust = TRUE,
 #' binwidth = 0.10
 #' )
+#'
+#' @seealso \code{\link{grouped_gghistostats}}
 #'
 #' @export
 #'
@@ -99,14 +119,16 @@ utils::globalVariables(
     "LL",
     "UL",
     "..count..",
-    "..density..",
     "dnorm",
     "mean",
     "median",
-    "sd"
+    "sd",
+    "bf",
+    "bf_error"
   )
 )
 
+# function body
 gghistostats <-
   function(data = NULL,
            x,
@@ -116,18 +138,27 @@ gghistostats <-
            caption = NULL,
            type = "parametric",
            test.value = 0,
+           bf.prior = 0.707,
+           bf.message = TRUE,
            k = 3,
            results.subtitle = TRUE,
-           density.plot = FALSE,
-           density.colour = "black",
            centrality.para = NULL,
            centrality.colour = "blue",
+           test.value.line = FALSE,
+           test.value.colour = "black",
            binwidth.adjust = FALSE,
            binwidth = NULL,
            messages = TRUE) {
     # if data is not available then don't display any messages
-    if (is.null(data))
+    if (is.null(data)) {
       messages <- FALSE
+    }
+    # save the value of caption in another variable because caption is going to be modified in the function body
+    if (is.null(caption)) {
+      bf.caption <- caption
+    } else {
+      bf.caption <- NULL
+    }
     # ========================================== dataframe ==============================================================
     # preparing a dataframe out of provided inputs
     if (!is.null(data)) {
@@ -148,23 +179,28 @@ gghistostats <-
         base::cbind.data.frame(x = x)
     }
     # ========================================== stats ==================================================================
-    if (isTRUE(results.subtitle)) {
-      if (type == "parametric" | type == "p") {
-        # model
-        jmv_os <- jmv::ttestOneS(
-          data = data,
-          vars = "x",
-          students = TRUE,
-          bf = FALSE,
-          bfPrior = 0.707,
-          mann = FALSE,
-          # Mann-Whitney U test
-          testValue = test.value,
-          hypothesis = "dt",
-          # two-sided hypothesis-testing
-          effectSize = TRUE
-        )
 
+    if (isTRUE(results.subtitle)) {
+
+      # model
+      jmv_os <- jmv::ttestOneS(
+        data = data,
+        vars = "x",
+        students = TRUE,
+        bf = TRUE,
+        bfPrior = bf.prior,
+        mann = TRUE,
+        # Mann-Whitney U test
+        testValue = test.value,
+        hypothesis = "dt",
+        # two-sided hypothesis-testing
+        effectSize = TRUE,
+        miss = "listwise"
+        # excludes a row from all analyses if one of its entries is missing
+      )
+
+      # ========================================== parametric ==================================================================
+      if (type == "parametric" || type == "p") {
         # preparing the subtitle
         subtitle <- base::substitute(
           expr =
@@ -184,29 +220,47 @@ gghistostats <-
               effsize
             ),
           env = base::list(
-            estimate = ggstatsplot::specify_decimal_p(x = as.data.frame(jmv_os$ttest)$stat, k),
+            estimate = ggstatsplot::specify_decimal_p(x = as.data.frame(jmv_os$ttest)$`stat[stud]`, k),
             # df is integer value for Student's t-test
-            df = as.data.frame(jmv_os$ttest)$df,
-            pvalue = ggstatsplot::specify_decimal_p(x = as.data.frame(jmv_os$ttest)$p, k, p.value = TRUE),
-            effsize = ggstatsplot::specify_decimal_p(x = as.data.frame(jmv_os$ttest)$es, k)
+            df = as.data.frame(jmv_os$ttest)$`df[stud]`,
+            pvalue = ggstatsplot::specify_decimal_p(
+              x = as.data.frame(jmv_os$ttest)$`p[stud]`,
+              k,
+              p.value = TRUE
+            ),
+            effsize = ggstatsplot::specify_decimal_p(x = as.data.frame(jmv_os$ttest)$`es[stud]`, k)
           )
         )
-      } else if (type == "nonparametric" | type == "np") {
-        # model
-        jmv_os <- jmv::ttestOneS(
-          data = data,
-          vars = "x",
-          students = FALSE,
-          bf = FALSE,
-          bfPrior = 0.707,
-          mann = TRUE,
-          # Mann-Whitney U test
-          testValue = test.value,
-          hypothesis = "dt",
-          # two-sided hypothesis-testing
-          effectSize = TRUE
-        )
 
+        # if effect is not significant, display Bayes Factor in favor of the NULL
+        # save it as text if bf.message has not been disabled
+          if (as.data.frame(jmv_os$ttest)$`p[stud]` > 0.05) {
+            if (isTRUE(bf.message)) {
+              bf.caption.text <-
+                paste(
+                  "Note: Evidence in favor of the null hypothesis:",
+                  ggstatsplot::specify_decimal_p(x = 1 / as.data.frame(jmv_os$ttest)$`stat[bf]`, k),
+                  "with prior width =",
+                  ggstatsplot::specify_decimal_p(x = bf.prior, k)
+                )
+            } else {
+              # display a note about prior used to compute Bayes Factor
+              if (isTRUE(messages)) {
+                base::message(cat(
+                  crayon::green("Note: "),
+                  crayon::blue(
+                    "Prior width used to compute Bayes Factor:",
+                    crayon::yellow(bf.prior)
+                  ),
+                  crayon::blue("\nEvidence in favor of the null hypothesis (H0):"),
+                  crayon::yellow(1 / as.data.frame(jmv_os$ttest)$`stat[bf]`)
+                ))
+              }
+            }
+          }
+
+        # ========================================== non-parametric =====================================================
+      } else if (type == "nonparametric" || type == "np") {
         # preparing the subtitle
         subtitle <- base::substitute(
           expr =
@@ -224,14 +278,74 @@ gghistostats <-
               effsize
             ),
           env = base::list(
-            estimate = as.data.frame(jmv_os$ttest)$stat,
-            pvalue = ggstatsplot::specify_decimal_p(x = as.data.frame(jmv_os$ttest)$p, k, p.value = TRUE),
-            effsize = ggstatsplot::specify_decimal_p(x = as.data.frame(jmv_os$ttest)$es, k)
+            estimate = as.data.frame(jmv_os$ttest)$`stat[mann]`,
+            pvalue = ggstatsplot::specify_decimal_p(
+              x = as.data.frame(jmv_os$ttest)$`p[mann]`,
+              k,
+              p.value = TRUE
+            ),
+            effsize = ggstatsplot::specify_decimal_p(x = as.data.frame(jmv_os$ttest)$`es[mann]`, k)
           )
         )
+        # ========================================== bayes ==================================================================
+      } else if (type == "bayes" || type == "bf") {
+        # preparing the subtitle
+        subtitle <- base::substitute(
+          expr =
+            paste(
+              italic("t"),
+              "(",
+              df,
+              ") = ",
+              estimate,
+              ", ",
+              "BF"[10],
+              " = ",
+              bf,
+              ", error = ",
+              bf_error,
+              ", ",
+              italic("d"),
+              " = ",
+              effsize
+            ),
+          env = base::list(
+            # df is integer value for Student's t-test
+            df = as.data.frame(jmv_os$ttest)$`df[stud]`,
+            estimate = ggstatsplot::specify_decimal_p(x = as.data.frame(jmv_os$ttest)$`stat[stud]`, k),
+            bf = as.data.frame(jmv_os$ttest)$`stat[bf]`,
+            bf_error = as.data.frame(jmv_os$ttest)$`err[bf]`,
+            effsize = ggstatsplot::specify_decimal_p(x = as.data.frame(jmv_os$ttest)$`es[stud]`, k)
+          )
+        )
+
+        # display a note about prior used to compute Bayes Factor
+        if (isTRUE(messages)) {
+          base::message(cat(
+            crayon::green("Note: "),
+            crayon::blue(
+              "Prior width used to compute Bayes Factor:",
+              crayon::yellow(bf.prior)
+            ),
+            crayon::blue("\nEvidence in favor of the null hypothesis (H0):"),
+            crayon::yellow(1 / as.data.frame(jmv_os$ttest)$`stat[bf]`)
+          ))
+        }
+      } else {
+        subtitle <- subtitle
       }
-    } else {
-      subtitle <- subtitle
+
+      # preparing caption
+      # if caption is not provided, then use bf.caption.text as caption
+      if (type == "parametric") {
+        if (as.data.frame(jmv_os$ttest)$`p[stud]` > 0.05) {
+          if (isTRUE(bf.message)) {
+            if (is.null(caption)) {
+              caption <- bf.caption.text
+            }
+          }
+        }
+      }
     }
     # ========================================== plot ===================================================================
 
@@ -244,7 +358,7 @@ gghistostats <-
           alpha = 0.7,
           binwidth = binwidth,
           na.rm = TRUE,
-          mapping = ggplot2::aes(y = ..density..,
+          mapping = ggplot2::aes(y = ..count..,
                                  fill = ..count..)
         ) +
         ggplot2::scale_fill_gradient("count",
@@ -260,11 +374,11 @@ gghistostats <-
     } else {
       # if not, use the defaults
       plot <- ggplot2::ggplot(data = data,
-                              mapping = aes(x = x)) +
+                              mapping = ggplot2::aes(x = x)) +
         ggplot2::geom_histogram(
           col = "black",
           alpha = 0.7,
-          mapping = ggplot2::aes(y = ..density.., fill = ..count..),
+          mapping = ggplot2::aes(y = ..count.., fill = ..count..),
           na.rm = TRUE
         ) +
         ggplot2::scale_fill_gradient("count",
@@ -292,7 +406,7 @@ gghistostats <-
           )
         # this can be used to label the vertical lines, but leave it out since it makes for an ugly plot
         # + ggplot2::geom_text(
-        #   mapping = aes(
+        #   mapping = ggplot2::aes(
         #     x = mean(data$x) + 0.10,
         #     label = "mean",
         #     y = -0.05
@@ -312,7 +426,7 @@ gghistostats <-
           )
         # this can be used to label the vertical lines, but leave it out since it makes for an ugly plot
         # + ggplot2::geom_text(
-        #     mapping = aes(
+        #     mapping = ggplot2::aes(
         #       x = median(data$x) + 0.13,
         #       label = "median",
         #       y = -0.05
@@ -324,15 +438,37 @@ gghistostats <-
       }
     }
 
-    # if normal distribution plot is to be added
-    if (isTRUE(density.plot)) {
+    # if central tendency parameter is to be added
+    if (isTRUE(test.value.line)) {
       plot <- plot +
-        ggplot2::geom_density(colour = density.colour,
-                              size = 1.0,
-                              na.rm = TRUE)
+        ggplot2::geom_vline(
+          xintercept = test.value,
+          linetype = "dashed",
+          color = test.value.colour,
+          size = 1.2,
+          na.rm = TRUE
+        )
+    }
+    # if caption is provided then use combine_plots function later on to add this caption
+    # add caption with bayes factor
+    if (isTRUE(results.subtitle)) {
+      if (type == "parametric") {
+        if (as.data.frame(jmv_os$ttest)$`p[stud]` > 0.05) {
+          if (isTRUE(bf.message)) {
+            if (!is.null(bf.caption)) {
+              plot <-
+                ggstatsplot::combine_plots(plot,
+                                           caption.text = bf.caption.text)
+            }
+          }
+        }
+      }
     }
 
-    ################################################### messages ############################################################
+    # creating proper spacing between the legend.title and the colorbar
+    plot <- legend_title_margin(plot = plot)
+
+    # ========================================== messages ==================================================================
     if (isTRUE(messages)) {
       # display normality test result as a message
       # # for AD test of normality, sample size must be greater than 7
@@ -347,13 +483,14 @@ gghistostats <-
             ": p-value = "
           ),
           crayon::yellow(
-            ggstatsplot::specify_decimal_p(x = ad_norm$p.value,
+            ggstatsplot::specify_decimal_p(x = ad_norm$p.value[[1]],
                                            k,
                                            p.value = TRUE)
           )
         ))
       }
     }
+
     # return the final plot
     return(plot)
   }

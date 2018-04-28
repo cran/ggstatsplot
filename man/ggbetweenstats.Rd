@@ -15,13 +15,14 @@ taken.}
 
 \item{ylab}{Label for \code{y} axis variable.}
 
-\item{type}{Type of statistic expected ("parametric" or "nonparametric" or
-"robust").Corresponding abbreviations are also accepted: "p" (for
-parametric), "np" (nonparametric), "r" (robust), resp.}
+\item{type}{Type of statistic expected (\code{"parametric"} or \code{"nonparametric"}
+or \code{"robust"}).Corresponding abbreviations are also accepted: \code{"p"} (for
+parametric), \code{"np"} (nonparametric), \code{"r"} (robust), resp.}
 
 \item{effsize.type}{Type of effect size needed for \emph{parametric} tests
-("biased" (Cohen's d, partial eta-squared) or "unbiased" (Hedge's g,
-omega-squared)).}
+(\code{"biased"} (Cohen's \emph{d} for \strong{t-test}; partial eta-squared for \strong{anova})
+or \code{"unbiased"} (Hedge's \emph{g} for \strong{t-test}; partial omega-squared for
+\strong{anova})).}
 
 \item{title}{The text for the plot title.}
 
@@ -32,7 +33,8 @@ omega-squared)).}
 \item{var.equal}{A logical variable indicating whether to treat the two
 variances as being equal (Default: \code{FALSE}).}
 
-\item{nboot}{Number of bootstrap samples.}
+\item{nboot}{Number of bootstrap samples for computing effect size (Default:
+\code{100}).}
 
 \item{outlier.color}{Default aesthetics for outliers.}
 
@@ -40,6 +42,11 @@ variances as being equal (Default: \code{FALSE}).}
 \code{FALSE}).}
 
 \item{outlier.label}{Label to put on the outliers that have been tagged.}
+
+\item{outlier.coef}{Coefficient for outlier detection using Tukey's method.
+With Tukey’s method, outliers are below (1st Quartile) or above (3rd
+Quartile) \code{outlier.coef} times the Inter-Quartile Range (IQR) (Default:
+\code{1.5}).}
 
 \item{mean.plotting}{Decides whether mean is to be highlighted and its value
 to be displayed (Default: \code{TRUE}).}
@@ -55,7 +62,8 @@ details included in the plot as a subtitle.
 }
 \examples{
 
-library(datasets)
+# to get reproducible results from bootstrapping
+set.seed(123)
 
 # simple function call with the defaults
 ggstatsplot::ggbetweenstats(

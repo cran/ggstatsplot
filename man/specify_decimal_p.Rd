@@ -2,23 +2,25 @@
 % Please edit documentation in R/specify_decimal_p.R
 \name{specify_decimal_p}
 \alias{specify_decimal_p}
-\title{custom function for getting specified number of decimal places in results for p-value}
+\title{Custom function for getting specified number of decimal places in
+results for p-value}
 \usage{
-specify_decimal_p(x, k = NULL, p.value = FALSE)
+specify_decimal_p(x, k = 3, p.value = FALSE)
 }
 \arguments{
 \item{x}{A numeric variable.}
 
-\item{k}{Number of digits after decimal point (should be an integer).}
+\item{k}{Number of digits after decimal point (should be an integer) (Default: \code{k = 3}).}
 
 \item{p.value}{Decides whether the number is a p-value (Dafault: \code{FALSE}).}
 }
 \value{
-formatted p-values from statistical tests
+Formatted numeric values.
 }
 \description{
-Function to format an R object for pretty printing with a specified number of decimal places. The
-function also allows highly significant p-values to be denoted as "p < 0.001" rather than "p = 0.000".
+Function to format an R object for pretty printing with a
+specified (\code{k}) number of decimal places. The function also allows highly
+significant p-values to be denoted as "p < 0.001" rather than "p = 0.000".
 }
 \author{
 Indrajeet Patil

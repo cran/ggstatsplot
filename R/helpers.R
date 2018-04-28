@@ -1,9 +1,9 @@
-#' @title custom function to set upper and lower margins to legend title in
+#' @title Custom function to set upper and lower margins to legend title in
 #'   ggplot2
 #' @name legend_title_margin
+#' @aliases legend_title_margin
 #' @return A plot with desired margins between the legend title and the legend.
 #'
-#' @author Indrajeet Patil
 #' @param plot Plot with the legend title whose margins need to be modified.
 #' @param t.margin,b.margin Margins in grid units.
 #'
@@ -12,6 +12,12 @@
 #' @import gtable
 #'
 #' @importFrom cowplot ggdraw
+#'
+#' @keywords internal
+#'
+#' @note This is a helper function used internally in the package and not
+#' exported. In case you want to use it, you can do so by
+#' `ggstatsplot:::legend_title_margin`. Note that it is `:::` and not `::`.
 #'
 
 legend_title_margin <- function(plot,
@@ -30,9 +36,11 @@ legend_title_margin <- function(plot,
   # set up the heights: for the two margins and the original title
   # unit.c produces a new unit object by combining the unit objects specified as arguments
   heights <-
-    grid::unit.c(t.margin,
-                 grid::unit(x = 1, units = "grobheight", data = title),
-                 b.margin)
+    grid::unit.c(
+      t.margin,
+      grid::unit(x = 1, units = "grobheight", data = title),
+      b.margin
+    )
 
   # set up a column of three viewports
   vp <- grid::viewport(
@@ -46,9 +54,11 @@ legend_title_margin <- function(plot,
 
   # the middle row, where the title text will appear, is named as 'child_vp'.
   child_vp <-
-    grid::viewport(layout.pos.row = 2,
-                   clip = "off",
-                   name = "child_vp")
+    grid::viewport(
+      layout.pos.row = 2,
+      clip = "off",
+      name = "child_vp"
+    )
 
   # put the title into a gTree containing one grob (the title) and the three viewports
   TitleText <- grid::gTree(
@@ -71,7 +81,7 @@ legend_title_margin <- function(plot,
 
   # remove the original title
   leg$grobs <- leg$grobs[-4]
-  leg$layout <- leg$layout[-4,]
+  leg$layout <- leg$layout[-4, ]
 
   # put the legend back into the plot
   g$grobs[[index]][[1]][[1]] <- leg
@@ -87,24 +97,31 @@ legend_title_margin <- function(plot,
 
 
 #'
-#'@title Function to run proportion test on grouped data.
-#'@name grouped_proptest
-#'@author Indrajeet Patil
-#'@return Dataframe with percentages and statistical details from a proportion
-#'  test.
+#' @title Function to run proportion test on grouped data.
+#' @name grouped_proptest
+#' @aliases grouped_proptest
+#' @author Indrajeet Patil
+#' @return Dataframe with percentages and statistical details from a proportion
+#'   test.
 #'
-#'@param data Dataframe from which variables are to be drawn.
-#'@param grouping.vars List of grouping variables
-#'@param measure A variable for which proportion test needs to be carried out
-#'  for each combination of levels of factors entered in `grouping.vars`.
+#' @param data Dataframe from which variables are to be drawn.
+#' @param grouping.vars List of grouping variables
+#' @param measure A variable for which proportion test needs to be carried out
+#'   for each combination of levels of factors entered in `grouping.vars`.
 #'
-#'@import dplyr
-#'@import rlang
+#' @import dplyr
+#' @import rlang
 #'
-#'@importFrom purrr map
-#'@importFrom tidyr nest
-#'@importFrom tidyr unnest
-#'@importFrom tidyr spread
+#' @importFrom purrr map
+#' @importFrom tidyr nest
+#' @importFrom tidyr unnest
+#' @importFrom tidyr spread
+#'
+#' @keywords internal
+#'
+#' @note This is a helper function used internally in the package and not
+#' exported. In case you want to use it, you can do so by
+#' `ggstatsplot:::grouped_proptest`. Note that it is `:::` and not `::`.
 #'
 
 # defining global variables and functions to quient the R CMD check notes
@@ -140,7 +157,9 @@ utils::globalVariables(
   )
 )
 
-grouped_proptest <- function(data, grouping.vars, measure) {
+grouped_proptest <- function(data,
+                             grouping.vars,
+                             measure) {
   # turn off warning messages because there are going to be many of them for tidyr::unnest
   options(warn = -1)
   # check how many variables were entered for this grouping variable
@@ -156,9 +175,11 @@ grouped_proptest <- function(data, grouping.vars, measure) {
     }
 
   # getting the dataframe ready
-  df <- dplyr::select(.data = data,
-                      !!!grouping.vars,
-                      measure = !!rlang::enquo(measure))
+  df <- dplyr::select(
+    .data = data,
+    !!!grouping.vars,
+    measure = !!rlang::enquo(measure)
+  )
 
   # creating a nested dataframe
   df_nest <- df %>%
@@ -171,7 +192,7 @@ grouped_proptest <- function(data, grouping.vars, measure) {
       .data = .,
       percentage = data %>% purrr::map(
         .x = .,
-        .f = ~  dplyr::group_by(.data = ., measure) %>%
+        .f = ~dplyr::group_by(.data = ., measure) %>%
           dplyr::summarize(.data = ., counts = length(measure)) %>%
           dplyr::mutate(
             .data = .,
@@ -187,26 +208,34 @@ grouped_proptest <- function(data, grouping.vars, measure) {
           )
       )
     ) %>%
-    dplyr::mutate(.data = .,
-                  chi_sq = data %>% purrr::map(
-                    .x = .,
-                    .f = ~ stats::chisq.test(x = base::table(.$measure))
-                  )) %>%
+    dplyr::mutate(
+      .data = .,
+      chi_sq = data %>% purrr::map(
+        .x = .,
+        .f = ~stats::chisq.test(x = base::table(.$measure))
+      )
+    ) %>%
     dplyr::mutate(
       .data = .,
       results = chi_sq %>% purrr::map(
         .x = .,
         .f = ~
-          base::cbind.data.frame(
-            "Chi-squared" = as.numeric(as.character(ggstatsplot::specify_decimal_p(x = .$statistic, k = 3))),
-            "df" = as.numeric(as.character(ggstatsplot::specify_decimal_p(x = .$parameter, k = 0))),
-            "p-value" = as.numeric(as.character(ggstatsplot::specify_decimal_p(
+        base::cbind.data.frame(
+          "Chi-squared" = as.numeric(as.character(
+            ggstatsplot::specify_decimal_p(x = .$statistic, k = 3)
+          )),
+          "df" = as.numeric(as.character(
+            ggstatsplot::specify_decimal_p(x = .$parameter, k = 0)
+          )),
+          "p-value" = as.numeric(as.character(
+            ggstatsplot::specify_decimal_p(
               x = .$p.value,
               k = 3
             )
           ))
+        )
       )
-    )) %>%
+    ) %>%
     dplyr::select(.data = ., -data, -chi_sq) %>%
     tidyr::unnest(data = .) %>%
     signif_column(data = ., p = `p-value`)
@@ -229,16 +258,19 @@ grouped_proptest <- function(data, grouping.vars, measure) {
 }
 
 
-#' @title creating a column with significance labels
+#' @title Creating a new character type column with significance labels
 #' @name signif_column
 #' @aliases signif_column
 #' @author Indrajeet Patil
-#' @description This function will add a new column to a dataframe containing p-values
-#' @return Returns the originally entered object (either a vector or a dataframe) in tibble format with
-#' an additional column corresponding to statistical significance.
+#' @description This function will add a new column to a dataframe containing
+#'   p-values
+#' @return Returns the originally entered object (either a vector or a
+#'   dataframe) in tibble format with an additional column corresponding to
+#'   statistical significance.
 #'
-#' @param data data frame from which variables specified are preferentially to be taken
-#' @param p the column containing p-values
+#' @param data Data frame from which variables specified are preferentially to
+#'   be taken.
+#' @param p The column containing p-values.
 #'
 #' @import dplyr
 #'
@@ -248,6 +280,12 @@ grouped_proptest <- function(data, grouping.vars, measure) {
 #' @importFrom rlang enquo
 #' @importFrom stats lm
 #' @importFrom tibble as_data_frame
+#'
+#' @keywords internal
+#'
+#' @note This is a helper function used internally in the package and not
+#' exported. In case you want to use it, you can do so by
+#' `ggstatsplot:::signif_column`. Note that it is `:::` and not `::`.
 #'
 
 signif_column <- function(data = NULL, p) {
@@ -271,15 +309,9 @@ signif_column <- function(data = NULL, p) {
       base::cbind.data.frame(p = p) # column corresponding to p-values
   }
 
-  #make sure the p-value column is numeric; if not, convert it to numeric and give a warning to the user
+  # make sure the p-value column is numeric; if not, convert it to numeric and give a warning to the user
   if (!is.numeric(df$p)) {
     df$p <- as.numeric(as.character(df$p))
-    # base::message(cat(
-    #   crayon::red("Warning: "),
-    #   crayon::blue(
-    #     "Entered p-values were not numeric variables, so ipmisc has converted them to numeric"
-    #   )
-    # ))
   }
   # add new significance column based on standard APA guidelines for describing different levels of significance
   df <- df %>%
@@ -309,4 +341,27 @@ signif_column <- function(data = NULL, p) {
   }
   # return the final tibble dataframe
   return(df)
+}
+
+
+## finding the outliers in the dataframe using Tukey's interquartile range rule
+
+# defining function to detect outliers
+check_outlier <- function(var, coef) {
+  # compute the quantiles
+  quantiles <- stats::quantile(
+    x = var,
+    probs = c(0.25, 0.75)
+  )
+
+  # compute the interquartile range
+  IQR <- quantiles[2] - quantiles[1]
+
+  # check for outlier and output a logical
+  res <-
+    ((var < (quantiles[1] - coef * IQR)) |
+       (var > (quantiles[2] + coef * IQR)))
+
+  # return the result
+  return(res)
 }
