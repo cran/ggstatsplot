@@ -9,33 +9,55 @@
 #' @param data Dataframe from which variables specified are preferentially to be
 #'   taken.
 #' @param x A numeric variable.
+#' @param bar.measure Character describing what value needs to be represented as
+#'   height in the bar chart. This can either be `"count"`, which shows number
+#'   of points in bin, or `"density"`, which density of points in bin, scaled to
+#'   integrate to 1, or "`proportion`", which shows relative frequencies of
+#'   observations in each bin.
 #' @param xlab Label for `x` axis variable.
 #' @param title The text for the plot title.
 #' @param subtitle The text for the plot subtitle *if* you don't want results
 #'   from one sample test to be displayed.
 #' @param caption The text for the plot caption.
-#' @param type Type of statistic expected (`"parametric"` or `"nonparametric"` or
-#'   `"bayes"`). Abbreviations accepted are `"p"` or `"np"` or `"bf"`, respectively.
+#' @param type Type of statistic expected (`"parametric"` or `"nonparametric"`
+#'   or `"bayes"`). Abbreviations accepted are `"p"` or `"np"` or `"bf"`,
+#'   respectively.
 #' @param test.value A number specifying the value of the null hypothesis.
+#' @param test.value.size Decides size for the vertical line for test value
+#'   (Default: `1.2`).
+#' @param test.value.linetype Decides linetype for the vertical line for test
+#'   value (Default: `"dashed"`).
 #' @param bf.prior A number between 0.5 and 2 (default 0.707), the prior width
 #'   to use in calculating Bayes factors.
 #' @param bf.message Logical. Decides whether to display Bayes Factor in favor
 #'   of null hypothesis for parametric test if the null hypothesis can't be
 #'   rejected (Default: `bf.message = TRUE`).
 #' @param k Number of decimal places expected for results.
+#' @param low.color,high.color Colors for low and high ends of the gradient.
+#'   Defaults are colorblind-friendly.
 #' @param results.subtitle Decides whether the results of statistical tests are
 #'   to be displayed as subtitle (Default: `results.subtitle = TRUE`). If set to
 #'   `FALSE`, no statistical tests will be run.
-#' @param centrality.para Decides *which* measure of central tendency (`"mean"` or
-#'   `"median"`) is to be displayed as a vertical line.
-#' @param centrality.colour Decides colour for the vertical line for centrality
+#' @param legend.title.margin Adjusting the margin between legend title and the
+#'   colorbar.
+#' @param t.margin,b.margin Margins in grid units. For more details, see
+#'   `?grid::unit()`.
+#' @param centrality.para Decides *which* measure of central tendency (`"mean"`
+#'   or `"median"`) is to be displayed as a vertical line.
+#' @param centrality.color Decides color for the vertical line for centrality
 #'   parameter (Default: `"blue"`).
+#' @param centrality.size Decides size for the vertical line for centrality
+#'   parameter (Default: `1.2`).
+#' @param centrality.linetype Decides linetype for the vertical line for
+#'   centrality parameter (Default: `"dashed"`).
 #' @param test.value.line Decides whether test value is to be displayed as a
 #'   vertical line (Default: `FALSE`).
-#' @param test.value.colour Decides colour for the vertical line denoting test
+#' @param test.value.color Decides color for the vertical line denoting test
 #'   value (Default: `"black"`).
-#' @param binwidth.adjust If set to `TRUE`, you can use it to pick better value
-#'   with the `binwidth` argument to `stat_bin()`.
+#' @param line.labeller A logical that decides whether line labels should be
+#'   displayed (Default: `FALSE`).
+#' @param line.labeller.y A numeric denoting the y-coordinate for displaying
+#'   line labels (Default: `-2`).
 #' @param binwidth The width of the bins. Can be specified as a numeric value,
 #'   or a function that calculates width from `x`. The default is to use bins
 #'   bins that cover the range of the data. You should always override this
@@ -46,9 +68,18 @@
 #'
 #' @import ggplot2
 #'
+#' @importFrom dplyr select
+#' @importFrom dplyr group_by
+#' @importFrom dplyr summarize
+#' @importFrom dplyr n
+#' @importFrom dplyr arrange
+#' @importFrom dplyr mutate
+#' @importFrom dplyr mutate_at
+#' @importFrom dplyr mutate_if
 #' @importFrom jmv ttestOneS
 #' @importFrom stats dnorm
 #' @importFrom nortest ad.test
+#' @importFrom scales percent
 #' @importFrom crayon green
 #' @importFrom crayon blue
 #' @importFrom crayon yellow
@@ -79,76 +110,50 @@
 #' test.value = 3,
 #' centrality.para = "mean",
 #' test.value.line = TRUE,
-#' binwidth.adjust = TRUE,
 #' binwidth = 0.10
 #' )
+#'
+#' @note If you are using R Notebook and see a blank image being inserted when a
+#'   chunk is executed, this behavior can be turned off by setting
+#'   `legend.title.margin = FALSE`.
 #'
 #' @seealso \code{\link{grouped_gghistostats}}
 #'
 #' @export
 #'
 
-# defining global variables and functions to quient the R CMD check notes
-utils::globalVariables(
-  c(
-    "U",
-    "V",
-    "Z",
-    "chi",
-    "counts",
-    "df",
-    "df1",
-    "df2",
-    "effsize",
-    "estimate",
-    "eta",
-    "omega",
-    "perc",
-    "cramer",
-    "pvalue",
-    "r",
-    "rho",
-    "xi",
-    "y",
-    "z_value",
-    "italic",
-    "rsubtitle",
-    "stats_subtitle",
-    "chi_subtitle",
-    "proptest_subtitle",
-    "LL",
-    "UL",
-    "..count..",
-    "dnorm",
-    "mean",
-    "median",
-    "sd",
-    "bf",
-    "bf_error"
-  )
-)
-
 # function body
 gghistostats <-
   function(data = NULL,
-           x,
-           xlab = NULL,
-           title = NULL,
-           subtitle = NULL,
-           caption = NULL,
-           type = "parametric",
-           test.value = 0,
-           bf.prior = 0.707,
-           bf.message = TRUE,
-           k = 3,
-           results.subtitle = TRUE,
-           centrality.para = NULL,
-           centrality.colour = "blue",
-           test.value.line = FALSE,
-           test.value.colour = "black",
-           binwidth.adjust = FALSE,
-           binwidth = NULL,
-           messages = TRUE) {
+             x,
+             binwidth = NULL,
+             bar.measure = "count",
+             xlab = NULL,
+             title = NULL,
+             subtitle = NULL,
+             caption = NULL,
+             type = "parametric",
+             test.value = 0,
+             bf.prior = 0.707,
+             bf.message = TRUE,
+             k = 3,
+             low.color = "#0072B2",
+             high.color = "#D55E00",
+             results.subtitle = TRUE,
+             legend.title.margin = TRUE,
+             t.margin = unit(0, "mm"),
+             b.margin = unit(3, "mm"),
+             centrality.para = NULL,
+             centrality.color = "blue",
+             centrality.size = 1.2,
+             centrality.linetype = "dashed",
+             test.value.line = FALSE,
+             test.value.color = "black",
+             test.value.size = 1.2,
+             test.value.linetype = "dashed",
+             line.labeller = FALSE,
+             line.labeller.y = -2,
+             messages = TRUE) {
     # if data is not available then don't display any messages
     if (is.null(data)) {
       messages <- FALSE
@@ -163,16 +168,20 @@ gghistostats <-
     # preparing a dataframe out of provided inputs
     if (!is.null(data)) {
       # preparing labels from given dataframe
-      lab.df <- colnames(dplyr::select(.data = data,
-                                       !!rlang::enquo(x)))
+      lab.df <- colnames(dplyr::select(
+        .data = data,
+        !!rlang::enquo(x)
+      ))
       # if xlab is not provided, use the variable x name
       if (is.null(xlab)) {
         xlab <- lab.df[1]
       }
       # if dataframe is provided
       data <-
-        dplyr::select(.data = data,
-                      x = !!rlang::enquo(x))
+        dplyr::select(
+          .data = data,
+          x = !!rlang::enquo(x)
+        )
     } else {
       # if vectors are provided
       data <-
@@ -181,7 +190,6 @@ gghistostats <-
     # ========================================== stats ==================================================================
 
     if (isTRUE(results.subtitle)) {
-
       # model
       jmv_os <- jmv::ttestOneS(
         data = data,
@@ -234,30 +242,30 @@ gghistostats <-
 
         # if effect is not significant, display Bayes Factor in favor of the NULL
         # save it as text if bf.message has not been disabled
-          if (as.data.frame(jmv_os$ttest)$`p[stud]` > 0.05) {
-            if (isTRUE(bf.message)) {
-              bf.caption.text <-
-                paste(
-                  "Note: Evidence in favor of the null hypothesis:",
-                  ggstatsplot::specify_decimal_p(x = 1 / as.data.frame(jmv_os$ttest)$`stat[bf]`, k),
-                  "with prior width =",
-                  ggstatsplot::specify_decimal_p(x = bf.prior, k)
-                )
-            } else {
-              # display a note about prior used to compute Bayes Factor
-              if (isTRUE(messages)) {
-                base::message(cat(
-                  crayon::green("Note: "),
-                  crayon::blue(
-                    "Prior width used to compute Bayes Factor:",
-                    crayon::yellow(bf.prior)
-                  ),
-                  crayon::blue("\nEvidence in favor of the null hypothesis (H0):"),
-                  crayon::yellow(1 / as.data.frame(jmv_os$ttest)$`stat[bf]`)
-                ))
-              }
+        if (as.data.frame(jmv_os$ttest)$`p[stud]` > 0.05) {
+          if (isTRUE(bf.message)) {
+            bf.caption.text <-
+              paste(
+                "Note: Evidence in favor of the null hypothesis:",
+                ggstatsplot::specify_decimal_p(x = 1 / as.data.frame(jmv_os$ttest)$`stat[bf]`, k),
+                "with prior width =",
+                ggstatsplot::specify_decimal_p(x = bf.prior, k)
+              )
+          } else {
+            # display a note about prior used to compute Bayes Factor
+            if (isTRUE(messages)) {
+              base::message(cat(
+                crayon::green("Note: "),
+                crayon::blue(
+                  "Prior width used to compute Bayes Factor:",
+                  crayon::yellow(bf.prior)
+                ),
+                crayon::blue("\nEvidence in favor of the null hypothesis (H0):"),
+                crayon::yellow(1 / as.data.frame(jmv_os$ttest)$`stat[bf]`)
+              ))
             }
           }
+        }
 
         # ========================================== non-parametric =====================================================
       } else if (type == "nonparametric" || type == "np") {
@@ -349,105 +357,159 @@ gghistostats <-
     }
     # ========================================== plot ===================================================================
 
-    # if the user wants to adjust the binwidth
-    if (isTRUE(binwidth.adjust)) {
-      plot <- ggplot2::ggplot(data = data,
-                              mapping = ggplot2::aes(x = x)) +
+
+    # preparing the basic layout of the plot based on whether counts or density information is needed
+    if (bar.measure == "count") {
+      plot <- ggplot2::ggplot(
+        data = data,
+        mapping = ggplot2::aes(x = x)
+      ) +
         ggplot2::stat_bin(
           col = "black",
           alpha = 0.7,
           binwidth = binwidth,
           na.rm = TRUE,
-          mapping = ggplot2::aes(y = ..count..,
-                                 fill = ..count..)
+          mapping = ggplot2::aes(
+            y = ..count..,
+            fill = ..count..
+          )
         ) +
-        ggplot2::scale_fill_gradient("count",
-                                     low = "green",
-                                     high = "red") +
-        ggstatsplot::theme_mprl() +
-        ggplot2::labs(
-          x = xlab,
-          title = title,
-          subtitle = subtitle,
-          caption = caption
+        ggplot2::scale_fill_gradient(
+          name = "count",
+          low = low.color,
+          high = high.color
         )
-    } else {
-      # if not, use the defaults
-      plot <- ggplot2::ggplot(data = data,
-                              mapping = ggplot2::aes(x = x)) +
-        ggplot2::geom_histogram(
+    } else if (bar.measure == "proportion") {
+      plot <- ggplot2::ggplot(
+        data = data,
+        mapping = ggplot2::aes(x = x)
+      ) +
+        ggplot2::stat_bin(
           col = "black",
           alpha = 0.7,
-          mapping = ggplot2::aes(y = ..count.., fill = ..count..),
-          na.rm = TRUE
+          binwidth = binwidth,
+          na.rm = TRUE,
+          mapping = ggplot2::aes(
+            y = ..count.. / sum(..count..),
+            fill = ..count.. / sum(..count..)
+          )
         ) +
-        ggplot2::scale_fill_gradient("count",
-                                     low = "green",
-                                     high = "red") +
-        ggstatsplot::theme_mprl() +
-        ggplot2::labs(
-          x = xlab,
-          title = title,
-          subtitle = subtitle,
-          caption = caption
+        ggplot2::scale_fill_gradient(
+          name = "proportion",
+          low = low.color,
+          high = high.color,
+          labels = percent
+        ) +
+        ggplot2::scale_y_continuous(labels = scales::percent) +
+        ggplot2::ylab("relative frequencies")
+    } else if (bar.measure == "density") {
+      plot <- ggplot2::ggplot(
+        data = data,
+        mapping = ggplot2::aes(x = x)
+      ) +
+        ggplot2::stat_bin(
+          col = "black",
+          alpha = 0.7,
+          binwidth = binwidth,
+          na.rm = TRUE,
+          mapping = ggplot2::aes(
+            y = ..density..,
+            fill = ..density..
+          )
+        ) +
+        ggplot2::scale_fill_gradient(
+          name = "density",
+          low = low.color,
+          high = high.color
         )
     }
+
+    # adding the theme and labels
+    plot <- plot +
+      ggstatsplot::theme_mprl() +
+      ggplot2::labs(
+        x = xlab,
+        title = title,
+        subtitle = subtitle,
+        caption = caption
+      )
 
     # if central tendency parameter is to be added
     if (!is.null(centrality.para)) {
-      if (centrality.para == "mean") {
+      if (isTRUE(centrality.para) || centrality.para == "mean") {
         plot <- plot +
           ggplot2::geom_vline(
-            xintercept = mean(data$x),
-            linetype = "dashed",
-            color = centrality.colour,
-            size = 1.2,
+            xintercept = mean(x = data$x, na.rm = TRUE),
+            linetype = centrality.linetype,
+            color = centrality.color,
+            size = centrality.size,
             na.rm = TRUE
           )
-        # this can be used to label the vertical lines, but leave it out since it makes for an ugly plot
-        # + ggplot2::geom_text(
-        #   mapping = ggplot2::aes(
-        #     x = mean(data$x) + 0.10,
-        #     label = "mean",
-        #     y = -0.05
-        #   ),
-        #   colour = "black",
-        #   angle = 0,
-        #   size = 11
-        # )
+
+        if (isTRUE(line.labeller)) {
+          # this can be used to label the vertical lines, but leave it out since it makes for an ugly plot
+          plot <- plot +
+            ggplot2::geom_text(
+              mapping = ggplot2::aes(
+                x = mean(x = data$x, na.rm = TRUE) + 0.20,
+                label = "mean",
+                y = line.labeller.y
+              ),
+              color = centrality.color,
+              angle = 0,
+              size = 6
+            )
+        }
       } else if (centrality.para == "median") {
         plot <- plot +
           ggplot2::geom_vline(
-            xintercept = median(data$x),
-            linetype = "dashed",
-            color = "blue",
-            size = 1.2,
+            xintercept = median(x = data$x, na.rm = TRUE),
+            linetype = centrality.linetype,
+            color = centrality.color,
+            size = centrality.size,
             na.rm = TRUE
           )
-        # this can be used to label the vertical lines, but leave it out since it makes for an ugly plot
-        # + ggplot2::geom_text(
-        #     mapping = ggplot2::aes(
-        #       x = median(data$x) + 0.13,
-        #       label = "median",
-        #       y = -0.05
-        #     ),
-        #     colour = "black",
-        #     angle = 0,
-        #     size = 11
-        #   )
+        # this can be used to label the vertical lines, but makes for an ugly plot
+        if (isTRUE(line.labeller)) {
+          plot <- plot +
+            ggplot2::geom_text(
+              mapping = ggplot2::aes(
+                x = median(x = data$x, na.rm = TRUE) + 0.20,
+                label = "median",
+                y = line.labeller.y
+              ),
+              color = centrality.color,
+              angle = 0,
+              size = 6
+            )
+        }
       }
-    }
 
-    # if central tendency parameter is to be added
-    if (isTRUE(test.value.line)) {
-      plot <- plot +
-        ggplot2::geom_vline(
-          xintercept = test.value,
-          linetype = "dashed",
-          color = test.value.colour,
-          size = 1.2,
-          na.rm = TRUE
-        )
+      # if central tendency parameter is to be added
+      if (isTRUE(test.value.line)) {
+        plot <- plot +
+          ggplot2::geom_vline(
+            xintercept = test.value,
+            linetype = test.value.linetype,
+            color = test.value.color,
+            size = test.value.size,
+            na.rm = TRUE
+          )
+        # if a text label is to be attached the line
+        if (isTRUE(line.labeller)) {
+          plot <- plot +
+            ggplot2::geom_text(
+              mapping = ggplot2::aes(
+                x = test.value + 0.20,
+                label = "test",
+                y = line.labeller.y
+              ),
+              color = "black",
+              angle = 0,
+              size = 6
+            )
+        }
+      }
     }
     # if caption is provided then use combine_plots function later on to add this caption
     # add caption with bayes factor
@@ -458,7 +520,8 @@ gghistostats <-
             if (!is.null(bf.caption)) {
               plot <-
                 ggstatsplot::combine_plots(plot,
-                                           caption.text = bf.caption.text)
+                  caption.text = bf.caption.text
+                )
             }
           }
         }
@@ -466,7 +529,13 @@ gghistostats <-
     }
 
     # creating proper spacing between the legend.title and the colorbar
-    plot <- legend_title_margin(plot = plot)
+    if (isTRUE(legend.title.margin)) {
+      plot <- legend_title_margin(
+        plot = plot,
+        t.margin = t.margin,
+        b.margin = b.margin
+      )
+    }
 
     # ========================================== messages ==================================================================
     if (isTRUE(messages)) {
@@ -483,9 +552,11 @@ gghistostats <-
             ": p-value = "
           ),
           crayon::yellow(
-            ggstatsplot::specify_decimal_p(x = ad_norm$p.value[[1]],
-                                           k,
-                                           p.value = TRUE)
+            ggstatsplot::specify_decimal_p(
+              x = ad_norm$p.value[[1]],
+              k,
+              p.value = TRUE
+            )
           )
         ))
       }

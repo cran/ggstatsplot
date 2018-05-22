@@ -3,11 +3,36 @@
 \name{gghistostats}
 \alias{gghistostats}
 \title{Histogram for distribution of a numeric variable}
+\usage{
+gghistostats(data = NULL, x, binwidth = NULL, bar.measure = "count",
+  xlab = NULL, title = NULL, subtitle = NULL, caption = NULL,
+  type = "parametric", test.value = 0, bf.prior = 0.707,
+  bf.message = TRUE, k = 3, low.color = "#0072B2",
+  high.color = "#D55E00", results.subtitle = TRUE,
+  legend.title.margin = TRUE, t.margin = unit(0, "mm"), b.margin = unit(3,
+  "mm"), centrality.para = NULL, centrality.color = "blue",
+  centrality.size = 1.2, centrality.linetype = "dashed",
+  test.value.line = FALSE, test.value.color = "black",
+  test.value.size = 1.2, test.value.linetype = "dashed",
+  line.labeller = FALSE, line.labeller.y = -2, messages = TRUE)
+}
 \arguments{
 \item{data}{Dataframe from which variables specified are preferentially to be
 taken.}
 
 \item{x}{A numeric variable.}
+
+\item{binwidth}{The width of the bins. Can be specified as a numeric value,
+or a function that calculates width from \code{x}. The default is to use bins
+bins that cover the range of the data. You should always override this
+value, exploring multiple widths to find the best to illustrate the stories
+in your data.}
+
+\item{bar.measure}{Character describing what value needs to be represented as
+height in the bar chart. This can either be \code{"count"}, which shows number
+of points in bin, or \code{"density"}, which density of points in bin, scaled to
+integrate to 1, or "\code{proportion}", which shows relative frequencies of
+observations in each bin.}
 
 \item{xlab}{Label for \code{x} axis variable.}
 
@@ -18,8 +43,9 @@ from one sample test to be displayed.}
 
 \item{caption}{The text for the plot caption.}
 
-\item{type}{Type of statistic expected (\code{"parametric"} or \code{"nonparametric"} or
-\code{"bayes"}). Abbreviations accepted are \code{"p"} or \code{"np"} or \code{"bf"}, respectively.}
+\item{type}{Type of statistic expected (\code{"parametric"} or \code{"nonparametric"}
+or \code{"bayes"}). Abbreviations accepted are \code{"p"} or \code{"np"} or \code{"bf"},
+respectively.}
 
 \item{test.value}{A number specifying the value of the null hypothesis.}
 
@@ -32,30 +58,48 @@ rejected (Default: \code{bf.message = TRUE}).}
 
 \item{k}{Number of decimal places expected for results.}
 
+\item{low.color, high.color}{Colors for low and high ends of the gradient.
+Defaults are colorblind-friendly.}
+
 \item{results.subtitle}{Decides whether the results of statistical tests are
 to be displayed as subtitle (Default: \code{results.subtitle = TRUE}). If set to
 \code{FALSE}, no statistical tests will be run.}
 
-\item{centrality.para}{Decides \emph{which} measure of central tendency (\code{"mean"} or
-\code{"median"}) is to be displayed as a vertical line.}
+\item{legend.title.margin}{Adjusting the margin between legend title and the
+colorbar.}
 
-\item{centrality.colour}{Decides colour for the vertical line for centrality
+\item{t.margin, b.margin}{Margins in grid units. For more details, see
+\code{?grid::unit()}.}
+
+\item{centrality.para}{Decides \emph{which} measure of central tendency (\code{"mean"}
+or \code{"median"}) is to be displayed as a vertical line.}
+
+\item{centrality.color}{Decides color for the vertical line for centrality
 parameter (Default: \code{"blue"}).}
+
+\item{centrality.size}{Decides size for the vertical line for centrality
+parameter (Default: \code{1.2}).}
+
+\item{centrality.linetype}{Decides linetype for the vertical line for
+centrality parameter (Default: \code{"dashed"}).}
 
 \item{test.value.line}{Decides whether test value is to be displayed as a
 vertical line (Default: \code{FALSE}).}
 
-\item{test.value.colour}{Decides colour for the vertical line denoting test
+\item{test.value.color}{Decides color for the vertical line denoting test
 value (Default: \code{"black"}).}
 
-\item{binwidth.adjust}{If set to \code{TRUE}, you can use it to pick better value
-with the \code{binwidth} argument to \code{stat_bin()}.}
+\item{test.value.size}{Decides size for the vertical line for test value
+(Default: \code{1.2}).}
 
-\item{binwidth}{The width of the bins. Can be specified as a numeric value,
-or a function that calculates width from \code{x}. The default is to use bins
-bins that cover the range of the data. You should always override this
-value, exploring multiple widths to find the best to illustrate the stories
-in your data.}
+\item{test.value.linetype}{Decides linetype for the vertical line for test
+value (Default: \code{"dashed"}).}
+
+\item{line.labeller}{A logical that decides whether line labels should be
+displayed (Default: \code{FALSE}).}
+
+\item{line.labeller.y}{A numeric denoting the y-coordinate for displaying
+line labels (Default: \code{-2}).}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
@@ -63,6 +107,11 @@ to be displayed (Default: \code{TRUE}).}
 \description{
 Histogram with statistical details from one-sample test included
 in the plot as a subtitle.
+}
+\note{
+If you are using R Notebook and see a blank image being inserted when a
+chunk is executed, this behavior can be turned off by setting
+\code{legend.title.margin = FALSE}.
 }
 \examples{
 
@@ -89,7 +138,6 @@ bf.prior = 0.8,
 test.value = 3,
 centrality.para = "mean",
 test.value.line = TRUE,
-binwidth.adjust = TRUE,
 binwidth = 0.10
 )
 

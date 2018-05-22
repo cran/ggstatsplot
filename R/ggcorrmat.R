@@ -16,25 +16,30 @@
 #' @param output Expected output from this function: `"plot"` (visualization
 #'   matrix) or `"correlations"` (correlation matrix) or `"p-values"` (matrix of
 #'   p-values).
-#' @param type Character, `"full"` (default), `"upper"` or `"lower"`, display full
-#'   matrix, lowe triangular or upper triangular matrix.
+#' @param type Character, `"full"` (default), `"upper"` or `"lower"`, display
+#'   full matrix, lowe triangular or upper triangular matrix.
 #' @param method Character argument that decides the visualization method of
 #'   correlation matrix to be used. Allowed values are `"square"` (default),
 #'   `"circle"`
 #' @param corr.method A character string indicating which correlation
 #'   coefficient is to be computed (`"pearson"` (default) or `"kendall"` or
-#'   `"spearman"`). Abbreviations will **not** work.
+#'   `"spearman"`). `"robust"` can also be entered but only if `output` argument
+#'   is set to either `"correlations"` or `"p-values"`. The robust correlation
+#'   used is percentage bend correlation (see `?WRS2::pball`). Abbreviations
+#'   will **not** work.
 #' @param exact A logical indicating whether an exact *p*-value should be
 #'   computed. Used for Kendall's *tau* and Spearman's *rho*. For more details,
 #'   see `?stats::cor.test`.
 #' @param continuity A logical. If `TRUE`, a continuity correction is used for
 #'   Kendall's *tau* and Spearman's *rho* when not computed exactly (Default:
 #'   `TRUE`).
+#' @param beta A numeric bending constant for robust correlation coefficient
+#'   (Default: `0.2`).
 #' @param digits Decides the number of decimal digits to be added into the plot
 #'   (Default: `2`).
-#' @param sig.level Significance level (Dafault: `0.05`). If the p-value in p-mat
-#'   is bigger than sig.level, then the correspondi#' ng correlation coefficient
-#'   is regarded as insignificant.
+#' @param sig.level Significance level (Dafault: `0.05`). If the p-value in
+#'   p-mat (p-value matrix) is bigger than `sig.level`, then the corresponding
+#'   correlation coefficient is regarded as insignificant.
 #' @param hc.order Logical value. If `TRUE`, correlation matrix will be
 #'   hc.ordered using `hclust` function (Default is `FALSE`).
 #' @param hc.method The agglomeration method to be used in `hclust` (see
@@ -43,38 +48,59 @@
 #'   displayed in the plot.
 #' @param colors A vector of 3 colors for low, mid, and high correlation values.
 #' @param outline.color The outline color of square or circle. Default value is
-#'   "gray".
+#'   `"gray"`.
 #' @param ggtheme A function, `ggplot2` theme name. Default value is
-#'   theme_minimal. Allowed values are the official `ggplot2` themes including
-#'   `theme_gray`, `theme_bw`, `theme_minimal`, `theme_classic`, `theme_void`,
-#'   etc.
+#'   `ggplot2::theme_gray`. Allowed values are the official `ggplot2` themes,
+#'   including `theme_bw`, `theme_minimal`, `theme_classic`, `theme_void`, etc.
+#' @param ggstatsplot.theme A logical. Decides whether default theme for
+#'   `ggstatsplot`, which is `theme_mprl`, is to be overlaid on the entered
+#'   theme (Default: `ggstatsplot.theme = TRUE`).
 #' @param title The text for the plot title.
 #' @param subtitle The text for the plot subtitle.
 #' @param caption The text for the plot caption. If not specified (if it is
 #'   `NULL`, i.e.), a default caption will be shown.
 #' @param caption.default Logical decides whether the default caption should be
 #'   shown.
-#' @param lab_col Color to be used for the correlation coefficient labels
+#' @param lab.col Color to be used for the correlation coefficient labels
 #'   (applicable only when `lab = TRUE`).
-#' @param lab_size Size to be used for the correlation coefficient labels
+#' @param lab.size Size to be used for the correlation coefficient labels
 #'   (applicable only when `lab = TRUE`).
+#' @param axis.text.x.margin.t,axis.text.x.margin.r,axis.text.x.margin.b,axis.text.x.margin.l
+#'   Margins between x-axis and the variable name texts (t: top, r: right, b:
+#'   bottom, l:left), especially useful in case the names are slanted, i.e. when the tl.srt is
+#'   between `45` and `75` (Defaults: `0`, `0`, `0`, `0`, resp.).
 #' @param insig Character used to show specialized insignificant correlation
 #'   coefficients (`"pch"` (default) or `"blank"`). If `"blank"`, the
 #'   corresponding glyphs will be removed; if "pch" is used, characters (see
 #'   `?pch` for details) will be added on the corresponding glyphs.
-#' @param pch Decides the glyphs to be used for insignificant correlation
+#' @param pch Decides the glyphs (read point shapes) to be used for insignificant correlation
 #'   coefficients (only valid when `insig = "pch"`). Default value is `pch = 4`.
 #' @param pch.col,pch.cex The color and the cex (size) of `pch` (only valid when
-#'   `insig = "pch"`). Defaults are `pch.col = "blue"` and `pch.cex = 10`.
+#'   `insig = "pch"`). Defaults are `pch.col = "#F0E442"` and `pch.cex = 10`.
 #' @param tl.cex,tl.col,tl.srt The size, the color, and the string rotation of
-#'   text label (variable names).
+#'   text label (variable names, i.e.).
+#' @param legend.title.margin Logical indicating whether to adjust the margin between legend title and the
+#'   colorbar (Default: `TRUE`).
+#' @param t.margin,b.margin Margins in grid units. For more details, see
+#'   `?grid::unit()`.
+#' @param messages Decides whether messages references, notes, and warnings are
+#'   to be displayed (Default: `TRUE`).
 #'
-#' @import ggcorrplot
 #' @import ggplot2
-#' @import dplyr
 #'
+#' @importFrom ggcorrplot cor_pmat
+#' @importFrom ggcorrplot ggcorrplot
+#' @importFrom dplyr select
+#' @importFrom dplyr group_by
+#' @importFrom dplyr summarize
+#' @importFrom dplyr n
+#' @importFrom dplyr arrange
+#' @importFrom dplyr mutate
+#' @importFrom dplyr mutate_at
+#' @importFrom dplyr mutate_if
 #' @importFrom magrittr "%<>%"
 #' @importFrom magrittr "%>%"
+#' @importFrom purrr is_bare_double
 #' @importFrom stats cor
 #' @importFrom tibble as_data_frame
 #' @importFrom tibble rownames_to_column
@@ -84,6 +110,9 @@
 #' @importFrom crayon blue
 #' @importFrom crayon yellow
 #' @importFrom crayon red
+#' @importFrom WRS2 pball
+#'
+#' @seealso \code{\link{grouped_ggcorrmat}} \code{\link{ggscatterstats}} \code{\link{grouped_ggscatterstats}}
 #'
 #' @examples
 #'
@@ -112,41 +141,55 @@
 #' title = "Dataset: Iris"
 #' )
 #'
+#' @note If you are using R Notebook or Markdown and see a blank image being
+#'   inserted when a chunk is executed, this behavior can be turned off by
+#'   setting `legend.title.margin = FALSE`.
+#'
 #' @export
 #'
 
 # defining the function
 ggcorrmat <-
   function(data,
-           cor.vars,
-           cor.vars.names = NULL,
-           output = "plot",
-           type = "full",
-           method = "square",
-           corr.method = "pearson",
-           exact = FALSE,
-           continuity = TRUE,
-           digits = 2,
-           sig.level = 0.05,
-           hc.order = FALSE,
-           hc.method = "complete",
-           lab = TRUE,
-           colors = c("#6D9EC1", "white", "#E46726"),
-           outline.color = "black",
-           ggtheme = ggplot2::theme_gray,
-           title = NULL,
-           subtitle = NULL,
-           caption = NULL,
-           caption.default = TRUE,
-           lab_col = "black",
-           lab_size = 4.5,
-           insig = "pch",
-           pch = 4,
-           pch.col = "blue",
-           pch.cex = 10,
-           tl.cex = 12,
-           tl.col = "black",
-           tl.srt = 45) {
+             cor.vars,
+             cor.vars.names = NULL,
+             output = "plot",
+             type = "full",
+             method = "square",
+             corr.method = "pearson",
+             exact = FALSE,
+             continuity = TRUE,
+             beta = 0.2,
+             digits = 2,
+             sig.level = 0.05,
+             hc.order = FALSE,
+             hc.method = "complete",
+             lab = TRUE,
+             colors = c("#E69F00", "white", "#009E73"),
+             outline.color = "black",
+             ggtheme = ggplot2::theme_gray,
+             ggstatsplot.theme = TRUE,
+             title = NULL,
+             subtitle = NULL,
+             caption = NULL,
+             caption.default = TRUE,
+             lab.col = "black",
+             lab.size = 5,
+             insig = "pch",
+             pch = 4,
+             pch.col = "black",
+             pch.cex = 11,
+             tl.cex = 12,
+             tl.col = "black",
+             tl.srt = 45,
+             axis.text.x.margin.t = 0,
+             axis.text.x.margin.r = 0,
+             axis.text.x.margin.b = 0,
+             axis.text.x.margin.l = 0,
+             legend.title.margin = TRUE,
+             t.margin = unit(0, "mm"),
+             b.margin = unit(3, "mm"),
+             messages = TRUE) {
     # ========================================== dataframe ==============================================================
     #
     # creating a dataframe out of the entered variables
@@ -173,146 +216,191 @@ ggcorrmat <-
 
     # ========================================== statistics ==============================================================
     #
-    # computing correlations on all included variables
-    corr.mat <-
-      base::round(
-        x =
-          stats::cor(
-            x = base::as.data.frame(df),
-            method = corr.method,
-            use = "everything"
-          ),
-        digits = digits
-      )
-
-    # compute a correlation matrix of p-values
-    p.mat <-
-      ggcorrplot::cor_pmat(
-        x = df,
-        alternative = "two.sided",
-        method = corr.method,
-        na.action = na.omit,
-        conf.level = 0.95,
-        exact = exact,
-        continuity = continuity
-      )
-
-    # ========================================== plot ==============================================================
-    #
-    # plotting the correlalogram
-    plot <- ggcorrplot::ggcorrplot(
-      corr = corr.mat,
-      method = method,
-      p.mat = p.mat,
-      sig.level = sig.level,
-      type = type,
-      hc.method = hc.method,
-      hc.order = hc.order,
-      lab = lab,
-      outline.color = outline.color,
-      ggtheme = ggtheme,
-      colors = colors,
-      legend.title = corr.method,
-      lab_col = lab_col,
-      lab_size = lab_size,
-      insig = insig,
-      pch = pch,
-      pch.col = pch.col,
-      pch.cex = pch.cex,
-      tl.cex = tl.cex,
-      tl.col = tl.col,
-      tl.srt = tl.srt
-    )
-    # ========================================== labels ==============================================================
-    #
-    # if caption is not specified, use the generic version only if caption.default is TRUE
-    if (is.null(caption) && pch == 4 && isTRUE(caption.default)) {
-      # adding text details to the plot
-      plot <- plot +
-        ggplot2::labs(
-          title = title,
-          subtitle = subtitle,
-          caption = paste(
-            "Note: X denotes correlation non-significant at p <",
-            sig.level
-          ),
-          xlab = NULL,
-          ylab = NULL
+    if (corr.method == "pearson" ||
+      corr.method == "spearman" ||
+      corr.method == "kendall") {
+      # computing correlations on all included variables
+      corr.mat <-
+        base::round(
+          x =
+            stats::cor(
+              x = base::as.data.frame(df),
+              method = corr.method,
+              use = "everything"
+            ),
+          digits = digits
         )
-    } else {
-      # adding text details to the plot
-      plot <- plot +
-        ggplot2::labs(
-          title = title,
-          subtitle = subtitle,
-          caption = caption,
-          xlab = NULL,
-          ylab = NULL
+
+      # compute a correlation matrix of p-values
+      p.mat <-
+        ggcorrplot::cor_pmat(
+          x = df,
+          alternative = "two.sided",
+          method = corr.method,
+          na.action = na.omit,
+          conf.level = 0.95,
+          exact = exact,
+          continuity = continuity
         )
+    } else if (corr.method == "robust") {
+      # computing the percentage bend correlation matrix
+      rob_cor <- WRS2::pball(x = df, beta = beta)
+      rob_cor$p.values[is.na(rob_cor$p.values)] <- 0
+
+      # assigning correlations of all included variables to a matrix
+      corr.mat <-
+        tibble::as_data_frame(rob_cor$pbcorm, rownames = "variable") %>%
+        dplyr::mutate_if(
+          .tbl = .,
+          .predicate = purrr::is_bare_double,
+          .funs = ~base::round(x = ., digits = digits)
+        )
+
+      # creating a correlation matrix of p-values
+      p.mat <-
+        tibble::as_data_frame(rob_cor$p.values, rownames = "variable")
     }
 
-    #
-    # adding ggstatsplot theme
-    plot <- plot +
-      ggplot2::theme(
-        axis.title.x = ggplot2::element_blank(),
-        strip.text.x = ggplot2::element_text(size = 12, face = "bold"),
-        strip.text.y = ggplot2::element_text(size = 12, face = "bold"),
-        strip.text = ggplot2::element_text(size = 12, face = "bold"),
-        axis.title.y = ggplot2::element_blank(),
-        axis.text.x = ggplot2::element_text(size = 12, face = "bold"),
-        axis.text.y = ggplot2::element_text(size = 12, face = "bold"),
-        axis.line = ggplot2::element_line(),
-        legend.text = ggplot2::element_text(size = 12),
-        legend.title = ggplot2::element_text(size = 12, face = "bold"),
-        legend.title.align = 0.5,
-        legend.text.align = 0.5,
-        legend.key.height = grid::unit(1, "line"),
-        legend.key.width = grid::unit(1, "line"),
-        plot.margin = grid::unit(c(1, 1, 1, 1), "lines"),
-        panel.border = ggplot2::element_rect(
-          colour = "black",
-          fill = NA,
-          size = 1
-        ),
-        plot.title = ggplot2::element_text(
-          color = "black",
-          size = 16,
-          face = "bold",
-          hjust = 0.5
-        ),
-        plot.subtitle = ggplot2::element_text(
-          color = "black",
-          size = 12,
-          face = "bold",
-          hjust = 0.5
+    # ========================================== plot ==============================================================
+    if (output == "plot") {
+      if (corr.method == "pearson" ||
+        corr.method == "spearman" ||
+        corr.method == "kendall") {
+        # plotting the correlalogram
+        plot <- ggcorrplot::ggcorrplot(
+          corr = corr.mat,
+          method = method,
+          p.mat = p.mat,
+          sig.level = sig.level,
+          type = type,
+          hc.method = hc.method,
+          hc.order = hc.order,
+          lab = lab,
+          outline.color = outline.color,
+          ggtheme = ggtheme,
+          colors = colors,
+          legend.title = corr.method,
+          lab_col = lab.col,
+          lab_size = lab.size,
+          insig = insig,
+          pch = pch,
+          pch.col = pch.col,
+          pch.cex = pch.cex,
+          tl.cex = tl.cex,
+          tl.col = tl.col,
+          tl.srt = tl.srt
         )
-      )
 
-    # creating proper spacing between the legend.title and the colorbar
-    plot <- legend_title_margin(plot = plot)
+        # ========================================== labels ==============================================================
+        #
+        # if caption is not specified, use the generic version only if caption.default is TRUE
+        if (is.null(caption) &&
+          pch == 4 && isTRUE(caption.default)) {
+          # adding text details to the plot
+          plot <- plot +
+            ggplot2::labs(
+              title = title,
+              subtitle = subtitle,
+              caption = paste(
+                "Note: X denotes correlation non-significant at p <",
+                sig.level
+              ),
+              xlab = NULL,
+              ylab = NULL
+            )
+        } else {
+          # adding text details to the plot
+          plot <- plot +
+            ggplot2::labs(
+              title = title,
+              subtitle = subtitle,
+              caption = caption,
+              xlab = NULL,
+              ylab = NULL
+            )
+        }
 
+        # adding ggstatsplot theme for correlation matrix
+        if (isTRUE(ggstatsplot.theme)) {
+          plot <- plot +
+            theme_corrmat()
+        }
+
+        # label adjustment message for the development version of ggplot2
+        if (isTRUE(messages)) {
+          if (utils::packageVersion(pkg = "ggplot2") == "2.2.1.9000") {
+            base::message(cat(
+              crayon::red("Note:"),
+              crayon::blue(
+                "If you are using development version of ggplot2, the x-axis labels may not properly.
+                Try setting `axis.text.x.margin.t` to 12 or 14; depends on the length of your variable names."
+              )
+            ))
+          }
+        }
+        # even if ggstatsplot theme is not overlaid, still make sure there is
+        # enough distance between the axis and the label
+        plot <- plot +
+          ggplot2::theme(axis.text.x = ggplot2::element_text(
+            margin = ggplot2::margin(
+              t = axis.text.x.margin.t,
+              r = axis.text.x.margin.r,
+              b = axis.text.x.margin.b,
+              l = axis.text.x.margin.l,
+              unit = "pt"
+            )
+          ))
+
+        # creating proper spacing between the legend.title and the colorbar
+        if (isTRUE(legend.title.margin)) {
+          plot <- legend_title_margin(
+            plot = plot,
+            t.margin = t.margin,
+            b.margin = b.margin
+          )
+        }
+      } else if (corr.method == "robust") {
+        base::message(cat(
+          crayon::red("Error:"),
+          crayon::blue(
+            "Robust correlation matrix plot is currently not supported, only correlations and p-values are."
+          )
+        ))
+      }
+    }
     # ========================================== output ==============================================================
 
     # return the desired result
     if (output == "correlations") {
-      # correlation matrix
-      corr.mat %<>%
-        base::as.data.frame(x = .) %>%
-        tibble::rownames_to_column(df = ., var = "variable") %>%
-        tibble::as_data_frame(x = .)
+      if (corr.method == "pearson" ||
+        corr.method == "spearman" ||
+        corr.method == "kendall") {
+        # correlation matrix
+        corr.mat %<>%
+          base::as.data.frame(x = .) %>%
+          tibble::rownames_to_column(df = ., var = "variable") %>%
+          tibble::as_data_frame(x = .)
+      }
       # return the tibble
       return(corr.mat)
     } else if (output == "p-values") {
-      # p-value matrix
-      p.mat %<>%
-        base::as.data.frame(x = .) %>%
-        tibble::rownames_to_column(df = ., var = "variable") %>%
-        tibble::as_data_frame(x = .)
+      if (corr.method == "pearson" ||
+        corr.method == "spearman" ||
+        corr.method == "kendall") {
+        # p-value matrix
+        p.mat %<>%
+          base::as.data.frame(x = .) %>%
+          tibble::rownames_to_column(df = ., var = "variable") %>%
+          tibble::as_data_frame(x = .)
+      }
       # return the final tibble
       return(p.mat)
     } else if (output == "plot") {
-      # correlalogram plot
-      return(plot)
+      if (corr.method == "pearson" ||
+        corr.method == "spearman" ||
+        corr.method == "kendall") {
+        # correlalogram plot
+        return(plot)
+      }
     }
   }

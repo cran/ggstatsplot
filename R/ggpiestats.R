@@ -26,9 +26,17 @@
 #'   to be displayed (Default: `TRUE`).
 #'
 #' @import ggplot2
-#' @import dplyr
-#' @import rlang
 #'
+#' @importFrom dplyr select
+#' @importFrom dplyr group_by
+#' @importFrom dplyr summarize
+#' @importFrom dplyr n
+#' @importFrom dplyr arrange
+#' @importFrom dplyr mutate
+#' @importFrom dplyr mutate_at
+#' @importFrom dplyr mutate_if
+#' @importFrom rlang enquo
+#' @importFrom rlang quo_name
 #' @importFrom crayon green
 #' @importFrom crayon blue
 #' @importFrom crayon yellow
@@ -64,38 +72,6 @@
 #' @export
 #'
 
-# defining global variables and functions to quient the R CMD check notes
-utils::globalVariables(
-  c(
-    "U",
-    "V",
-    "Z",
-    "chi",
-    "counts",
-    "df",
-    "df1",
-    "df2",
-    "effsize",
-    "estimate",
-    "eta",
-    "omega",
-    "perc",
-    "cramer",
-    "pvalue",
-    "r",
-    "rho",
-    "xi",
-    "y",
-    "z_value",
-    "italic",
-    "rsubtitle",
-    "stats_subtitle",
-    "chi_subtitle",
-    "proptest_subtitle",
-    "significance"
-  )
-)
-
 # defining the function
 ggpiestats <-
   function(data = NULL,
@@ -110,6 +86,8 @@ ggpiestats <-
              k = 3,
              facet.proptest = TRUE,
              messages = TRUE) {
+    # ========================================== messages ==================================================================
+
     # if data is not available then don't display any messages
     if (is.null(data)) {
       messages <- FALSE
@@ -279,45 +257,8 @@ ggpiestats <-
     p <- p +
       ggplot2::scale_y_continuous(breaks = NULL) +
       ggplot2::scale_fill_discrete(name = "", labels = unique(labels)) +
-      ggplot2::theme_grey() +
-      ggplot2::theme(
-        panel.grid = element_blank(),
-        axis.ticks = element_blank(),
-        axis.title = element_blank(),
-        axis.text.x = element_blank(),
-        axis.text.y = element_blank(),
-        strip.text.x = element_text(size = 14, face = "bold"),
-        strip.text.y = element_text(size = 14, face = "bold"),
-        strip.text = element_text(size = 14, face = "bold"),
-        legend.text = element_text(size = 14),
-        legend.title = element_text(size = 14, face = "bold"),
-        legend.title.align = 0.5,
-        legend.text.align = 0.5,
-        legend.direction = "horizontal",
-        legend.position = "bottom",
-        legend.key = element_rect(size = 5),
-        legend.key.size = unit(1.5, "lines"),
-        legend.margin = margin(5, 5, 5, 5),
-        legend.box.margin = margin(5, 5, 5, 5),
-        panel.border = element_rect(
-          colour = "black",
-          fill = NA,
-          size = 1
-        ),
-        plot.subtitle = element_text(
-          color = "black",
-          size = 14,
-          hjust = 0.5
-        ),
-        plot.title = element_text(
-          color = "black",
-          size = 16,
-          face = "bold",
-          hjust = 0.5
-        )
-      ) +
-      ggplot2::guides(fill = guide_legend(override.aes = list(colour = NA))) # remove black diagonal line from legend
-
+      theme_pie() +
+      ggplot2::guides(fill = guide_legend(override.aes = list(color = NA))) # remove black diagonal line from legend
 
     ############################################ chi-square test #####################################################
 
@@ -501,19 +442,8 @@ ggpiestats <-
       ) +
       ggplot2::guides(fill = ggplot2::guide_legend(title = legend.title))
 
-    # ========================================== messages ==================================================================
-    #
-    # display warning about geom_col issues
-    if (isTRUE(messages)) {
-      base::message(cat(
-        crayon::red("Warning:"),
-        crayon::blue(
-          "No guarantee this function will work properly if you are using development version of ggplot2"
-        ),
-        crayon::yellow("(2.2.1.9000)")
-      ))
-    }
-
+    # adding colorbind friendly palette to the final plot
+    # p <- cbpalette_add(plot = p)
 
     # return the final plot
     return(p)

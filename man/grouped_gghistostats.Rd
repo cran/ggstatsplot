@@ -3,13 +3,36 @@
 \name{grouped_gghistostats}
 \alias{grouped_gghistostats}
 \title{Grouped histograms for distribution of a numeric variable}
+\usage{
+grouped_gghistostats(grouping.var, title.prefix = "Group", data, x,
+  bar.measure = "count", xlab = NULL, subtitle = NULL, caption = NULL,
+  type = "parametric", test.value = 0, bf.prior = 0.707,
+  bf.message = TRUE, k = 3, low.color = "#0072B2",
+  high.color = "#D55E00", results.subtitle = TRUE,
+  legend.title.margin = TRUE, t.margin = unit(0, "mm"), b.margin = unit(3,
+  "mm"), centrality.para = NULL, centrality.color = "blue",
+  centrality.size = 1.2, centrality.linetype = "dashed",
+  test.value.line = FALSE, test.value.color = "black",
+  test.value.size = 1.2, test.value.linetype = "dashed",
+  line.labeller = FALSE, line.labeller.y = -2, binwidth = NULL,
+  messages = TRUE, ...)
+}
 \arguments{
 \item{grouping.var}{Grouping variable.}
+
+\item{title.prefix}{Character specifying the prefix text for the fixed plot
+title (name of each factor level) (Default: \code{"Group"}).}
 
 \item{data}{Dataframe from which variables specified are preferentially to be
 taken.}
 
 \item{x}{A numeric variable.}
+
+\item{bar.measure}{Character describing what value needs to be represented as
+height in the bar chart. This can either be \code{"count"}, which shows number
+of points in bin, or \code{"density"}, which density of points in bin, scaled to
+integrate to 1, or "\code{proportion}", which shows relative frequencies of
+observations in each bin.}
 
 \item{xlab}{Label for \code{x} axis variable.}
 
@@ -18,12 +41,13 @@ from one sample test to be displayed.}
 
 \item{caption}{The text for the plot caption.}
 
-\item{type}{Type of statistic expected (\code{"parametric"} or \code{"nonparametric"} or
-\code{"bayes"}). Abbreviations accepted are \code{"p"} or \code{"np"} or \code{"bf"}, respectively.}
+\item{type}{Type of statistic expected (\code{"parametric"} or \code{"nonparametric"}
+or \code{"bayes"}). Abbreviations accepted are \code{"p"} or \code{"np"} or \code{"bf"},
+respectively.}
 
 \item{test.value}{A number specifying the value of the null hypothesis.}
 
-\item{bf.prior}{A number between 0.5 and 2 (default \code{0.707}), the prior width
+\item{bf.prior}{A number between 0.5 and 2 (default 0.707), the prior width
 to use in calculating Bayes factors.}
 
 \item{bf.message}{Logical. Decides whether to display Bayes Factor in favor
@@ -32,24 +56,48 @@ rejected (Default: \code{bf.message = TRUE}).}
 
 \item{k}{Number of decimal places expected for results.}
 
+\item{low.color, high.color}{Colors for low and high ends of the gradient.
+Defaults are colorblind-friendly.}
+
 \item{results.subtitle}{Decides whether the results of statistical tests are
 to be displayed as subtitle (Default: \code{results.subtitle = TRUE}). If set to
 \code{FALSE}, no statistical tests will be run.}
 
-\item{centrality.para}{Decides \emph{which} measure of central tendency (\code{"mean"} or
-\code{"median"}) is to be displayed as a vertical line.}
+\item{legend.title.margin}{Adjusting the margin between legend title and the
+colorbar.}
 
-\item{centrality.colour}{Decides colour for the vertical line for centrality
+\item{t.margin, b.margin}{Margins in grid units. For more details, see
+\code{?grid::unit()}.}
+
+\item{centrality.para}{Decides \emph{which} measure of central tendency (\code{"mean"}
+or \code{"median"}) is to be displayed as a vertical line.}
+
+\item{centrality.color}{Decides color for the vertical line for centrality
 parameter (Default: \code{"blue"}).}
+
+\item{centrality.size}{Decides size for the vertical line for centrality
+parameter (Default: \code{1.2}).}
+
+\item{centrality.linetype}{Decides linetype for the vertical line for centrality
+parameter (Default: \code{"dashed"}).}
 
 \item{test.value.line}{Decides whether test value is to be displayed as a
 vertical line (Default: \code{FALSE}).}
 
-\item{test.value.colour}{Decides colour for the vertical line denoting test
+\item{test.value.color}{Decides color for the vertical line denoting test
 value (Default: \code{"black"}).}
 
-\item{binwidth.adjust}{If set to \code{TRUE}, you can use it to pick better value
-with the \code{binwidth} argument to \code{stat_bin()}.}
+\item{test.value.size}{Decides size for the vertical line for test value
+(Default: \code{1.2}).}
+
+\item{test.value.linetype}{Decides linetype for the vertical line for test
+value (Default: \code{"dashed"}).}
+
+\item{line.labeller}{A logical that decides whether line labels should be
+displayed (Default: \code{FALSE}).}
+
+\item{line.labeller.y}{A numeric denoting the y-coordinate for displaying
+line labels (Default: \code{-2}).}
 
 \item{binwidth}{The width of the bins. Can be specified as a numeric value,
 or a function that calculates width from \code{x}. The default is to use bins
@@ -64,7 +112,7 @@ to be displayed (Default: \code{TRUE}).}
 \describe{
   \item{title.text}{String or plotmath expression to be drawn as title for the
 \emph{combined plot}.}
-  \item{title.colour}{Text color for title.}
+  \item{title.color}{Text color for title.}
   \item{title.size}{Point size of title text.}
   \item{title.vjust}{Vertical justification for title. Default = 0.5 (centered
 on y). 0 = baseline at y, 1 = ascender at y.}
@@ -73,7 +121,7 @@ on y). 0 = baseline at y, 1 = ascender at y.}
   \item{title.fontface}{The font face ("plain", "bold", etc.) for title.}
   \item{caption.text}{String or plotmath expression to be drawn as the caption
 for the \emph{combined plot}.}
-  \item{caption.colour}{Text color for caption.}
+  \item{caption.color}{Text color for caption.}
   \item{caption.size}{Point size of title text.}
   \item{caption.vjust}{Vertical justification for caption. Default = \code{0.5}
 (centered on y). \code{0} = baseline at y, \code{1} = ascender at y.}
@@ -83,7 +131,7 @@ for the \emph{combined plot}.}
 \code{"bold.italic"}) for caption.}
   \item{sub.text}{The label with which the \emph{combined plot} should be annotated.
 Can be a plotmath expression.}
-  \item{sub.colour}{Text color for annotation label.}
+  \item{sub.color}{Text color for annotation label.}
   \item{sub.size}{Point size of annotation text.}
   \item{sub.x}{The x position of annotation label.}
   \item{sub.y}{The y position of annotation label.}
@@ -112,15 +160,13 @@ resulting plots using \code{ggstatsplot::combine_plots}.
 }
 \examples{
 
-library(gapminder)
 
 ggstatsplot::grouped_gghistostats(
-data = gapminder::gapminder,
-x = lifeExp,
-xlab = "Life expectancy",
-test.value = 50,
-grouping.var = continent,
-nrow = 3,
+data = iris,
+x = Sepal.Length,
+test.value = 5,
+grouping.var = Species,
+nrow = 1,
 messages = FALSE
 )
 

@@ -1,3 +1,49 @@
+# ggstatsplot 0.0.2.9000
+
+NEW FEATURES
+
+  - The `ggbetweenstats` function can now show notched box plots. Two new
+    arguments `notch` and `notchwidth` control its behavior. The defaults are
+    still standard box plots.
+  - Removed warnings that were appearing when `outlier.label` argument was of
+    `character` type.
+  - The default color palette used for all plots is colorblind friendly.
+  - `gghistostats` supports `proportion` and `density` as a value measure for
+    bar heights to show proportions and density. New argument `bar.measure`
+    controls this behavior.
+  - `grouped_` variants of functions `ggcorrmat`, `ggscatterstats`,
+    `ggbetweenstats`, and `ggpiestats` introduced to create multiple plots for
+    different levels of a grouping variable.
+
+BREAKING FEATURES
+  - To be internally consistent, all functions in `ggstatsplot` use the spelling
+    `color`, rather than `colour` in some functions, while `color` in others.
+  - Removed the redundant argument `binwidth.adjust` from `gghistostats`
+    function. This argument was relevant for the first avatar of this fucntion,
+    but is no longer playing any role.
+  - To be internally consistent, the argument `lab_col` and `lab_size` in
+  `ggcorrmat` have been changed to `lab.col` and `lab.size`, respectively.
+
+MINOR CHANGES
+
+  - Added a new argument to `ggstatsplot.theme` function to control if
+    `ggstatsplot::theme_mprl` is to be overlaid on top of the selected ggtheme
+    (ggplot2 theme, i.e.).
+  - Two new arguments added to `gghistostats` to allow user to change colorbar
+    gradient. Defaults are colorblind friendly.
+  - Both `gghistostats` and `ggcorrmat` have a new argument
+    `legend.title.margin` to control margin adjustment between the title and the
+    colorbar.
+  - The vertical lines denoting test values and centrality parameters can be
+    tagged with text labels with a new argument `line.labeller` in
+    `gghistostats` function.
+
+BUG FIXES
+
+  - The `centrality.para` argument for `ggscatterstats` was not working
+    properly. Choosing `"median"` didn't show median, but the mean. This is
+    fixed now.
+    
 # ggstatsplot 0.0.2
 
 NEW FEATURES
@@ -7,7 +53,7 @@ NEW FEATURES
   - Vignette added for `gghistostats`.
   - Added new function `grouped_gghistostats` to facilitate applying
     `gghistostats` for multiple levels of a grouping factor.
-    - `ggbetweenstats` has a new argument `outlier.coef` to adjust threshold used
+  - `ggbetweenstats` has a new argument `outlier.coef` to adjust threshold used
     to detect outliers. Removed bug from the same function when `outlier.label`
     argument is of factor/character type.
 

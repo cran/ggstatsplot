@@ -3,6 +3,16 @@
 \name{ggbetweenstats}
 \alias{ggbetweenstats}
 \title{violin plots for group or condition comparisons}
+\usage{
+ggbetweenstats(data = NULL, x, y, plot.type = "boxviolin",
+  type = "parametric", effsize.type = "unbiased", xlab = NULL,
+  ylab = NULL, caption = NULL, title = NULL, k = 3, var.equal = FALSE,
+  nboot = 100, notch = FALSE, notchwidth = 0.5, linetype = "solid",
+  outlier.tagging = NULL, outlier.label = NULL,
+  outlier.label.color = "black", outlier.color = "black",
+  outlier.coef = 1.5, mean.plotting = TRUE, mean.size = 5,
+  mean.color = "darkred", messages = TRUE)
+}
 \arguments{
 \item{data}{Dataframe from which variables specified are preferentially to be
 taken.}
@@ -11,9 +21,9 @@ taken.}
 
 \item{y}{The response - a vector of length the number of rows of \code{x}.}
 
-\item{xlab}{Label for \code{x} axis variable.}
-
-\item{ylab}{Label for \code{y} axis variable.}
+\item{plot.type}{Character describing the \emph{type} of plot. Currently supported
+plots are \code{"box"} (for pure boxplots), \code{"violin"} (for pure violin plots),
+and \code{"boxviolin"} (for a mix of box and violin plots; default).}
 
 \item{type}{Type of statistic expected (\code{"parametric"} or \code{"nonparametric"}
 or \code{"robust"}).Corresponding abbreviations are also accepted: \code{"p"} (for
@@ -24,9 +34,13 @@ parametric), \code{"np"} (nonparametric), \code{"r"} (robust), resp.}
 or \code{"unbiased"} (Hedge's \emph{g} for \strong{t-test}; partial omega-squared for
 \strong{anova})).}
 
-\item{title}{The text for the plot title.}
+\item{xlab}{Label for \code{x} axis variable.}
+
+\item{ylab}{Label for \code{y} axis variable.}
 
 \item{caption}{The text for the plot caption.}
+
+\item{title}{The text for the plot title.}
 
 \item{k}{Number of decimal places expected for results.}
 
@@ -36,12 +50,30 @@ variances as being equal (Default: \code{FALSE}).}
 \item{nboot}{Number of bootstrap samples for computing effect size (Default:
 \code{100}).}
 
-\item{outlier.color}{Default aesthetics for outliers.}
+\item{notch}{A logical. If \code{FALSE} (default), a standard box plot will be
+displayed. If \code{TRUE}, a notched box plot will be used. Notches are used to
+compare groups; if the notches of two boxes do not overlap, this suggests
+that the medians are significantly different. In a notched box plot, the
+notches extend 1.58 * IQR / sqrt(n). This gives a roughly 95% confidence
+interval for comparing medians. IQR: Inter-Quartile Range.}
+
+\item{notchwidth}{For a notched box plot, width of the notch relative to the
+body (default \code{0.5}).}
+
+\item{linetype}{Character strings (\code{"blank"}, \code{"solid"}, \code{"dashed"},
+\code{"dotted"}, \code{"dotdash"}, \code{"longdash"}, and \code{"twodash"}) specifiying the
+type of line to draw box plots (Default: \code{"solid"}). Alternatively, the
+numbers \code{0} to \code{6} can be used (\code{0} for "blank", \code{1} for "solid", etc.).}
 
 \item{outlier.tagging}{Decides whether outliers should be tagged (Default:
 \code{FALSE}).}
 
 \item{outlier.label}{Label to put on the outliers that have been tagged.}
+
+\item{outlier.label.color}{Color for the label to to put on the outliers that
+have been tagged (Default: \code{"black"}).}
+
+\item{outlier.color}{Default aesthetics for outliers (Default: \code{"black"}).}
 
 \item{outlier.coef}{Coefficient for outlier detection using Tukey's method.
 With Tukey’s method, outliers are below (1st Quartile) or above (3rd
@@ -51,14 +83,19 @@ Quartile) \code{outlier.coef} times the Inter-Quartile Range (IQR) (Default:
 \item{mean.plotting}{Decides whether mean is to be highlighted and its value
 to be displayed (Default: \code{TRUE}).}
 
-\item{mean.color}{Color for the data point corresponding to mean.}
+\item{mean.size}{Point size for the data point corresponding to mean
+(Default: \code{5}).}
+
+\item{mean.color}{Color for the data point corresponding to mean (Default:
+\code{"darkred"}).}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
 }
 \description{
-Violin plots for between-subjects designs with statistical
-details included in the plot as a subtitle.
+A combination of box and violin plots along with jittered data
+points for between-subjects designs with statistical details included in
+the plot as a subtitle.
 }
 \examples{
 
@@ -77,10 +114,13 @@ ggstatsplot::ggbetweenstats(
 data = datasets::ToothGrowth,
 x = supp,
 y = len,
+plot.type = "box",
 xlab = "Supplement type",
-ylab = "Tooth length",
-outlier.tagging = TRUE)
+ylab = "Tooth length")
 
+}
+\seealso{
+\code{\link{grouped_ggbetweenstats}}
 }
 \author{
 Indrajeet Patil

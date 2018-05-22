@@ -1,5 +1,5 @@
 #'
-#' @title Default theme used in all `ggstatsplot` package plots.
+#' @title Default theme used in all `ggstatsplot` package plots
 #' @name theme_mprl
 #' @aliases theme_ggstatsplot
 #' @author Indrajeet Patil
@@ -34,7 +34,7 @@ theme_mprl <- function() {
       legend.key.width = grid::unit(x = 1, units = "line"),
       plot.margin = grid::unit(x = c(1, 1, 1, 1), units = "lines"),
       panel.border = ggplot2::element_rect(
-        colour = "black",
+        color = "black",
         fill = NA,
         size = 1
       ),

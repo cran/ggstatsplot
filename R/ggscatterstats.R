@@ -3,7 +3,7 @@
 #' @name ggscatterstats
 #' @aliases ggscatterstats
 #' @author Indrajeet Patil
-#' @description Scatterplots from `ggplot2`` combined with add marginal
+#' @description Scatterplots from `ggplot2` combined with marginal
 #'   histograms/boxplots/density plots with statistical details added as a
 #'   subtitle.
 #'
@@ -13,13 +13,19 @@
 #' @param y The response - a vector of length the number of rows of `x`.
 #' @param xlab Label for `x` axis variable.
 #' @param ylab Label for `y` axis variable.
-#' @param line.colour Colour for the regression line.
+#' @param line.color color for the regression line.
+#' @param line.size Size for the regression line.
 #' @param marginal Decides whether `ggExtra::ggMarginal()` plots will be
 #'   displayed; the default is `TRUE`.
 #' @param marginal.type Type of marginal distribution to be plotted on the axes
 #'   (`"histogram"`, `"boxplot"`, `"density"`, `"violin"`).
-#' @param xfill Colour fill for x axis distibution (default: `"orange"`).
-#' @param yfill Colour fill for y axis distribution (default: `"green"`).
+#' @param marginal.size Integer describing the relative size of the marginal
+#'   plots compared to the main plot. A size of `5` means that the main plot is
+#'   5x wider and 5x taller than the marginal plots.
+#' @param margins Character describing along which margins to show the plots.
+#'   Any of the following arguments are accepted: `"both"`, `"x"`, `"y"`.
+#' @param xfill color fill for x axis distibution (default: `"#009E73"`).
+#' @param yfill color fill for y axis distribution (default: `"#D55E00"`).
 #' @param type Type of association between paired samples required
 #'   ("`"parametric"`: Pearson's product moment correlation coefficient" or
 #'   "`"nonparametric"`: Spearman's rho" or "`"robust"`: Robust regression using
@@ -41,13 +47,25 @@
 #'   the resolution of the data.
 #' @param height.jitter Degree of jitter in `y` direction. Defaults to 40\% of
 #'   the resolution of the data.
+#' @param axes.range.restrict Logical decides whther to restrict the axes values
+#'   ranges to min and max values of the `x` and `y` variables (Default: `FALSE`).
 #' @param messages Decides whether messages references, notes, and warnings are
 #'   to be displayed (Default: `TRUE`).
 #'
 #' @import ggplot2
-#' @import dplyr
-#' @import rlang
 #'
+#' @importFrom dplyr select
+#' @importFrom dplyr group_by
+#' @importFrom dplyr summarize
+#' @importFrom dplyr n
+#' @importFrom dplyr arrange
+#' @importFrom dplyr mutate
+#' @importFrom dplyr mutate_at
+#' @importFrom dplyr mutate_if
+#' @importFrom magrittr "%<>%"
+#' @importFrom magrittr "%>%"
+#' @importFrom rlang enquo
+#' @importFrom rlang quo_name
 #' @importFrom MASS rlm
 #' @importFrom sfsmisc f.robftest
 #' @importFrom broom bootstrap
@@ -57,12 +75,14 @@
 #' @importFrom stats na.omit
 #' @importFrom stats confint.default
 #'
+#' @seealso \code{\link{grouped_ggscatterstats}} \code{\link{ggcorrmat}} \code{\link{grouped_ggcorrmat}}
+#'
 #' @examples
 #'
 #' # to get reproducible results from bootstrapping
 #' set.seed(123)
 #'
-#' #' # simple function call with the defaults
+#' # simple function call with the defaults
 #' ggstatsplot::ggscatterstats(
 #' data = datasets::mtcars,
 #' x = wt,
@@ -80,39 +100,7 @@
 #' )
 #'
 #' @export
-
-# defining global variables and functions to quient the R CMD check notes
-utils::globalVariables(
-  c(
-    "U",
-    "V",
-    "Z",
-    "chi",
-    "counts",
-    "df",
-    "df1",
-    "df2",
-    "effsize",
-    "estimate",
-    "eta",
-    "omega",
-    "perc",
-    "cramer",
-    "pvalue",
-    "r",
-    "rho",
-    "xi",
-    "y",
-    "z_value",
-    "italic",
-    "rsubtitle",
-    "stats_subtitle",
-    "chi_subtitle",
-    "proptest_subtitle",
-    "LL",
-    "UL"
-  )
-)
+#'
 
 # defining the function
 ggscatterstats <-
@@ -121,13 +109,16 @@ ggscatterstats <-
              y,
              xlab = NULL,
              ylab = NULL,
-             line.colour = "blue",
+             line.size = 1.5,
+             line.color = "blue",
              marginal = TRUE,
              marginal.type = "histogram",
+             marginal.size = 5,
+             margins = c("both", "x", "y"),
              width.jitter = NULL,
              height.jitter = NULL,
-             xfill = "orange",
-             yfill = "green",
+             xfill = "#009E73",
+             yfill = "#D55E00",
              centrality.para = NULL,
              type = "pearson",
              results.subtitle = NULL,
@@ -135,6 +126,7 @@ ggscatterstats <-
              caption = NULL,
              maxit = 500,
              k = 3,
+             axes.range.restrict = FALSE,
              messages = TRUE) {
     # if data is not available then don't display any messages
     if (is.null(data)) {
@@ -253,7 +245,7 @@ ggscatterstats <-
           broom::bootstrap(df = ., m = maxit) %>%
           do(broom::tidy(
             stats::cor.test(
-              formula = ~ x + y,
+              formula = ~x + y,
               data = .,
               method = "spearman",
               exact = FALSE,
@@ -262,8 +254,11 @@ ggscatterstats <-
           )) %>%
           tibble::as_data_frame(x = .) %>%
           dplyr::select(.data = ., estimate) %>%
-          dplyr::summarize(.data = ., low = quantile(estimate, 0.05 / 2),
-                           high = quantile(estimate, 1 - 0.05 / 2))
+          dplyr::summarize(
+            .data = .,
+            low = quantile(estimate, 0.05 / 2),
+            high = quantile(estimate, 1 - 0.05 / 2)
+          )
 
         # preparing the label
         stats_subtitle <-
@@ -292,9 +287,11 @@ ggscatterstats <-
               estimate = ggstatsplot::specify_decimal_p(x = c$estimate[[1]], k),
               LL = ggstatsplot::specify_decimal_p(x = c_ci$low[[1]], k),
               UL = ggstatsplot::specify_decimal_p(x = c_ci$high[[1]], k),
-              pvalue = ggstatsplot::specify_decimal_p(x = c$p.value[[1]],
-                                                      k,
-                                                      p.value = TRUE)
+              pvalue = ggstatsplot::specify_decimal_p(
+                x = c$p.value[[1]],
+                k,
+                p.value = TRUE
+              )
             )
           )
         ################################################### robust ##################################################
@@ -391,8 +388,8 @@ ggscatterstats <-
       ggplot2::geom_smooth(
         method = "lm",
         se = TRUE,
-        size = 1.5,
-        colour = line.colour,
+        size = line.size,
+        color = line.color,
         na.rm = TRUE
       ) +
       ggstatsplot::theme_mprl() +
@@ -402,45 +399,50 @@ ggscatterstats <-
         title = title,
         subtitle = stats_subtitle,
         caption = caption
-      ) +
-      ggplot2::coord_cartesian(xlim = c(min(data$x), max(data$x))) +
-      ggplot2::coord_cartesian(ylim = c(min(data$y), max(data$y)))
+      )
 
+    # forcing the plots to get cut off at min and max values of the variable
+    if (isTRUE(axes.range.restrict)) {
+      plot <- plot +
+        ggplot2::coord_cartesian(xlim = c(min(data$x), max(data$x))) +
+        ggplot2::coord_cartesian(ylim = c(min(data$y), max(data$y)))
+    }
     ################################################ centrality.para ##################################################
 
     # by default, if the input is NULL, then no centrality.para lines will be plotted
 
     if (is.null(centrality.para)) {
       plot <- plot
-    } else if (centrality.para == "mean") {
+    } else if (isTRUE(centrality.para) ||
+      centrality.para == "mean") {
       plot <- plot +
         ggplot2::geom_vline(
-          xintercept = mean(data$x),
+          xintercept = mean(x = data$x, na.rm = TRUE),
           linetype = "dashed",
-          colour = xfill,
+          color = xfill,
           size = 1.2,
           na.rm = TRUE
         ) +
         ggplot2::geom_hline(
-          yintercept = mean(data$y),
+          yintercept = mean(x = data$y, na.rm = TRUE),
           linetype = "dashed",
-          colour = yfill,
+          color = yfill,
           size = 1.2,
           na.rm = TRUE
         )
     } else if (centrality.para == "median") {
       plot <- plot +
         ggplot2::geom_vline(
-          xintercept = mean(data$x),
+          xintercept = median(x = data$x, na.rm = TRUE),
           linetype = "dashed",
-          colour = xfill,
+          color = xfill,
           size = 1.2,
           na.rm = TRUE
         ) +
         ggplot2::geom_hline(
-          yintercept = mean(data$y),
+          yintercept = median(x = data$y, na.rm = TRUE),
           linetype = "dashed",
-          colour = yfill,
+          color = yfill,
           size = 1.2,
           na.rm = TRUE
         )
@@ -454,7 +456,8 @@ ggscatterstats <-
         ggExtra::ggMarginal(
           p = plot,
           type = marginal.type,
-          size = 5,
+          margins = margins,
+          size = marginal.size,
           xparams = base::list(
             fill = xfill,
             col = "black"
@@ -464,18 +467,19 @@ ggscatterstats <-
             col = "black"
           )
         )
+    }
 
-      ################################################### messages ##########################################################
+    ################################################### messages ##########################################################
 
-      # display warning that this doesn't produce a ggplot2 object
-      if (isTRUE(messages)) {
-        base::message(cat(
-          crayon::red("Warning:"),
-          crayon::blue(
-            "This function doesn't return ggplot2 object and is not further modifiable with ggplot2 commands."
-          )
-        ))
-      }
+    # display warning that this doesn't produce a ggplot2 object
+    if (isTRUE(messages) &&
+      isTRUE(marginal)) {
+      base::message(cat(
+        crayon::red("Warning:"),
+        crayon::blue(
+          "This function doesn't return ggplot2 object and is not further modifiable with ggplot2 commands."
+        )
+      ))
     }
 
     # return the final plot

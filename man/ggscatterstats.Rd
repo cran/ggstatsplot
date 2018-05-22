@@ -3,6 +3,15 @@
 \name{ggscatterstats}
 \alias{ggscatterstats}
 \title{Scatterplot with marginal distributions}
+\usage{
+ggscatterstats(data = NULL, x, y, xlab = NULL, ylab = NULL,
+  line.size = 1.5, line.color = "blue", marginal = TRUE,
+  marginal.type = "histogram", marginal.size = 5, margins = c("both", "x",
+  "y"), width.jitter = NULL, height.jitter = NULL, xfill = "#009E73",
+  yfill = "#D55E00", centrality.para = NULL, type = "pearson",
+  results.subtitle = NULL, title = NULL, caption = NULL, maxit = 500,
+  k = 3, axes.range.restrict = FALSE, messages = TRUE)
+}
 \arguments{
 \item{data}{Dataframe from which variables specified are preferentially to be
 taken.}
@@ -15,7 +24,9 @@ taken.}
 
 \item{ylab}{Label for \code{y} axis variable.}
 
-\item{line.colour}{Colour for the regression line.}
+\item{line.size}{Size for the regression line.}
+
+\item{line.color}{color for the regression line.}
 
 \item{marginal}{Decides whether \code{ggExtra::ggMarginal()} plots will be
 displayed; the default is \code{TRUE}.}
@@ -23,9 +34,26 @@ displayed; the default is \code{TRUE}.}
 \item{marginal.type}{Type of marginal distribution to be plotted on the axes
 (\code{"histogram"}, \code{"boxplot"}, \code{"density"}, \code{"violin"}).}
 
-\item{xfill}{Colour fill for x axis distibution (default: \code{"orange"}).}
+\item{marginal.size}{Integer describing the relative size of the marginal
+plots compared to the main plot. A size of \code{5} means that the main plot is
+5x wider and 5x taller than the marginal plots.}
 
-\item{yfill}{Colour fill for y axis distribution (default: \code{"green"}).}
+\item{margins}{Character describing along which margins to show the plots.
+Any of the following arguments are accepted: \code{"both"}, \code{"x"}, \code{"y"}.}
+
+\item{width.jitter}{Degree of jitter in \code{x} direction. Defaults to 40\% of
+the resolution of the data.}
+
+\item{height.jitter}{Degree of jitter in \code{y} direction. Defaults to 40\% of
+the resolution of the data.}
+
+\item{xfill}{color fill for x axis distibution (default: \code{"#009E73"}).}
+
+\item{yfill}{color fill for y axis distribution (default: \code{"#D55E00"}).}
+
+\item{centrality.para}{Decides \emph{which} measure of central tendency (\code{"mean"}
+or \code{"median"}) is to be displayed as vertical (for \code{x}) and horizontal (for
+\code{y}) lines.}
 
 \item{type}{Type of association between paired samples required
 ("\code{"parametric"}: Pearson's product moment correlation coefficient" or
@@ -37,10 +65,6 @@ resp.}
 \item{results.subtitle}{Decides whether the results of statistical tests are
 to be displayed as subtitle.}
 
-\item{centrality.para}{Decides \emph{which} measure of central tendency (\code{"mean"}
-or \code{"median"}) is to be displayed as vertical (for \code{x}) and horizontal (for
-\code{y}) lines.}
-
 \item{title}{The text for the plot title.}
 
 \item{caption}{The text for the plot caption.}
@@ -51,17 +75,14 @@ bootstrap samples to compute Spearman's rho confidence intervals (Default:
 
 \item{k}{Number of decimal places expected for results.}
 
-\item{width.jitter}{Degree of jitter in \code{x} direction. Defaults to 40\% of
-the resolution of the data.}
-
-\item{height.jitter}{Degree of jitter in \code{y} direction. Defaults to 40\% of
-the resolution of the data.}
+\item{axes.range.restrict}{Logical decides whther to restrict the axes values
+ranges to min and max values of the \code{x} and \code{y} variables (Default: \code{FALSE}).}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
 }
 \description{
-Scatterplots from `ggplot2`` combined with add marginal
+Scatterplots from \code{ggplot2} combined with marginal
 histograms/boxplots/density plots with statistical details added as a
 subtitle.
 }
@@ -70,7 +91,7 @@ subtitle.
 # to get reproducible results from bootstrapping
 set.seed(123)
 
-#' # simple function call with the defaults
+# simple function call with the defaults
 ggstatsplot::ggscatterstats(
 data = datasets::mtcars,
 x = wt,
@@ -87,6 +108,9 @@ type = 'robust',
 marginal.type = 'density'
 )
 
+}
+\seealso{
+\code{\link{grouped_ggscatterstats}} \code{\link{ggcorrmat}} \code{\link{grouped_ggcorrmat}}
 }
 \author{
 Indrajeet Patil

@@ -28,11 +28,6 @@
 #' Vignette preparation in progress.
 #'
 #' @docType package
-#' @name ggstatsplot
+#' @name ggstatsplot-package
 #'
 NULL
-
-# to appease R CMD Check
-if (getRversion() >= "2.15.1") {
-  utils::globalVariables(c("."))
-}
