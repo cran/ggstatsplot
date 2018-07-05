@@ -10,23 +10,7 @@
 #' @param grouping.var Grouping variable.
 #' @param title.prefix Character specifying the prefix text for the fixed plot
 #'   title (name of each factor level) (Default: `"Group"`).
-#' @param data The data as a data frame.
-#' @param main A string naming the variable to use as the rows in the
-#'   contingency table.
-#' @param condition A string naming the variable to use as the columns in the
-#'   contingency table.
-#' @param factor.levels A character vector with labels for factor levels of
-#'   `main` variable.
-#' @param stat.title Title for the effect being investigated with the chi-square
-#'   test.
-#' @param caption The text for the plot caption.
-#' @param k Number of decimal places expected for results.
-#' @param legend.title Title of legend.
-#' @param facet.wrap.name The text for the facet_wrap variable label.
-#' @param facet.proptest Decides whether proprotion test for `main` variable is
-#'   to be carried out for each level of `condition` (Default: `TRUE`).
-#' @param messages Decides whether messages references, notes, and warnings are
-#'   to be displayed (Default: `TRUE`).
+#' @inheritParams ggpiestats
 #' @inheritDotParams combine_plots
 #'
 #' @importFrom dplyr select
@@ -47,6 +31,9 @@
 #'
 #' @seealso \code{\link{ggpiestats}}
 #'
+#' @references
+#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggpiestats.html}
+#'
 #' @examples
 #'
 #' # grouped one-sample proportion tests
@@ -60,23 +47,30 @@
 #'
 
 # defining the function
-grouped_ggpiestats <- function(grouping.var,
-                               title.prefix = "Group",
-                               data,
+grouped_ggpiestats <- function(data,
                                main,
                                condition = NULL,
+                               counts = NULL,
+                               grouping.var,
+                               title.prefix = "Group",
+                               ratio = NULL,
                                factor.levels = NULL,
                                stat.title = NULL,
+                               sample.size.label = TRUE,
                                caption = NULL,
+                               nboot = 25,
+                               palette = "Dark2",
                                legend.title = NULL,
                                facet.wrap.name = NULL,
                                k = 3,
                                facet.proptest = TRUE,
+                               ggtheme = ggplot2::theme_bw(),
                                messages = TRUE,
                                ...) {
   # ================================ preparing dataframe ======================================
 
   if (!base::missing(condition)) {
+    if (base::missing(counts)) {
     # if condition variable *is* provided
     df <- dplyr::select(
       .data = data,
@@ -88,8 +82,22 @@ grouped_ggpiestats <- function(grouping.var,
         .data = .,
         title.text = !!rlang::enquo(grouping.var)
       )
+    } else {
+      df <- dplyr::select(
+        .data = data,
+        !!rlang::enquo(grouping.var),
+        !!rlang::enquo(main),
+        !!rlang::enquo(condition),
+        !!rlang::enquo(counts)
+      ) %>%
+        dplyr::mutate(
+          .data = .,
+          title.text = !!rlang::enquo(grouping.var)
+        )
+    }
   } else {
     # if condition variable is *not* provided
+    if (base::missing(counts)) {
     df <- dplyr::select(
       .data = data,
       !!rlang::enquo(grouping.var),
@@ -99,6 +107,18 @@ grouped_ggpiestats <- function(grouping.var,
         .data = .,
         title.text = !!rlang::enquo(grouping.var)
       )
+    } else {
+      df <- dplyr::select(
+        .data = data,
+        !!rlang::enquo(grouping.var),
+        !!rlang::enquo(main),
+        !!rlang::enquo(counts)
+      ) %>%
+        dplyr::mutate(
+          .data = .,
+          title.text = !!rlang::enquo(grouping.var)
+        )
+    }
   }
 
   # creating a nested dataframe
@@ -118,6 +138,7 @@ grouped_ggpiestats <- function(grouping.var,
     tidyr::nest(data = .)
 
   if (!base::missing(condition)) {
+    if (base::missing(counts)) {
     # creating a list of plots
     plotlist_purrr <- df %>%
       dplyr::mutate(
@@ -131,18 +152,55 @@ grouped_ggpiestats <- function(grouping.var,
               main = !!rlang::enquo(main),
               condition = !!rlang::enquo(condition),
               title = glue::glue("{title.prefix}: {as.character(.$title.text)}"),
+              ratio = ratio,
               factor.levels = factor.levels,
               stat.title = stat.title,
+              sample.size.label = sample.size.label,
               caption = caption,
+              nboot = nboot,
+              palette = palette,
               legend.title = legend.title,
               facet.wrap.name = facet.wrap.name,
               k = k,
               facet.proptest = facet.proptest,
+              ggtheme = ggtheme,
               messages = messages
             )
           )
       )
+    } else {
+      plotlist_purrr <- df %>%
+        dplyr::mutate(
+          .data = .,
+          plots = data %>%
+            purrr::set_names(!!rlang::enquo(grouping.var)) %>%
+            purrr::map(
+              .x = .,
+              .f = ~ggstatsplot::ggpiestats(
+                data = .,
+                main = !!rlang::enquo(main),
+                condition = !!rlang::enquo(condition),
+                counts = !!rlang::enquo(counts),
+                title = glue::glue("{title.prefix}: {as.character(.$title.text)}"),
+                ratio = ratio,
+                factor.levels = factor.levels,
+                stat.title = stat.title,
+                sample.size.label = sample.size.label,
+                caption = caption,
+                nboot = nboot,
+                palette = palette,
+                legend.title = legend.title,
+                facet.wrap.name = facet.wrap.name,
+                k = k,
+                facet.proptest = facet.proptest,
+                ggtheme = ggtheme,
+                messages = messages
+              )
+            )
+        )
+    }
   } else {
+    if (base::missing(counts)) {
     # creating a list of plots
     plotlist_purrr <- df %>%
       dplyr::mutate(
@@ -155,17 +213,49 @@ grouped_ggpiestats <- function(grouping.var,
               data = .,
               main = !!rlang::enquo(main),
               title = glue::glue("{title.prefix}: {as.character(.$title.text)}"),
+              ratio = ratio,
               factor.levels = factor.levels,
               stat.title = stat.title,
               caption = caption,
+              nboot = nboot,
+              palette = palette,
               legend.title = legend.title,
               facet.wrap.name = facet.wrap.name,
               k = k,
               facet.proptest = facet.proptest,
+              ggtheme = ggtheme,
               messages = messages
             )
           )
       )
+    } else {
+      dplyr::mutate(
+        .data = .,
+        plots = data %>%
+          purrr::set_names(!!rlang::enquo(grouping.var)) %>%
+          purrr::map(
+            .x = .,
+            .f = ~ggstatsplot::ggpiestats(
+              data = .,
+              main = !!rlang::enquo(main),
+              counts = !!rlang::enquo(counts),
+              title = glue::glue("{title.prefix}: {as.character(.$title.text)}"),
+              ratio = ratio,
+              factor.levels = factor.levels,
+              stat.title = stat.title,
+              caption = caption,
+              nboot = nboot,
+              palette = palette,
+              legend.title = legend.title,
+              facet.wrap.name = facet.wrap.name,
+              k = k,
+              facet.proptest = facet.proptest,
+              ggtheme = ggtheme,
+              messages = messages
+            )
+          )
+      )
+    }
   }
 
   # combining the list of plots into a single plot

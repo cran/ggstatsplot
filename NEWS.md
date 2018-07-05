@@ -1,4 +1,53 @@
-# ggstatsplot 0.0.2.9000
+
+# ggstatsplot 0.0.4
+
+MAJOR CHANGES
+
+  - New function: `ggcoefstats` for displaying model coefficients.
+  - All functions now have `ggtheme` argument that can be used to change the
+    default theme, which has now been changed from `theme_grey()` to
+    `theme_bw()`.
+  - The robust correlation is no longer `MASS::rlm`, but percentage bend
+    correlation, as implemented in `WRS2::pbcor`. This was done to be consistent
+    across different functions. `ggcorrmat` also uses percentage bend
+    correlation as the robust correlation measure. This also means that
+    `ggstatsplot` no longer imports `MASS` and `sfsmisc`.
+  - The `data` argument is no longer `NULL` for all functions, except
+    `gghistostats`. In other words, the user **must** provide a dataframe from
+    which variables or formulas should be selected.
+  - All subtitles containing results now also show sample size information
+    (*n*). To adjust for the inflated length of the subtitle, the default
+    subtitle text size has been changed from `12` to `11`.
+
+MINOR CHANGES
+
+  - Switched back to Shapiro-Wilk test of normality to remove `nortest` from
+    imports.
+  - `ggpiestats` can now handle dataframes with 
+  - `ggbetweenstats` and `ggpiestats` now display sample sizes for each level of
+    the groping factor by default. This behavior can be turned off by setting
+    `sample.size.label` to `FALSE`.
+  - Three new datasets added: `Titanic_full`, `movies_wide`, `movies_long`. 
+  - Added confidence interval for effect size for robust ANOVA. 
+  - The 95% CI for Cramer'V computed using `boot::boot`. Therefore,
+    the package no longer imports `DescTools`. 
+  - To be consistent across correlations covered, all correlations now show
+    estimates for correlation coefficients, confidence intervals for the estimate,
+    and *p*-values. Therefore, *t*-values and regression coefficients are no
+    longer displayed for Pearson's *r*.
+  - The `legend.title.margin` arguments for `gghistostats` and `ggcorrmat` now
+    default to `FALSE`, since `ggplot2 3.0.0` has better legend title margins.
+  - `ggpiestats` now sorts the summary dataframes not by percentages but by the
+    levels of `main` variable. This was done to have the same legends across
+    different levels of a grouping variable in `grouped_ggpiestats`.
+  - To remove cluttered display of results in the subtitle, `ggpiestats` no
+    longer shows titles for the tests run (these were "Proportion test" and
+    "Chi-Square test"). From the pie charts, it should be obvious to the user or
+    reader what test was run.
+  - `gghistostats` also allows running robust version of one-sample test now
+    (One-sample percentile bootstrap).
+
+# ggstatsplot 0.0.3
 
 NEW FEATURES
 
@@ -15,14 +64,14 @@ NEW FEATURES
     `ggbetweenstats`, and `ggpiestats` introduced to create multiple plots for
     different levels of a grouping variable.
 
-BREAKING FEATURES
+MAJOR CHANGES
   - To be internally consistent, all functions in `ggstatsplot` use the spelling
     `color`, rather than `colour` in some functions, while `color` in others.
   - Removed the redundant argument `binwidth.adjust` from `gghistostats`
     function. This argument was relevant for the first avatar of this fucntion,
     but is no longer playing any role.
   - To be internally consistent, the argument `lab_col` and `lab_size` in
-  `ggcorrmat` have been changed to `lab.col` and `lab.size`, respectively.
+    `ggcorrmat` have been changed to `lab.col` and `lab.size`, respectively.
 
 MINOR CHANGES
 

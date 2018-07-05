@@ -6,22 +6,43 @@
 #'   included in the plot as a subtitle.
 #' @author Indrajeet Patil
 #'
-#' @param data The data as a data frame.
-#' @param main A string naming the variable to use as the rows in the
+#' @param data The data as a data frame (matrix or tables will not be accepted).
+#' @param main The variable to use as the **rows** in the
 #'   contingency table.
-#' @param condition A string naming the variable to use as the columns in the
-#'   contingency table.
+#' @param condition The variable to use as the **columns** in the contingency
+#'   table. This argument is optional (Default: `NULL`). If this argument is
+#'   provided, then Pearson's chi-square test of independence will be run. If
+#'   not, a goodness of fit test will be run on the `main` variable.
+#' @param counts A string naming a variable in data containing counts, or `NULL`
+#'   if each row represents a single observation (Default).
+#' @param ratio A vector of numbers: the expected proportions for the proportion
+#'   test. Default is `NULL`, which means if there are two levels `ratio =
+#'   c(1,1)`, etc.
 #' @param factor.levels A character vector with labels for factor levels of
 #'   `main` variable.
 #' @param stat.title Title for the effect being investigated with the chi-square
-#'   test.
+#'   test. The default is `NULL`, i.e. no title will be added to describe the
+#'   effect being shown. An example of a `stat.title` argument will be something
+#'   like `"main x condition"` or `"interaction"`.
 #' @param title The text for the plot title.
 #' @param caption The text for the plot caption.
+#' @param sample.size.label Logical that decides whether sample size information
+#'   should be displayed for each level of the grouping variable `condition` (Default:
+#'   `TRUE`).
+#' @param nboot Number of bootstrap samples for computing effect size (Default:
+#'   `25`).
+#' @param palette If a character string (e.g., `"Set1"`), will use that named
+#'   palette. If a number, will index into the list of palettes of appropriate
+#'   type. Default palette is `"Dark2"`
 #' @param k Number of decimal places expected for results.
 #' @param legend.title Title of legend.
 #' @param facet.wrap.name The text for the facet_wrap variable label.
-#' @param facet.proptest Decides whether proprotion test for `main` variable is
+#' @param facet.proptest Decides whether proportion test for `main` variable is
 #'   to be carried out for each level of `condition` (Default: `TRUE`).
+#' @param ggtheme A function, `ggplot2` theme name. Default value is
+#'   `ggplot2::theme_bw()`. Allowed values are the official `ggplot2` themes,
+#'   including `theme_grey()`, `theme_minimal()`, `theme_classic()`,
+#'   `theme_void()`, etc.
 #' @param messages Decides whether messages references, notes, and warnings are
 #'   to be displayed (Default: `TRUE`).
 #'
@@ -35,6 +56,7 @@
 #' @importFrom dplyr mutate
 #' @importFrom dplyr mutate_at
 #' @importFrom dplyr mutate_if
+#' @importFrom dplyr desc
 #' @importFrom rlang enquo
 #' @importFrom rlang quo_name
 #' @importFrom crayon green
@@ -43,30 +65,23 @@
 #' @importFrom crayon red
 #' @importFrom jmv propTestN
 #' @importFrom jmv contTables
-#' @importFrom DescTools CramerV
+#'
+#' @references
+#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggpiestats.html}
 #'
 #' @examples
 #'
-#' library(ggplot2)
+#' set.seed(123)
 #'
-#' # simple function call with the defaults
+#' # simple function call with the defaults (with condition)
+#' ggstatsplot::ggpiestats(data = datasets::mtcars,
+#' main = am,
+#' condition = cyl)
+#'
+#' # simple function call with the defaults (without condition)
 #' ggstatsplot::ggpiestats(
 #' data = datasets::iris,
 #' main = Species
-#' )
-#'
-#' # more detailed function call
-#' ggstatsplot::ggpiestats(
-#' data = datasets::mtcars,
-#' main = am,
-#' condition = cyl,
-#' factor.levels = c("zero", "one"),
-#' stat.title = "interaction",
-#' title = "Dataset: mtcars",
-#' caption = "This is a demo",
-#' legend.title = "transmission",
-#' facet.wrap.name = "No. of cylinders",
-#' facet.proptest = TRUE
 #' )
 #'
 #' @export
@@ -74,86 +89,160 @@
 
 # defining the function
 ggpiestats <-
-  function(data = NULL,
-             main,
-             condition = NULL,
-             factor.levels = NULL,
-             stat.title = NULL,
-             title = NULL,
-             caption = NULL,
-             legend.title = NULL,
-             facet.wrap.name = NULL,
-             k = 3,
-             facet.proptest = TRUE,
-             messages = TRUE) {
-    # ========================================== messages ==================================================================
+  function(data,
+           main,
+           condition = NULL,
+           counts = NULL,
+           ratio = NULL,
+           factor.levels = NULL,
+           stat.title = NULL,
+           sample.size.label = TRUE,
+           title = NULL,
+           caption = NULL,
+           nboot = 25,
+           palette = "Dark2",
+           legend.title = NULL,
+           facet.wrap.name = NULL,
+           k = 3,
+           facet.proptest = TRUE,
+           ggtheme = ggplot2::theme_bw(),
+           messages = TRUE) {
+    #================================= extracting column names as labels  =======================================================
 
-    # if data is not available then don't display any messages
-    if (is.null(data)) {
-      messages <- FALSE
+    if (base::missing(condition)) {
+      # saving the column label for the 'main' variables
+      if (is.null(legend.title)) {
+        legend.title <-
+          colnames(dplyr::select(.data = data,
+                                 !!rlang::enquo(main)))[1]
+      }
+    } else {
+      # saving the column labels for the 'main' and the 'condition' variables
+      lab.df <- colnames(dplyr::select(.data = data,
+                                       !!rlang::enquo(main),
+                                       !!rlang::enquo(condition)))
+      # if legend title is not provided, use the variable name for 'main' argument
+      if (is.null(legend.title)) {
+        legend.title <- lab.df[1]
+      }
+      # if facetting variable name is not specified, use the variable name for 'condition' argument
+      if (is.null(facet.wrap.name)) {
+        facet.wrap.name <- lab.df[2]
+      }
     }
-    # ================================= dataframe =======================================================
-    # if dataframe is provided
-    if (!is.null(data)) {
-      # if condition variables is provided then include it in the dataframe
-      if (base::missing(condition)) {
-        if (is.null(legend.title)) {
-          legend.title <-
-            colnames(dplyr::select(
-              .data = data,
-              !!rlang::enquo(main)
-            ))[1]
-        }
-        # if condition argument is not provided then only include the 'main' argument in dataframe
+
+    #================================= dataframe ================================================================================
+
+    # creating a dataframe based on which variables are provided
+    if (base::missing(condition)) {
+      if (base::missing(counts)) {
+        data <-
+          dplyr::select(.data = data,
+                        main = !!rlang::enquo(main)) %>%
+          tibble::as_data_frame(x = .)
+      } else {
         data <-
           dplyr::select(
             .data = data,
-            main = !!rlang::enquo(main)
-          )
-      } else {
-        # preparing labels from given dataframe
-        lab.df <- colnames(dplyr::select(
-          .data = data,
-          !!rlang::enquo(main),
-          !!rlang::enquo(condition)
-        ))
-        # if legend title is not provided, use the variable name for 'main' argument
-        if (is.null(legend.title)) {
-          legend.title <- lab.df[1]
-        }
-        # if facetting variable name is not specified, use the variable name for 'condition' argument
-        if (is.null(facet.wrap.name)) {
-          facet.wrap.name <- lab.df[2]
-        }
-        # if condition variable is provided, then include it in the dataframe
+            main = !!rlang::enquo(main),
+            counts = !!rlang::enquo(counts)
+          ) %>%
+          tibble::as_data_frame(x = .)
+      }
+    } else {
+      if (base::missing(counts)) {
         data <-
           dplyr::select(
             .data = data,
             main = !!rlang::enquo(main),
             condition = !!rlang::quo_name(rlang::enquo(condition))
-          )
-      }
-    } else {
-      if (!is.null(condition)) {
-        # if vectors are provided and condition vector is present
-        data <-
-          base::cbind.data.frame(
-            main = main,
-            condition = condition
-          )
+          ) %>%
+          tibble::as_data_frame(x = .)
       } else {
-        # if condition vector is absent
         data <-
-          base::cbind.data.frame(main = main)
+          dplyr::select(
+            .data = data,
+            main = !!rlang::enquo(main),
+            condition = !!rlang::quo_name(rlang::enquo(condition)),
+            counts = !!rlang::quo_name(rlang::enquo(counts))
+          ) %>%
+          tibble::as_data_frame(x = .)
       }
-      # if the user hasn't defined the legend.title name, default to the name 'main'
-      if (is.null(legend.title)) {
-        legend.title <- "main"
-      }
+    }
 
-      # if the user hasn't defined the facet_wrap name, default to the name 'condition'
-      if (is.null(facet.wrap.name)) {
-        facet.wrap.name <- "condition"
+    # ======================================================== converting counts ========================================================
+
+    # untable the dataframe based on the count for each obervation
+    if (!base::missing(counts)) {
+      data %<>% untable(data = ., counts = counts) %>%
+        dplyr::select(.data = ., -counts)
+    }
+
+    # ======================================================== percentage dataframe ======================================================
+    #
+    # main needs to be a factor for this analysis it is possible that sometimes
+    # the variable hasn't been converted to factor class and this will produce
+    # an error
+    if (is.factor(data$main)) {
+      # drop the unused levels of factor
+      data %<>%
+        dplyr::mutate_at(
+          .tbl = .,
+          .vars = "main",
+          .funs = ~ base::droplevels(x = .)
+        )
+    } else if (!is.factor(data$main)) {
+      # convert to factor
+      data$main <- base::as.factor(x = data$main)
+      # drop the unused levels of factor
+      data %<>%
+        dplyr::mutate_at(
+          .tbl = .,
+          .vars = "main",
+          .funs = ~ base::droplevels(x = .)
+        )
+      # display message
+      if (isTRUE(messages)) {
+        base::message(cat(
+          crayon::red("Warning: "),
+          crayon::blue(
+            "the argument for `main` was not a factor; converting it to factor"
+          )
+        ))
+      }
+    }
+
+    if (!base::missing(condition)) {
+      # condition needs to be a factor for this analysis it is possible that sometimes
+      # the variable hasn't been converted to factor class and this will produce
+      # an error
+      if (is.factor(data$condition)) {
+        # drop the unused levels of factor
+        data %<>%
+          dplyr::mutate_at(
+            .tbl = .,
+            .vars = "condition",
+            .funs = ~ base::droplevels(x = .)
+          )
+      } else if (!is.factor(data$condition)) {
+        # convert to factor
+        data$condition <- base::as.factor(x = data$condition)
+        # drop the unused levels of factor
+        data %<>%
+          dplyr::mutate_at(
+            .tbl = .,
+            .vars = "condition",
+            .funs = ~ base::droplevels(x = .)
+          )
+        # display message
+        if (isTRUE(messages)) {
+          base::message(cat(
+            crayon::red("Warning: "),
+            crayon::blue(
+              "the argument for `condition` was not a factor; converting it to factor"
+            )
+          ))
+        }
       }
     }
 
@@ -164,28 +253,62 @@ ggpiestats <-
         dplyr::group_by(.data = ., main) %>%
         dplyr::summarize(.data = ., counts = n()) %>%
         dplyr::mutate(.data = ., perc = (counts / sum(counts)) * 100) %>%
-        dplyr::arrange(desc(perc))
+        dplyr::ungroup(x = .) %>%
+        dplyr::arrange(.data = ., dplyr::desc(x = main))
     } else {
       df <-
         data %>%
         dplyr::group_by(.data = ., condition, main) %>%
         dplyr::summarize(.data = ., counts = n()) %>%
         dplyr::mutate(.data = ., perc = (counts / sum(counts)) * 100) %>%
-        dplyr::arrange(.data = ., desc(perc))
+        dplyr::ungroup(x = .) %>%
+        dplyr::arrange(.data = ., dplyr::desc(x = main))
     }
+
+    # ======================================================== sample size label ======================================================
+
+    # if sample size labels are to be displayed at the bottom of the pie charts
+    # for each facet
+    if (isTRUE(sample.size.label)) {
+      if (!base::missing(condition)) {
+        df_n_label <- dplyr::full_join(
+          x = df,
+          y = df %>%
+            dplyr::group_by(.data = ., condition) %>%
+            dplyr::summarize(.data = ., total_n = sum(counts)) %>%
+            dplyr::ungroup(x = .) %>%
+            dplyr::mutate(condition_n_label = paste("(n = ", total_n, ")", sep = "")) %>% # changing character variables into factors
+            dplyr::mutate_if(
+              .tbl = .,
+              .predicate = purrr::is_bare_character,
+              .funs = ~ base::as.factor(.)
+
+            ),
+          by  = "condition"
+        ) %>%
+          dplyr::mutate(
+            .data = .,
+            condition_n_label = dplyr::if_else(
+              condition = duplicated(condition),
+              true = NA_character_,
+              false = as.character(condition_n_label)
+            )
+          ) %>%
+          stats::na.omit(.)
+      }
+    }
+
     # ========================================= preparing names for legend and facet_wrap =============================
 
     # reorder the category factor levels to order the legend
-    df$main <- factor(
-      x = df$main,
-      levels = unique(df$main)
-    )
+    df$main <- factor(x = df$main,
+                      levels = unique(df$main))
 
     # getting labels for all levels of the 'main' variable factor
     if (is.null(factor.levels)) {
-      labels <- as.character(df$main)
-    } else {
-      labels <- factor.levels
+      legend.labels <- as.character(df$main)
+    } else if (!missing(factor.levels)) {
+      legend.labels <- factor.levels
     }
 
     # custom labeller function to use if the user wants a different name for facet_wrap variable
@@ -200,10 +323,8 @@ ggpiestats <-
 
     # if facet_wrap is *not* happening
     if (base::missing(condition)) {
-      p <- ggplot2::ggplot(
-        data = df,
-        mapping = ggplot2::aes(x = "", y = counts)
-      ) +
+      p <- ggplot2::ggplot(data = df,
+                           mapping = ggplot2::aes(x = "", y = counts)) +
         ggplot2::geom_col(
           position = "fill",
           color = "black",
@@ -211,10 +332,8 @@ ggpiestats <-
           ggplot2::aes(fill = factor(get("main")))
         ) +
         ggplot2::geom_label(
-          ggplot2::aes(
-            label = paste0(round(perc), "%"),
-            group = factor(get("main"))
-          ),
+          ggplot2::aes(label = paste0(round(perc), "%"),
+                       group = factor(get("main"))),
           position = position_fill(vjust = 0.5),
           color = "black",
           size = 5,
@@ -223,10 +342,8 @@ ggpiestats <-
         ggplot2::coord_polar(theta = "y") # convert to polar coordinates
     } else {
       # if facet_wrap *is* happening
-      p <- ggplot2::ggplot(
-        data = df,
-        mapping = ggplot2::aes(x = "", y = counts)
-      ) +
+      p <- ggplot2::ggplot(data = df,
+                           mapping = ggplot2::aes(x = "", y = counts)) +
         ggplot2::geom_col(
           position = "fill",
           color = "black",
@@ -234,7 +351,7 @@ ggpiestats <-
           ggplot2::aes(fill = factor(get("main")))
         ) +
         ggplot2::facet_wrap(
-          facets = ~condition,
+          facets = ~ condition,
           # creating facets and, if necessary, changing the facet_wrap name
           labeller = ggplot2::labeller(
             condition = label_facet(
@@ -256,8 +373,12 @@ ggpiestats <-
     # formatting
     p <- p +
       ggplot2::scale_y_continuous(breaks = NULL) +
-      ggplot2::scale_fill_discrete(name = "", labels = unique(labels)) +
-      theme_pie() +
+      ggplot2::scale_fill_brewer(
+        name = "",
+        labels = unique(legend.labels),
+        palette = palette
+      ) +
+      theme_pie(ggtheme = ggtheme) +
       ggplot2::guides(fill = guide_legend(override.aes = list(color = NA))) # remove black diagonal line from legend
 
     ############################################ chi-square test #####################################################
@@ -269,19 +390,15 @@ ggpiestats <-
     # the chi-square test presented...if not entered, the default will be "Chi-square test"
 
     chi_subtitle <- function(jmv_chi,
-                                 cramer_ci,
-                                 effect = NULL) {
-      # if effect label hasn't been specified, use this default
-      if (is.null(effect)) {
-        effect <- "Chi-square test"
-      }
+                             cramer_ci,
+                             effect = NULL) {
+
       # preparing the subtitle
       base::substitute(
         expr =
           paste(
             y,
-            " : ",
-            italic(chi)^2,
+            italic(chi) ^ 2,
             "(",
             df,
             ") = ",
@@ -298,22 +415,25 @@ ggpiestats <-
             LL,
             ", ",
             UL,
-            "]"
+            "]",
+            ", ",
+            italic("n"),
+            " = ",
+            n
           ),
         env = base::list(
           y = effect,
           estimate = ggstatsplot::specify_decimal_p(x = as.data.frame(jmv_chi$chiSq)[[2]], k),
           df = as.data.frame(jmv_chi$chiSq)[[3]],
           # df always an integer
-          pvalue = ggstatsplot::specify_decimal_p(
-            x = as.data.frame(jmv_chi$chiSq)[[4]],
-            k,
-            p.value = TRUE
-          ),
+          pvalue = ggstatsplot::specify_decimal_p(x = as.data.frame(jmv_chi$chiSq)[[4]],
+                                                  k,
+                                                  p.value = TRUE),
           # select Cramer's V as effect size
           cramer = ggstatsplot::specify_decimal_p(x = as.data.frame(jmv_chi$nom)[[4]], k),
-          LL = ggstatsplot::specify_decimal_p(x = cramer_ci[[2]], k),
-          UL = ggstatsplot::specify_decimal_p(x = cramer_ci[[3]], k)
+          LL = ggstatsplot::specify_decimal_p(x = cramer_ci$conf.low[[1]], k),
+          UL = ggstatsplot::specify_decimal_p(x = cramer_ci$conf.high[[1]], k),
+          n = nrow(x = data)
         )
       )
     }
@@ -324,18 +444,14 @@ ggpiestats <-
     if (!base::missing(condition)) {
       if (isTRUE(facet.proptest)) {
         # running grouped proportion test with helper functions
-        group_prop <- grouped_proptest(
-          data = data,
-          grouping.vars = condition,
-          measure = main
-        )
+        group_prop <- grouped_proptest(data = data,
+                                       grouping.vars = condition,
+                                       measure = main)
         # merging dataframe containing results from the proportion test with counts and percentage dataframe
         df2 <-
-          dplyr::full_join(
-            x = df,
-            y = group_prop,
-            by = "condition"
-          ) %>%
+          dplyr::full_join(x = df,
+                           y = group_prop,
+                           by = "condition") %>%
           dplyr::mutate(
             significance = dplyr::if_else(
               condition = duplicated(condition),
@@ -359,9 +475,11 @@ ggpiestats <-
         cramer_ci <- c(NaN, NaN, NaN)
       } else {
         # results for confidence interval of Cramer's V
-        cramer_ci <- DescTools::CramerV(
-          x = data$main,
-          y = data$condition,
+        cramer_ci <- chisq_v_ci(
+          data = data,
+          rows = main,
+          cols = condition,
+          nboot = nboot,
           conf.level = 0.95
         )
       }
@@ -378,6 +496,19 @@ ggpiestats <-
           )
       }
 
+      # adding significance labels to pie charts for grouped proportion tests, if expected
+      if (isTRUE(sample.size.label)) {
+        p <-
+          p +
+          ggplot2::geom_text(
+            data = df_n_label,
+            mapping = ggplot2::aes(label = condition_n_label, x = 1.65),
+            position = ggplot2::position_fill(vjust = 0.5),
+            size = 5,
+            na.rm = TRUE
+          )
+      }
+
       # adding chi-square results to the plot subtitle
       p <-
         p + ggplot2::labs(subtitle = chi_subtitle(
@@ -389,38 +520,57 @@ ggpiestats <-
         ))
     } else {
       # conducting proportion test with jmv::propTestN()
-      jmv_prop <- jmv::propTestN(
-        data = data,
-        var = "main"
-      )
+      jmv_prop <- jmv::propTestN(data = data,
+                                 var = "main",
+                                 ratio = ratio)
+      # if there is no value corresponding to one of the levels of the 'main'
+      # variable, then no subtitle is needed
+      if (is.nan(as.data.frame(jmv_prop$tests)$chi[[1]])) {
+        proptest_subtitle <-
+          base::substitute(expr =
+                             paste(italic("n"),
+                                   " = ",
+                                   n),
+                           env = base::list(n = nrow(x = data)))
+        # display message
+        base::message(cat(
+          crayon::red("Warning: "),
+          crayon::blue("Proportion test will not be run because it requires"),
+          crayon::yellow(legend.title),
+          crayon::blue("to have at least 2 levels with non-zero frequencies.")
+        ))
 
-      # preparing proportion test subtitle for the plot
-      proptest_subtitle <-
-        base::substitute(
-          expr =
-            paste(
-              "Proportion test : ",
-              italic(chi)^2,
-              "(",
-              df,
-              ") = ",
-              estimate,
-              ", ",
-              italic("p"),
-              " = ",
-              pvalue
-            ),
-          env = base::list(
-            estimate = ggstatsplot::specify_decimal_p(x = as.data.frame(jmv_prop$tests)[[1]], k),
-            df = base::as.data.frame(jmv_prop$tests)[[2]],
-            # df is always an integer
-            pvalue = ggstatsplot::specify_decimal_p(
-              x = as.data.frame(jmv_prop$tests)[[3]],
-              k,
-              p.value = TRUE
+      } else {
+        # preparing proportion test subtitle for the plot
+        proptest_subtitle <-
+          base::substitute(
+            expr =
+              paste(
+                italic(chi) ^ 2,
+                "(",
+                df,
+                ") = ",
+                estimate,
+                ", ",
+                italic("p"),
+                " = ",
+                pvalue,
+                ", ",
+                italic("n"),
+                " = ",
+                n
+              ),
+            env = base::list(
+              estimate = ggstatsplot::specify_decimal_p(x = as.data.frame(jmv_prop$tests)[[1]], k),
+              df = base::as.data.frame(jmv_prop$tests)[[2]],
+              # df is always an integer
+              pvalue = ggstatsplot::specify_decimal_p(x = as.data.frame(jmv_prop$tests)[[3]],
+                                                      k,
+                                                      p.value = TRUE),
+              n = nrow(x = data)
             )
           )
-        )
+      }
       # adding proportion test subtitle to the plot
       p <-
         p +
@@ -436,14 +586,9 @@ ggpiestats <-
     # preparing the plot
     p <-
       p +
-      ggplot2::labs(
-        title = title,
-        caption = caption
-      ) +
+      ggplot2::labs(title = title,
+                    caption = caption) +
       ggplot2::guides(fill = ggplot2::guide_legend(title = legend.title))
-
-    # adding colorbind friendly palette to the final plot
-    # p <- cbpalette_add(plot = p)
 
     # return the final plot
     return(p)

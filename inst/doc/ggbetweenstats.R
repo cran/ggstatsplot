@@ -11,9 +11,15 @@ library(dplyr)
 dplyr::glimpse(x = gapminder::gapminder)
 
 ## ----ggbetweenstats1, message = FALSE, warning = FALSE, fig.height = 6, fig.width = 8----
+# loading the necessary libraries
 library(ggstatsplot)
 library(gapminder)
 
+# since the confidence intervals for the effect sizes are computed using
+# bootstrapping, important to set a seed for reproducibility
+set.seed(123)
+
+# function call
 ggstatsplot::ggbetweenstats(
   data = dplyr::filter(.data = gapminder, year == 2007),
   x = continent,
@@ -24,6 +30,9 @@ ggstatsplot::ggbetweenstats(
 ## ----ggbetweenstats2, message = FALSE, warning = FALSE, fig.height = 6, fig.width = 8----
 library(ggstatsplot)
 library(gapminder)
+
+# for reproducibility
+set.seed(123)
 
 ggstatsplot::ggbetweenstats(
   data = dplyr::filter(.data = gapminder, year == 2007),      # dataframe
@@ -50,33 +59,40 @@ ggstatsplot::ggbetweenstats(
 library(ggstatsplot)
 library(gapminder)
 
+# for reproducibility
+set.seed(123)
+
 # parametric ANOVA and box plot
 p1 <- ggstatsplot::ggbetweenstats(
-  data = dplyr::filter(.data = gapminder, year == 2007),
+  data = dplyr::filter(.data = gapminder, year == 2007, continent != "Oceania"),
   x = continent,
   y = lifeExp,
   plot.type = "box",
   type = "p",
+  title = "parametric test",
   messages = FALSE
 )
 
 # Kruskal-Wallis test (nonparametric ANOVA) and violin plot
 p2 <- ggstatsplot::ggbetweenstats(
-  data = dplyr::filter(.data = gapminder, year == 2007),
+  data = dplyr::filter(.data = gapminder, year == 1997, continent != "Oceania"),
   x = continent,
   y = lifeExp,
   plot.type = "violin",
   type = "np",
+  title = "non-parametric test",
   messages = FALSE
 )
 
 # robust ANOVA and boxviolin plot
 p3 <- ggstatsplot::ggbetweenstats(
-  data = dplyr::filter(.data = gapminder, year == 2007),
+  data = dplyr::filter(.data = gapminder, year == 1987, continent != "Oceania"),
   x = continent,
-  y = lifeExp,
+  y = gdpPercap,
   plot.type = "boxviolin",
   type = "r",
+  title = "robust test",
+  tr = 0.005,
   messages = FALSE
 )
 
@@ -86,13 +102,16 @@ ggstatsplot::combine_plots(
   nrow = 3, 
   ncol = 1, 
   labels = c("(a)", "(b)", "(c)"),
-  title.text = "Comparison of life expectancy across continents (Year: 2007)",
+  title.text = "Comparison of life expectancy across continents (1987-2007)",
   caption.text = "Note: Comparing results from parametric, non-parametric, and robust tests",
   title.size = 14,
   caption.size = 12
 )
 
-## ----grouped1, warning = FALSE, message = FALSE, fig.height = 20, fig.width = 7----
+## ----grouped1, warning = FALSE, message = FALSE, fig.height = 22, fig.width = 7----
+# for reproducibility
+set.seed(123)
+
 ggstatsplot::grouped_ggbetweenstats(
   # arguments relevant for ggstatsplot::ggbetweenstats
   data = dplyr::filter(
@@ -102,7 +121,7 @@ ggstatsplot::grouped_ggbetweenstats(
     year == 1977 |
     year == 1987 |
     year == 1997 |
-    year == 2007
+    year == 2007, continent != "Oceania"
   ),
   x = continent,
   y = lifeExp,
@@ -119,6 +138,9 @@ ggstatsplot::grouped_ggbetweenstats(
 )
 
 ## ----grouped2, warning = FALSE, message = FALSE, fig.height = 22, fig.width = 7----
+# for reproducibility
+set.seed(123)
+
 # let's split the dataframe and create a list by years of interest
 year_list <- gapminder::gapminder %>%
   dplyr::filter(
@@ -128,12 +150,17 @@ year_list <- gapminder::gapminder %>%
     year == 1977 |
     year == 1987 |
     year == 1997 |
-    year == 2007
+    year == 2007, continent != "Oceania"
   ) %>%
   base::split(x = ., f = .$year, drop = TRUE)
 
 # this created a list with 4 elements, one for each mpaa rating
-str(year_list)
+# you can check the structure of the file for yourself
+# str(year_list)
+
+# checking the length and names of each element
+length(year_list)
+names(year_list)
 
 # running function on every element of this list note that if you want the same
 # value for a given argument across all elements of the list, you need to
@@ -162,7 +189,7 @@ plot_list <- purrr::pmap(
       "Year: 1997",
       "Year: 2007"
     ),
-    type = list("r", "p", "np", "p", "np", "r"),
+    type = list("r", "p", "np", "p", "p", "r"),
     effsize.type = list(
       "biased",
       "unbiased",
@@ -172,6 +199,16 @@ plot_list <- purrr::pmap(
       "unbiased"
     ),
     plot.type = list("box", "boxviolin", "box", "boxviolin", "box", "violin"),
+    palette = list("Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1"),
+    ggtheme = list(
+      ggplot2::theme_grey(),
+      ggplot2::theme_classic(),
+      ggplot2::theme_light(),
+      ggplot2::theme_minimal(),
+      ggplot2::theme_bw(),
+      ggplot2::theme_void()
+    ),
+    sample.size.label = list(TRUE, FALSE, TRUE, FALSE, FALSE, TRUE),
     messages = FALSE
   ),
   .f = ggstatsplot::ggbetweenstats

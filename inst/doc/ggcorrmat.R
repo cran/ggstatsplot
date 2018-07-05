@@ -135,7 +135,12 @@ cut_list <- ggplot2::diamonds %>%
   base::split(x = ., f = .$cut, drop = TRUE)
 
 # this created a list with 5 elements, one for each quality of cut
-str(cut_list)
+# you can check the structure of the file for yourself
+# str(cut_list)
+
+# checking the length and names of each element
+length(cut_list)
+names(cut_list)
 
 # running function on every element of this list note that if you want the same
 # value for a given argument across all elements of the list, you need to
@@ -162,7 +167,15 @@ plot_list <- purrr::pmap(
       c("#0072B2", "white", "#D55E00"),
       c("#CC79A7", "white", "#F0E442"),
       c("#56B4E9", "white", "#D55E00"),
-      c("#0072B2", "white", "#999999")
+      c("#999999", "white", "#0072B2")
+    ),
+    ggstatsplot.theme = list(FALSE),
+    ggtheme = list(
+      ggplot2::theme_grey,
+      ggplot2::theme_classic,
+      ggplot2::theme_minimal,
+      ggplot2::theme_bw,
+      ggplot2::theme_dark
     )
   ),
   .f = ggstatsplot::ggcorrmat

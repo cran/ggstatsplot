@@ -4,13 +4,14 @@
 \alias{ggscatterstats}
 \title{Scatterplot with marginal distributions}
 \usage{
-ggscatterstats(data = NULL, x, y, xlab = NULL, ylab = NULL,
-  line.size = 1.5, line.color = "blue", marginal = TRUE,
-  marginal.type = "histogram", marginal.size = 5, margins = c("both", "x",
-  "y"), width.jitter = NULL, height.jitter = NULL, xfill = "#009E73",
-  yfill = "#D55E00", centrality.para = NULL, type = "pearson",
-  results.subtitle = NULL, title = NULL, caption = NULL, maxit = 500,
-  k = 3, axes.range.restrict = FALSE, messages = TRUE)
+ggscatterstats(data, x, y, xlab = NULL, ylab = NULL, line.size = 1.5,
+  line.color = "blue", marginal = TRUE, marginal.type = "histogram",
+  marginal.size = 5, margins = c("both", "x", "y"), width.jitter = NULL,
+  height.jitter = NULL, xfill = "#009E73", yfill = "#D55E00",
+  centrality.para = NULL, type = "pearson", results.subtitle = NULL,
+  title = NULL, caption = NULL, nboot = 100, beta = 0.1, k = 3,
+  axes.range.restrict = FALSE, ggtheme = ggplot2::theme_bw(),
+  messages = TRUE)
 }
 \arguments{
 \item{data}{Dataframe from which variables specified are preferentially to be
@@ -47,7 +48,7 @@ the resolution of the data.}
 \item{height.jitter}{Degree of jitter in \code{y} direction. Defaults to 40\% of
 the resolution of the data.}
 
-\item{xfill}{color fill for x axis distibution (default: \code{"#009E73"}).}
+\item{xfill}{color fill for x axis distribution (default: \code{"#009E73"}).}
 
 \item{yfill}{color fill for y axis distribution (default: \code{"#D55E00"}).}
 
@@ -69,14 +70,20 @@ to be displayed as subtitle.}
 
 \item{caption}{The text for the plot caption.}
 
-\item{maxit}{Maximum number of iterations for robust linear regression or
-bootstrap samples to compute Spearman's rho confidence intervals (Default:
-\code{500}).}
+\item{nboot}{Number of bootstrap samples for computing effect size (Default:
+\code{100}).}
+
+\item{beta}{bending constant (Default: \code{0.1}). For more, see \code{?WRS2::pbcor}.}
 
 \item{k}{Number of decimal places expected for results.}
 
-\item{axes.range.restrict}{Logical decides whther to restrict the axes values
+\item{axes.range.restrict}{Logical decides whether to restrict the axes values
 ranges to min and max values of the \code{x} and \code{y} variables (Default: \code{FALSE}).}
+
+\item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
+\code{ggplot2::theme_bw()}. Allowed values are the official \code{ggplot2} themes,
+including \code{theme_grey()}, \code{theme_minimal()}, \code{theme_classic()},
+\code{theme_void()}, etc.}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
@@ -95,19 +102,13 @@ set.seed(123)
 ggstatsplot::ggscatterstats(
 data = datasets::mtcars,
 x = wt,
-y = mpg
+y = mpg,
+type = "np"
 )
 
-# more detailed function call
-ggstatsplot::ggscatterstats(
-data = datasets::iris,
-x = Petal.Length,
-y = Sepal.Length,
-centrality.para = 'median',
-type = 'robust',
-marginal.type = 'density'
-)
-
+}
+\references{
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggscatterstats.html}
 }
 \seealso{
 \code{\link{grouped_ggscatterstats}} \code{\link{ggcorrmat}} \code{\link{grouped_ggcorrmat}}

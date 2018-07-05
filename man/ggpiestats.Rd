@@ -4,28 +4,51 @@
 \alias{ggpiestats}
 \title{Pie charts with statistical tests}
 \usage{
-ggpiestats(data = NULL, main, condition = NULL, factor.levels = NULL,
-  stat.title = NULL, title = NULL, caption = NULL, legend.title = NULL,
-  facet.wrap.name = NULL, k = 3, facet.proptest = TRUE, messages = TRUE)
+ggpiestats(data, main, condition = NULL, counts = NULL, ratio = NULL,
+  factor.levels = NULL, stat.title = NULL, sample.size.label = TRUE,
+  title = NULL, caption = NULL, nboot = 25, palette = "Dark2",
+  legend.title = NULL, facet.wrap.name = NULL, k = 3,
+  facet.proptest = TRUE, ggtheme = ggplot2::theme_bw(), messages = TRUE)
 }
 \arguments{
-\item{data}{The data as a data frame.}
+\item{data}{The data as a data frame (matrix or tables will not be accepted).}
 
-\item{main}{A string naming the variable to use as the rows in the
+\item{main}{The variable to use as the \strong{rows} in the
 contingency table.}
 
-\item{condition}{A string naming the variable to use as the columns in the
-contingency table.}
+\item{condition}{The variable to use as the \strong{columns} in the contingency
+table. This argument is optional (Default: \code{NULL}). If this argument is
+provided, then Pearson's chi-square test of independence will be run. If
+not, a goodness of fit test will be run on the \code{main} variable.}
+
+\item{counts}{A string naming a variable in data containing counts, or \code{NULL}
+if each row represents a single observation (Default).}
+
+\item{ratio}{A vector of numbers: the expected proportions for the proportion
+test. Default is \code{NULL}, which means if there are two levels \code{ratio = c(1,1)}, etc.}
 
 \item{factor.levels}{A character vector with labels for factor levels of
 \code{main} variable.}
 
 \item{stat.title}{Title for the effect being investigated with the chi-square
-test.}
+test. The default is \code{NULL}, i.e. no title will be added to describe the
+effect being shown. An example of a \code{stat.title} argument will be something
+like \code{"main x condition"} or \code{"interaction"}.}
+
+\item{sample.size.label}{Logical that decides whether sample size information
+should be displayed for each level of the grouping variable \code{condition} (Default:
+\code{TRUE}).}
 
 \item{title}{The text for the plot title.}
 
 \item{caption}{The text for the plot caption.}
+
+\item{nboot}{Number of bootstrap samples for computing effect size (Default:
+\code{25}).}
+
+\item{palette}{If a character string (e.g., \code{"Set1"}), will use that named
+palette. If a number, will index into the list of palettes of appropriate
+type. Default palette is \code{"Dark2"}}
 
 \item{legend.title}{Title of legend.}
 
@@ -33,8 +56,13 @@ test.}
 
 \item{k}{Number of decimal places expected for results.}
 
-\item{facet.proptest}{Decides whether proprotion test for \code{main} variable is
+\item{facet.proptest}{Decides whether proportion test for \code{main} variable is
 to be carried out for each level of \code{condition} (Default: \code{TRUE}).}
+
+\item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
+\code{ggplot2::theme_bw()}. Allowed values are the official \code{ggplot2} themes,
+including \code{theme_grey()}, \code{theme_minimal()}, \code{theme_classic()},
+\code{theme_void()}, etc.}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
@@ -45,28 +73,22 @@ included in the plot as a subtitle.
 }
 \examples{
 
-library(ggplot2)
+set.seed(123)
 
-# simple function call with the defaults
+# simple function call with the defaults (with condition)
+ggstatsplot::ggpiestats(data = datasets::mtcars,
+main = am,
+condition = cyl)
+
+# simple function call with the defaults (without condition)
 ggstatsplot::ggpiestats(
 data = datasets::iris,
 main = Species
 )
 
-# more detailed function call
-ggstatsplot::ggpiestats(
-data = datasets::mtcars,
-main = am,
-condition = cyl,
-factor.levels = c("zero", "one"),
-stat.title = "interaction",
-title = "Dataset: mtcars",
-caption = "This is a demo",
-legend.title = "transmission",
-facet.wrap.name = "No. of cylinders",
-facet.proptest = TRUE
-)
-
+}
+\references{
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggpiestats.html}
 }
 \author{
 Indrajeet Patil

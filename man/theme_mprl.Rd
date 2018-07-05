@@ -5,7 +5,13 @@
 \alias{theme_ggstatsplot}
 \title{Default theme used in all \code{ggstatsplot} package plots}
 \usage{
-theme_mprl()
+theme_mprl(ggtheme = ggplot2::theme_bw())
+}
+\arguments{
+\item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
+\code{ggplot2::theme_bw()}. Allowed values are the official \code{ggplot2} themes,
+including \code{theme_bw()}, \code{theme_minimal()}, \code{theme_classic()},
+\code{theme_void()}, etc.}
 }
 \value{
 A \code{ggplot2} object with the \code{theme_mprl} theme.
@@ -14,6 +20,9 @@ A \code{ggplot2} object with the \code{theme_mprl} theme.
 Common theme used across all plots generated in \code{ggstatsplot}
 and \emph{assumed} by the author to be aesthetically pleasing to the
 user/reader.
+}
+\references{
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/theme_mprl.html}
 }
 \author{
 Indrajeet Patil

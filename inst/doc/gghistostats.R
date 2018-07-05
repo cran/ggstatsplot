@@ -111,16 +111,17 @@ gapminder::gapminder %>%
     centrality.para = "mean"                               # plotting centrality parameter (mean)
   )
 
-## ----grouped1, warning = FALSE, message = FALSE, fig.height = 12, fig.width = 10----
-gapminder::gapminder %>%
+## ----grouped1, warning = FALSE, message = FALSE, fig.height = 12, fig.width = 12----
+gapminder::gapminder %>%                        # select data only for the year 2007
   dplyr::filter(.data = ., year == 2007) %>%
 ggstatsplot::grouped_gghistostats(
   # arguments relevant for ggstatsplot::gghistostats
   data = .,                                     # `.` is placeholder for data plugged by %>%
   x = lifeExp,
   xlab = "Life expectancy",
-  title.prefix = "Continent",                 # prefix for the fixed title
-  type = "p",                                   # parametric test
+  title.prefix = "Continent",                   # prefix for the fixed title
+  type = "robust",                              # robust test: one-sample percentile bootstrap
+  robust.estimator = "mom",                     # the modified one-step M-estimator of location
   test.value = 48,                              # test value against which sample mean is to be compared
   test.value.line = TRUE,                       # show a vertical line at `test.value`
   messages = FALSE,                             # turn off messages
@@ -134,14 +135,19 @@ ggstatsplot::grouped_gghistostats(
   labels = c("(a)","(b)","(c)","(d)","(e)")
 )
 
-## ----grouped2, warning = FALSE, message = FALSE, fig.height = 14, fig.width = 8----
+## ----grouped2, warning = FALSE, message = FALSE, fig.height = 14, fig.width = 12----
 # let's split the dataframe and create a list by continent
 continent_list <- gapminder::gapminder %>%
   dplyr::filter(.data = ., year == 2007) %>%
   base::split(x = ., f = .$continent, drop = TRUE)
 
 # this created a list with 5 elements, one for each continent
-str(continent_list)
+# you can check the structure of the file for yourself
+# str(continent_list)
+
+# checking the length and names of each element
+length(continent_list)
+names(continent_list)
 
 # running function on every element of this list note that if you want the same
 # value for a given argument across all elements of the list, you need to
@@ -152,6 +158,7 @@ plot_list <- purrr::pmap(
     x = "lifeExp",
     xlab = "Life expectancy",
     test.value = list(35.6, 58.4, 41.6, 64.7, 63.4),
+    type = list("p", "np", "r", "np", "p"),
     title = list(
       "Continent: Africa",
       "Continent: Americas",
@@ -165,7 +172,14 @@ plot_list <- purrr::pmap(
     centrality.para = "mean",
     centrality.color = "blue",
     low.color = list("#56B4E9", "#009E73", "#999999", "#0072B2", "#D55E00"),
-    high.color = list("#D55E00", "#CC79A7", "#F0E442", "#D55E00", "#56B4E9")
+    high.color = list("#D55E00", "#CC79A7", "#F0E442", "#D55E00", "#56B4E9"),
+    ggtheme = list(
+      ggplot2::theme_grey(),
+      ggplot2::theme_classic(),
+      ggplot2::theme_light(),
+      ggplot2::theme_minimal(),
+      ggplot2::theme_bw()
+    )
   ),
   .f = ggstatsplot::gghistostats
 )

@@ -11,83 +11,7 @@
 #' @param grouping.var Grouping variable.
 #' @param title.prefix Character specifying the prefix text for the fixed plot
 #'   title (name of each factor level) (Default: `"Group"`).
-#' @param data Dataframe from which variables specified are preferentially to be
-#'   taken.
-#' @param cor.vars List of vairables for which the correlation matrix is to be
-#'   computed and visualized.
-#' @param cor.vars.names Optional list of names to be used for `cor.vars`. The
-#'   names should be entered in the same order.
-#' @param output Expected output from this function: `"plot"` (visualization
-#'   matrix) or `"correlations"` (correlation matrix) or `"p-values"` (matrix of
-#'   p-values).
-#' @param type Character, `"full"` (default), `"upper"` or `"lower"`, display
-#'   full matrix, lowe triangular or upper triangular matrix.
-#' @param method Character argument that decides the visualization method of
-#'   correlation matrix to be used. Allowed values are `"square"` (default),
-#'   `"circle"`
-#' @param corr.method A character string indicating which correlation
-#'   coefficient is to be computed (`"pearson"` (default) or `"kendall"` or
-#'   `"spearman"`). `"robust"` can also be entered but only if `output` argument
-#'   is set to either `"correlations"` or `"p-values"`. The robust correlation
-#'   used is percentage bend correlation (see `?WRS2::pball`). Abbreviations
-#'   will **not** work.
-#' @param exact A logical indicating whether an exact *p*-value should be
-#'   computed. Used for Kendall's *tau* and Spearman's *rho*. For more details,
-#'   see `?stats::cor.test`.
-#' @param continuity A logical. If `TRUE`, a continuity correction is used for
-#'   Kendall's *tau* and Spearman's *rho* when not computed exactly (Default:
-#'   `TRUE`).
-#' @param beta A numeric bending constant for robust correlation coefficient
-#'   (Default: `0.2`).
-#' @param digits Decides the number of decimal digits to be added into the plot
-#'   (Default: `2`).
-#' @param sig.level Significance level (Dafault: `0.05`). If the p-value in
-#'   p-mat (p-value matrix) is bigger than `sig.level`, then the corresponding
-#'   correlation coefficient is regarded as insignificant.
-#' @param hc.order Logical value. If `TRUE`, correlation matrix will be
-#'   hc.ordered using `hclust` function (Default is `FALSE`).
-#' @param hc.method The agglomeration method to be used in `hclust` (see
-#'   `?hclust`).
-#' @param lab Logical value. If `TRUE`, correlation coefficient values will be
-#'   displayed in the plot.
-#' @param colors A vector of 3 colors for low, mid, and high correlation values.
-#' @param outline.color The outline color of square or circle. Default value is
-#'   `"gray"`.
-#' @param ggtheme A function, `ggplot2` theme name. Default value is
-#'   `ggplot2::theme_gray`. Allowed values are the official `ggplot2` themes,
-#'   including `theme_bw`, `theme_minimal`, `theme_classic`, `theme_void`, etc.
-#' @param ggstatsplot.theme A logical. Decides whether default theme for
-#'   `ggstatsplot`, which is `theme_mprl`, is to be overlaid on the entered
-#'   theme (Default: `ggstatsplot.theme = TRUE`).
-#' @param subtitle The text for the plot subtitle.
-#' @param caption The text for the plot caption. If not specified (if it is
-#'   `NULL`, i.e.), a default caption will be shown.
-#' @param caption.default Logical decides whether the default caption should be
-#'   shown.
-#' @param lab.col Color to be used for the correlation coefficient labels
-#'   (applicable only when `lab = TRUE`).
-#' @param lab.size Size to be used for the correlation coefficient labels
-#'   (applicable only when `lab = TRUE`).
-#' @param axis.text.x.margin.t,axis.text.x.margin.r,axis.text.x.margin.b,axis.text.x.margin.l
-#'   Margins between x-axis and the variable name texts (t: top, r: right, b:
-#'   bottom, l:left), especially useful in case the names are slanted, i.e. when the tl.srt is
-#'   between `45` and `75` (Defaults: `0`, `0`, `0`, `0`, resp.).
-#' @param insig Character used to show specialized insignificant correlation
-#'   coefficients (`"pch"` (default) or `"blank"`). If `"blank"`, the
-#'   corresponding glyphs will be removed; if "pch" is used, characters (see
-#'   `?pch` for details) will be added on the corresponding glyphs.
-#' @param pch Decides the glyphs (read point shapes) to be used for insignificant correlation
-#'   coefficients (only valid when `insig = "pch"`). Default value is `pch = 4`.
-#' @param pch.col,pch.cex The color and the cex (size) of `pch` (only valid when
-#'   `insig = "pch"`). Defaults are `pch.col = "#F0E442"` and `pch.cex = 10`.
-#' @param tl.cex,tl.col,tl.srt The size, the color, and the string rotation of
-#'   text label (variable names, i.e.).
-#' @param legend.title.margin Logical indicating whether to adjust the margin between legend title and the
-#'   colorbar (Default: `TRUE`).
-#' @param t.margin,b.margin Margins in grid units. For more details, see
-#'   `?grid::unit()`.
-#' @param messages Decides whether messages references, notes, and warnings are
-#'   to be displayed (Default: `TRUE`).
+#' @inheritParams ggcorrmat
 #' @inheritDotParams combine_plots
 #'
 #' @importFrom dplyr select
@@ -106,7 +30,11 @@
 #' @importFrom purrr map
 #' @importFrom tidyr nest
 #'
-#' @seealso \code{\link{ggcorrmat}}
+#' @seealso \code{\link{ggcorrmat}} \code{\link{ggscatterstats}}
+#'   \code{\link{grouped_ggscatterstats}}
+#'
+#' @references
+#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggcorrmat.html}
 #'
 #' @note If you are using R Notebook or Markdown and see a blank image being
 #'   inserted when a chunk is executed, this behavior can be turned off by
@@ -136,18 +64,18 @@
 #'
 
 # defining the function
-grouped_ggcorrmat <- function(grouping.var,
-                              title.prefix = "Group",
-                              data,
+grouped_ggcorrmat <- function(data,
                               cor.vars,
                               cor.vars.names = NULL,
+                              grouping.var,
+                              title.prefix = "Group",
                               output = "plot",
                               type = "full",
                               method = "square",
                               corr.method = "pearson",
                               exact = FALSE,
                               continuity = TRUE,
-                              beta = 0.2,
+                              beta = 0.1,
                               digits = 2,
                               sig.level = 0.05,
                               hc.order = FALSE,
@@ -155,7 +83,7 @@ grouped_ggcorrmat <- function(grouping.var,
                               lab = TRUE,
                               colors = c("#E69F00", "white", "#009E73"),
                               outline.color = "black",
-                              ggtheme = ggplot2::theme_gray,
+                              ggtheme = ggplot2::theme_bw,
                               ggstatsplot.theme = TRUE,
                               subtitle = NULL,
                               caption = NULL,
@@ -173,7 +101,7 @@ grouped_ggcorrmat <- function(grouping.var,
                               axis.text.x.margin.r = 0,
                               axis.text.x.margin.b = 0,
                               axis.text.x.margin.l = 0,
-                              legend.title.margin = TRUE,
+                              legend.title.margin = FALSE,
                               t.margin = unit(0, "mm"),
                               b.margin = unit(3, "mm"),
                               messages = TRUE,
@@ -189,7 +117,8 @@ grouped_ggcorrmat <- function(grouping.var,
     dplyr::mutate(
       .data = .,
       title.text = !!rlang::enquo(grouping.var)
-    )
+    ) %>%
+    stats::na.omit(object = .)
 
   # creating a nested dataframe
   df %<>%

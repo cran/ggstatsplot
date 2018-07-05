@@ -4,29 +4,30 @@
 \alias{grouped_gghistostats}
 \title{Grouped histograms for distribution of a numeric variable}
 \usage{
-grouped_gghistostats(grouping.var, title.prefix = "Group", data, x,
+grouped_gghistostats(data, x, grouping.var, title.prefix = "Group",
   bar.measure = "count", xlab = NULL, subtitle = NULL, caption = NULL,
   type = "parametric", test.value = 0, bf.prior = 0.707,
-  bf.message = TRUE, k = 3, low.color = "#0072B2",
-  high.color = "#D55E00", results.subtitle = TRUE,
-  legend.title.margin = TRUE, t.margin = unit(0, "mm"), b.margin = unit(3,
-  "mm"), centrality.para = NULL, centrality.color = "blue",
-  centrality.size = 1.2, centrality.linetype = "dashed",
-  test.value.line = FALSE, test.value.color = "black",
-  test.value.size = 1.2, test.value.linetype = "dashed",
-  line.labeller = FALSE, line.labeller.y = -2, binwidth = NULL,
+  bf.message = TRUE, robust.estimator = "onestep", nboot = 500, k = 3,
+  low.color = "#0072B2", high.color = "#D55E00", results.subtitle = TRUE,
+  legend.title.margin = FALSE, t.margin = unit(0, "mm"),
+  b.margin = unit(3, "mm"), centrality.para = NULL,
+  centrality.color = "blue", centrality.size = 1.2,
+  centrality.linetype = "dashed", test.value.line = FALSE,
+  test.value.color = "black", test.value.size = 1.2,
+  test.value.linetype = "dashed", line.labeller = FALSE,
+  line.labeller.y = -2, binwidth = NULL, ggtheme = ggplot2::theme_bw(),
   messages = TRUE, ...)
 }
 \arguments{
+\item{data}{Dataframe from which variables specified are preferentially to be
+taken. This argument is optional.}
+
+\item{x}{A numeric variable.}
+
 \item{grouping.var}{Grouping variable.}
 
 \item{title.prefix}{Character specifying the prefix text for the fixed plot
 title (name of each factor level) (Default: \code{"Group"}).}
-
-\item{data}{Dataframe from which variables specified are preferentially to be
-taken.}
-
-\item{x}{A numeric variable.}
 
 \item{bar.measure}{Character describing what value needs to be represented as
 height in the bar chart. This can either be \code{"count"}, which shows number
@@ -42,8 +43,8 @@ from one sample test to be displayed.}
 \item{caption}{The text for the plot caption.}
 
 \item{type}{Type of statistic expected (\code{"parametric"} or \code{"nonparametric"}
-or \code{"bayes"}). Abbreviations accepted are \code{"p"} or \code{"np"} or \code{"bf"},
-respectively.}
+or \code{"robust"} or \code{"bayes"}). Abbreviations accepted are \code{"p"} or \code{"np"} or
+\code{"r"} or \code{"bf"}, respectively.}
 
 \item{test.value}{A number specifying the value of the null hypothesis.}
 
@@ -54,9 +55,18 @@ to use in calculating Bayes factors.}
 of null hypothesis for parametric test if the null hypothesis can't be
 rejected (Default: \code{bf.message = TRUE}).}
 
+\item{robust.estimator}{If \code{test = "robust"} robust estimator to be used
+(\code{"onestep"} (Default), \code{"mom"}, or \code{"median"}). For more, see
+\code{?WRS2::onesampb}.}
+
+\item{nboot}{Number of bootstrap samples for robust one-sample location test.}
+
 \item{k}{Number of decimal places expected for results.}
 
-\item{low.color, high.color}{Colors for low and high ends of the gradient.
+\item{low.color}{Colors for low and high ends of the gradient.
+Defaults are colorblind-friendly.}
+
+\item{high.color}{Colors for low and high ends of the gradient.
 Defaults are colorblind-friendly.}
 
 \item{results.subtitle}{Decides whether the results of statistical tests are
@@ -64,9 +74,12 @@ to be displayed as subtitle (Default: \code{results.subtitle = TRUE}). If set to
 \code{FALSE}, no statistical tests will be run.}
 
 \item{legend.title.margin}{Adjusting the margin between legend title and the
-colorbar.}
+colorbar (Default: \code{FALSE}).}
 
-\item{t.margin, b.margin}{Margins in grid units. For more details, see
+\item{t.margin}{Margins in grid units. For more details, see
+\code{?grid::unit()}.}
+
+\item{b.margin}{Margins in grid units. For more details, see
 \code{?grid::unit()}.}
 
 \item{centrality.para}{Decides \emph{which} measure of central tendency (\code{"mean"}
@@ -78,8 +91,8 @@ parameter (Default: \code{"blue"}).}
 \item{centrality.size}{Decides size for the vertical line for centrality
 parameter (Default: \code{1.2}).}
 
-\item{centrality.linetype}{Decides linetype for the vertical line for centrality
-parameter (Default: \code{"dashed"}).}
+\item{centrality.linetype}{Decides linetype for the vertical line for
+centrality parameter (Default: \code{"dashed"}).}
 
 \item{test.value.line}{Decides whether test value is to be displayed as a
 vertical line (Default: \code{FALSE}).}
@@ -104,6 +117,11 @@ or a function that calculates width from \code{x}. The default is to use bins
 bins that cover the range of the data. You should always override this
 value, exploring multiple widths to find the best to illustrate the stories
 in your data.}
+
+\item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
+\code{ggplot2::theme_bw()}. Allowed values are the official \code{ggplot2} themes,
+including \code{theme_grey()}, \code{theme_minimal()}, \code{theme_classic()},
+\code{theme_void()}, etc.}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
@@ -160,7 +178,6 @@ resulting plots using \code{ggstatsplot::combine_plots}.
 }
 \examples{
 
-
 ggstatsplot::grouped_gghistostats(
 data = iris,
 x = Sepal.Length,
@@ -170,6 +187,9 @@ nrow = 1,
 messages = FALSE
 )
 
+}
+\references{
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/gghistostats.html}
 }
 \seealso{
 \code{\link{gghistostats}}

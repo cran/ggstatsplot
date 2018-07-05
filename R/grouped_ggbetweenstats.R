@@ -10,58 +10,7 @@
 #' @param grouping.var Grouping variable.
 #' @param title.prefix Character specifying the prefix text for the fixed plot
 #'   title (name of each factor level) (Default: `"Group"`).
-#' @param data Dataframe from which variables specified are preferentially to be
-#'   taken.
-#' @param x The grouping variable.
-#' @param y The response - a vector of length the number of rows of `x`.
-#' @param plot.type Character describing the *type* of plot. Currently supported
-#'   plots are `"box"` (for pure boxplots), `"violin"` (for pure violin plots),
-#'   and `"boxviolin"` (for a mix of box and violin plots; default).
-#' @param xlab Label for `x` axis variable.
-#' @param ylab Label for `y` axis variable.
-#' @param type Type of statistic expected (`"parametric"` or `"nonparametric"`
-#'   or `"robust"`).Corresponding abbreviations are also accepted: `"p"` (for
-#'   parametric), `"np"` (nonparametric), `"r"` (robust), resp.
-#' @param effsize.type Type of effect size needed for *parametric* tests
-#'   (`"biased"` (Cohen's *d* for **t-test**; partial eta-squared for **anova**)
-#'   or `"unbiased"` (Hedge's *g* for **t-test**; partial omega-squared for
-#'   **anova**)).
-#' @param caption The text for the plot caption.
-#' @param k Number of decimal places expected for results.
-#' @param var.equal A logical variable indicating whether to treat the two
-#'   variances as being equal (Default: `FALSE`).
-#' @param nboot Number of bootstrap samples for computing effect size (Default:
-#'   `100`).
-#' @param notch A logical. If `FALSE` (default), a standard box plot will be
-#'   displayed. If `TRUE`, a notched box plot will be used. Notches are used to
-#'   compare groups; if the notches of two boxes do not overlap, this suggests
-#'   that the medians are significantly different. In a notched box plot, the
-#'   notches extend 1.58 * IQR / sqrt(n). This gives a roughly 95% confidence
-#'   interval for comparing medians. IQR: Inter-Quartile Range.
-#' @param notchwidth For a notched box plot, width of the notch relative to the
-#'   body (default `0.5`).
-#' @param linetype Character strings (`"blank"`, `"solid"`, `"dashed"`,
-#'   `"dotted"`, `"dotdash"`, `"longdash"`, and `"twodash"`) specifiying the
-#'   type of line to draw box plots (Default: `"solid"`). Alternatively, the
-#'   numbers `0` to `6` can be used (`0` for "blank", `1` for "solid", etc.).
-#' @param outlier.color Default aesthetics for outliers (Default: `"black"`).
-#' @param outlier.tagging Decides whether outliers should be tagged (Default:
-#'   `FALSE`).
-#' @param outlier.label Label to put on the outliers that have been tagged.
-#' @param outlier.label.color Color for the label to to put on the outliers that
-#'   have been tagged (Default: `"black"`).
-#' @param outlier.coef Coefficient for outlier detection using Tukey's method.
-#'   With Tukey’s method, outliers are below (1st Quartile) or above (3rd
-#'   Quartile) `outlier.coef` times the Inter-Quartile Range (IQR) (Default:
-#'   `1.5`).
-#' @param mean.plotting Decides whether mean is to be highlighted and its value
-#'   to be displayed (Default: `TRUE`).
-#' @param mean.color Color for the data point corresponding to mean (Default:
-#'   `"darkred"`).
-#' @param mean.size Point size for the data point corresponding to mean
-#'   (Default: `5`).
-#' @param messages Decides whether messages references, notes, and warnings are
-#'   to be displayed (Default: `TRUE`).
+#' @inheritParams ggbetweenstats
 #' @inheritDotParams combine_plots
 #'
 #' @import ggplot2
@@ -74,37 +23,19 @@
 #' @importFrom dplyr mutate
 #' @importFrom dplyr mutate_at
 #' @importFrom dplyr mutate_if
-#' @importFrom ggrepel geom_label_repel
 #' @importFrom magrittr "%<>%"
 #' @importFrom magrittr "%>%"
-#' @importFrom WRS2 t1way
-#' @importFrom WRS2 yuen
-#' @importFrom WRS2 yuen.effect.ci
-#' @importFrom effsize cohen.d
-#' @importFrom sjstats eta_sq
-#' @importFrom sjstats omega_sq
-#' @importFrom stats aov
-#' @importFrom stats na.omit
-#' @importFrom stats t.test
-#' @importFrom stats var.test
-#' @importFrom stats bartlett.test
-#' @importFrom stats kruskal.test
-#' @importFrom stats aov
-#' @importFrom stats quantile
-#' @importFrom stats oneway.test
-#' @importFrom nortest ad.test
-#' @importFrom coin wilcox_test
-#' @importFrom coin statistic
 #' @importFrom rlang enquo
 #' @importFrom rlang quo_name
-#' @importFrom ggrepel geom_label_repel
-#' @importFrom crayon green
-#' @importFrom crayon blue
-#' @importFrom crayon yellow
-#' @importFrom crayon red
-#' @importFrom jmv anova
+#' @importFrom glue glue
+#' @importFrom purrr map
+#' @importFrom tidyr nest
+#'
 #'
 #' @seealso \code{\link{ggbetweenstats}}
+#'
+#' @references
+#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggbetweenstats.html}
 #'
 #' @examples
 #'
@@ -123,20 +54,24 @@
 #'
 
 # defining the function
-grouped_ggbetweenstats <- function(grouping.var,
-                                   title.prefix = "Group",
-                                   data = NULL,
+grouped_ggbetweenstats <- function(data,
                                    x,
                                    y,
+                                   grouping.var,
+                                   title.prefix = "Group",
                                    plot.type = "boxviolin",
                                    type = "parametric",
                                    effsize.type = "unbiased",
                                    xlab = NULL,
                                    ylab = NULL,
                                    caption = NULL,
+                                   sample.size.label = TRUE,
                                    k = 3,
                                    var.equal = FALSE,
                                    nboot = 100,
+                                   tr = 0.1,
+                                   conf.level = 0.95,
+                                   conf.type = "norm",
                                    notch = FALSE,
                                    notchwidth = 0.5,
                                    linetype = "solid",
@@ -148,6 +83,11 @@ grouped_ggbetweenstats <- function(grouping.var,
                                    mean.plotting = TRUE,
                                    mean.size = 5,
                                    mean.color = "darkred",
+                                   point.jitter.width = NULL,
+                                   point.jitter.height = 0.2,
+                                   point.dodge.width = 0.75,
+                                   ggtheme = ggplot2::theme_bw(),
+                                   palette = "Dark2",
                                    messages = TRUE,
                                    ...) {
   # ================== preparing dataframe ==================
@@ -161,34 +101,29 @@ grouped_ggbetweenstats <- function(grouping.var,
       !!rlang::enquo(y),
       !!rlang::enquo(outlier.label)
     ) %>%
-      dplyr::mutate(
-        .data = .,
-        title.text = !!rlang::enquo(grouping.var)
-      )
+      dplyr::mutate(.data = .,
+                    title.text = !!rlang::enquo(grouping.var))
   } else {
     # getting the dataframe ready
-    df <- dplyr::select(
-      .data = data,
-      !!rlang::enquo(grouping.var),
-      !!rlang::enquo(x),
-      !!rlang::enquo(y)
-    ) %>%
-      dplyr::mutate(
-        .data = .,
-        title.text = !!rlang::enquo(grouping.var)
-      )
+    df <- dplyr::select(.data = data,
+                        !!rlang::enquo(grouping.var),
+                        !!rlang::enquo(x),
+                        !!rlang::enquo(y)) %>%
+      dplyr::mutate(.data = .,
+                    title.text = !!rlang::enquo(grouping.var))
   }
+
   # creating a nested dataframe
   df %<>%
     dplyr::mutate_if(
       .tbl = .,
       .predicate = purrr::is_bare_character,
-      .funs = ~as.factor(.)
+      .funs = ~ as.factor(.)
     ) %>%
     dplyr::mutate_if(
       .tbl = .,
       .predicate = is.factor,
-      .funs = ~base::droplevels(.)
+      .funs = ~ base::droplevels(.)
     ) %>%
     dplyr::arrange(.data = ., !!rlang::enquo(grouping.var)) %>%
     dplyr::group_by(.data = ., !!rlang::enquo(grouping.var)) %>%
@@ -203,7 +138,7 @@ grouped_ggbetweenstats <- function(grouping.var,
           purrr::set_names(!!rlang::enquo(grouping.var)) %>%
           purrr::map(
             .x = .,
-            .f = ~ggstatsplot::ggbetweenstats(
+            .f = ~ ggstatsplot::ggbetweenstats(
               data = .,
               x = !!rlang::enquo(x),
               y = !!rlang::enquo(y),
@@ -214,9 +149,13 @@ grouped_ggbetweenstats <- function(grouping.var,
               xlab = xlab,
               ylab = ylab,
               caption = caption,
+              sample.size.label = sample.size.label,
               k = k,
               var.equal = var.equal,
               nboot = nboot,
+              tr = tr,
+              conf.level = conf.level,
+              conf.type = conf.type,
               notch = notch,
               notchwidth = notchwidth,
               linetype = linetype,
@@ -228,7 +167,12 @@ grouped_ggbetweenstats <- function(grouping.var,
               mean.plotting = mean.plotting,
               mean.size = mean.size,
               mean.color = mean.color,
-              messages = messages
+              ggtheme = ggtheme,
+              palette = palette,
+              messages = messages,
+              point.jitter.width = point.jitter.width,
+              point.dodge.width = point.dodge.width,
+              point.jitter.height = point.jitter.height
             )
           )
       )
@@ -241,7 +185,7 @@ grouped_ggbetweenstats <- function(grouping.var,
           purrr::set_names(!!rlang::enquo(grouping.var)) %>%
           purrr::map(
             .x = .,
-            .f = ~ggstatsplot::ggbetweenstats(
+            .f = ~ ggstatsplot::ggbetweenstats(
               data = .,
               x = !!rlang::enquo(x),
               y = !!rlang::enquo(y),
@@ -252,9 +196,13 @@ grouped_ggbetweenstats <- function(grouping.var,
               xlab = xlab,
               ylab = ylab,
               caption = caption,
+              sample.size.label = sample.size.label,
               k = k,
               var.equal = var.equal,
               nboot = nboot,
+              tr = tr,
+              conf.level = conf.level,
+              conf.type = conf.type,
               notch = notch,
               notchwidth = notchwidth,
               linetype = linetype,
@@ -265,7 +213,12 @@ grouped_ggbetweenstats <- function(grouping.var,
               mean.plotting = mean.plotting,
               mean.size = mean.size,
               mean.color = mean.color,
-              messages = messages
+              ggtheme = ggtheme,
+              palette = palette,
+              messages = messages,
+              point.jitter.width = point.jitter.width,
+              point.dodge.width = point.dodge.width,
+              point.jitter.height = point.jitter.height
             )
           )
       )
@@ -273,10 +226,8 @@ grouped_ggbetweenstats <- function(grouping.var,
 
   # combining the list of plots into a single plot
   combined_plot <-
-    ggstatsplot::combine_plots(
-      plotlist = plotlist_purrr$plots,
-      ...
-    )
+    ggstatsplot::combine_plots(plotlist = plotlist_purrr$plots,
+                               ...)
 
   # return the combined plot
   return(combined_plot)

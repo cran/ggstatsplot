@@ -5,42 +5,42 @@
 \title{Visualization of a correlalogram (or correlation matrix) using
 'ggplot2'/'ggcorrplot' for all levels of a grouping variable}
 \usage{
-grouped_ggcorrmat(grouping.var, title.prefix = "Group", data, cor.vars,
-  cor.vars.names = NULL, output = "plot", type = "full",
+grouped_ggcorrmat(data, cor.vars, cor.vars.names = NULL, grouping.var,
+  title.prefix = "Group", output = "plot", type = "full",
   method = "square", corr.method = "pearson", exact = FALSE,
-  continuity = TRUE, beta = 0.2, digits = 2, sig.level = 0.05,
+  continuity = TRUE, beta = 0.1, digits = 2, sig.level = 0.05,
   hc.order = FALSE, hc.method = "complete", lab = TRUE,
   colors = c("#E69F00", "white", "#009E73"), outline.color = "black",
-  ggtheme = ggplot2::theme_gray, ggstatsplot.theme = TRUE,
-  subtitle = NULL, caption = NULL, caption.default = TRUE,
-  lab.col = "black", lab.size = 5, insig = "pch", pch = 4,
-  pch.col = "black", pch.cex = 11, tl.cex = 12, tl.col = "black",
-  tl.srt = 45, axis.text.x.margin.t = 0, axis.text.x.margin.r = 0,
+  ggtheme = ggplot2::theme_bw, ggstatsplot.theme = TRUE, subtitle = NULL,
+  caption = NULL, caption.default = TRUE, lab.col = "black",
+  lab.size = 5, insig = "pch", pch = 4, pch.col = "black",
+  pch.cex = 11, tl.cex = 12, tl.col = "black", tl.srt = 45,
+  axis.text.x.margin.t = 0, axis.text.x.margin.r = 0,
   axis.text.x.margin.b = 0, axis.text.x.margin.l = 0,
-  legend.title.margin = TRUE, t.margin = unit(0, "mm"), b.margin = unit(3,
-  "mm"), messages = TRUE, ...)
+  legend.title.margin = FALSE, t.margin = unit(0, "mm"),
+  b.margin = unit(3, "mm"), messages = TRUE, ...)
 }
 \arguments{
-\item{grouping.var}{Grouping variable.}
-
-\item{title.prefix}{Character specifying the prefix text for the fixed plot
-title (name of each factor level) (Default: \code{"Group"}).}
-
 \item{data}{Dataframe from which variables specified are preferentially to be
 taken.}
 
-\item{cor.vars}{List of vairables for which the correlation matrix is to be
+\item{cor.vars}{List of variables for which the correlation matrix is to be
 computed and visualized.}
 
 \item{cor.vars.names}{Optional list of names to be used for \code{cor.vars}. The
 names should be entered in the same order.}
+
+\item{grouping.var}{Grouping variable.}
+
+\item{title.prefix}{Character specifying the prefix text for the fixed plot
+title (name of each factor level) (Default: \code{"Group"}).}
 
 \item{output}{Expected output from this function: \code{"plot"} (visualization
 matrix) or \code{"correlations"} (correlation matrix) or \code{"p-values"} (matrix of
 p-values).}
 
 \item{type}{Character, \code{"full"} (default), \code{"upper"} or \code{"lower"}, display
-full matrix, lowe triangular or upper triangular matrix.}
+full matrix, lower triangular or upper triangular matrix.}
 
 \item{method}{Character argument that decides the visualization method of
 correlation matrix to be used. Allowed values are \code{"square"} (default),
@@ -62,12 +62,12 @@ Kendall's \emph{tau} and Spearman's \emph{rho} when not computed exactly (Defaul
 \code{TRUE}).}
 
 \item{beta}{A numeric bending constant for robust correlation coefficient
-(Default: \code{0.2}).}
+(Default: \code{0.1}).}
 
 \item{digits}{Decides the number of decimal digits to be added into the plot
 (Default: \code{2}).}
 
-\item{sig.level}{Significance level (Dafault: \code{0.05}). If the p-value in
+\item{sig.level}{Significance level (Default: \code{0.05}). If the p-value in
 p-mat (p-value matrix) is bigger than \code{sig.level}, then the corresponding
 correlation coefficient is regarded as insignificant.}
 
@@ -86,8 +86,8 @@ displayed in the plot.}
 \code{"gray"}.}
 
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
-\code{ggplot2::theme_gray}. Allowed values are the official \code{ggplot2} themes,
-including \code{theme_bw}, \code{theme_minimal}, \code{theme_classic}, \code{theme_void}, etc.}
+\code{ggplot2::theme_bw}. Allowed values are the official \code{ggplot2} themes,
+including \code{theme_grey}, \code{theme_minimal}, \code{theme_classic}, \code{theme_void}, etc.}
 
 \item{ggstatsplot.theme}{A logical. Decides whether default theme for
 \code{ggstatsplot}, which is \code{theme_mprl}, is to be overlaid on the entered
@@ -115,20 +115,44 @@ corresponding glyphs will be removed; if "pch" is used, characters (see
 \item{pch}{Decides the glyphs (read point shapes) to be used for insignificant correlation
 coefficients (only valid when \code{insig = "pch"}). Default value is \code{pch = 4}.}
 
-\item{pch.col, pch.cex}{The color and the cex (size) of \code{pch} (only valid when
+\item{pch.col}{The color and the cex (size) of \code{pch} (only valid when
 \code{insig = "pch"}). Defaults are \code{pch.col = "#F0E442"} and \code{pch.cex = 10}.}
 
-\item{tl.cex, tl.col, tl.srt}{The size, the color, and the string rotation of
+\item{pch.cex}{The color and the cex (size) of \code{pch} (only valid when
+\code{insig = "pch"}). Defaults are \code{pch.col = "#F0E442"} and \code{pch.cex = 10}.}
+
+\item{tl.cex}{The size, the color, and the string rotation of
 text label (variable names, i.e.).}
 
-\item{axis.text.x.margin.t, axis.text.x.margin.r, axis.text.x.margin.b, axis.text.x.margin.l}{Margins between x-axis and the variable name texts (t: top, r: right, b:
+\item{tl.col}{The size, the color, and the string rotation of
+text label (variable names, i.e.).}
+
+\item{tl.srt}{The size, the color, and the string rotation of
+text label (variable names, i.e.).}
+
+\item{axis.text.x.margin.t}{Margins between x-axis and the variable name texts (t: top, r: right, b:
+bottom, l:left), especially useful in case the names are slanted, i.e. when the tl.srt is
+between \code{45} and \code{75} (Defaults: \code{0}, \code{0}, \code{0}, \code{0}, resp.).}
+
+\item{axis.text.x.margin.r}{Margins between x-axis and the variable name texts (t: top, r: right, b:
+bottom, l:left), especially useful in case the names are slanted, i.e. when the tl.srt is
+between \code{45} and \code{75} (Defaults: \code{0}, \code{0}, \code{0}, \code{0}, resp.).}
+
+\item{axis.text.x.margin.b}{Margins between x-axis and the variable name texts (t: top, r: right, b:
+bottom, l:left), especially useful in case the names are slanted, i.e. when the tl.srt is
+between \code{45} and \code{75} (Defaults: \code{0}, \code{0}, \code{0}, \code{0}, resp.).}
+
+\item{axis.text.x.margin.l}{Margins between x-axis and the variable name texts (t: top, r: right, b:
 bottom, l:left), especially useful in case the names are slanted, i.e. when the tl.srt is
 between \code{45} and \code{75} (Defaults: \code{0}, \code{0}, \code{0}, \code{0}, resp.).}
 
 \item{legend.title.margin}{Logical indicating whether to adjust the margin between legend title and the
-colorbar (Default: \code{TRUE}).}
+colorbar (Default: \code{FALSE}).}
 
-\item{t.margin, b.margin}{Margins in grid units. For more details, see
+\item{t.margin}{Margins in grid units. For more details, see
+\code{?grid::unit()}.}
+
+\item{b.margin}{Margins in grid units. For more details, see
 \code{?grid::unit()}.}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
@@ -210,8 +234,12 @@ ggstatsplot::grouped_ggcorrmat(
 )
 
 }
+\references{
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggcorrmat.html}
+}
 \seealso{
-\code{\link{ggcorrmat}}
+\code{\link{ggcorrmat}} \code{\link{ggscatterstats}}
+\code{\link{grouped_ggscatterstats}}
 }
 \author{
 Indrajeet Patil

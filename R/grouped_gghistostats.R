@@ -10,64 +10,7 @@
 #' @param grouping.var Grouping variable.
 #' @param title.prefix Character specifying the prefix text for the fixed plot
 #'   title (name of each factor level) (Default: `"Group"`).
-#' @param data Dataframe from which variables specified are preferentially to be
-#'   taken.
-#' @param x A numeric variable.
-#' @param bar.measure Character describing what value needs to be represented as
-#'   height in the bar chart. This can either be `"count"`, which shows number
-#'   of points in bin, or `"density"`, which density of points in bin, scaled to
-#'   integrate to 1, or "`proportion`", which shows relative frequencies of
-#'   observations in each bin.
-#' @param xlab Label for `x` axis variable.
-#' @param subtitle The text for the plot subtitle *if* you don't want results
-#'   from one sample test to be displayed.
-#' @param caption The text for the plot caption.
-#' @param type Type of statistic expected (`"parametric"` or `"nonparametric"`
-#'   or `"bayes"`). Abbreviations accepted are `"p"` or `"np"` or `"bf"`,
-#'   respectively.
-#' @param test.value A number specifying the value of the null hypothesis.
-#' @param bf.prior A number between 0.5 and 2 (default 0.707), the prior width
-#'   to use in calculating Bayes factors.
-#' @param bf.message Logical. Decides whether to display Bayes Factor in favor
-#'   of null hypothesis for parametric test if the null hypothesis can't be
-#'   rejected (Default: `bf.message = TRUE`).
-#' @param k Number of decimal places expected for results.
-#' @param low.color,high.color Colors for low and high ends of the gradient.
-#'   Defaults are colorblind-friendly.
-#' @param results.subtitle Decides whether the results of statistical tests are
-#'   to be displayed as subtitle (Default: `results.subtitle = TRUE`). If set to
-#'   `FALSE`, no statistical tests will be run.
-#' @param legend.title.margin Adjusting the margin between legend title and the
-#'   colorbar.
-#' @param t.margin,b.margin Margins in grid units. For more details, see
-#'   `?grid::unit()`.
-#' @param centrality.para Decides *which* measure of central tendency (`"mean"`
-#'   or `"median"`) is to be displayed as a vertical line.
-#' @param centrality.color Decides color for the vertical line for centrality
-#'   parameter (Default: `"blue"`).
-#' @param centrality.size Decides size for the vertical line for centrality
-#'   parameter (Default: `1.2`).
-#' @param centrality.linetype Decides linetype for the vertical line for centrality
-#'   parameter (Default: `"dashed"`).
-#' @param test.value.size Decides size for the vertical line for test value
-#'   (Default: `1.2`).
-#' @param test.value.linetype Decides linetype for the vertical line for test
-#'   value (Default: `"dashed"`).
-#' @param test.value.line Decides whether test value is to be displayed as a
-#'   vertical line (Default: `FALSE`).
-#' @param test.value.color Decides color for the vertical line denoting test
-#'   value (Default: `"black"`).
-#' @param line.labeller A logical that decides whether line labels should be
-#'   displayed (Default: `FALSE`).
-#' @param line.labeller.y A numeric denoting the y-coordinate for displaying
-#'   line labels (Default: `-2`).
-#' @param binwidth The width of the bins. Can be specified as a numeric value,
-#'   or a function that calculates width from `x`. The default is to use bins
-#'   bins that cover the range of the data. You should always override this
-#'   value, exploring multiple widths to find the best to illustrate the stories
-#'   in your data.
-#' @param messages Decides whether messages references, notes, and warnings are
-#'   to be displayed (Default: `TRUE`).
+#' @inheritParams gghistostats
 #' @inheritDotParams combine_plots
 #'
 #' @importFrom dplyr select
@@ -88,8 +31,10 @@
 #'
 #' @seealso \code{\link{gghistostats}}
 #'
-#' @examples
+#' @references
+#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/gghistostats.html}
 #'
+#' @examples
 #'
 #' ggstatsplot::grouped_gghistostats(
 #' data = iris,
@@ -104,10 +49,10 @@
 #'
 
 # defining the function
-grouped_gghistostats <- function(grouping.var,
-                                 title.prefix = "Group",
-                                 data,
+grouped_gghistostats <- function(data,
                                  x,
+                                 grouping.var,
+                                 title.prefix = "Group",
                                  bar.measure = "count",
                                  xlab = NULL,
                                  subtitle = NULL,
@@ -116,11 +61,13 @@ grouped_gghistostats <- function(grouping.var,
                                  test.value = 0,
                                  bf.prior = 0.707,
                                  bf.message = TRUE,
+                                 robust.estimator = "onestep",
+                                 nboot = 500,
                                  k = 3,
                                  low.color = "#0072B2",
                                  high.color = "#D55E00",
                                  results.subtitle = TRUE,
-                                 legend.title.margin = TRUE,
+                                 legend.title.margin = FALSE,
                                  t.margin = unit(0, "mm"),
                                  b.margin = unit(3, "mm"),
                                  centrality.para = NULL,
@@ -134,6 +81,7 @@ grouped_gghistostats <- function(grouping.var,
                                  line.labeller = FALSE,
                                  line.labeller.y = -2,
                                  binwidth = NULL,
+                                 ggtheme = ggplot2::theme_bw(),
                                  messages = TRUE,
                                  ...) {
   # ================== preparing dataframe ==================
@@ -185,6 +133,8 @@ grouped_gghistostats <- function(grouping.var,
             test.value = test.value,
             bf.prior = bf.prior,
             bf.message = bf.message,
+            robust.estimator = robust.estimator,
+            nboot = nboot,
             low.color = low.color,
             high.color = high.color,
             k = k,
@@ -200,6 +150,7 @@ grouped_gghistostats <- function(grouping.var,
             line.labeller = line.labeller,
             line.labeller.y = line.labeller.y,
             binwidth = binwidth,
+            ggtheme = ggtheme,
             messages = messages
           )
         )

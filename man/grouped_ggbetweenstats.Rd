@@ -5,27 +5,30 @@
 \title{Violin plots for group or condition comparisons repeated across all
 levels of a grouping variable.}
 \usage{
-grouped_ggbetweenstats(grouping.var, title.prefix = "Group", data = NULL, x,
-  y, plot.type = "boxviolin", type = "parametric",
-  effsize.type = "unbiased", xlab = NULL, ylab = NULL, caption = NULL,
-  k = 3, var.equal = FALSE, nboot = 100, notch = FALSE,
-  notchwidth = 0.5, linetype = "solid", outlier.tagging = NULL,
-  outlier.label = NULL, outlier.label.color = "black",
-  outlier.color = "black", outlier.coef = 1.5, mean.plotting = TRUE,
-  mean.size = 5, mean.color = "darkred", messages = TRUE, ...)
+grouped_ggbetweenstats(data, x, y, grouping.var, title.prefix = "Group",
+  plot.type = "boxviolin", type = "parametric", effsize.type = "unbiased",
+  xlab = NULL, ylab = NULL, caption = NULL, sample.size.label = TRUE,
+  k = 3, var.equal = FALSE, nboot = 100, tr = 0.1, conf.level = 0.95,
+  conf.type = "norm", notch = FALSE, notchwidth = 0.5,
+  linetype = "solid", outlier.tagging = NULL, outlier.label = NULL,
+  outlier.label.color = "black", outlier.color = "black",
+  outlier.coef = 1.5, mean.plotting = TRUE, mean.size = 5,
+  mean.color = "darkred", point.jitter.width = NULL,
+  point.jitter.height = 0.2, point.dodge.width = 0.75,
+  ggtheme = ggplot2::theme_bw(), palette = "Dark2", messages = TRUE, ...)
 }
 \arguments{
-\item{grouping.var}{Grouping variable.}
-
-\item{title.prefix}{Character specifying the prefix text for the fixed plot
-title (name of each factor level) (Default: \code{"Group"}).}
-
 \item{data}{Dataframe from which variables specified are preferentially to be
 taken.}
 
 \item{x}{The grouping variable.}
 
 \item{y}{The response - a vector of length the number of rows of \code{x}.}
+
+\item{grouping.var}{Grouping variable.}
+
+\item{title.prefix}{Character specifying the prefix text for the fixed plot
+title (name of each factor level) (Default: \code{"Group"}).}
 
 \item{plot.type}{Character describing the \emph{type} of plot. Currently supported
 plots are \code{"box"} (for pure boxplots), \code{"violin"} (for pure violin plots),
@@ -46,6 +49,10 @@ or \code{"unbiased"} (Hedge's \emph{g} for \strong{t-test}; partial omega-square
 
 \item{caption}{The text for the plot caption.}
 
+\item{sample.size.label}{Logical that decides whether sample size information
+should be displayed for each level of the grouping variable \code{x} (Default:
+\code{TRUE}).}
+
 \item{k}{Number of decimal places expected for results.}
 
 \item{var.equal}{A logical variable indicating whether to treat the two
@@ -54,20 +61,33 @@ variances as being equal (Default: \code{FALSE}).}
 \item{nboot}{Number of bootstrap samples for computing effect size (Default:
 \code{100}).}
 
+\item{tr}{Trim level for the mean when carrying out \code{robust} tests. If you
+get error stating "Standard error cannot be computed because of Winsorized
+variance of 0 (e.g., due to ties). Try to decrease the trimming level.",
+try to play around with the value of \code{tr}, which is by default set to
+\code{0.1}. Lowering the value might help.}
+
+\item{conf.level}{Scalar between 0 and 1. If \code{NULL}, the defaults return \code{95\%}
+lower and upper confidence intervals (\code{0.95}).}
+
+\item{conf.type}{A vector of character strings representing the type of
+intervals required. The value should be any subset of the values \code{"norm"},
+\code{"basic"}, \code{"perc"}, \code{"bca"}. For more, see \code{?boot::boot.ci}.}
+
 \item{notch}{A logical. If \code{FALSE} (default), a standard box plot will be
 displayed. If \code{TRUE}, a notched box plot will be used. Notches are used to
 compare groups; if the notches of two boxes do not overlap, this suggests
 that the medians are significantly different. In a notched box plot, the
-notches extend 1.58 * IQR / sqrt(n). This gives a roughly 95% confidence
+notches extend 1.58 * IQR / sqrt(n). This gives a roughly \code{95\%} confidence
 interval for comparing medians. IQR: Inter-Quartile Range.}
 
 \item{notchwidth}{For a notched box plot, width of the notch relative to the
 body (default \code{0.5}).}
 
 \item{linetype}{Character strings (\code{"blank"}, \code{"solid"}, \code{"dashed"},
-\code{"dotted"}, \code{"dotdash"}, \code{"longdash"}, and \code{"twodash"}) specifiying the
-type of line to draw box plots (Default: \code{"solid"}). Alternatively, the
-numbers \code{0} to \code{6} can be used (\code{0} for "blank", \code{1} for "solid", etc.).}
+\code{"dotted"}, \code{"dotdash"}, \code{"longdash"}, and \code{"twodash"}) specifying the type
+of line to draw box plots (Default: \code{"solid"}). Alternatively, the numbers
+\code{0} to \code{6} can be used (\code{0} for "blank", \code{1} for "solid", etc.).}
 
 \item{outlier.tagging}{Decides whether outliers should be tagged (Default:
 \code{FALSE}).}
@@ -80,7 +100,7 @@ have been tagged (Default: \code{"black"}).}
 \item{outlier.color}{Default aesthetics for outliers (Default: \code{"black"}).}
 
 \item{outlier.coef}{Coefficient for outlier detection using Tukey's method.
-With Tukey’s method, outliers are below (1st Quartile) or above (3rd
+With Tukey's method, outliers are below (1st Quartile) or above (3rd
 Quartile) \code{outlier.coef} times the Inter-Quartile Range (IQR) (Default:
 \code{1.5}).}
 
@@ -92,6 +112,24 @@ to be displayed (Default: \code{TRUE}).}
 
 \item{mean.color}{Color for the data point corresponding to mean (Default:
 \code{"darkred"}).}
+
+\item{point.jitter.width}{Numeric specifying the degree of jitter in \code{x}
+direction. Defaults to \code{40\%} of the resolution of the data.}
+
+\item{point.jitter.height}{Numeric specifying the degree of jitter in \code{y}
+direction. Defaults to \code{0.1}.}
+
+\item{point.dodge.width}{Numeric specifying the amount to dodge in the \code{x}
+direction. Defaults to \code{0.60}.}
+
+\item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
+\code{ggplot2::theme_bw()}. Allowed values are the official \code{ggplot2} themes,
+including \code{ggplot2::theme_grey()}, \code{ggplot2::theme_minimal()},
+\code{ggplot2::theme_classic()}, \code{ggplot2::theme_void()}, etc.}
+
+\item{palette}{If a character string (e.g., \code{"Set1"}), will use that named
+palette. If a number, will index into the list of palettes of appropriate
+type. Default palette is \code{"Dark2"}.}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
@@ -158,6 +196,9 @@ y = wt,
 grouping.var = am
 )
 
+}
+\references{
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggbetweenstats.html}
 }
 \seealso{
 \code{\link{ggbetweenstats}}

@@ -4,32 +4,55 @@
 \alias{grouped_ggpiestats}
 \title{Grouped pie charts with statistical tests}
 \usage{
-grouped_ggpiestats(grouping.var, title.prefix = "Group", data, main,
-  condition = NULL, factor.levels = NULL, stat.title = NULL,
-  caption = NULL, legend.title = NULL, facet.wrap.name = NULL, k = 3,
-  facet.proptest = TRUE, messages = TRUE, ...)
+grouped_ggpiestats(data, main, condition = NULL, counts = NULL,
+  grouping.var, title.prefix = "Group", ratio = NULL,
+  factor.levels = NULL, stat.title = NULL, sample.size.label = TRUE,
+  caption = NULL, nboot = 25, palette = "Dark2", legend.title = NULL,
+  facet.wrap.name = NULL, k = 3, facet.proptest = TRUE,
+  ggtheme = ggplot2::theme_bw(), messages = TRUE, ...)
 }
 \arguments{
+\item{data}{The data as a data frame (matrix or tables will not be accepted).}
+
+\item{main}{The variable to use as the \strong{rows} in the
+contingency table.}
+
+\item{condition}{The variable to use as the \strong{columns} in the contingency
+table. This argument is optional (Default: \code{NULL}). If this argument is
+provided, then Pearson's chi-square test of independence will be run. If
+not, a goodness of fit test will be run on the \code{main} variable.}
+
+\item{counts}{A string naming a variable in data containing counts, or \code{NULL}
+if each row represents a single observation (Default).}
+
 \item{grouping.var}{Grouping variable.}
 
 \item{title.prefix}{Character specifying the prefix text for the fixed plot
 title (name of each factor level) (Default: \code{"Group"}).}
 
-\item{data}{The data as a data frame.}
-
-\item{main}{A string naming the variable to use as the rows in the
-contingency table.}
-
-\item{condition}{A string naming the variable to use as the columns in the
-contingency table.}
+\item{ratio}{A vector of numbers: the expected proportions for the proportion
+test. Default is \code{NULL}, which means if there are two levels \code{ratio = c(1,1)}, etc.}
 
 \item{factor.levels}{A character vector with labels for factor levels of
 \code{main} variable.}
 
 \item{stat.title}{Title for the effect being investigated with the chi-square
-test.}
+test. The default is \code{NULL}, i.e. no title will be added to describe the
+effect being shown. An example of a \code{stat.title} argument will be something
+like \code{"main x condition"} or \code{"interaction"}.}
+
+\item{sample.size.label}{Logical that decides whether sample size information
+should be displayed for each level of the grouping variable \code{condition} (Default:
+\code{TRUE}).}
 
 \item{caption}{The text for the plot caption.}
+
+\item{nboot}{Number of bootstrap samples for computing effect size (Default:
+\code{25}).}
+
+\item{palette}{If a character string (e.g., \code{"Set1"}), will use that named
+palette. If a number, will index into the list of palettes of appropriate
+type. Default palette is \code{"Dark2"}}
 
 \item{legend.title}{Title of legend.}
 
@@ -37,8 +60,13 @@ test.}
 
 \item{k}{Number of decimal places expected for results.}
 
-\item{facet.proptest}{Decides whether proprotion test for \code{main} variable is
+\item{facet.proptest}{Decides whether proportion test for \code{main} variable is
 to be carried out for each level of \code{condition} (Default: \code{TRUE}).}
+
+\item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
+\code{ggplot2::theme_bw()}. Allowed values are the official \code{ggplot2} themes,
+including \code{theme_grey()}, \code{theme_minimal()}, \code{theme_classic()},
+\code{theme_void()}, etc.}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
@@ -102,6 +130,9 @@ grouping.var = am,
 main = cyl
 )
 
+}
+\references{
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggpiestats.html}
 }
 \seealso{
 \code{\link{ggpiestats}}

@@ -11,24 +11,15 @@ library(dplyr)
 dplyr::glimpse(x = ggplot2movies::movies)
 
 ## ----ggplot2movies2, warning = FALSE, message = FALSE--------------------
+library(ggstatsplot)
 
-# selecting data of interest
-movies_wide <- ggplot2movies::movies %>%
-  dplyr::select(.data = ., c(title:votes, mpaa)) %>%         # `.` is just a placeholder for the data
-  dplyr::filter(.data = ., mpaa != "") %>%                   # removing movies without mpaa ratings
-  stats::na.omit(.) %>%                                      # removing NAs 
-  dplyr::mutate(.data = ., budget = budget/1000000) %>%      # convert the budge to millions of dollars
-  dplyr::mutate_if(.tbl = .,                                 # convert mpaa ratings to a factor
-                   .predicate = purrr::is_bare_character,
-                   .funs = ~as.factor(.))
-  
 # see the selected data (we have data from 1813 movies)
-dplyr::glimpse(x = movies_wide)
+dplyr::glimpse(x = ggstatsplot::movies_wide)
 
-## ----ggscatterstats1, cache.extra = movies_wide, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 8----
+## ----ggscatterstats1, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 8----
 
 ggstatsplot::ggscatterstats(
-  data = movies_wide,                                          # dataframe from which variables are to be taken
+  data = ggstatsplot::movies_wide,                             # dataframe from which variables are to be taken
   x = budget,                                                  # predictor/independent variable 
   y = rating,                                                  # dependent variable
   xlab = "Budget (in millions of US dollars)",                 # label for the x-axis
@@ -50,7 +41,7 @@ ggstatsplot::ggscatterstats(
 #  grid::grid.newpage()
 #  grid::grid.draw(
 #    ggstatsplot::ggscatterstats(
-#      data = movies_wide,
+#      data = ggstatsplot::movies_wide,
 #      x = budget,
 #      y = rating,
 #      marginal = TRUE,
@@ -58,10 +49,10 @@ ggstatsplot::ggscatterstats(
 #    )
 #  )
 
-## ----grouped1, cache.extra = movies_wide, warning = FALSE, message = FALSE, fig.height = 14, fig.width = 8----
+## ----grouped1, warning = FALSE, message = FALSE, fig.height = 14, fig.width = 8----
 ggstatsplot::grouped_ggscatterstats(
   # arguments relevant for ggstatsplot::ggscatterstats
-  data = movies_wide,
+  data = ggstatsplot::movies_wide,
   title.prefix = "MPAA Rating",
   x = budget,
   y = rating,
@@ -75,13 +66,18 @@ ggstatsplot::grouped_ggscatterstats(
   labels = c("(a)","(b)","(c)","(d)")
 )
 
-## ----grouped2, cache.extra = movies_wide, warning = FALSE, message = FALSE, fig.height = 16, fig.width = 8----
+## ----grouped2, warning = FALSE, message = FALSE, fig.height = 16, fig.width = 8----
 # let's split the dataframe and create a list by mpaa rating
-mpaa_list <- movies_wide %>%
+mpaa_list <- ggstatsplot::movies_wide %>%
   base::split(x = ., f = .$mpaa, drop = TRUE)
 
 # this created a list with 4 elements, one for each mpaa rating
-str(mpaa_list)
+# you can check the structure of the file for yourself
+# str(mpaa_list)
+
+# checking the length and names of each element
+length(mpaa_list)
+names(mpaa_list)
 
 # running function on every element of this list note that if you want the same
 # value for a given argument across all elements of the list, you need to
@@ -104,6 +100,12 @@ plot_list <- purrr::pmap(
     centrality.para = "mean",
     xfill = list("#56B4E9", "#009E73", "#999999", "#0072B2"),
     yfill = list("#D55E00", "#CC79A7", "#F0E442", "#D55E00"),
+    ggtheme = list(
+      ggplot2::theme_grey(),
+      ggplot2::theme_classic(),
+      ggplot2::theme_light(),
+      ggplot2::theme_minimal()
+    ),
     messages = FALSE
   ),
   .f = ggstatsplot::ggscatterstats

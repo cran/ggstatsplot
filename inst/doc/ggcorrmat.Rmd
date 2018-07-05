@@ -24,15 +24,15 @@ knitr::opts_chunk$set(
 ```
 
 The function `ggstatsplot::ggcorrmat` provides a quick way to produce
-**publication-ready correlation matrix** (aka correlalogram) plot. In addition
-to the plot, it can also be used to get a correlation coefficient matrix or the
-associated p-value matrix. Currently, the plot can display Pearson's *r*,
-Spearman's *rho*, and Kendall's *tau*. Robust correlation coefficient option is
-available only to output coefficients and p-values. The percentage bend
-correlation is used as a robust correlation. Future release will also support
-robust correlation matrix. This function is a convenient wrapper around
-`ggcorrplot` function with some additional functionality, so its documentation
-will be helpful
+**publication-ready correlation matrix** (aka correlalogram) plot. The function
+can also be used for quick **data exploration**. In addition to the plot, it can
+also be used to get a correlation coefficient matrix or the associated p-value
+matrix. Currently, the plot can display Pearson's *r*, Spearman's *rho*, and
+Kendall's *tau*. Robust correlation coefficient option is available only to
+output coefficients and p-values. The percentage bend correlation is used as a
+robust correlation. Future release will also support robust correlation matrix.
+This function is a convenient wrapper around `ggcorrplot` function with some
+additional functionality, so its documentation will be helpful
 (<http://www.sthda.com/english/wiki/ggcorrplot-visualization-of-a-correlation-matrix-using-ggplot2>).
 
 We will see examples of how to use this function in this vignette with the
@@ -130,7 +130,7 @@ ggstatsplot::ggcorrmat(
 
 We can make a number of changes to this basic correlation matrix. For example,
 since we were interested in relationship between price and other attributes,
-let's make the `price` column to te the first column. Additionally, since we are
+let's make the `price` column to the the first column. Additionally, since we are
 running 6 correlations that are of *a priori* interest to us, we can adjust our
 threshold of significance to (0.05/6 ~ 0.008). Additionally, let's use a
 non-parametric correlation coefficient. Please note that it is **important** to
@@ -168,7 +168,7 @@ coefficients and their p-values for a quick and dirty exploratory data analysis.
 For example, for the correlation matrix we just ran, we can get a coefficient
 matrix and a p-value matrix. We will use robust correlation for this
 illustration as this correlation is supported only to get correlation
-coeffcients and p-values.
+coefficients and p-values.
 
 ```{r ggcorrmat5, warning = FALSE, message = FALSE}
 # to get correlations
@@ -250,7 +250,7 @@ ggstatsplot::grouped_ggcorrmat(
 )
 ```
 
-As this example illustrates, there is a minimal coding overhead to exlore
+As this example illustrates, there is a minimal coding overhead to explore
 correlations in your dataset with the `grouped_ggcorrmat` function.
 
 ## Grouped analysis with `ggcorrmat` + `purrr`
@@ -271,7 +271,12 @@ cut_list <- ggplot2::diamonds %>%
   base::split(x = ., f = .$cut, drop = TRUE)
 
 # this created a list with 5 elements, one for each quality of cut
-str(cut_list)
+# you can check the structure of the file for yourself
+# str(cut_list)
+
+# checking the length and names of each element
+length(cut_list)
+names(cut_list)
 
 # running function on every element of this list note that if you want the same
 # value for a given argument across all elements of the list, you need to
@@ -298,7 +303,15 @@ plot_list <- purrr::pmap(
       c("#0072B2", "white", "#D55E00"),
       c("#CC79A7", "white", "#F0E442"),
       c("#56B4E9", "white", "#D55E00"),
-      c("#0072B2", "white", "#999999")
+      c("#999999", "white", "#0072B2")
+    ),
+    ggstatsplot.theme = list(FALSE),
+    ggtheme = list(
+      ggplot2::theme_grey,
+      ggplot2::theme_classic,
+      ggplot2::theme_minimal,
+      ggplot2::theme_bw,
+      ggplot2::theme_dark
     )
   ),
   .f = ggstatsplot::ggcorrmat
@@ -325,4 +338,5 @@ studies or conditions.
 
 ## Suggestions
 
-If you find any bugs or have any suggestions/remarks, please file an issue on GitHub: <https://github.com/IndrajeetPatil/ggstatsplot/issues>
+If you find any bugs or have any suggestions/remarks, please file an issue on GitHub: 
+<https://github.com/IndrajeetPatil/ggstatsplot/issues>

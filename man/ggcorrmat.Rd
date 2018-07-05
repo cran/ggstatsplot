@@ -7,24 +7,24 @@
 \usage{
 ggcorrmat(data, cor.vars, cor.vars.names = NULL, output = "plot",
   type = "full", method = "square", corr.method = "pearson",
-  exact = FALSE, continuity = TRUE, beta = 0.2, digits = 2,
+  exact = FALSE, continuity = TRUE, beta = 0.1, digits = 2,
   sig.level = 0.05, hc.order = FALSE, hc.method = "complete",
   lab = TRUE, colors = c("#E69F00", "white", "#009E73"),
-  outline.color = "black", ggtheme = ggplot2::theme_gray,
+  outline.color = "black", ggtheme = ggplot2::theme_bw,
   ggstatsplot.theme = TRUE, title = NULL, subtitle = NULL,
   caption = NULL, caption.default = TRUE, lab.col = "black",
   lab.size = 5, insig = "pch", pch = 4, pch.col = "black",
   pch.cex = 11, tl.cex = 12, tl.col = "black", tl.srt = 45,
   axis.text.x.margin.t = 0, axis.text.x.margin.r = 0,
   axis.text.x.margin.b = 0, axis.text.x.margin.l = 0,
-  legend.title.margin = TRUE, t.margin = unit(0, "mm"), b.margin = unit(3,
-  "mm"), messages = TRUE)
+  legend.title.margin = FALSE, t.margin = unit(0, "mm"),
+  b.margin = unit(3, "mm"), messages = TRUE)
 }
 \arguments{
 \item{data}{Dataframe from which variables specified are preferentially to be
 taken.}
 
-\item{cor.vars}{List of vairables for which the correlation matrix is to be
+\item{cor.vars}{List of variables for which the correlation matrix is to be
 computed and visualized.}
 
 \item{cor.vars.names}{Optional list of names to be used for \code{cor.vars}. The
@@ -35,7 +35,7 @@ matrix) or \code{"correlations"} (correlation matrix) or \code{"p-values"} (matr
 p-values).}
 
 \item{type}{Character, \code{"full"} (default), \code{"upper"} or \code{"lower"}, display
-full matrix, lowe triangular or upper triangular matrix.}
+full matrix, lower triangular or upper triangular matrix.}
 
 \item{method}{Character argument that decides the visualization method of
 correlation matrix to be used. Allowed values are \code{"square"} (default),
@@ -57,12 +57,12 @@ Kendall's \emph{tau} and Spearman's \emph{rho} when not computed exactly (Defaul
 \code{TRUE}).}
 
 \item{beta}{A numeric bending constant for robust correlation coefficient
-(Default: \code{0.2}).}
+(Default: \code{0.1}).}
 
 \item{digits}{Decides the number of decimal digits to be added into the plot
 (Default: \code{2}).}
 
-\item{sig.level}{Significance level (Dafault: \code{0.05}). If the p-value in
+\item{sig.level}{Significance level (Default: \code{0.05}). If the p-value in
 p-mat (p-value matrix) is bigger than \code{sig.level}, then the corresponding
 correlation coefficient is regarded as insignificant.}
 
@@ -81,8 +81,8 @@ displayed in the plot.}
 \code{"gray"}.}
 
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
-\code{ggplot2::theme_gray}. Allowed values are the official \code{ggplot2} themes,
-including \code{theme_bw}, \code{theme_minimal}, \code{theme_classic}, \code{theme_void}, etc.}
+\code{ggplot2::theme_bw}. Allowed values are the official \code{ggplot2} themes,
+including \code{theme_grey}, \code{theme_minimal}, \code{theme_classic}, \code{theme_void}, etc.}
 
 \item{ggstatsplot.theme}{A logical. Decides whether default theme for
 \code{ggstatsplot}, which is \code{theme_mprl}, is to be overlaid on the entered
@@ -123,7 +123,7 @@ bottom, l:left), especially useful in case the names are slanted, i.e. when the 
 between \code{45} and \code{75} (Defaults: \code{0}, \code{0}, \code{0}, \code{0}, resp.).}
 
 \item{legend.title.margin}{Logical indicating whether to adjust the margin between legend title and the
-colorbar (Default: \code{TRUE}).}
+colorbar (Default: \code{FALSE}).}
 
 \item{t.margin, b.margin}{Margins in grid units. For more details, see
 \code{?grid::unit()}.}
@@ -166,14 +166,18 @@ ggstatsplot::ggcorrmat(
 data = datasets::iris,
 cor.vars = c(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width),
 sig.level = 0.01,
-ggtheme = ggplot2::theme_gray,
+ggtheme = ggplot2::theme_bw,
 hc.order = TRUE, type = "lower", outline.col = "white",
 title = "Dataset: Iris"
 )
 
 }
+\references{
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggcorrmat.html}
+}
 \seealso{
-\code{\link{grouped_ggcorrmat}} \code{\link{ggscatterstats}} \code{\link{grouped_ggscatterstats}}
+\code{\link{grouped_ggcorrmat}} \code{\link{ggscatterstats}}
+\code{\link{grouped_ggscatterstats}}
 }
 \author{
 Indrajeet Patil

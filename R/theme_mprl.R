@@ -7,27 +7,35 @@
 #'   and *assumed* by the author to be aesthetically pleasing to the
 #'   user/reader.
 #'
+#' @param ggtheme A function, `ggplot2` theme name. Default value is
+#'   `ggplot2::theme_bw()`. Allowed values are the official `ggplot2` themes,
+#'   including `theme_bw()`, `theme_minimal()`, `theme_classic()`,
+#'   `theme_void()`, etc.
+#'
 #' @return A `ggplot2` object with the `theme_mprl` theme.
 #'
 #' @import ggplot2
-#' @import grid
+#' @importFrom grid unit
+#'
+#' @references
+#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/theme_mprl.html}
 #'
 #' @export
 #'
 
-theme_mprl <- function() {
-  ggplot2::theme_grey() +
+theme_mprl <- function(ggtheme = ggplot2::theme_bw()) {
+  ggtheme +
     ggplot2::theme(
-      axis.title.x = ggplot2::element_text(size = 14, face = "bold"),
-      strip.text.x = ggplot2::element_text(size = 14, face = "bold"),
-      strip.text.y = ggplot2::element_text(size = 14, face = "bold"),
-      strip.text = ggplot2::element_text(size = 14, face = "bold"),
-      axis.title.y = ggplot2::element_text(size = 14, face = "bold"),
-      axis.text.x = ggplot2::element_text(size = 14, face = "bold"),
-      axis.text.y = ggplot2::element_text(size = 14, face = "bold"),
+      axis.title.x = ggplot2::element_text(size = 12, face = "bold"),
+      strip.text.x = ggplot2::element_text(size = 12, face = "bold"),
+      strip.text.y = ggplot2::element_text(size = 12, face = "bold"),
+      strip.text = ggplot2::element_text(size = 12, face = "bold"),
+      axis.title.y = ggplot2::element_text(size = 12, face = "bold"),
+      axis.text.x = ggplot2::element_text(size = 12, face = "bold"),
+      axis.text.y = ggplot2::element_text(size = 12, face = "bold"),
       axis.line = ggplot2::element_line(),
-      legend.text = ggplot2::element_text(size = 14),
-      legend.title = ggplot2::element_text(size = 14, face = "bold"),
+      legend.text = ggplot2::element_text(size = 12),
+      legend.title = ggplot2::element_text(size = 12, face = "bold"),
       legend.title.align = 0.5,
       legend.text.align = 0.5,
       legend.key.height = grid::unit(x = 1, units = "line"),
@@ -40,13 +48,13 @@ theme_mprl <- function() {
       ),
       plot.title = ggplot2::element_text(
         color = "black",
-        size = 16,
+        size = 13,
         face = "bold",
         hjust = 0.5
       ),
       plot.subtitle = ggplot2::element_text(
         color = "black",
-        size = 12,
+        size = 11,
         face = "bold",
         hjust = 0.5
       )

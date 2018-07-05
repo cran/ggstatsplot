@@ -7,18 +7,19 @@
 gghistostats(data = NULL, x, binwidth = NULL, bar.measure = "count",
   xlab = NULL, title = NULL, subtitle = NULL, caption = NULL,
   type = "parametric", test.value = 0, bf.prior = 0.707,
-  bf.message = TRUE, k = 3, low.color = "#0072B2",
-  high.color = "#D55E00", results.subtitle = TRUE,
-  legend.title.margin = TRUE, t.margin = unit(0, "mm"), b.margin = unit(3,
-  "mm"), centrality.para = NULL, centrality.color = "blue",
-  centrality.size = 1.2, centrality.linetype = "dashed",
-  test.value.line = FALSE, test.value.color = "black",
-  test.value.size = 1.2, test.value.linetype = "dashed",
-  line.labeller = FALSE, line.labeller.y = -2, messages = TRUE)
+  bf.message = TRUE, robust.estimator = "onestep", nboot = 500, k = 3,
+  low.color = "#0072B2", high.color = "#D55E00", results.subtitle = TRUE,
+  legend.title.margin = FALSE, t.margin = unit(0, "mm"),
+  b.margin = unit(3, "mm"), centrality.para = NULL,
+  centrality.color = "blue", centrality.size = 1.2,
+  centrality.linetype = "dashed", test.value.line = FALSE,
+  test.value.color = "black", test.value.size = 1.2,
+  test.value.linetype = "dashed", line.labeller = FALSE,
+  line.labeller.y = -2, ggtheme = ggplot2::theme_bw(), messages = TRUE)
 }
 \arguments{
 \item{data}{Dataframe from which variables specified are preferentially to be
-taken.}
+taken. This argument is optional.}
 
 \item{x}{A numeric variable.}
 
@@ -44,8 +45,8 @@ from one sample test to be displayed.}
 \item{caption}{The text for the plot caption.}
 
 \item{type}{Type of statistic expected (\code{"parametric"} or \code{"nonparametric"}
-or \code{"bayes"}). Abbreviations accepted are \code{"p"} or \code{"np"} or \code{"bf"},
-respectively.}
+or \code{"robust"} or \code{"bayes"}). Abbreviations accepted are \code{"p"} or \code{"np"} or
+\code{"r"} or \code{"bf"}, respectively.}
 
 \item{test.value}{A number specifying the value of the null hypothesis.}
 
@@ -55,6 +56,12 @@ to use in calculating Bayes factors.}
 \item{bf.message}{Logical. Decides whether to display Bayes Factor in favor
 of null hypothesis for parametric test if the null hypothesis can't be
 rejected (Default: \code{bf.message = TRUE}).}
+
+\item{robust.estimator}{If \code{test = "robust"} robust estimator to be used
+(\code{"onestep"} (Default), \code{"mom"}, or \code{"median"}). For more, see
+\code{?WRS2::onesampb}.}
+
+\item{nboot}{Number of bootstrap samples for robust one-sample location test.}
 
 \item{k}{Number of decimal places expected for results.}
 
@@ -66,7 +73,7 @@ to be displayed as subtitle (Default: \code{results.subtitle = TRUE}). If set to
 \code{FALSE}, no statistical tests will be run.}
 
 \item{legend.title.margin}{Adjusting the margin between legend title and the
-colorbar.}
+colorbar (Default: \code{FALSE}).}
 
 \item{t.margin, b.margin}{Margins in grid units. For more details, see
 \code{?grid::unit()}.}
@@ -101,6 +108,11 @@ displayed (Default: \code{FALSE}).}
 \item{line.labeller.y}{A numeric denoting the y-coordinate for displaying
 line labels (Default: \code{-2}).}
 
+\item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
+\code{ggplot2::theme_bw()}. Allowed values are the official \code{ggplot2} themes,
+including \code{theme_grey()}, \code{theme_minimal()}, \code{theme_classic()},
+\code{theme_void()}, etc.}
+
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
 }
@@ -121,15 +133,7 @@ data = datasets::ToothGrowth,
 x = len,
 xlab = "Tooth length")
 
-# another example
-ggstatsplot::gghistostats(
-data = NULL,
-x = stats::rnorm(n = 1000, mean = 0, sd = 1),
-centrality.para = "mean",
-type = "np"
-)
-
-# more detailed function call
+# a detailed function call
 ggstatsplot::gghistostats(
 data = datasets::iris,
 x = Sepal.Length,
@@ -141,6 +145,9 @@ test.value.line = TRUE,
 binwidth = 0.10
 )
 
+}
+\references{
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/gghistostats.html}
 }
 \seealso{
 \code{\link{grouped_gghistostats}}

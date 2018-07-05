@@ -11,62 +11,29 @@ library(dplyr)
 # looking at the table
 dplyr::glimpse(x = Titanic)
 
-# converting to tibble
-tibble::as_data_frame(x = Titanic)
-
 ## ----titanic2, warning = FALSE, message = FALSE--------------------------
-
-# a custom function to repeat dataframe `rep` number of times, which is going to
-# be count data for us
-rep_df <- function(df, rep) {
-  df[rep(1:nrow(df), rep), ]
-}
-
-# converting dataframe to full length based on count information
-Titanic_full <- tibble::as_data_frame(datasets::Titanic) %>%
-  tibble::rowid_to_column(df = ., var = "id") %>%
-  dplyr::mutate_at(
-    .tbl = .,
-    .vars = dplyr::vars("id"),
-    .funs = ~ as.factor(.)
-  ) %>%
-  base::split(x = ., f = .$id) %>%
-  purrr::map_dfr(.x = ., .f = ~ rep_df(df = ., rep = .$n)) %>%
-  dplyr::mutate_at(
-    .tbl = .,
-    .vars = dplyr::vars("id"),
-    .funs = ~ as.numeric(as.character(.))
-  ) %>%
-  dplyr::mutate_if(
-    .tbl = .,
-    .predicate = is.character,
-    .funs = ~ base::as.factor(.)
-  ) %>%
-  dplyr::mutate_if(
-    .tbl = .,
-    .predicate = is.factor,
-    .funs = ~ base::droplevels(.)
-  ) %>%
-  dplyr::arrange(.data = ., id)
-
-# reordering the Class variables
-Titanic_full$Class <-
-  base::factor(x = Titanic_full$Class,
-  levels = c("1st", "2nd", "3rd", "Crew", ordered = TRUE))
+library(ggstatsplot)
 
 # looking at the final dataset
-dplyr::glimpse(Titanic_full)
+dplyr::glimpse(ggstatsplot::Titanic_full)
 
-## ----ggpiestats1, cache.extra = Titanic_full, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 8----
-ggstatsplot::ggpiestats(data = Titanic_full,
+## ----ggpiestats1, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 8----
+# since effect size confidence intervals are computed using bootstrapping, let's
+# set seed for reproducibility
+set.seed(123)
+
+ggstatsplot::ggpiestats(data = ggstatsplot::Titanic_full,
                         condition = Sex,
                         main = Survived) 
 
-## ----ggpiestats2, cache.extra = Titanic_full, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 8----
-library(ggstatsplot)
+## ----ggpiestats2, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 8----
+library(ggplot2)
+
+# for reproducibility
+set.seed(123)
 
 ggstatsplot::ggpiestats(
-  data = Titanic_full,                          # dataframe
+  data = ggstatsplot::Titanic_full,             # dataframe (matrix or table will not be accepted)
   main = Survived,                              # rows in the contingency table
   condition = Sex,                              # columns in the contingecy table
   title = "Passengar survival by gender",       # title for the entire plot
@@ -74,28 +41,30 @@ ggstatsplot::ggpiestats(
   legend.title = "Survived?",                   # legend title
   facet.wrap.name = "Gender",                   # changing the facet wrap title
   facet.proptest = TRUE,                        # proportion test for each facet
-  stat.title = "survival x gender"              # title for statistical test
-) +                                             # further modification outside of ggstatsplot
-  ggplot2::scale_fill_brewer(palette = "Dark2")
+  stat.title = "survival x gender: ",           # title for statistical test
+  palette = "Set1",                             # changing the color palette
+  ggtheme = ggplot2::theme_classic()            # changing plot theme 
+) +                                             # further modification with ggplot2 commands
+  ggplot2::theme(plot.subtitle = ggplot2::element_text(
+    color = "black",
+    size = 10,
+    face = "bold",
+    hjust = 0.5
+  ))
 
-## ----ggpiestats3, cache.extra = Titanic_full, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 6----
-library(ggstatsplot)
-
+## ----ggpiestats3, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 6----
 ggstatsplot::ggpiestats(
-  data = Titanic_full,                          
+  data = ggstatsplot::Titanic_full,                          
   main = Age
-  ) + 
-  ggplot2::scale_fill_brewer(palette = "Set2")
+)
 
-## ----ggpiestats4, cache.extra = Titanic_full, warning = FALSE, message = FALSE, fig.height = 20, fig.width = 9----
-library(ggstatsplot)
-
+## ----ggpiestats4, warning = FALSE, message = FALSE, fig.height = 20, fig.width = 9----
 ggstatsplot::grouped_ggpiestats(
   # arguments relevant for ggstatsplot::gghistostats
-  data = Titanic_full,
+  data = ggstatsplot::Titanic_full,
   grouping.var = Class,
   title.prefix = "Passenger class",
-  stat.title = "survival x gender",
+  stat.title = "survival x gender: ",
   main = Survived,
   condition = Sex,
   # arguments relevant for ggstatsplot::combine_plots
@@ -106,22 +75,26 @@ ggstatsplot::grouped_ggpiestats(
   labels = c("(a)","(b)","(c)", "(d)")
 )
 
-## ----ggpiestats5, cache.extra = Titanic_full, warning = FALSE, message = FALSE, fig.height = 10, fig.width = 10----
-library(ggstatsplot)
-
+## ----ggpiestats5, warning = FALSE, message = FALSE, fig.height = 10, fig.width = 10----
 ggstatsplot::grouped_ggpiestats(
-  data = Titanic_full,                          
+  data = ggstatsplot::Titanic_full,
   main = Age,
-  grouping.var = Class
-  ) 
+  grouping.var = Class,
+  title.prefix = "Passenger Class"
+) 
 
-## ----ggpiestats6, cache.extra = Titanic_full, warning = FALSE, message = FALSE, fig.height = 20, fig.width = 9----
+## ----ggpiestats6, warning = FALSE, message = FALSE, fig.height = 20, fig.width = 9----
 # let's split the dataframe and create a list by passenger class
-class_list <- Titanic_full %>%
+class_list <- ggstatsplot::Titanic_full %>%
   base::split(x = ., f = .$Class, drop = TRUE)
 
 # this created a list with 4 elements, one for each class
-str(class_list)
+# you can check the structure of the file for yourself
+# str(class_list)
+
+# checking the length and names of each element
+length(class_list)
+names(class_list)
 
 # running function on every element of this list note that if you want the same
 # value for a given argument across all elements of the list, you need to
@@ -144,6 +117,14 @@ plot_list <- purrr::pmap(
       "Total: 709, Died: 537, Survived: 172, % Survived: 25%",
       "Not available"
     ),
+    palette = list("Accent", "Paired", "Pastel1", "Set2"),
+    ggtheme = list(
+      ggplot2::theme_grey(),
+      ggplot2::theme_classic(),
+      ggplot2::theme_light(),
+      ggplot2::theme_minimal()
+    ),
+    sample.size.label = list(TRUE, FALSE, TRUE, FALSE),
     messages = FALSE
   ),
   .f = ggstatsplot::ggpiestats
@@ -151,14 +132,65 @@ plot_list <- purrr::pmap(
   
 # combining all individual plots from the list into a single plot using combine_plots function
 ggstatsplot::combine_plots(
-  plot_list$`1st` + ggplot2::scale_fill_brewer(palette = "Dark2"),
-  plot_list$`2nd` + ggplot2::scale_fill_brewer(palette = "Dark2"),
-  plot_list$`3rd` + ggplot2::scale_fill_manual(values = c("#D95F02", "#1B9E77")), # to be consistent with other legends
-  plot_list$Crew + ggplot2::scale_fill_brewer(palette = "Dark2"),
+  plotlist = plot_list,
   title.text = "Survival in Titanic disaster by gender for all passenger classes",
   caption.text = "Asterisks denote results from proportion tests; ***: p < 0.001, ns: non-significant",
   nrow = 4,
   ncol = 1,
   labels = c("(a)","(b)","(c)", "(d)")
+)
+
+## ----ggpiestats7, message = FALSE, warning = FALSE, fig.height = 8, fig.width = 9----
+# for reproducibility
+set.seed(123)
+
+# creating a dataframe
+# (this is completely fictional; I don't know first thing about fishing!)
+(
+  fishing <- data.frame(
+    Boat = c(rep("B", 4), rep("A", 4), rep("A", 4), rep("B", 4)),
+    Month = c(rep("February", 2), rep("March", 2), rep("February", 2), rep("March", 2)),
+    Fish = c(
+      "Bass",
+      "Catfish",
+      "Cod",
+      "Haddock",
+      "Cod",
+      "Haddock",
+      "Bass",
+      "Catfish",
+      "Bass",
+      "Catfish",
+      "Cod",
+      "Haddock",
+      "Cod",
+      "Haddock",
+      "Bass",
+      "Catfish"
+    ),
+    SumOfCaught = c(25, 20, 35, 40, 40, 25, 30, 42, 40, 30, 33, 26, 100, 30, 20, 20)
+  ) %>% # converting to a tibble dataframe
+    tibble::as_data_frame(x = .)
+)
+
+# running `ggpiestats` with counts information
+ggstatsplot::ggpiestats(
+  data = fishing,
+  main = Fish,
+  condition = Month,
+  counts = SumOfCaught
+)
+
+
+## ----ggpiestats8, message = FALSE, warning = FALSE, fig.height = 12, fig.width = 8----
+# running the grouped variant of the function
+ggstatsplot::grouped_ggpiestats(
+  data = fishing,
+  main = Fish,
+  condition = Month,
+  counts = SumOfCaught,
+  grouping.var = Boat,
+  title.prefix = "Boat",
+  nrow = 2
 )
 
