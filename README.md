@@ -6,7 +6,7 @@
 [![CRAN\_Release\_Badge](http://www.r-pkg.org/badges/version-ago/ggstatsplot)](https://CRAN.R-project.org/package=ggstatsplot)
 [![CRAN
 Checks](https://cranchecks.info/badges/summary/ggstatsplot)](https://cran.r-project.org/web/checks/check_results_ggstatsplot.html)
-[![packageversion](https://img.shields.io/badge/Package%20version-0.0.3.9000-orange.svg?style=flat-square)](commits/master)
+[![packageversion](https://img.shields.io/badge/Package%20version-0.0.5-orange.svg?style=flat-square)](commits/master)
 [![Coverage
 Status](https://img.shields.io/codecov/c/github/IndrajeetPatil/ggstatsplot/master.svg)](https://codecov.io/github/IndrajeetPatil/ggstatsplot?branch=master)
 [![Daily downloads
@@ -22,13 +22,15 @@ Status](https://travis-ci.org/IndrajeetPatil/ggstatsplot.svg?branch=master)](htt
 [![AppVeyor Build
 Status](https://ci.appveyor.com/api/projects/status/github/IndrajeetPatil/ggstatsplot?branch=master&svg=true)](https://ci.appveyor.com/project/IndrajeetPatil/ggstatsplot)
 [![Licence](https://img.shields.io/badge/licence-GPL--3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
-[![Last-changedate](https://img.shields.io/badge/last%20change-2018--07--05-yellowgreen.svg)](/commits/master)
+[![Last-changedate](https://img.shields.io/badge/last%20change-2018--08--13-yellowgreen.svg)](/commits/master)
 [![lifecycle](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://www.tidyverse.org/lifecycle/#stable)
 [![minimal R
 version](https://img.shields.io/badge/R%3E%3D-3.3.0-6666ff.svg)](https://cran.r-project.org/)
+[![Project Status: Active - The project has reached a stable, usable
+state and is being actively
+developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
 
-<!-- 
-[![Project Status: Active - The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
+<!--
 [![Open issues](http://img.shields.io/github/issues/badges/ggstatsplot.svg)](https://github.com/IndrajeetPatil/ggstatsplot/issues/)
 [![Dependency Status](http://img.shields.io/gemnasium/IndrajeetPatil/ggstatsplot.svg)](https://gemnasium.com/IndrajeetPatil/ggstatsplot) 
 -->
@@ -59,18 +61,24 @@ In addition to these basic plots, `ggstatsplot` also provides `grouped_`
 versions of all functions that makes it easy to repeat the same anlysis
 for any grouping variable.
 
-Future versions will include other types of analyses and plots as well.
+Future versions will include other types of statistical analyses and
+plots as well.
 
 ## Installation
 
-To get the latest, stable CRAN release:
+To get the latest, stable CRAN release (`0.0.5`):
 
 ``` r
 utils::install.packages(pkgs = "ggstatsplot")
 ```
 
-You can get the **development** version from GitHub. If you are in hurry
-and want to reduce the time of installation, prefer-
+You can get the **development** version of the package from GitHub
+(`0.0.4.9000`). To see what new changes (and bug fixes) have been made
+to the package since the last release on `CRAN`, you can check the
+detailed log of changes here:
+<https://indrajeetpatil.github.io/ggstatsplot/news/index.html>
+
+If you are in hurry and want to reduce the time of installation, prefer-
 
 ``` r
 # needed package to download from GitHub repo
@@ -109,11 +117,14 @@ rmarkdown::pandoc_available()
 ## Citation
 
 If you want to cite this package in a scientific journal or in any other
-context, run the following code in your R console:
+context, run the following code in your `R` console:
 
 ``` r
 utils::citation(package = "ggstatsplot")
 ```
+
+There is currently a publication in preparation corresponding this
+package and the citation will be updated once it’s published.
 
 ## Help
 
@@ -138,6 +149,58 @@ In `R`, documentation for any function can be accessed with the standard
 ?grouped_ggcorrmat
 ```
 
+Another handy tool to see arguments to any of the functions is `args`.
+For example-
+
+``` r
+args(name = ggstatsplot::ggscatterstats)
+#> function (data, x, y, xlab = NULL, ylab = NULL, line.size = 1.5, 
+#>     line.color = "blue", marginal = TRUE, marginal.type = "histogram", 
+#>     marginal.size = 5, margins = c("both", "x", "y"), width.jitter = NULL, 
+#>     height.jitter = NULL, xfill = "#009E73", yfill = "#D55E00", 
+#>     xalpha = 1, yalpha = 1, xsize = 0.7, ysize = 0.7, centrality.para = NULL, 
+#>     type = "pearson", results.subtitle = NULL, title = NULL, 
+#>     caption = NULL, nboot = 100, beta = 0.1, k = 3, axes.range.restrict = FALSE, 
+#>     ggtheme = ggplot2::theme_bw(), messages = TRUE) 
+#> NULL
+```
+
+In case you want to look at the function body for any of the functions,
+just type the name of the function without the paranetheses:
+
+``` r
+ggstatsplot::theme_mprl
+#> function (ggtheme = ggplot2::theme_bw()) 
+#> {
+#>     ggtheme + ggplot2::theme(axis.title.x = ggplot2::element_text(size = 12, 
+#>         face = "bold"), strip.text.x = ggplot2::element_text(size = 12, 
+#>         face = "bold"), strip.text.y = ggplot2::element_text(size = 12, 
+#>         face = "bold"), strip.text = ggplot2::element_text(size = 12, 
+#>         face = "bold"), axis.title.y = ggplot2::element_text(size = 12, 
+#>         face = "bold"), axis.text.x = ggplot2::element_text(size = 12, 
+#>         face = "bold"), axis.text.y = ggplot2::element_text(size = 12, 
+#>         face = "bold"), axis.line = ggplot2::element_line(), 
+#>         legend.text = ggplot2::element_text(size = 12), legend.title = ggplot2::element_text(size = 12, 
+#>             face = "bold"), legend.title.align = 0.5, legend.text.align = 0.5, 
+#>         legend.key.height = grid::unit(x = 1, units = "line"), 
+#>         legend.key.width = grid::unit(x = 1, units = "line"), 
+#>         plot.margin = grid::unit(x = c(1, 1, 1, 1), units = "lines"), 
+#>         panel.border = ggplot2::element_rect(color = "black", 
+#>             fill = NA, size = 1), plot.title = ggplot2::element_text(color = "black", 
+#>             size = 13, face = "bold", hjust = 0.5), plot.subtitle = ggplot2::element_text(color = "black", 
+#>             size = 11, face = "bold", hjust = 0.5))
+#> }
+#> <bytecode: 0x0000000026be4960>
+#> <environment: namespace:ggstatsplot>
+```
+
+If you are not familiar either with what the namespace `::` does or how
+to use pipe operator `%>%`, something this package and its documentation
+relies a lot on, you can check out these links-
+
+  - <http://r-pkgs.had.co.nz/namespace.html>
+  - <http://r4ds.had.co.nz/pipes.html>
+
 ## Usage
 
 `ggstatsplot` relies on [non-standard
@@ -159,7 +222,7 @@ available here that are not currently present in the stable version of
 this package on **CRAN**:
 <https://cran.r-project.org/web/packages/ggstatsplot/index.html>
 
-  - `ggbetweenstats`
+## `ggbetweenstats`
 
 This function creates either a violin plot, a box plot, or a mix of two
 for **between**-group or **between**-condition comparisons with results
@@ -181,9 +244,10 @@ ggstatsplot::ggbetweenstats(
 
 <img src="man/figures/README-ggbetweenstats1-1.png" width="100%" />
 
-Number of other arguments can be specified to make this plot even more
-informative and, additionally, this function returns a `ggplot2` object
-and thus any of the graphics layers can be further modified:
+A number of other arguments can be specified to make this plot even more
+informative or change some of the default options. Additionally, this
+function returns a `ggplot2` object and thus any of the graphics layers
+can be further modified:
 
 ``` r
 library(ggplot2)
@@ -191,16 +255,29 @@ library(ggplot2)
 # for reproducibility
 set.seed(123)
 
+# let's leave out one of the factor levels and see if instead of anova, a t-test will be run
+iris2 <- dplyr::filter(.data = datasets::iris, Species != "setosa")
+
+# let's change the levels of our factors, a common routine in data analysis
+# pipeline, to see if this function respects the new factor levels
+iris2$Species <-
+  base::factor(x = iris2$Species,
+               levels = c("virginica" , "versicolor"))
+
 # plot
 ggstatsplot::ggbetweenstats(
-  data = datasets::iris,
+  data = iris2,                                    
   x = Species,
   y = Sepal.Length,
   notch = TRUE,                                   # show notched box plot
-  mean.plotting = TRUE,                           # whether mean for each group id to be displayed 
+  mean.plotting = TRUE,                           # whether mean for each group is to be displayed 
+  mean.ci = TRUE,                                 # whether to display confidence interval for means
+  mean.label.size = 2.5,                          # size of the label for mean
   type = "parametric",                            # which type of test is to be run
+  k = 2,                                          # number of decimal places for statistical results
   outlier.tagging = TRUE,                         # whether outliers need to be tagged
   outlier.label = Sepal.Width,                    # variable to be used for the outlier tag
+  outlier.label.color = "darkgreen",              # changing the color for the text label
   xlab = "Type of Species",                       # label for the x-axis variable
   ylab = "Attribute: Sepal Length",               # label for the y-axis variable
   title = "Dataset: Iris flower data set",        # title text for the plot
@@ -222,20 +299,22 @@ The `type` (of test) argument also accepts the following abbreviations:
 *robust*). Additionally, the type of plot to be displayed can also be
 modified (`"box"`, `"violin"`, or `"boxviolin"`).
 
+For more, see the `ggbetweenstats` vignette:
+<https://indrajeetpatil.github.io/ggstatsplot/articles/ggbetweenstats.html>
+
+\*\* This function is not appropriate for within-subjects designs.\*\*
+
 Variant of this function `ggwithinstats` is currently under work. You
 *can* still use this function just to prepare the **plot** for
 exploratory data analysis, but the statistical details displayed in the
 subtitle will be incorrect. You can remove them by adding `+
 ggplot2::labs(subtitle = NULL)`.
 
-For more, see the `ggbetweenstats` vignette:
-<https://indrajeetpatil.github.io/ggstatsplot/articles/ggbetweenstats.html>
-
-  - `ggscatterstats`
+## `ggscatterstats`
 
 This function creates a scatterplot with marginal
-histograms/boxplots/density/violin plots from  and results from
-statistical tests in the subtitle:
+histograms/boxplots/density/violin/densigram plots from  and results
+from statistical tests in the subtitle:
 
 ``` r
 ggstatsplot::ggscatterstats(
@@ -265,7 +344,7 @@ ggstatsplot::ggscatterstats(
   type = "robust",                               # type of test that needs to be run
   xlab = "Attribute: Sepal Length",              # label for x axis
   ylab = "Attribute: Petal Length",              # label for y axis 
-  line.color = "black",                         # changing regression line color line
+  line.color = "black",                          # changing regression line color line
   title = "Dataset: Iris flower data set",       # title text for the plot
   caption = expression(                          # caption text for the plot
     paste(italic("Note"), ": this is a demo")
@@ -273,6 +352,8 @@ ggstatsplot::ggscatterstats(
   marginal.type = "density",                     # type of marginal distribution to be displayed
   xfill = "blue",                                # color fill for x-axis marginal distribution 
   yfill = "red",                                 # color fill for y-axis marginal distribution
+  xalpha = 0.5,                                  # transparency for x-axis marginal distribution
+  yalpha = 0.5,                                  # transparency for y-axis marginal distribution
   centrality.para = "median",                    # which type of central tendency lines are to be displayed  
   width.jitter = 0.2,                            # amount of horizontal jitter for data points
   height.jitter = 0.4,                           # amount of vertical jitter for data points
@@ -285,7 +366,7 @@ ggstatsplot::ggscatterstats(
 For more, see the `ggscatterstats` vignette:
 <https://indrajeetpatil.github.io/ggstatsplot/articles/ggscatterstats.html>
 
-  - `ggpiestats`
+## `ggpiestats`
 
 This function creates a pie chart for categorical variables with results
 from contingency table analysis included in the subtitle of the plot. If
@@ -310,7 +391,7 @@ This function can also be used to study an interaction between two
 categorical variables. Additionally, as with the other functions in
 `ggstatsplot`, this function returns a `ggplot2` object and can further
 be modified with `ggplot2` syntax (e.g., we can change the color palette
-*after* `ggstatsplot` has produced the plot)-
+\*after\#\# `ggstatsplot` has produced the plot)-
 
 ``` r
 library(ggplot2)
@@ -358,11 +439,40 @@ ggstatsplot::ggpiestats(
 
 <img src="man/figures/README-ggpiestats3-1.png" width="100%" />
 
+In case of within-subjects designs, setting `paired = TRUE` will produce
+results from McNemar test-
+
+``` r
+# for reproducibility
+set.seed(123)
+
+# data
+survey.data <- data.frame(
+  `1st survey` = c('Approve', 'Approve', 'Disapprove', 'Disapprove'),
+  `2nd survey` = c('Approve', 'Disapprove', 'Approve', 'Disapprove'),
+  `Counts` = c(794, 150, 86, 570),
+  check.names = FALSE
+)
+
+# plot
+ggstatsplot::ggpiestats(
+  data = survey.data,
+  main = `1st survey`,
+  condition = `2nd survey`,
+  counts = Counts,
+  paired = TRUE,                      # within-subjects design
+  stat.title = "McNemar Test: ",
+  palette = "Set1"
+)
+```
+
+<img src="man/figures/README-ggpiestats4-1.png" width="100%" />
+
 For more, including information about the variant of this function
 `grouped_ggpiestats`, see the `ggpiestats` vignette:
 <https://indrajeetpatil.github.io/ggstatsplot/articles/ggpiestats.html>
 
-  - `gghistostats`
+## `gghistostats`
 
 In case you would like to see the distribution of one variable and check
 if it is significantly different from a specified value with a one
@@ -375,12 +485,12 @@ ggstatsplot::gghistostats(
   data = datasets::iris,
   x = Sepal.Length,
   title = "Distribution of Iris sepal length",
-  type = "parametric",               # one sample t-test
-  test.value = 3,                    # default value is 0
-  centrality.para = "mean",          # which measure of central tendency is to be plotted
-  centrality.color = "darkred",      # decides color of vertical line representing central tendency
-  binwidth = 0.10,                   # binwidth value (needs to be toyed around with until you find the best one)
-  messages = FALSE                   # turn off the messages
+  type = "parametric",                           # one sample t-test
+  test.value = 3,                                # default value is 0
+  centrality.para = "mean",                      # which measure of central tendency is to be plotted
+  centrality.color = "darkred",                  # decides color of vertical line representing central tendency
+  binwidth = 0.10,                               # binwidth value (experiment until you find the best one)
+  messages = FALSE                               # turn off the messages
 ) 
 ```
 
@@ -403,7 +513,7 @@ ggstatsplot::gghistostats(
   bf.prior = 0.8,
   messages = FALSE,
   caption = expression(                              
-    paste(italic("Note"), ": black line - test value; blue line - observed mean")
+    paste(italic("Note"), ": black line - test value; blue line - observed mean", sep = "")
   )
 )
 ```
@@ -418,7 +528,7 @@ For more, including information about the variant of this function
 `grouped_gghistostats`, see the `gghistostats` vignette:
 <https://indrajeetpatil.github.io/ggstatsplot/articles/gghistostats.html>
 
-  - `ggcorrmat`
+## `ggcorrmat`
 
 `ggcorrmat` makes correlalograms with minimal amount of code. Just
 sticking to the defaults itself produces publication-ready correlation
@@ -493,7 +603,7 @@ ggstatsplot::ggcorrmat(
 For examples and more information, see the `ggcorrmat` vignette:
 <https://indrajeetpatil.github.io/ggstatsplot/articles/ggcorrmat.html>
 
-  - `ggcoefstats`
+## `ggcoefstats`
 
 `ggcoefstats` creates a lot with the regression coefficients’ point
 estimates as dots with confidence interval whiskers. This is a wrapper
@@ -501,7 +611,7 @@ function around `GGally::ggcoef`.
 
 ``` r
 ggstatsplot::ggcoefstats(x = stats::lm(formula = mpg ~ am * cyl,
-                                       data = mtcars)) 
+                                       data = datasets::mtcars)) 
 ```
 
 <img src="man/figures/README-ggcoefstats1-1.png" width="80%" />
@@ -512,7 +622,7 @@ arguments:
 ``` r
 ggstatsplot::ggcoefstats(
   x = stats::lm(formula = mpg ~ am * cyl,
-                data = mtcars),
+                data = datasets::mtcars),
   point.color = "red",
   vline.color = "#CC79A7",
   vline.linetype = "dotdash",
@@ -542,7 +652,7 @@ library(lme4)
 # for reproducibility
 set.seed(200)
 
-# creating dataframes needed for the analysis below
+# creating dataframe needed for one of the analyses below
 d <- as.data.frame(Titanic)
 
 # combining plots together
@@ -563,7 +673,7 @@ ggstatsplot::combine_plots(
   ggstatsplot::ggcoefstats(
     x = stats::nls(
       formula = mpg ~ k / wt + b,
-      data = mtcars,
+      data = datasets::mtcars,
       start = list(k = 1, b = 0)
     ),
     point.color = "darkgreen",
@@ -601,7 +711,7 @@ This is by no means an exhaustive list of models supported by
 `ggcoefstats`. For more, see the associated vignette-
 <https://indrajeetpatil.github.io/ggstatsplot/articles/ggcoefstats.html>
 
-  - `combine_plots`
+## `combine_plots`
 
 `ggstatsplot` also contains a helper function `combine_plots` to combine
 multiple plots. This is a wrapper around  and lets you combine multiple
@@ -616,8 +726,10 @@ to read and, therefore, `purrr` should be preferrred.
 For more, see the associated vignette-
 <https://indrajeetpatil.github.io/ggstatsplot/articles/combine_plots.html>
 
-  - `theme_mprl`
+## `theme_ggstatsplot`
 
-All plots from `ggstatsplot` have a default theme: `theme_mprl`. For
-more on how to modify it, see the associated vignette-
-<https://indrajeetpatil.github.io/ggstatsplot/articles/theme_mprl.html>
+All plots from `ggstatsplot` have a default theme: `theme_ggstatsplot`,
+which is also called as `theme_mprl` (both of which are identical
+functions with different names). For more on how to modify it, see the
+associated vignette-
+<https://indrajeetpatil.github.io/ggstatsplot/articles/theme_ggstatsplot.html>

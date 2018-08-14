@@ -10,6 +10,7 @@ grouped_ggscatterstats(data, x, y, grouping.var, title.prefix = "Group",
   marginal = TRUE, marginal.type = "histogram", marginal.size = 5,
   margins = c("both", "x", "y"), width.jitter = NULL,
   height.jitter = NULL, xfill = "#009E73", yfill = "#D55E00",
+  xalpha = 1, yalpha = 1, xsize = 0.7, ysize = 0.7,
   centrality.para = NULL, type = "pearson", results.subtitle = NULL,
   caption = NULL, nboot = 100, beta = 0.1, k = 3,
   axes.range.restrict = FALSE, ggtheme = ggplot2::theme_bw(),
@@ -40,7 +41,7 @@ title (name of each factor level) (Default: \code{"Group"}).}
 displayed; the default is \code{TRUE}.}
 
 \item{marginal.type}{Type of marginal distribution to be plotted on the axes
-(\code{"histogram"}, \code{"boxplot"}, \code{"density"}, \code{"violin"}).}
+(\code{"histogram"}, \code{"boxplot"}, \code{"density"}, \code{"violin"}, \code{"densigram"}).}
 
 \item{marginal.size}{Integer describing the relative size of the marginal
 plots compared to the main plot. A size of \code{5} means that the main plot is
@@ -55,9 +56,25 @@ the resolution of the data.}
 \item{height.jitter}{Degree of jitter in \code{y} direction. Defaults to 40\% of
 the resolution of the data.}
 
-\item{xfill}{color fill for x axis distribution (default: \code{"#009E73"}).}
+\item{xfill}{Character describing color fill for \code{x} and \code{y} axes
+marginal distributions (default: \code{"#009E73"} (for \code{x}) and \code{"#D55E00"} (for
+\code{y})).}
 
-\item{yfill}{color fill for y axis distribution (default: \code{"#D55E00"}).}
+\item{yfill}{Character describing color fill for \code{x} and \code{y} axes
+marginal distributions (default: \code{"#009E73"} (for \code{x}) and \code{"#D55E00"} (for
+\code{y})).}
+
+\item{xalpha}{Numeric deciding transparency levels for the marginal
+distributions. Any numbers from \code{0} (transparent) to \code{1} (opaque). The
+default is \code{1} for both axes.}
+
+\item{yalpha}{Numeric deciding transparency levels for the marginal
+distributions. Any numbers from \code{0} (transparent) to \code{1} (opaque). The
+default is \code{1} for both axes.}
+
+\item{xsize}{Size for the marginal distribution boundaries (Default: \code{0.7}).}
+
+\item{ysize}{Size for the marginal distribution boundaries (Default: \code{0.7}).}
 
 \item{centrality.para}{Decides \emph{which} measure of central tendency (\code{"mean"}
 or \code{"median"}) is to be displayed as vertical (for \code{x}) and horizontal (for
@@ -99,11 +116,12 @@ to be displayed (Default: \code{TRUE}).}
 \emph{combined plot}.}
   \item{title.color}{Text color for title.}
   \item{title.size}{Point size of title text.}
-  \item{title.vjust}{Vertical justification for title. Default = 0.5 (centered
-on y). 0 = baseline at y, 1 = ascender at y.}
-  \item{title.hjust}{Horizontal justification for title. Default = 0.5
-(centered on x). 0 = flush-left at x, 1 = flush-right.}
-  \item{title.fontface}{The font face ("plain", "bold", etc.) for title.}
+  \item{title.vjust}{Vertical justification for title. Default = \code{0.5} (centered
+on y). \code{0} = baseline at y, 1 = ascender at y.}
+  \item{title.hjust}{Horizontal justification for title. Default = \code{0.5}
+(centered on x). \code{0} = flush-left at x, \code{1} = flush-right.}
+  \item{title.fontface}{The font face (\code{"plain"}, \code{"bold"} (default), \code{"italic"},
+\code{"bold.italic"}) for title.}
   \item{caption.text}{String or plotmath expression to be drawn as the caption
 for the \emph{combined plot}.}
   \item{caption.color}{Text color for caption.}
@@ -112,23 +130,26 @@ for the \emph{combined plot}.}
 (centered on y). \code{0} = baseline at y, \code{1} = ascender at y.}
   \item{caption.hjust}{Horizontal justification for caption. Default = \code{0.5}
 (centered on x). \code{0} = flush-left at x, \code{1} = flush-right.}
-  \item{caption.fontface}{The font face (\code{"plain"}, \code{"bold"}, \code{"italic"},
+  \item{caption.fontface}{The font face (\code{"plain"} (default), \code{"bold"}, \code{"italic"},
 \code{"bold.italic"}) for caption.}
   \item{sub.text}{The label with which the \emph{combined plot} should be annotated.
 Can be a plotmath expression.}
-  \item{sub.color}{Text color for annotation label.}
-  \item{sub.size}{Point size of annotation text.}
-  \item{sub.x}{The x position of annotation label.}
-  \item{sub.y}{The y position of annotation label.}
-  \item{sub.hjust}{Horizontal justification for annotation label.}
-  \item{sub.vjust}{Vertical justification for annotation label.}
+  \item{sub.color}{Text color for annotation label (Default: \code{"black"}).}
+  \item{sub.size}{Point size of annotation text (Default: \code{12}).}
+  \item{sub.x}{The x position of annotation label (Default: \code{0.5}).}
+  \item{sub.y}{The y position of annotation label (Default: \code{0.5}).}
+  \item{sub.hjust}{Horizontal justification for annotation label (Default:
+\code{0.5}).}
+  \item{sub.vjust}{Vertical justification for annotation label (Default:
+\code{0.5}).}
   \item{sub.vpadding}{Vertical padding. The total vertical space added to the
 label, given in grid units. By default, this is added equally above and
 below the label. However, by changing the y and vjust parameters, this can
-be changed.}
-  \item{sub.fontface}{The font face (\code{"plain"}, \code{"bold"}, \code{"italic"},
+be changed (Default: \code{grid::unit(1, "lines")}).}
+  \item{sub.fontface}{The font face (\code{"plain"} (default), \code{"bold"}, \code{"italic"},
 \code{"bold.italic"}) for the annotation label.}
-  \item{sub.angle}{Angle at which annotation label is to be drawn.}
+  \item{sub.angle}{Angle at which annotation label is to be drawn (Default:
+\code{0}).}
   \item{sub.lineheight}{Line height of annotation label.}
   \item{title.caption.rel.heights}{Numerical vector of relative columns heights
 while combining (title, plot, caption).}
@@ -150,13 +171,12 @@ set.seed(123)
 
 # basic functio call
 ggstatsplot::grouped_ggscatterstats(
- data = datasets::iris,
- x = Sepal.Length,
- y = Sepal.Width,
- grouping.var = Species,
- messages = FALSE
+  data = datasets::iris,
+  x = Sepal.Length,
+  y = Sepal.Width,
+  grouping.var = Species,
+  messages = FALSE
 )
-
 }
 \references{
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggscatterstats.html}

@@ -13,11 +13,12 @@
 #'   *combined plot*.
 #' @param title.color Text color for title.
 #' @param title.size Point size of title text.
-#' @param title.vjust Vertical justification for title. Default = 0.5 (centered
-#'   on y). 0 = baseline at y, 1 = ascender at y.
-#' @param title.hjust Horizontal justification for title. Default = 0.5
-#'   (centered on x). 0 = flush-left at x, 1 = flush-right.
-#' @param title.fontface The font face ("plain", "bold", etc.) for title.
+#' @param title.vjust Vertical justification for title. Default = `0.5` (centered
+#'   on y). `0` = baseline at y, 1 = ascender at y.
+#' @param title.hjust Horizontal justification for title. Default = `0.5`
+#'   (centered on x). `0` = flush-left at x, `1` = flush-right.
+#' @param title.fontface The font face (`"plain"`, `"bold"` (default), `"italic"`,
+#'   `"bold.italic"`) for title.
 #' @param caption.text String or plotmath expression to be drawn as the caption
 #'   for the *combined plot*.
 #' @param caption.color Text color for caption.
@@ -26,23 +27,26 @@
 #'   (centered on y). `0` = baseline at y, `1` = ascender at y.
 #' @param caption.hjust Horizontal justification for caption. Default = `0.5`
 #'   (centered on x). `0` = flush-left at x, `1` = flush-right.
-#' @param caption.fontface The font face (`"plain"`, `"bold"`, `"italic"`,
+#' @param caption.fontface The font face (`"plain"` (default), `"bold"`, `"italic"`,
 #'   `"bold.italic"`) for caption.
 #' @param sub.text The label with which the *combined plot* should be annotated.
 #'   Can be a plotmath expression.
-#' @param sub.color Text color for annotation label.
-#' @param sub.size Point size of annotation text.
-#' @param sub.x The x position of annotation label.
-#' @param sub.y The y position of annotation label.
-#' @param sub.hjust Horizontal justification for annotation label.
-#' @param sub.vjust Vertical justification for annotation label.
+#' @param sub.color Text color for annotation label (Default: `"black"`).
+#' @param sub.size Point size of annotation text (Default: `12`).
+#' @param sub.x The x position of annotation label (Default: `0.5`).
+#' @param sub.y The y position of annotation label (Default: `0.5`).
+#' @param sub.hjust Horizontal justification for annotation label (Default:
+#'   `0.5`).
+#' @param sub.vjust Vertical justification for annotation label (Default:
+#'   `0.5`).
 #' @param sub.vpadding Vertical padding. The total vertical space added to the
 #'   label, given in grid units. By default, this is added equally above and
 #'   below the label. However, by changing the y and vjust parameters, this can
-#'   be changed.
-#' @param sub.fontface The font face (`"plain"`, `"bold"`, `"italic"`,
+#'   be changed (Default: `grid::unit(1, "lines")`).
+#' @param sub.fontface The font face (`"plain"` (default), `"bold"`, `"italic"`,
 #'   `"bold.italic"`) for the annotation label.
-#' @param sub.angle Angle at which annotation label is to be drawn.
+#' @param sub.angle Angle at which annotation label is to be drawn (Default:
+#'   `0`).
 #' @param sub.lineheight Line height of annotation label.
 #' @param title.caption.rel.heights Numerical vector of relative columns heights
 #'   while combining (title, plot, caption).
@@ -58,24 +62,28 @@
 #' @importFrom grid unit
 #'
 #' @examples
-#'
+#' 
 #' # loading the necessary libraries
 #' library(ggplot2)
-#'
+#' 
 #' # preparing the first plot
 #' p1 <-
-#'   ggplot2::ggplot(data = subset(iris, iris$Species == "setosa"),
-#'                   aes(x = Sepal.Length, y = Sepal.Width)) +
-#'                   geom_point() +
+#'   ggplot2::ggplot(
+#'     data = subset(iris, iris$Species == "setosa"),
+#'     aes(x = Sepal.Length, y = Sepal.Width)
+#'   ) +
+#'   geom_point() +
 #'   labs(title = "setosa")
-#'
+#' 
 #' # preparing the second plot
 #' p2 <-
-#'   ggplot2::ggplot(data = subset(iris, iris$Species == "versicolor"),
-#'                   aes(x = Sepal.Length, y = Sepal.Width)) +
-#'                   geom_point() +
+#'   ggplot2::ggplot(
+#'     data = subset(iris, iris$Species == "versicolor"),
+#'     aes(x = Sepal.Length, y = Sepal.Width)
+#'   ) +
+#'   geom_point() +
 #'   labs(title = "versicolor")
-#'
+#' 
 #' # combining the plot with a title and a caption
 #' combine_plots(
 #'   p1,
@@ -86,7 +94,6 @@
 #'   title.color = "red",
 #'   caption.color = "blue"
 #' )
-#'
 #' @export
 #'
 
@@ -106,7 +113,7 @@ combine_plots <-
              caption.fontface = "plain",
              sub.text = NULL,
              sub.color = "black",
-             sub.size = 14,
+             sub.size = 12,
              sub.vjust = 0.5,
              sub.hjust = 0.5,
              sub.fontface = "plain",

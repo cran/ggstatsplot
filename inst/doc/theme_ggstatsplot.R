@@ -6,7 +6,7 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
-## ----theme_mprl, message = FALSE, warning = FALSE, fig.height = 4, fig.width = 4----
+## ----theme_ggstatsplot, message = FALSE, warning = FALSE, fig.height = 4, fig.width = 4----
 library(ggplot2)
 
 # Basic scatter plot
@@ -17,13 +17,13 @@ ggplot2::ggplot(
   ggplot2::geom_point() +
   ggplot2::theme_bw()
 
-# Basic scatter plot with theme_mprl() added
+# Basic scatter plot with theme_ggstatsplot() added
 ggplot2::ggplot(
   data = datasets::mtcars, 
   mapping = ggplot2::aes(x = wt, y = mpg)
 ) + 
   ggplot2::geom_point() + 
-  ggstatsplot::theme_mprl(ggtheme = ggplot2::theme_bw())
+  ggstatsplot::theme_ggstatsplot(ggtheme = ggplot2::theme_bw())
 
 ## ----theme1, message = FALSE, warning = FALSE, fig.height = 6, fig.width = 8----
 ggstatsplot::ggbetweenstats(

@@ -36,19 +36,18 @@
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggscatterstats.html}
 #'
 #' @examples
-#'
+#' 
 #' # to ensure reproducibility
 #' set.seed(123)
-#'
+#' 
 #' # basic functio call
 #' ggstatsplot::grouped_ggscatterstats(
-#'  data = datasets::iris,
-#'  x = Sepal.Length,
-#'  y = Sepal.Width,
-#'  grouping.var = Species,
-#'  messages = FALSE
+#'   data = datasets::iris,
+#'   x = Sepal.Length,
+#'   y = Sepal.Width,
+#'   grouping.var = Species,
+#'   messages = FALSE
 #' )
-#'
 #' @export
 #'
 
@@ -70,6 +69,10 @@ grouped_ggscatterstats <- function(data,
                                    height.jitter = NULL,
                                    xfill = "#009E73",
                                    yfill = "#D55E00",
+                                   xalpha = 1,
+                                   yalpha = 1,
+                                   xsize = 0.7,
+                                   ysize = 0.7,
                                    centrality.para = NULL,
                                    type = "pearson",
                                    results.subtitle = NULL,
@@ -84,24 +87,28 @@ grouped_ggscatterstats <- function(data,
   # ========================================= preparing dataframe =======================================================
 
   # getting the dataframe ready
-  df <- dplyr::select(.data = data,
-                      !!rlang::enquo(grouping.var),
-                      !!rlang::enquo(x),
-                      !!rlang::enquo(y)) %>%
-    dplyr::mutate(.data = .,
-                  title.text = !!rlang::enquo(grouping.var))
+  df <- dplyr::select(
+    .data = data,
+    !!rlang::enquo(grouping.var),
+    !!rlang::enquo(x),
+    !!rlang::enquo(y)
+  ) %>%
+    dplyr::mutate(
+      .data = .,
+      title.text = !!rlang::enquo(grouping.var)
+    )
 
   # creating a nested dataframe
   df %<>%
     dplyr::mutate_if(
       .tbl = .,
       .predicate = purrr::is_bare_character,
-      .funs = ~ as.factor(.)
+      .funs = ~as.factor(.)
     ) %>%
     dplyr::mutate_if(
       .tbl = .,
       .predicate = is.factor,
-      .funs = ~ base::droplevels(.)
+      .funs = ~base::droplevels(.)
     ) %>%
     dplyr::arrange(.data = ., !!rlang::enquo(grouping.var)) %>%
     dplyr::group_by(.data = ., !!rlang::enquo(grouping.var)) %>%
@@ -115,7 +122,7 @@ grouped_ggscatterstats <- function(data,
         purrr::set_names(!!rlang::enquo(grouping.var)) %>%
         purrr::map(
           .x = .,
-          .f = ~ ggstatsplot::ggscatterstats(
+          .f = ~ggstatsplot::ggscatterstats(
             data = .,
             x = !!rlang::enquo(x),
             y = !!rlang::enquo(y),
@@ -132,6 +139,10 @@ grouped_ggscatterstats <- function(data,
             height.jitter = height.jitter,
             xfill = xfill,
             yfill = yfill,
+            xalpha = xalpha,
+            yalpha = yalpha,
+            xsize = xsize,
+            ysize = ysize,
             centrality.para = centrality.para,
             type = type,
             results.subtitle = results.subtitle,
@@ -148,8 +159,10 @@ grouped_ggscatterstats <- function(data,
 
   # combining the list of plots into a single plot
   combined_plot <-
-    ggstatsplot::combine_plots(plotlist = plotlist_purrr$plots,
-                               ...)
+    ggstatsplot::combine_plots(
+      plotlist = plotlist_purrr$plots,
+      ...
+    )
 
   # return the combined plot
   return(combined_plot)

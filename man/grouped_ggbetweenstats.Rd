@@ -2,20 +2,24 @@
 % Please edit documentation in R/grouped_ggbetweenstats.R
 \name{grouped_ggbetweenstats}
 \alias{grouped_ggbetweenstats}
-\title{Violin plots for group or condition comparisons repeated across all
-levels of a grouping variable.}
+\title{Violin plots for group or condition comparisons in between-subjects
+designs repeated across all levels of a grouping variable.}
 \usage{
 grouped_ggbetweenstats(data, x, y, grouping.var, title.prefix = "Group",
-  plot.type = "boxviolin", type = "parametric", effsize.type = "unbiased",
-  xlab = NULL, ylab = NULL, caption = NULL, sample.size.label = TRUE,
-  k = 3, var.equal = FALSE, nboot = 100, tr = 0.1, conf.level = 0.95,
-  conf.type = "norm", notch = FALSE, notchwidth = 0.5,
-  linetype = "solid", outlier.tagging = NULL, outlier.label = NULL,
+  plot.type = "boxviolin", type = "parametric",
+  effsize.type = "unbiased", effsize.noncentral = FALSE, xlab = NULL,
+  ylab = NULL, caption = NULL, sample.size.label = TRUE, k = 3,
+  var.equal = FALSE, nboot = 100, tr = 0.1, conf.level = 0.95,
+  conf.type = "norm", mean.label.size = 3,
+  mean.label.fontface = "bold", mean.label.color = "black",
+  notch = FALSE, notchwidth = 0.5, linetype = "solid",
+  outlier.tagging = NULL, outlier.label = NULL,
   outlier.label.color = "black", outlier.color = "black",
-  outlier.coef = 1.5, mean.plotting = TRUE, mean.size = 5,
-  mean.color = "darkred", point.jitter.width = NULL,
+  outlier.coef = 1.5, mean.plotting = TRUE, mean.ci = FALSE,
+  mean.size = 5, mean.color = "darkred", point.jitter.width = NULL,
   point.jitter.height = 0.2, point.dodge.width = 0.75,
-  ggtheme = ggplot2::theme_bw(), palette = "Dark2", messages = TRUE, ...)
+  ggtheme = ggplot2::theme_bw(), palette = "Dark2", messages = TRUE,
+  ...)
 }
 \arguments{
 \item{data}{Dataframe from which variables specified are preferentially to be
@@ -43,6 +47,10 @@ parametric), \code{"np"} (nonparametric), \code{"r"} (robust), resp.}
 or \code{"unbiased"} (Hedge's \emph{g} for \strong{t-test}; partial omega-squared for
 \strong{anova})).}
 
+\item{effsize.noncentral}{Logical indicating whether to use non-central
+\emph{t}-distributions for computing the 95% confidence interval for Cohen's \emph{d}
+or Hedge's \emph{g} (Default: \code{FALSE}).}
+
 \item{xlab}{Label for \code{x} axis variable.}
 
 \item{ylab}{Label for \code{y} axis variable.}
@@ -67,18 +75,28 @@ variance of 0 (e.g., due to ties). Try to decrease the trimming level.",
 try to play around with the value of \code{tr}, which is by default set to
 \code{0.1}. Lowering the value might help.}
 
-\item{conf.level}{Scalar between 0 and 1. If \code{NULL}, the defaults return \code{95\%}
-lower and upper confidence intervals (\code{0.95}).}
+\item{conf.level}{Scalar between 0 and 1. If \code{NULL}, the defaults return
+\code{95\%} lower and upper confidence intervals (\code{0.95}).}
 
 \item{conf.type}{A vector of character strings representing the type of
-intervals required. The value should be any subset of the values \code{"norm"},
+confidence intervals required from bootstrapping for partial eta- and
+omega-squared. The value should be any subset of the values \code{"norm"},
 \code{"basic"}, \code{"perc"}, \code{"bca"}. For more, see \code{?boot::boot.ci}.}
+
+\item{mean.label.size}{Aesthetics for
+the label displaying mean. Defaults: \code{3}, \code{"bold"},\code{"black"}, respectively.}
+
+\item{mean.label.fontface}{Aesthetics for
+the label displaying mean. Defaults: \code{3}, \code{"bold"},\code{"black"}, respectively.}
+
+\item{mean.label.color}{Aesthetics for
+the label displaying mean. Defaults: \code{3}, \code{"bold"},\code{"black"}, respectively.}
 
 \item{notch}{A logical. If \code{FALSE} (default), a standard box plot will be
 displayed. If \code{TRUE}, a notched box plot will be used. Notches are used to
 compare groups; if the notches of two boxes do not overlap, this suggests
 that the medians are significantly different. In a notched box plot, the
-notches extend 1.58 * IQR / sqrt(n). This gives a roughly \code{95\%} confidence
+notches extend \code{1.58 * IQR / sqrt(n)}. This gives a roughly \code{95\%} confidence
 interval for comparing medians. IQR: Inter-Quartile Range.}
 
 \item{notchwidth}{For a notched box plot, width of the notch relative to the
@@ -104,8 +122,11 @@ With Tukey's method, outliers are below (1st Quartile) or above (3rd
 Quartile) \code{outlier.coef} times the Inter-Quartile Range (IQR) (Default:
 \code{1.5}).}
 
-\item{mean.plotting}{Decides whether mean is to be highlighted and its value
-to be displayed (Default: \code{TRUE}).}
+\item{mean.plotting}{Logical that decides whether mean is to be highlighted
+and its value to be displayed (Default: \code{TRUE}).}
+
+\item{mean.ci}{Logical that decides whether 95% confidence interval for mean
+is to be displayed (Default: \code{FALSE}).}
 
 \item{mean.size}{Point size for the data point corresponding to mean
 (Default: \code{5}).}
@@ -140,11 +161,12 @@ to be displayed (Default: \code{TRUE}).}
 \emph{combined plot}.}
   \item{title.color}{Text color for title.}
   \item{title.size}{Point size of title text.}
-  \item{title.vjust}{Vertical justification for title. Default = 0.5 (centered
-on y). 0 = baseline at y, 1 = ascender at y.}
-  \item{title.hjust}{Horizontal justification for title. Default = 0.5
-(centered on x). 0 = flush-left at x, 1 = flush-right.}
-  \item{title.fontface}{The font face ("plain", "bold", etc.) for title.}
+  \item{title.vjust}{Vertical justification for title. Default = \code{0.5} (centered
+on y). \code{0} = baseline at y, 1 = ascender at y.}
+  \item{title.hjust}{Horizontal justification for title. Default = \code{0.5}
+(centered on x). \code{0} = flush-left at x, \code{1} = flush-right.}
+  \item{title.fontface}{The font face (\code{"plain"}, \code{"bold"} (default), \code{"italic"},
+\code{"bold.italic"}) for title.}
   \item{caption.text}{String or plotmath expression to be drawn as the caption
 for the \emph{combined plot}.}
   \item{caption.color}{Text color for caption.}
@@ -153,23 +175,26 @@ for the \emph{combined plot}.}
 (centered on y). \code{0} = baseline at y, \code{1} = ascender at y.}
   \item{caption.hjust}{Horizontal justification for caption. Default = \code{0.5}
 (centered on x). \code{0} = flush-left at x, \code{1} = flush-right.}
-  \item{caption.fontface}{The font face (\code{"plain"}, \code{"bold"}, \code{"italic"},
+  \item{caption.fontface}{The font face (\code{"plain"} (default), \code{"bold"}, \code{"italic"},
 \code{"bold.italic"}) for caption.}
   \item{sub.text}{The label with which the \emph{combined plot} should be annotated.
 Can be a plotmath expression.}
-  \item{sub.color}{Text color for annotation label.}
-  \item{sub.size}{Point size of annotation text.}
-  \item{sub.x}{The x position of annotation label.}
-  \item{sub.y}{The y position of annotation label.}
-  \item{sub.hjust}{Horizontal justification for annotation label.}
-  \item{sub.vjust}{Vertical justification for annotation label.}
+  \item{sub.color}{Text color for annotation label (Default: \code{"black"}).}
+  \item{sub.size}{Point size of annotation text (Default: \code{12}).}
+  \item{sub.x}{The x position of annotation label (Default: \code{0.5}).}
+  \item{sub.y}{The y position of annotation label (Default: \code{0.5}).}
+  \item{sub.hjust}{Horizontal justification for annotation label (Default:
+\code{0.5}).}
+  \item{sub.vjust}{Vertical justification for annotation label (Default:
+\code{0.5}).}
   \item{sub.vpadding}{Vertical padding. The total vertical space added to the
 label, given in grid units. By default, this is added equally above and
 below the label. However, by changing the y and vjust parameters, this can
-be changed.}
-  \item{sub.fontface}{The font face (\code{"plain"}, \code{"bold"}, \code{"italic"},
+be changed (Default: \code{grid::unit(1, "lines")}).}
+  \item{sub.fontface}{The font face (\code{"plain"} (default), \code{"bold"}, \code{"italic"},
 \code{"bold.italic"}) for the annotation label.}
-  \item{sub.angle}{Angle at which annotation label is to be drawn.}
+  \item{sub.angle}{Angle at which annotation label is to be drawn (Default:
+\code{0}).}
   \item{sub.lineheight}{Line height of annotation label.}
   \item{title.caption.rel.heights}{Numerical vector of relative columns heights
 while combining (title, plot, caption).}
@@ -190,12 +215,11 @@ set.seed(123)
 
 # the most basic function call
 ggstatsplot::grouped_ggbetweenstats(
-data = mtcars,
-x = cyl,
-y = wt,
-grouping.var = am
+  data = mtcars,
+  x = cyl,
+  y = wt,
+  grouping.var = am
 )
-
 }
 \references{
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggbetweenstats.html}

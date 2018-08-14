@@ -6,12 +6,13 @@
 \usage{
 ggscatterstats(data, x, y, xlab = NULL, ylab = NULL, line.size = 1.5,
   line.color = "blue", marginal = TRUE, marginal.type = "histogram",
-  marginal.size = 5, margins = c("both", "x", "y"), width.jitter = NULL,
-  height.jitter = NULL, xfill = "#009E73", yfill = "#D55E00",
-  centrality.para = NULL, type = "pearson", results.subtitle = NULL,
-  title = NULL, caption = NULL, nboot = 100, beta = 0.1, k = 3,
-  axes.range.restrict = FALSE, ggtheme = ggplot2::theme_bw(),
-  messages = TRUE)
+  marginal.size = 5, margins = c("both", "x", "y"),
+  width.jitter = NULL, height.jitter = NULL, xfill = "#009E73",
+  yfill = "#D55E00", xalpha = 1, yalpha = 1, xsize = 0.7,
+  ysize = 0.7, centrality.para = NULL, type = "pearson",
+  results.subtitle = NULL, title = NULL, caption = NULL,
+  nboot = 100, beta = 0.1, k = 3, axes.range.restrict = FALSE,
+  ggtheme = ggplot2::theme_bw(), messages = TRUE)
 }
 \arguments{
 \item{data}{Dataframe from which variables specified are preferentially to be
@@ -33,7 +34,7 @@ taken.}
 displayed; the default is \code{TRUE}.}
 
 \item{marginal.type}{Type of marginal distribution to be plotted on the axes
-(\code{"histogram"}, \code{"boxplot"}, \code{"density"}, \code{"violin"}).}
+(\code{"histogram"}, \code{"boxplot"}, \code{"density"}, \code{"violin"}, \code{"densigram"}).}
 
 \item{marginal.size}{Integer describing the relative size of the marginal
 plots compared to the main plot. A size of \code{5} means that the main plot is
@@ -48,9 +49,15 @@ the resolution of the data.}
 \item{height.jitter}{Degree of jitter in \code{y} direction. Defaults to 40\% of
 the resolution of the data.}
 
-\item{xfill}{color fill for x axis distribution (default: \code{"#009E73"}).}
+\item{xfill, yfill}{Character describing color fill for \code{x} and \code{y} axes
+marginal distributions (default: \code{"#009E73"} (for \code{x}) and \code{"#D55E00"} (for
+\code{y})).}
 
-\item{yfill}{color fill for y axis distribution (default: \code{"#D55E00"}).}
+\item{xalpha, yalpha}{Numeric deciding transparency levels for the marginal
+distributions. Any numbers from \code{0} (transparent) to \code{1} (opaque). The
+default is \code{1} for both axes.}
+
+\item{xsize, ysize}{Size for the marginal distribution boundaries (Default: \code{0.7}).}
 
 \item{centrality.para}{Decides \emph{which} measure of central tendency (\code{"mean"}
 or \code{"median"}) is to be displayed as vertical (for \code{x}) and horizontal (for
@@ -93,6 +100,11 @@ Scatterplots from \code{ggplot2} combined with marginal
 histograms/boxplots/density plots with statistical details added as a
 subtitle.
 }
+\note{
+\code{marginal.type = "densigram"} will work only with the development
+version of \code{ggExtra} that you can download from \code{GitHub}:
+\code{devtools::install_github("daattali/ggExtra")}
+}
 \examples{
 
 # to get reproducible results from bootstrapping
@@ -100,12 +112,11 @@ set.seed(123)
 
 # simple function call with the defaults
 ggstatsplot::ggscatterstats(
-data = datasets::mtcars,
-x = wt,
-y = mpg,
-type = "np"
+  data = datasets::mtcars,
+  x = wt,
+  y = mpg,
+  type = "np"
 )
-
 }
 \references{
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggscatterstats.html}

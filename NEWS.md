@@ -1,3 +1,35 @@
+# ggstatsplot 0.0.5.9000
+
+# ggstatsplot 0.0.5
+
+MAJOR CHANGES
+  - For the sake of consistency, `theme_mprl` is now called `theme_ggstatsplot`.
+    The `theme_mprl` function will still be around and will **not** be deprecated,
+    so feel free to use either or both of them since they are identical.
+  - `ggcoefstats` no longer has arguments `effects` and `ran_params` because
+    only fixed effects are shown for mixed-effects models.
+  - `ggpiestats` can now handle within-subjects designs (McNemar test).
+     
+BUG FIXES
+  - `ggbetweenstats` was producing wrong axes labels when `sample.size.label`
+    was set to `TRUE` and user had reordered factor levels before using this
+    function. The new version fixes this.
+  - `ggcoefstats` wasn't producing partial omega-squared for `aovlist` objects.
+    Fixed that with new version of `sjstats`.
+
+MINOR CHANGES
+  - Removed the trailing comma from the robust correlation analyses.
+  - `gghistostats` has a new argument to remove color fill gradient.
+  - `ggbetweenstats` takes new argument `mean.ci` to show confidence intervals
+    for the mean values.
+  - For `lmer` models, p-values are now computed using `sjstats::p_value`. This
+    removes `lmerTest` package from dependencies.
+  - `sjstats` no longer suggests `apaTables` package to compute confidence
+    intervals for partial eta- and omega-squared. Therefore, `apaTables` and
+    `MBESS` are removed from dependencies.
+  - `ggscatterstats` supports `densigram` with the development version of
+    `ggExtra`. It additionally gains few extra arguments to change aesthetics of
+    marginals (alpha, size, etc.).
 
 # ggstatsplot 0.0.4
 

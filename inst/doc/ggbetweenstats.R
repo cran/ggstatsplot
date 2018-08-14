@@ -88,7 +88,7 @@ p2 <- ggstatsplot::ggbetweenstats(
 p3 <- ggstatsplot::ggbetweenstats(
   data = dplyr::filter(.data = gapminder, year == 1987, continent != "Oceania"),
   x = continent,
-  y = gdpPercap,
+  y = lifeExp,
   plot.type = "boxviolin",
   type = "r",
   title = "robust test",
@@ -190,6 +190,7 @@ plot_list <- purrr::pmap(
       "Year: 2007"
     ),
     type = list("r", "p", "np", "p", "p", "r"),
+    k = list(1, 2, 3, 3, 2, 1),
     effsize.type = list(
       "biased",
       "unbiased",
@@ -199,6 +200,7 @@ plot_list <- purrr::pmap(
       "unbiased"
     ),
     plot.type = list("box", "boxviolin", "box", "boxviolin", "box", "violin"),
+    mean.ci = list(TRUE, FALSE, TRUE, FALSE, TRUE, TRUE),
     palette = list("Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1"),
     ggtheme = list(
       ggplot2::theme_grey(),

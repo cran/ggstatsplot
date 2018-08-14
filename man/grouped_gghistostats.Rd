@@ -5,17 +5,19 @@
 \title{Grouped histograms for distribution of a numeric variable}
 \usage{
 grouped_gghistostats(data, x, grouping.var, title.prefix = "Group",
-  bar.measure = "count", xlab = NULL, subtitle = NULL, caption = NULL,
-  type = "parametric", test.value = 0, bf.prior = 0.707,
-  bf.message = TRUE, robust.estimator = "onestep", nboot = 500, k = 3,
-  low.color = "#0072B2", high.color = "#D55E00", results.subtitle = TRUE,
+  bar.measure = "count", xlab = NULL, subtitle = NULL,
+  caption = NULL, type = "parametric", test.value = 0,
+  bf.prior = 0.707, bf.message = TRUE, robust.estimator = "onestep",
+  nboot = 500, k = 3, low.color = "#0072B2",
+  high.color = "#D55E00", results.subtitle = TRUE,
   legend.title.margin = FALSE, t.margin = unit(0, "mm"),
   b.margin = unit(3, "mm"), centrality.para = NULL,
   centrality.color = "blue", centrality.size = 1.2,
   centrality.linetype = "dashed", test.value.line = FALSE,
   test.value.color = "black", test.value.size = 1.2,
   test.value.linetype = "dashed", line.labeller = FALSE,
-  line.labeller.y = -2, binwidth = NULL, ggtheme = ggplot2::theme_bw(),
+  line.labeller.y = -2, binwidth = NULL,
+  ggtheme = ggplot2::theme_bw(), fill.gradient = TRUE,
   messages = TRUE, ...)
 }
 \arguments{
@@ -123,6 +125,9 @@ in your data.}
 including \code{theme_grey()}, \code{theme_minimal()}, \code{theme_classic()},
 \code{theme_void()}, etc.}
 
+\item{fill.gradient}{Logical decides whether color fill gradient is to be
+displayed (Default: \code{TRUE}). If \code{FALSE}, the legend will also be removed.}
+
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
 
@@ -132,11 +137,12 @@ to be displayed (Default: \code{TRUE}).}
 \emph{combined plot}.}
   \item{title.color}{Text color for title.}
   \item{title.size}{Point size of title text.}
-  \item{title.vjust}{Vertical justification for title. Default = 0.5 (centered
-on y). 0 = baseline at y, 1 = ascender at y.}
-  \item{title.hjust}{Horizontal justification for title. Default = 0.5
-(centered on x). 0 = flush-left at x, 1 = flush-right.}
-  \item{title.fontface}{The font face ("plain", "bold", etc.) for title.}
+  \item{title.vjust}{Vertical justification for title. Default = \code{0.5} (centered
+on y). \code{0} = baseline at y, 1 = ascender at y.}
+  \item{title.hjust}{Horizontal justification for title. Default = \code{0.5}
+(centered on x). \code{0} = flush-left at x, \code{1} = flush-right.}
+  \item{title.fontface}{The font face (\code{"plain"}, \code{"bold"} (default), \code{"italic"},
+\code{"bold.italic"}) for title.}
   \item{caption.text}{String or plotmath expression to be drawn as the caption
 for the \emph{combined plot}.}
   \item{caption.color}{Text color for caption.}
@@ -145,23 +151,26 @@ for the \emph{combined plot}.}
 (centered on y). \code{0} = baseline at y, \code{1} = ascender at y.}
   \item{caption.hjust}{Horizontal justification for caption. Default = \code{0.5}
 (centered on x). \code{0} = flush-left at x, \code{1} = flush-right.}
-  \item{caption.fontface}{The font face (\code{"plain"}, \code{"bold"}, \code{"italic"},
+  \item{caption.fontface}{The font face (\code{"plain"} (default), \code{"bold"}, \code{"italic"},
 \code{"bold.italic"}) for caption.}
   \item{sub.text}{The label with which the \emph{combined plot} should be annotated.
 Can be a plotmath expression.}
-  \item{sub.color}{Text color for annotation label.}
-  \item{sub.size}{Point size of annotation text.}
-  \item{sub.x}{The x position of annotation label.}
-  \item{sub.y}{The y position of annotation label.}
-  \item{sub.hjust}{Horizontal justification for annotation label.}
-  \item{sub.vjust}{Vertical justification for annotation label.}
+  \item{sub.color}{Text color for annotation label (Default: \code{"black"}).}
+  \item{sub.size}{Point size of annotation text (Default: \code{12}).}
+  \item{sub.x}{The x position of annotation label (Default: \code{0.5}).}
+  \item{sub.y}{The y position of annotation label (Default: \code{0.5}).}
+  \item{sub.hjust}{Horizontal justification for annotation label (Default:
+\code{0.5}).}
+  \item{sub.vjust}{Vertical justification for annotation label (Default:
+\code{0.5}).}
   \item{sub.vpadding}{Vertical padding. The total vertical space added to the
 label, given in grid units. By default, this is added equally above and
 below the label. However, by changing the y and vjust parameters, this can
-be changed.}
-  \item{sub.fontface}{The font face (\code{"plain"}, \code{"bold"}, \code{"italic"},
+be changed (Default: \code{grid::unit(1, "lines")}).}
+  \item{sub.fontface}{The font face (\code{"plain"} (default), \code{"bold"}, \code{"italic"},
 \code{"bold.italic"}) for the annotation label.}
-  \item{sub.angle}{Angle at which annotation label is to be drawn.}
+  \item{sub.angle}{Angle at which annotation label is to be drawn (Default:
+\code{0}).}
   \item{sub.lineheight}{Line height of annotation label.}
   \item{title.caption.rel.heights}{Numerical vector of relative columns heights
 while combining (title, plot, caption).}
@@ -179,14 +188,13 @@ resulting plots using \code{ggstatsplot::combine_plots}.
 \examples{
 
 ggstatsplot::grouped_gghistostats(
-data = iris,
-x = Sepal.Length,
-test.value = 5,
-grouping.var = Species,
-nrow = 1,
-messages = FALSE
+  data = iris,
+  x = Sepal.Length,
+  test.value = 5,
+  grouping.var = Species,
+  nrow = 1,
+  messages = FALSE
 )
-
 }
 \references{
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/gghistostats.html}

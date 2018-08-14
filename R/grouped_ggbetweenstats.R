@@ -1,6 +1,6 @@
 #'
-#' @title Violin plots for group or condition comparisons repeated across all
-#'   levels of a grouping variable.
+#' @title Violin plots for group or condition comparisons in between-subjects
+#'   designs repeated across all levels of a grouping variable.
 #' @name grouped_ggbetweenstats
 #' @aliases grouped_ggbetweenstats
 #' @description A combined plot of comparison plot created for levels of a
@@ -38,18 +38,17 @@
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggbetweenstats.html}
 #'
 #' @examples
-#'
+#' 
 #' # to get reproducible results from bootstrapping
 #' set.seed(123)
-#'
+#' 
 #' # the most basic function call
 #' ggstatsplot::grouped_ggbetweenstats(
-#' data = mtcars,
-#' x = cyl,
-#' y = wt,
-#' grouping.var = am
+#'   data = mtcars,
+#'   x = cyl,
+#'   y = wt,
+#'   grouping.var = am
 #' )
-#'
 #' @export
 #'
 
@@ -62,6 +61,7 @@ grouped_ggbetweenstats <- function(data,
                                    plot.type = "boxviolin",
                                    type = "parametric",
                                    effsize.type = "unbiased",
+                                   effsize.noncentral = FALSE,
                                    xlab = NULL,
                                    ylab = NULL,
                                    caption = NULL,
@@ -72,6 +72,9 @@ grouped_ggbetweenstats <- function(data,
                                    tr = 0.1,
                                    conf.level = 0.95,
                                    conf.type = "norm",
+                                   mean.label.size = 3,
+                                   mean.label.fontface = "bold",
+                                   mean.label.color = "black",
                                    notch = FALSE,
                                    notchwidth = 0.5,
                                    linetype = "solid",
@@ -81,6 +84,7 @@ grouped_ggbetweenstats <- function(data,
                                    outlier.color = "black",
                                    outlier.coef = 1.5,
                                    mean.plotting = TRUE,
+                                   mean.ci = FALSE,
                                    mean.size = 5,
                                    mean.color = "darkred",
                                    point.jitter.width = NULL,
@@ -101,16 +105,22 @@ grouped_ggbetweenstats <- function(data,
       !!rlang::enquo(y),
       !!rlang::enquo(outlier.label)
     ) %>%
-      dplyr::mutate(.data = .,
-                    title.text = !!rlang::enquo(grouping.var))
+      dplyr::mutate(
+        .data = .,
+        title.text = !!rlang::enquo(grouping.var)
+      )
   } else {
     # getting the dataframe ready
-    df <- dplyr::select(.data = data,
-                        !!rlang::enquo(grouping.var),
-                        !!rlang::enquo(x),
-                        !!rlang::enquo(y)) %>%
-      dplyr::mutate(.data = .,
-                    title.text = !!rlang::enquo(grouping.var))
+    df <- dplyr::select(
+      .data = data,
+      !!rlang::enquo(grouping.var),
+      !!rlang::enquo(x),
+      !!rlang::enquo(y)
+    ) %>%
+      dplyr::mutate(
+        .data = .,
+        title.text = !!rlang::enquo(grouping.var)
+      )
   }
 
   # creating a nested dataframe
@@ -118,12 +128,12 @@ grouped_ggbetweenstats <- function(data,
     dplyr::mutate_if(
       .tbl = .,
       .predicate = purrr::is_bare_character,
-      .funs = ~ as.factor(.)
+      .funs = ~as.factor(.)
     ) %>%
     dplyr::mutate_if(
       .tbl = .,
       .predicate = is.factor,
-      .funs = ~ base::droplevels(.)
+      .funs = ~base::droplevels(.)
     ) %>%
     dplyr::arrange(.data = ., !!rlang::enquo(grouping.var)) %>%
     dplyr::group_by(.data = ., !!rlang::enquo(grouping.var)) %>%
@@ -138,7 +148,7 @@ grouped_ggbetweenstats <- function(data,
           purrr::set_names(!!rlang::enquo(grouping.var)) %>%
           purrr::map(
             .x = .,
-            .f = ~ ggstatsplot::ggbetweenstats(
+            .f = ~ggstatsplot::ggbetweenstats(
               data = .,
               x = !!rlang::enquo(x),
               y = !!rlang::enquo(y),
@@ -146,6 +156,7 @@ grouped_ggbetweenstats <- function(data,
               plot.type = plot.type,
               type = type,
               effsize.type = effsize.type,
+              effsize.noncentral = effsize.noncentral,
               xlab = xlab,
               ylab = ylab,
               caption = caption,
@@ -156,6 +167,9 @@ grouped_ggbetweenstats <- function(data,
               tr = tr,
               conf.level = conf.level,
               conf.type = conf.type,
+              mean.label.size = mean.label.size,
+              mean.label.fontface = mean.label.fontface,
+              mean.label.color = mean.label.color,
               notch = notch,
               notchwidth = notchwidth,
               linetype = linetype,
@@ -165,6 +179,7 @@ grouped_ggbetweenstats <- function(data,
               outlier.color = outlier.color,
               outlier.coef = outlier.coef,
               mean.plotting = mean.plotting,
+              mean.ci = mean.ci,
               mean.size = mean.size,
               mean.color = mean.color,
               ggtheme = ggtheme,
@@ -185,7 +200,7 @@ grouped_ggbetweenstats <- function(data,
           purrr::set_names(!!rlang::enquo(grouping.var)) %>%
           purrr::map(
             .x = .,
-            .f = ~ ggstatsplot::ggbetweenstats(
+            .f = ~ggstatsplot::ggbetweenstats(
               data = .,
               x = !!rlang::enquo(x),
               y = !!rlang::enquo(y),
@@ -193,6 +208,7 @@ grouped_ggbetweenstats <- function(data,
               plot.type = plot.type,
               type = type,
               effsize.type = effsize.type,
+              effsize.noncentral = effsize.noncentral,
               xlab = xlab,
               ylab = ylab,
               caption = caption,
@@ -203,6 +219,9 @@ grouped_ggbetweenstats <- function(data,
               tr = tr,
               conf.level = conf.level,
               conf.type = conf.type,
+              mean.label.size = mean.label.size,
+              mean.label.fontface = mean.label.fontface,
+              mean.label.color = mean.label.color,
               notch = notch,
               notchwidth = notchwidth,
               linetype = linetype,
@@ -211,6 +230,7 @@ grouped_ggbetweenstats <- function(data,
               outlier.color = outlier.color,
               outlier.coef = outlier.coef,
               mean.plotting = mean.plotting,
+              mean.ci = mean.ci,
               mean.size = mean.size,
               mean.color = mean.color,
               ggtheme = ggtheme,
@@ -226,8 +246,10 @@ grouped_ggbetweenstats <- function(data,
 
   # combining the list of plots into a single plot
   combined_plot <-
-    ggstatsplot::combine_plots(plotlist = plotlist_purrr$plots,
-                               ...)
+    ggstatsplot::combine_plots(
+      plotlist = plotlist_purrr$plots,
+      ...
+    )
 
   # return the combined plot
   return(combined_plot)

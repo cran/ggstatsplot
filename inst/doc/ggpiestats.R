@@ -194,3 +194,27 @@ ggstatsplot::grouped_ggpiestats(
   nrow = 2
 )
 
+## ----ggpiestats9, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 8----
+# seed for reproducibility
+set.seed(123)
+
+# data
+clinical_trial <- 
+  tibble::tribble(
+    ~Control,	~Case,	~pairs,
+    "No",	"Yes",	25,
+    "Yes",	"No",	4,
+    "Yes",	"Yes",	13,
+    "No",	"No",	92
+  )
+
+# plot
+ggstatsplot::ggpiestats(data = clinical_trial,
+                        condition = Control,
+                        main = Case,
+                        counts = pairs,
+                        paired = TRUE,
+                        stat.title = "McNemar test: ",
+                        title = "Results from case-control study",
+                        palette = "Accent") 
+

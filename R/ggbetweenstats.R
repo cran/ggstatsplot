@@ -1,5 +1,6 @@
 #'
-#' @title violin plots for group or condition comparisons
+#' @title Violin plots for group or condition comparisons in between-subjects
+#'   designs.
 #' @name ggbetweenstats
 #' @aliases ggbetweenstats
 #' @description A combination of box and violin plots along with jittered data
@@ -23,6 +24,9 @@
 #'   (`"biased"` (Cohen's *d* for **t-test**; partial eta-squared for **anova**)
 #'   or `"unbiased"` (Hedge's *g* for **t-test**; partial omega-squared for
 #'   **anova**)).
+#' @param effsize.noncentral Logical indicating whether to use non-central
+#'   *t*-distributions for computing the 95% confidence interval for Cohen's *d*
+#'   or Hedge's *g* (Default: `FALSE`).
 #' @param title The text for the plot title.
 #' @param caption The text for the plot caption.
 #' @param sample.size.label Logical that decides whether sample size information
@@ -39,15 +43,18 @@
 #'   try to play around with the value of `tr`, which is by default set to
 #'   `0.1`. Lowering the value might help.
 #' @param conf.type A vector of character strings representing the type of
-#'   intervals required. The value should be any subset of the values `"norm"`,
+#'   confidence intervals required from bootstrapping for partial eta- and
+#'   omega-squared. The value should be any subset of the values `"norm"`,
 #'   `"basic"`, `"perc"`, `"bca"`. For more, see `?boot::boot.ci`.
-#' @param conf.level Scalar between 0 and 1. If `NULL`, the defaults return `95%`
-#'   lower and upper confidence intervals (`0.95`).
+#' @param mean.label.size,mean.label.fontface,mean.label.color Aesthetics for
+#'   the label displaying mean. Defaults: `3`, `"bold"`,`"black"`, respectively.
+#' @param conf.level Scalar between 0 and 1. If `NULL`, the defaults return
+#'   `95%` lower and upper confidence intervals (`0.95`).
 #' @param notch A logical. If `FALSE` (default), a standard box plot will be
 #'   displayed. If `TRUE`, a notched box plot will be used. Notches are used to
 #'   compare groups; if the notches of two boxes do not overlap, this suggests
 #'   that the medians are significantly different. In a notched box plot, the
-#'   notches extend 1.58 * IQR / sqrt(n). This gives a roughly `95%` confidence
+#'   notches extend `1.58 * IQR / sqrt(n)`. This gives a roughly `95%` confidence
 #'   interval for comparing medians. IQR: Inter-Quartile Range.
 #' @param notchwidth For a notched box plot, width of the notch relative to the
 #'   body (default `0.5`).
@@ -65,8 +72,10 @@
 #'   With Tukey's method, outliers are below (1st Quartile) or above (3rd
 #'   Quartile) `outlier.coef` times the Inter-Quartile Range (IQR) (Default:
 #'   `1.5`).
-#' @param mean.plotting Decides whether mean is to be highlighted and its value
-#'   to be displayed (Default: `TRUE`).
+#' @param mean.plotting Logical that decides whether mean is to be highlighted
+#'   and its value to be displayed (Default: `TRUE`).
+#' @param mean.ci Logical that decides whether 95% confidence interval for mean
+#'   is to be displayed (Default: `FALSE`).
 #' @param mean.color Color for the data point corresponding to mean (Default:
 #'   `"darkred"`).
 #' @param mean.size Point size for the data point corresponding to mean
@@ -107,6 +116,7 @@
 #' @importFrom sjstats eta_sq
 #' @importFrom sjstats omega_sq
 #' @importFrom stats aov
+#' @importFrom stats sd
 #' @importFrom stats na.omit
 #' @importFrom stats t.test
 #' @importFrom stats var.test
@@ -115,6 +125,7 @@
 #' @importFrom stats aov
 #' @importFrom stats quantile
 #' @importFrom stats oneway.test
+#' @importFrom stats qt
 #' @importFrom coin wilcox_test
 #' @importFrom coin statistic
 #' @importFrom rlang enquo
@@ -131,26 +142,26 @@
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggbetweenstats.html}
 #'
 #' @examples
-#'
+#' 
 #' # to get reproducible results from bootstrapping
 #' set.seed(123)
-#'
+#' 
 #' # simple function call with the defaults
 #' ggstatsplot::ggbetweenstats(
-#' data = datasets::iris,
-#' x = Species,
-#' y = Sepal.Length
+#'   data = datasets::iris,
+#'   x = Species,
+#'   y = Sepal.Length
 #' )
-#'
+#' 
 #' # more detailed function call
 #' ggstatsplot::ggbetweenstats(
-#' data = datasets::ToothGrowth,
-#' x = supp,
-#' y = len,
-#' plot.type = "box",
-#' xlab = "Supplement type",
-#' ylab = "Tooth length")
-#'
+#'   data = datasets::ToothGrowth,
+#'   x = supp,
+#'   y = len,
+#'   plot.type = "box",
+#'   xlab = "Supplement type",
+#'   ylab = "Tooth length"
+#' )
 #' @export
 #'
 
@@ -161,6 +172,7 @@ ggbetweenstats <- function(data,
                            plot.type = "boxviolin",
                            type = "parametric",
                            effsize.type = "unbiased",
+                           effsize.noncentral = FALSE,
                            xlab = NULL,
                            ylab = NULL,
                            caption = NULL,
@@ -172,6 +184,9 @@ ggbetweenstats <- function(data,
                            tr = 0.1,
                            conf.level = 0.95,
                            conf.type = "norm",
+                           mean.label.size = 3,
+                           mean.label.fontface = "bold",
+                           mean.label.color = "black",
                            notch = FALSE,
                            notchwidth = 0.5,
                            linetype = "solid",
@@ -181,6 +196,7 @@ ggbetweenstats <- function(data,
                            outlier.color = "black",
                            outlier.coef = 1.5,
                            mean.plotting = TRUE,
+                           mean.ci = FALSE,
                            mean.size = 5,
                            mean.color = "darkred",
                            ggtheme = ggplot2::theme_bw(),
@@ -192,9 +208,11 @@ ggbetweenstats <- function(data,
   ####################################### creating a dataframe #################################################
 
   # preparing labels from given dataframe
-  lab.df <- colnames(dplyr::select(.data = data,
-                                   !!rlang::enquo(x),
-                                   !!rlang::enquo(y)))
+  lab.df <- colnames(dplyr::select(
+    .data = data,
+    !!rlang::enquo(x),
+    !!rlang::enquo(y)
+  ))
   # if xlab is not provided, use the variable x name
   if (is.null(xlab)) {
     xlab <- lab.df[1]
@@ -212,8 +230,10 @@ ggbetweenstats <- function(data,
         x = !!rlang::enquo(x),
         y = !!rlang::enquo(y)
       ) %>%
-      dplyr::mutate(.data = .,
-                    outlier.label = y)
+      dplyr::mutate(
+        .data = .,
+        outlier.label = y
+      )
   } else {
     # if outlier label is provided then include it to make a dataframe
     data <-
@@ -225,44 +245,24 @@ ggbetweenstats <- function(data,
       )
   }
 
-  # it is possible that sometimes the variable hasn't been converted to factor class and this will produce an error
-  # if that's the case, convert it to factor
-  # (this will be the case only when data has been set to NULL)
-  # unused levels of the factor need to be dropped otherwise anova will be run instead of a t-test
-  if (is.factor(data$x)) {
-    # drop the unused levels of factor
-    data %<>%
-      dplyr::mutate_at(
-        .tbl = .,
-        .vars = "x",
-        .funs = ~ base::droplevels(x = .)
-      )
-  } else if (!is.factor(data$x)) {
-    # convert to factor
-    data$x <- base::as.factor(x = data$x)
-    # drop the unused levels of factor
-    data %<>%
-      dplyr::mutate_at(
-        .tbl = .,
-        .vars = "x",
-        .funs = ~ base::droplevels(x = .)
-      )
-
-    # display message
-    if (isTRUE(messages)) {
-      base::message(cat(
-        crayon::red("Warning: "),
-        crayon::blue("aesthetic `x` was not a factor; converting it to factor")
-      ))
-    }
-  }
+  # it is possible that sometimes the variable hasn't been converted to factor
+  # class and this will produce an error unused levels of the factor need to be
+  # dropped otherwise anova will be run instead of a t-test
+  data %<>%
+    dplyr::mutate_at(
+      .tbl = .,
+      .vars = "x",
+      .funs = ~base::droplevels(x = base::as.factor(x = .))
+    )
 
   ################################################### plot ##############################################################
 
   # create the basic plot
   plot <-
-    ggplot2::ggplot(data = data,
-                    mapping = ggplot2::aes(x = x, y = y)) +
+    ggplot2::ggplot(
+      data = data,
+      mapping = ggplot2::aes(x = x, y = y)
+    ) +
     ggplot2::geom_point(
       position = ggplot2::position_jitterdodge(
         jitter.width = point.jitter.width,
@@ -410,7 +410,7 @@ ggbetweenstats <- function(data,
                 " = ",
                 pvalue,
                 ", p",
-                omega ^ 2,
+                omega^2,
                 " = ",
                 effsize,
                 ", 95% CI [",
@@ -440,7 +440,6 @@ ggbetweenstats <- function(data,
         plot <-
           plot +
           ggplot2::labs(subtitle = rsubtitle_omega)
-
       } else if (effsize.type == "biased") {
 
         # getting confidence interval for partial eta-squared
@@ -472,7 +471,7 @@ ggbetweenstats <- function(data,
                 " = ",
                 pvalue,
                 ", p",
-                eta ^ 2,
+                eta^2,
                 " = ",
                 effsize,
                 ", 95% CI [",
@@ -515,9 +514,11 @@ ggbetweenstats <- function(data,
     } else if (type == "nonparametric" || type == "np") {
       ############################ Kruskal-Wallis (nonparametric ANOVA) #################################################
       # setting up the anova model and getting its summary
-      kw_stat <- stats::kruskal.test(formula = y ~ x,
-                                     data = data,
-                                     na.action = na.omit)
+      kw_stat <- stats::kruskal.test(
+        formula = y ~ x,
+        data = data,
+        na.action = na.omit
+      )
 
       # aov_stat input represents the anova object summary derived from car library
       rsubtitle_kw <- function(kw_stat) {
@@ -526,7 +527,7 @@ ggbetweenstats <- function(data,
           expr =
             paste(
               "Kruskal-Wallis: ",
-              italic(chi) ^ 2,
+              italic(chi)^2,
               "(",
               df,
               ") = ",
@@ -544,9 +545,11 @@ ggbetweenstats <- function(data,
             estimate = ggstatsplot::specify_decimal_p(x = kw_stat$statistic[[1]], k),
             df = kw_stat$parameter[[1]],
             # degrees of freedom are always integer
-            pvalue = ggstatsplot::specify_decimal_p(x = kw_stat$p.value[[1]],
-                                                    k,
-                                                    p.value = TRUE),
+            pvalue = ggstatsplot::specify_decimal_p(
+              x = kw_stat$p.value[[1]],
+              k,
+              p.value = TRUE
+            ),
             n = nrow(x = data)
           )
         )
@@ -616,9 +619,11 @@ ggbetweenstats <- function(data,
             df1 = robust_aov_stat$df1[[1]],
             # degrees of freedom are always integer
             df2 = ggstatsplot::specify_decimal_p(x = robust_aov_stat$df2[[1]], k),
-            pvalue = ggstatsplot::specify_decimal_p(x = robust_aov_stat$`p-value`[[1]],
-                                                    k,
-                                                    p.value = TRUE),
+            pvalue = ggstatsplot::specify_decimal_p(
+              x = robust_aov_stat$`p-value`[[1]],
+              k,
+              p.value = TRUE
+            ),
             effsize = ggstatsplot::specify_decimal_p(x = robust_aov_stat$xi[[1]], k),
             LL = ggstatsplot::specify_decimal_p(x = robust_aov_stat$conf.low[[1]], k),
             UL = ggstatsplot::specify_decimal_p(x = robust_aov_stat$conf.high[[1]], k),
@@ -711,15 +716,18 @@ ggbetweenstats <- function(data,
             formula = y ~ x,
             data = data,
             hedges.correction = TRUE,
-            # Hedge's g
-            na.rm = TRUE
+            na.rm = TRUE,
+            conf.level = 0.95,
+            noncentral = effsize.noncentral
           )
 
         # adding subtitle to the plot
         plot <-
           plot +
-          ggplot2::labs(subtitle = rsubtitle_g(t_stat = t_stat,
-                                               t_effsize = t_effsize))
+          ggplot2::labs(subtitle = rsubtitle_g(
+            t_stat = t_stat,
+            t_effsize = t_effsize
+          ))
       } else if (effsize.type == "biased") {
         # t_stat input represents the t-test object summary derived from stats library
         rsubtitle_d <- function(t_stat, t_effsize) {
@@ -768,15 +776,18 @@ ggbetweenstats <- function(data,
             formula = y ~ x,
             data = data,
             hedges.correction = FALSE,
-            # Cohen's d
-            na.rm = TRUE
+            na.rm = TRUE,
+            conf.level = 0.95,
+            noncentral = effsize.noncentral
           )
 
         # adding subtitle to the plot
         plot <-
           plot +
-          ggplot2::labs(subtitle = rsubtitle_d(t_stat = t_stat,
-                                               t_effsize = t_effsize))
+          ggplot2::labs(subtitle = rsubtitle_d(
+            t_stat = t_stat,
+            t_effsize = t_effsize
+          ))
       }
 
       # displaying the details of the test that was run
@@ -858,8 +869,10 @@ ggbetweenstats <- function(data,
       # adding subtitle to the plot
       plot <-
         plot +
-        ggplot2::labs(subtitle = rsubtitle_mann(mann_stat = mann_stat,
-                                                z_stat = z_stat))
+        ggplot2::labs(subtitle = rsubtitle_mann(
+          mann_stat = mann_stat,
+          z_stat = z_stat
+        ))
     } else if (type == "robust" || type == "r") {
       ######################################### robust t-test ############################################################
 
@@ -896,9 +909,11 @@ ggbetweenstats <- function(data,
             env = base::list(
               estimate = ggstatsplot::specify_decimal_p(x = t_robust_stat$test[[1]], k),
               df = ggstatsplot::specify_decimal_p(x = t_robust_stat$df[[1]], k),
-              pvalue = ggstatsplot::specify_decimal_p(x = t_robust_stat$p.value[[1]],
-                                                      k,
-                                                      p.value = TRUE),
+              pvalue = ggstatsplot::specify_decimal_p(
+                x = t_robust_stat$p.value[[1]],
+                k,
+                p.value = TRUE
+              ),
               effsize = ggstatsplot::specify_decimal_p(x = t_robust_effsize$effsize[[1]], k),
               LL = ggstatsplot::specify_decimal_p(x = t_robust_effsize$CI[[1]][[1]], k),
               UL = ggstatsplot::specify_decimal_p(x = t_robust_effsize$CI[[2]][[1]], k),
@@ -909,18 +924,24 @@ ggbetweenstats <- function(data,
 
       # setting up the independent samples t-tests on robust location measures (without bootstraps)
       t_robust_stat <-
-        WRS2::yuen(formula = y ~ x,
-                   data = data)
+        WRS2::yuen(
+          formula = y ~ x,
+          data = data
+        )
       # computing effect sizes
       t_robust_effsize <-
-        WRS2::yuen.effect.ci(formula = y ~ x,
-                             data = data)
+        WRS2::yuen.effect.ci(
+          formula = y ~ x,
+          data = data
+        )
 
       # adding the label to the plot
       plot <-
         plot +
-        ggplot2::labs(subtitle = rsubtitle_rob(t_robust_stat = t_robust_stat,
-                                               t_robust_effsize = t_robust_effsize))
+        ggplot2::labs(subtitle = rsubtitle_rob(
+          t_robust_stat = t_robust_stat,
+          t_robust_effsize = t_robust_effsize
+        ))
     }
   }
 
@@ -937,8 +958,10 @@ ggbetweenstats <- function(data,
       dplyr::mutate(
         .data = .,
         outlier = base::ifelse(
-          test = check_outlier(var = y,
-                               coef = outlier.coef),
+          test = check_outlier(
+            var = y,
+            coef = outlier.coef
+          ),
           yes = outlier.label,
           no = NA
         )
@@ -976,7 +999,7 @@ ggbetweenstats <- function(data,
           max.iter = 3e2,
           box.padding = 0.35,
           point.padding = 0.5,
-          segment.color = "grey50",
+          segment.color = "black",
           force = 2,
           na.rm = TRUE
         )
@@ -992,7 +1015,7 @@ ggbetweenstats <- function(data,
           max.iter = 3e2,
           box.padding = 0.35,
           point.padding = 0.5,
-          segment.color = "grey50",
+          segment.color = "black",
           force = 2,
           na.rm = TRUE
         )
@@ -1012,61 +1035,101 @@ ggbetweenstats <- function(data,
         na.rm = TRUE
       )
 
-    # use ggrepel to attach text label to each mean
-    # create a dataframe with means
-    mean_dat <- data %>%
-      # in case outlier.label is present, remove it since it's of no utility here
-      dplyr::select(.data = ., -dplyr::contains("outlier")) %>%
-      dplyr::group_by(.data = ., x) %>%
-      dplyr::summarise(.data = ., y = mean(y))
+    if (!isTRUE(mean.ci)) {
+      # use ggrepel to attach text label to each mean
+      # create a dataframe with means
+      mean_dat <- data %>%
+        # in case outlier.label is present, remove it since it's of no utility here
+        dplyr::select(.data = ., -dplyr::contains("outlier")) %>%
+        dplyr::group_by(.data = ., x) %>%
+        dplyr::summarise(.data = ., y = mean(y, na.rm = TRUE)) %>%
+        dplyr::mutate(.data = ., label = y) %>%
+        dplyr::ungroup(x = .)
+    } else {
+      mean_dat <- data %>%
+        # in case outlier.label is present, remove it since it's of no utility here
+        dplyr::select(.data = ., -dplyr::contains("outlier")) %>%
+        dplyr::group_by(.data = ., x) %>%
+        dplyr::summarise(
+          .data = .,
+          mean.y = base::mean(x = y, na.rm = TRUE),
+          sd.y = stats::sd(x = y, na.rm = TRUE),
+          n.y = dplyr::n()
+        ) %>%
+        dplyr::mutate(
+          .data = .,
+          se.y = sd.y / base::sqrt(n.y),
+          lower.ci.y = mean.y - stats::qt(p = 1 - (0.05 / 2), df = n.y - 1, lower.tail = TRUE) * se.y,
+          upper.ci.y = mean.y + stats::qt(p = 1 - (0.05 / 2), df = n.y - 1, lower.tail = TRUE) * se.y
+        ) %>%
+        dplyr::ungroup(x = .)
+    }
 
     # format the numeric values
     mean_dat %<>%
       dplyr::mutate_if(
         .tbl = .,
-        .predicate = is.numeric,
-        .funs = ~ as.numeric(as.character(
+        .predicate = purrr::is_bare_numeric,
+        .funs = ~as.numeric(as.character(
           ggstatsplot::specify_decimal_p(x = ., k = k)
         )) # format the values for printing
       )
+
+    if (isTRUE(mean.ci)) {
+      mean_dat %<>%
+        purrrlyr::by_row(
+          .d = .,
+          ..f = ~paste(.$mean.y,
+            ", 95% CI [",
+            .$lower.ci.y,
+            ", ",
+            .$upper.ci.y,
+            "]",
+            sep = "",
+            collapse = ""
+          ),
+          .collate = "rows",
+          .to = "label",
+          .labels = TRUE
+        ) %>%
+        dplyr::rename(.data = ., y = mean.y)
+    }
 
     # attach the labels to the plot
     plot <- plot +
       ggrepel::geom_label_repel(
         data = mean_dat,
-        mapping = ggplot2::aes(label = y),
-        fontface = "bold",
-        color = "black",
-        # inherit.aes = FALSE, #would result in "error: geom_label_repel requires the following missing aesthetics: x, y"
+        mapping = ggplot2::aes(x = x, y = y, label = label),
+        size = mean.label.size,
+        fontface = mean.label.fontface,
+        color = mean.label.color,
+        direction = "both",
         max.iter = 3e2,
         box.padding = 0.35,
         point.padding = 0.5,
-        segment.color = "grey50",
+        segment.color = "black",
         force = 2,
         na.rm = TRUE
       )
   }
 
+  # ============================================= sample sizes ================================================
+
   # adding sample size labels to the x axes
   if (isTRUE(sample.size.label)) {
     data_label <- data %>%
-      dplyr::group_by(x) %>%
-      dplyr::mutate(n = length(x)) %>%
-      dplyr::ungroup(x = .) %>%
-      dplyr::mutate(x = paste0(x, "\n(n = ", n, ")", sep = "")) %>% # changing character variables into factors
-      dplyr::mutate_if(
-        .tbl = .,
-        .predicate = purrr::is_bare_character,
-        .funs = ~ base::as.factor(.)
-      )
+      dplyr::group_by(.data = ., x) %>%
+      dplyr::mutate(.data = ., n = dplyr::n()) %>%
+      dplyr::ungroup(.data = ., x = .) %>%
+      dplyr::mutate(.data = ., label = paste0(x, "\n(n = ", n, ")", sep = "")) %>%
+      dplyr::arrange(.data = ., x)
 
     # adding new labels to the plot
     plot <- plot +
-      ggplot2::scale_x_discrete(labels = unique(levels(data_label$x)))
-
+      ggplot2::scale_x_discrete(labels = c(unique(data_label$label)))
   }
 
-  #============================================= messages =============================================
+  # ============================================= messages ===================================================
 
   if (isTRUE(messages)) {
     # display normality test result as a message

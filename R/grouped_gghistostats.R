@@ -35,16 +35,15 @@
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/gghistostats.html}
 #'
 #' @examples
-#'
+#' 
 #' ggstatsplot::grouped_gghistostats(
-#' data = iris,
-#' x = Sepal.Length,
-#' test.value = 5,
-#' grouping.var = Species,
-#' nrow = 1,
-#' messages = FALSE
+#'   data = iris,
+#'   x = Sepal.Length,
+#'   test.value = 5,
+#'   grouping.var = Species,
+#'   nrow = 1,
+#'   messages = FALSE
 #' )
-#'
 #' @export
 #'
 
@@ -82,6 +81,7 @@ grouped_gghistostats <- function(data,
                                  line.labeller.y = -2,
                                  binwidth = NULL,
                                  ggtheme = ggplot2::theme_bw(),
+                                 fill.gradient = TRUE,
                                  messages = TRUE,
                                  ...) {
   # ================== preparing dataframe ==================
@@ -151,6 +151,7 @@ grouped_gghistostats <- function(data,
             line.labeller.y = line.labeller.y,
             binwidth = binwidth,
             ggtheme = ggtheme,
+            fill.gradient = fill.gradient,
             messages = messages
           )
         )

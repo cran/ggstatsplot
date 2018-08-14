@@ -5,24 +5,25 @@
 \title{Model coefficients for fitted models with the model summary as a
 caption.}
 \usage{
-ggcoefstats(x, output = "plot", effects = "fixed", scales = NULL,
-  ran.prefix = NULL, conf.method = "Wald", coefficient.type = "beta",
-  effsize = "eta", nboot = 1000, point.color = "blue", point.size = 3,
+ggcoefstats(x, output = "plot", scales = NULL, conf.method = "Wald",
+  p.kr = TRUE, coefficient.type = "beta", effsize = "eta",
+  nboot = 1000, point.color = "blue", point.size = 3,
   point.shape = 16, conf.int = TRUE, conf.level = 0.95, k = 3,
-  k.caption.summary = 0, exclude.intercept = TRUE, exponentiate = FALSE,
-  errorbar.color = "black", errorbar.height = 0,
-  errorbar.linetype = "solid", errorbar.size = 0.5, vline = TRUE,
-  vline.color = "black", vline.linetype = "dashed", vline.size = 1,
-  sort = "none", xlab = "regression coefficient", ylab = "term",
-  title = NULL, subtitle = NULL, stats.labels = TRUE,
-  caption.summary = TRUE, stats.label.size = 3,
-  stats.label.fontface = "bold", stats.label.color = "black",
-  label.r = 0.15, label.size = 0.25, label.box.padding = 1,
-  label.label.padding = 0.25, label.point.padding = 0.5,
-  label.segment.color = "grey50", label.segment.size = 0.5,
-  label.segment.alpha = NULL, label.min.segment.length = 0.5,
-  label.force = 1, label.max.iter = 2000, label.nudge.x = 0,
-  label.nudge.y = 0, label.xlim = c(NA, NA), label.ylim = c(NA, NA),
+  k.caption.summary = 0, exclude.intercept = TRUE,
+  exponentiate = FALSE, errorbar.color = "black",
+  errorbar.height = 0, errorbar.linetype = "solid",
+  errorbar.size = 0.5, vline = TRUE, vline.color = "black",
+  vline.linetype = "dashed", vline.size = 1, sort = "none",
+  xlab = "regression coefficient", ylab = "term", title = NULL,
+  subtitle = NULL, stats.labels = TRUE, caption.summary = TRUE,
+  stats.label.size = 3, stats.label.fontface = "bold",
+  stats.label.color = "black", label.r = 0.15, label.size = 0.25,
+  label.box.padding = 1, label.label.padding = 0.25,
+  label.point.padding = 0.5, label.segment.color = "grey50",
+  label.segment.size = 0.5, label.segment.alpha = NULL,
+  label.min.segment.length = 0.5, label.force = 1,
+  label.max.iter = 2000, label.nudge.x = 0, label.nudge.y = 0,
+  label.xlim = c(NA, NA), label.ylim = c(NA, NA),
   label.direction = "y", ggtheme = ggplot2::theme_bw(), ...)
 }
 \arguments{
@@ -33,19 +34,15 @@ ggcoefstats(x, output = "plot", effects = "fixed", scales = NULL,
 dataframe of results from \code{broom::tidy}) or \code{"glance"} (object from
 \code{broom::glance}) or \code{"augment"} (object from \code{broom::augment}).}
 
-\item{effects}{In case the object is of class \code{merMod}
-(\code{lmerMod}, \code{glmerMod}, \code{nlmerMod}), these arguments determine which
-effects are to be displayed. By default, only the \code{"fixed"} effects will be
-shown. Other option is \code{"ran_pars"}.}
-
 \item{scales}{scales on which to report the variables: for random effects, the choices are \sQuote{"sdcor"} (standard deviations and correlations: the default if \code{scales} is \code{NULL}) or \sQuote{"vcov"} (variances and covariances). \code{NA} means no transformation, appropriate e.g. for fixed effects; inverse-link transformations (exponentiation
 or logistic) are not yet implemented, but may be in the future.}
 
-\item{ran.prefix}{A length-2 character vector specifying the strings to use
-as prefixes for self- (variance/standard deviation) and cross- (covariance
-/correlation) random effects terms.}
+\item{conf.method}{Character describing method for computing confidence
+intervals (for more, see \code{lme4::confint.merMod}).}
 
-\item{conf.method}{method for computing confidence intervals (see \code{lme4::confint.merMod})}
+\item{p.kr}{Logical, if \code{TRUE}, the computation of p-values for \code{lmer} is
+based on conditional F-tests with Kenward-Roger approximation for the df.
+For details, see \code{?sjstats::p_value}.}
 
 \item{coefficient.type}{For ordinal regression models, which parameters to
 display in the plot. By default only \code{"beta"} (a vector of regression
@@ -105,7 +102,7 @@ excluded from the plot (Default: \code{TRUE}).}
 \item{vline.size}{Numeric specifying the size of the vertical line (Default:
 \code{1}).}
 
-\item{sort}{\code{"none"} (default) do not sort, \code{"ascending"} sort by increasing
+\item{sort}{If \code{"none"} (default) do not sort, \code{"ascending"} sort by increasing
 coefficient value, or \code{"descending"} sort by decreasing coefficient value.}
 
 \item{xlab}{Label for \code{x} axis variable (Default: \code{"estimate"}).}
@@ -187,7 +184,9 @@ caption.
 
 set.seed(123)
 ggcoefstats(x = lm(formula = mpg ~ cyl * am, data = mtcars))
-
+}
+\references{
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggcoefstats.html}
 }
 \author{
 Indrajeet Patil

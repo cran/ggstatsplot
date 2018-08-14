@@ -18,14 +18,19 @@
 #' @param marginal Decides whether `ggExtra::ggMarginal()` plots will be
 #'   displayed; the default is `TRUE`.
 #' @param marginal.type Type of marginal distribution to be plotted on the axes
-#'   (`"histogram"`, `"boxplot"`, `"density"`, `"violin"`).
+#'   (`"histogram"`, `"boxplot"`, `"density"`, `"violin"`, `"densigram"`).
 #' @param marginal.size Integer describing the relative size of the marginal
 #'   plots compared to the main plot. A size of `5` means that the main plot is
 #'   5x wider and 5x taller than the marginal plots.
 #' @param margins Character describing along which margins to show the plots.
 #'   Any of the following arguments are accepted: `"both"`, `"x"`, `"y"`.
-#' @param xfill color fill for x axis distribution (default: `"#009E73"`).
-#' @param yfill color fill for y axis distribution (default: `"#D55E00"`).
+#' @param xfill,yfill Character describing color fill for `x` and `y` axes
+#'   marginal distributions (default: `"#009E73"` (for `x`) and `"#D55E00"` (for
+#'   `y`)).
+#' @param xalpha,yalpha Numeric deciding transparency levels for the marginal
+#'   distributions. Any numbers from `0` (transparent) to `1` (opaque). The
+#'   default is `1` for both axes.
+#' @param xsize,ysize Size for the marginal distribution boundaries (Default: `0.7`).
 #' @param type Type of association between paired samples required
 #'   ("`"parametric"`: Pearson's product moment correlation coefficient" or
 #'   "`"nonparametric"`: Spearman's rho" or "`"robust"`: Robust regression using
@@ -81,55 +86,64 @@
 #' @references
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggscatterstats.html}
 #'
-#' @examples
+#' @note `marginal.type = "densigram"` will work only with the development
+#'   version of `ggExtra` that you can download from `GitHub`:
+#'   `devtools::install_github("daattali/ggExtra")`
 #'
+#' @examples
+#' 
 #' # to get reproducible results from bootstrapping
 #' set.seed(123)
-#'
+#' 
 #' # simple function call with the defaults
 #' ggstatsplot::ggscatterstats(
-#' data = datasets::mtcars,
-#' x = wt,
-#' y = mpg,
-#' type = "np"
+#'   data = datasets::mtcars,
+#'   x = wt,
+#'   y = mpg,
+#'   type = "np"
 #' )
-#'
 #' @export
 #'
 
 # defining the function
 ggscatterstats <-
   function(data,
-           x,
-           y,
-           xlab = NULL,
-           ylab = NULL,
-           line.size = 1.5,
-           line.color = "blue",
-           marginal = TRUE,
-           marginal.type = "histogram",
-           marginal.size = 5,
-           margins = c("both", "x", "y"),
-           width.jitter = NULL,
-           height.jitter = NULL,
-           xfill = "#009E73",
-           yfill = "#D55E00",
-           centrality.para = NULL,
-           type = "pearson",
-           results.subtitle = NULL,
-           title = NULL,
-           caption = NULL,
-           nboot = 100,
-           beta = 0.1,
-           k = 3,
-           axes.range.restrict = FALSE,
-           ggtheme = ggplot2::theme_bw(),
-           messages = TRUE) {
+             x,
+             y,
+             xlab = NULL,
+             ylab = NULL,
+             line.size = 1.5,
+             line.color = "blue",
+             marginal = TRUE,
+             marginal.type = "histogram",
+             marginal.size = 5,
+             margins = c("both", "x", "y"),
+             width.jitter = NULL,
+             height.jitter = NULL,
+             xfill = "#009E73",
+             yfill = "#D55E00",
+             xalpha = 1,
+             yalpha = 1,
+             xsize = 0.7,
+             ysize = 0.7,
+             centrality.para = NULL,
+             type = "pearson",
+             results.subtitle = NULL,
+             title = NULL,
+             caption = NULL,
+             nboot = 100,
+             beta = 0.1,
+             k = 3,
+             axes.range.restrict = FALSE,
+             ggtheme = ggplot2::theme_bw(),
+             messages = TRUE) {
     ################################################### dataframe ####################################################
 
-    lab.df <- colnames(dplyr::select(.data = data,
-                                     !!rlang::enquo(x),
-                                     !!rlang::enquo(y)))
+    lab.df <- colnames(dplyr::select(
+      .data = data,
+      !!rlang::enquo(x),
+      !!rlang::enquo(y)
+    ))
     # if xlab is not provided, use the variable x name
     if (is.null(xlab)) {
       xlab <- lab.df[1]
@@ -164,7 +178,7 @@ ggscatterstats <-
 
         c <-
           stats::cor.test(
-            formula = ~ x + y,
+            formula = ~x + y,
             data = data,
             method = "pearson",
             alternative = "two.sided",
@@ -214,7 +228,7 @@ ggscatterstats <-
         # note that stats::cor.test doesn't give degress of freedom; it's calculated as df = (no. of pairs - 2)
         c <-
           stats::cor.test(
-            formula = ~ x + y,
+            formula = ~x + y,
             data = data,
             method = "spearman",
             alternative = "two.sided",
@@ -261,9 +275,11 @@ ggscatterstats <-
               estimate = ggstatsplot::specify_decimal_p(x = c$estimate[[1]], k),
               LL = ggstatsplot::specify_decimal_p(x = c_ci$conf.low[[1]], k),
               UL = ggstatsplot::specify_decimal_p(x = c_ci$conf.high[[1]], k),
-              pvalue = ggstatsplot::specify_decimal_p(x = c$p.value[[1]],
-                                                      k,
-                                                      p.value = TRUE),
+              pvalue = ggstatsplot::specify_decimal_p(
+                x = c$p.value[[1]],
+                k,
+                p.value = TRUE
+              ),
               n = nrow(x = data)
             )
           )
@@ -294,7 +310,6 @@ ggscatterstats <-
                 ", ",
                 UL,
                 "], ",
-                ", ",
                 italic("p"),
                 " = ",
                 pvalue,
@@ -310,8 +325,9 @@ ggscatterstats <-
               UL = ggstatsplot::specify_decimal_p(x = rob_res$conf.high[[1]], k),
               # degrees of freedom are always integer
               pvalue = ggstatsplot::specify_decimal_p(rob_res$`p-value`[[1]],
-                                                      k,
-                                                      p.value = TRUE),
+                k,
+                p.value = TRUE
+              ),
               n = rob_res$n[[1]]
             )
           )
@@ -327,21 +343,26 @@ ggscatterstats <-
             )
           ))
         }
-
       }
     }
     ################################################### plot ################################################################
 
     # preparing the scatterplotplot
     plot <-
-      ggplot2::ggplot(data = data,
-                      mapping = ggplot2::aes(x = x,
-                                             y = y)) +
+      ggplot2::ggplot(
+        data = data,
+        mapping = ggplot2::aes(
+          x = x,
+          y = y
+        )
+      ) +
       ggplot2::geom_point(
         size = 3,
         alpha = 0.5,
-        position = position_jitter(width = width.jitter,
-                                   height = height.jitter),
+        position = position_jitter(
+          width = width.jitter,
+          height = height.jitter
+        ),
         na.rm = TRUE
       ) +
       ggplot2::geom_smooth(
@@ -373,7 +394,7 @@ ggscatterstats <-
     if (is.null(centrality.para)) {
       plot <- plot
     } else if (isTRUE(centrality.para) ||
-               centrality.para == "mean") {
+      centrality.para == "mean") {
       plot <- plot +
         ggplot2::geom_vline(
           xintercept = mean(x = data$x, na.rm = TRUE),
@@ -417,10 +438,18 @@ ggscatterstats <-
           type = marginal.type,
           margins = margins,
           size = marginal.size,
-          xparams = base::list(fill = xfill,
-                               col = "black"),
-          yparams = base::list(fill = yfill,
-                               col = "black")
+          xparams = base::list(
+            fill = xfill,
+            alpha = xalpha,
+            size = xsize,
+            col = "black"
+          ),
+          yparams = base::list(
+            fill = yfill,
+            alpha = yalpha,
+            size = ysize,
+            col = "black"
+          )
         )
     }
 
@@ -428,7 +457,7 @@ ggscatterstats <-
 
     # display warning that this doesn't produce a ggplot2 object
     if (isTRUE(messages) &&
-        isTRUE(marginal)) {
+      isTRUE(marginal)) {
       base::message(cat(
         crayon::red("Warning:"),
         crayon::blue(

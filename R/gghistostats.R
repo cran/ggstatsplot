@@ -67,6 +67,8 @@
 #'   bins that cover the range of the data. You should always override this
 #'   value, exploring multiple widths to find the best to illustrate the stories
 #'   in your data.
+#' @param fill.gradient Logical decides whether color fill gradient is to be
+#'   displayed (Default: `TRUE`). If `FALSE`, the legend will also be removed.
 #' @param ggtheme A function, `ggplot2` theme name. Default value is
 #'   `ggplot2::theme_bw()`. Allowed values are the official `ggplot2` themes,
 #'   including `theme_grey()`, `theme_minimal()`, `theme_classic()`,
@@ -93,25 +95,25 @@
 #' @importFrom crayon red
 #'
 #' @examples
-#'
+#' 
 #' # most basic function call with the defaults
 #' ggstatsplot::gghistostats(
-#' data = datasets::ToothGrowth,
-#' x = len,
-#' xlab = "Tooth length")
-#'
+#'   data = datasets::ToothGrowth,
+#'   x = len,
+#'   xlab = "Tooth length"
+#' )
+#' 
 #' # a detailed function call
 #' ggstatsplot::gghistostats(
-#' data = datasets::iris,
-#' x = Sepal.Length,
-#' type = "bf",
-#' bf.prior = 0.8,
-#' test.value = 3,
-#' centrality.para = "mean",
-#' test.value.line = TRUE,
-#' binwidth = 0.10
+#'   data = datasets::iris,
+#'   x = Sepal.Length,
+#'   type = "bf",
+#'   bf.prior = 0.8,
+#'   test.value = 3,
+#'   centrality.para = "mean",
+#'   test.value.line = TRUE,
+#'   binwidth = 0.10
 #' )
-#'
 #' @note If you are using R Notebook and see a blank image being inserted when a
 #'   chunk is executed, this behavior can be turned off by setting
 #'   `legend.title.margin = FALSE`.
@@ -127,62 +129,75 @@
 # function body
 gghistostats <-
   function(data = NULL,
-           x,
-           binwidth = NULL,
-           bar.measure = "count",
-           xlab = NULL,
-           title = NULL,
-           subtitle = NULL,
-           caption = NULL,
-           type = "parametric",
-           test.value = 0,
-           bf.prior = 0.707,
-           bf.message = TRUE,
-           robust.estimator = "onestep",
-           nboot = 500,
-           k = 3,
-           low.color = "#0072B2",
-           high.color = "#D55E00",
-           results.subtitle = TRUE,
-           legend.title.margin = FALSE,
-           t.margin = unit(0, "mm"),
-           b.margin = unit(3, "mm"),
-           centrality.para = NULL,
-           centrality.color = "blue",
-           centrality.size = 1.2,
-           centrality.linetype = "dashed",
-           test.value.line = FALSE,
-           test.value.color = "black",
-           test.value.size = 1.2,
-           test.value.linetype = "dashed",
-           line.labeller = FALSE,
-           line.labeller.y = -2,
-           ggtheme = ggplot2::theme_bw(),
-           messages = TRUE) {
+             x,
+             binwidth = NULL,
+             bar.measure = "count",
+             xlab = NULL,
+             title = NULL,
+             subtitle = NULL,
+             caption = NULL,
+             type = "parametric",
+             test.value = 0,
+             bf.prior = 0.707,
+             bf.message = TRUE,
+             robust.estimator = "onestep",
+             nboot = 500,
+             k = 3,
+             low.color = "#0072B2",
+             high.color = "#D55E00",
+             results.subtitle = TRUE,
+             legend.title.margin = FALSE,
+             t.margin = unit(0, "mm"),
+             b.margin = unit(3, "mm"),
+             centrality.para = NULL,
+             centrality.color = "blue",
+             centrality.size = 1.2,
+             centrality.linetype = "dashed",
+             test.value.line = FALSE,
+             test.value.color = "black",
+             test.value.size = 1.2,
+             test.value.linetype = "dashed",
+             line.labeller = FALSE,
+             line.labeller.y = -2,
+             ggtheme = ggplot2::theme_bw(),
+             fill.gradient = TRUE,
+             messages = TRUE) {
     # if data is not available then don't display any messages
     if (is.null(data)) {
       messages <- FALSE
     }
+
     # save the value of caption in another variable because caption is going to be modified in the function body
     if (is.null(caption)) {
       bf.caption <- caption
     } else {
       bf.caption <- NULL
     }
+
+    # if no color fill is to be displayed, set low and high color to white
+    if (!isTRUE(fill.gradient)) {
+      low.color <- "white"
+      high.color <- "white"
+    }
+
     # ========================================== dataframe ==============================================================
     # preparing a dataframe out of provided inputs
     if (!is.null(data)) {
       # preparing labels from given dataframe
-      lab.df <- colnames(dplyr::select(.data = data,
-                                       !!rlang::enquo(x)))
+      lab.df <- colnames(dplyr::select(
+        .data = data,
+        !!rlang::enquo(x)
+      ))
       # if xlab is not provided, use the variable x name
       if (is.null(xlab)) {
         xlab <- lab.df[1]
       }
       # if dataframe is provided
       data <-
-        dplyr::select(.data = data,
-                      x = !!rlang::enquo(x))
+        dplyr::select(
+          .data = data,
+          x = !!rlang::enquo(x)
+        )
     } else {
       # if vectors are provided
       data <-
@@ -198,7 +213,7 @@ gghistostats <-
         students = TRUE,
         bf = TRUE,
         bfPrior = bf.prior,
-        mann = TRUE,
+        wilcoxon = TRUE,
         # Mann-Whitney U test
         testValue = test.value,
         hypothesis = "dt",
@@ -296,13 +311,13 @@ gghistostats <-
               n
             ),
           env = base::list(
-            estimate = as.data.frame(jmv_os$ttest)$`stat[mann]`,
+            estimate = as.data.frame(jmv_os$ttest)$`stat[wilc]`,
             pvalue = ggstatsplot::specify_decimal_p(
-              x = as.data.frame(jmv_os$ttest)$`p[mann]`,
+              x = as.data.frame(jmv_os$ttest)$`p[wilc]`,
               k,
               p.value = TRUE
             ),
-            effsize = ggstatsplot::specify_decimal_p(x = as.data.frame(jmv_os$ttest)$`es[mann]`, k),
+            effsize = ggstatsplot::specify_decimal_p(x = as.data.frame(jmv_os$ttest)$`es[wilc]`, k),
             n = nrow(x = data)
           )
         )
@@ -419,22 +434,30 @@ gghistostats <-
 
     # preparing the basic layout of the plot based on whether counts or density information is needed
     if (bar.measure == "count") {
-      plot <- ggplot2::ggplot(data = data,
-                              mapping = ggplot2::aes(x = x)) +
+      plot <- ggplot2::ggplot(
+        data = data,
+        mapping = ggplot2::aes(x = x)
+      ) +
         ggplot2::stat_bin(
           col = "black",
           alpha = 0.7,
           binwidth = binwidth,
           na.rm = TRUE,
-          mapping = ggplot2::aes(y = ..count..,
-                                 fill = ..count..)
+          mapping = ggplot2::aes(
+            y = ..count..,
+            fill = ..count..
+          )
         ) +
-        ggplot2::scale_fill_gradient(name = "count",
-                                     low = low.color,
-                                     high = high.color)
+        ggplot2::scale_fill_gradient(
+          name = "count",
+          low = low.color,
+          high = high.color
+        )
     } else if (bar.measure == "proportion") {
-      plot <- ggplot2::ggplot(data = data,
-                              mapping = ggplot2::aes(x = x)) +
+      plot <- ggplot2::ggplot(
+        data = data,
+        mapping = ggplot2::aes(x = x)
+      ) +
         ggplot2::stat_bin(
           col = "black",
           alpha = 0.7,
@@ -454,19 +477,25 @@ gghistostats <-
         ggplot2::scale_y_continuous(labels = scales::percent) +
         ggplot2::ylab("relative frequencies")
     } else if (bar.measure == "density") {
-      plot <- ggplot2::ggplot(data = data,
-                              mapping = ggplot2::aes(x = x)) +
+      plot <- ggplot2::ggplot(
+        data = data,
+        mapping = ggplot2::aes(x = x)
+      ) +
         ggplot2::stat_bin(
           col = "black",
           alpha = 0.7,
           binwidth = binwidth,
           na.rm = TRUE,
-          mapping = ggplot2::aes(y = ..density..,
-                                 fill = ..density..)
+          mapping = ggplot2::aes(
+            y = ..density..,
+            fill = ..density..
+          )
         ) +
-        ggplot2::scale_fill_gradient(name = "density",
-                                     low = low.color,
-                                     high = high.color)
+        ggplot2::scale_fill_gradient(
+          name = "density",
+          low = low.color,
+          high = high.color
+        )
     }
 
     # adding the theme and labels
@@ -496,7 +525,7 @@ gghistostats <-
           plot <- plot +
             ggplot2::geom_text(
               mapping = ggplot2::aes(
-                x = mean(x = data$x, na.rm = TRUE) + 0.20,
+                x = mean(x = data$x, na.rm = TRUE),
                 label = "mean",
                 y = line.labeller.y
               ),
@@ -519,7 +548,7 @@ gghistostats <-
           plot <- plot +
             ggplot2::geom_text(
               mapping = ggplot2::aes(
-                x = median(x = data$x, na.rm = TRUE) + 0.20,
+                x = median(x = data$x, na.rm = TRUE),
                 label = "median",
                 y = line.labeller.y
               ),
@@ -545,7 +574,7 @@ gghistostats <-
           plot <- plot +
             ggplot2::geom_text(
               mapping = ggplot2::aes(
-                x = test.value + 0.20,
+                x = test.value,
                 label = "test",
                 y = line.labeller.y
               ),
@@ -565,7 +594,8 @@ gghistostats <-
             if (!is.null(bf.caption)) {
               plot <-
                 ggstatsplot::combine_plots(plot,
-                                           caption.text = bf.caption.text)
+                  caption.text = bf.caption.text
+                )
             }
           }
         }
@@ -574,9 +604,17 @@ gghistostats <-
 
     # creating proper spacing between the legend.title and the colorbar
     if (isTRUE(legend.title.margin)) {
-      plot <- legend_title_margin(plot = plot,
-                                  t.margin = t.margin,
-                                  b.margin = b.margin)
+      plot <- legend_title_margin(
+        plot = plot,
+        t.margin = t.margin,
+        b.margin = b.margin
+      )
+    }
+
+    # if no color fill gradient is used, then remove the legend
+    if (!isTRUE(fill.gradient)) {
+      plot <- plot +
+        ggplot2::theme(legend.position = "none")
     }
 
     # ========================================== messages ==================================================================
