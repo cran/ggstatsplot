@@ -1,4 +1,3 @@
-#'
 #' @title Combining multiple plots using `cowplot::plot_grid()` with a
 #'   combination of title, caption, and annotation label
 #' @name combine_plots
@@ -60,6 +59,9 @@
 #' @importFrom cowplot ggdraw
 #' @importFrom cowplot draw_label
 #' @importFrom grid unit
+#'
+#' @references
+#' \url{https://cran.r-project.org/package=ggstatsplot/vignettes/combine_plots.html}
 #'
 #' @examples
 #' 

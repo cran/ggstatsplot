@@ -7,137 +7,88 @@ knitr::opts_chunk$set(
 ## ----titanic1, warning = FALSE, message = FALSE--------------------------
 library(datasets)
 library(dplyr)
-
-# looking at the table
-dplyr::glimpse(x = Titanic)
-
-## ----titanic2, warning = FALSE, message = FALSE--------------------------
 library(ggstatsplot)
 
-# looking at the final dataset
-dplyr::glimpse(ggstatsplot::Titanic_full)
+# looking at the original data in tabular format
+dplyr::glimpse(x = Titanic)
+
+# looking at the dataset as a tibble or dataframe
+dplyr::glimpse(x = ggstatsplot::Titanic_full)
+
+## ----ggpiestats3, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 6----
+# since effect size confidence intervals are computed using bootstrapping, let's
+# set seed for reproducibility
+set.seed(123)
+
+# to speed up the process, let's use only half of the dataset
+Titanic_full_50 <- dplyr::sample_frac(tbl = ggstatsplot::Titanic_full, size = 0.5)
+
+# plot
+ggstatsplot::ggpiestats(
+  data = Titanic_full_50,                          
+  main = Survived,
+  title = "Passenger survival on the Titanic",       # title for the entire plot
+  caption = "Source: Titanic survival dataset",      # caption for the entire plot
+  legend.title = "Survived?",                        # legend title
+  messages = FALSE                                   # turn off messages
+)
 
 ## ----ggpiestats1, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 8----
 # since effect size confidence intervals are computed using bootstrapping, let's
 # set seed for reproducibility
 set.seed(123)
 
-ggstatsplot::ggpiestats(data = ggstatsplot::Titanic_full,
-                        condition = Sex,
-                        main = Survived) 
+# to speed up the process, let's use only half of the dataset
+Titanic_full_50 <- dplyr::sample_frac(tbl = ggstatsplot::Titanic_full, size = 0.5)
 
-## ----ggpiestats2, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 8----
-library(ggplot2)
-
-# for reproducibility
-set.seed(123)
-
+# plot
 ggstatsplot::ggpiestats(
-  data = ggstatsplot::Titanic_full,             # dataframe (matrix or table will not be accepted)
-  main = Survived,                              # rows in the contingency table
-  condition = Sex,                              # columns in the contingecy table
-  title = "Passengar survival by gender",       # title for the entire plot
-  caption = "Source: Titanic survival dataset", # caption for the entire plot
-  legend.title = "Survived?",                   # legend title
-  facet.wrap.name = "Gender",                   # changing the facet wrap title
-  facet.proptest = TRUE,                        # proportion test for each facet
-  stat.title = "survival x gender: ",           # title for statistical test
-  palette = "Set1",                             # changing the color palette
-  ggtheme = ggplot2::theme_classic()            # changing plot theme 
-) +                                             # further modification with ggplot2 commands
-  ggplot2::theme(plot.subtitle = ggplot2::element_text(
+  data = Titanic_full_50,
+  main = Survived,
+  condition = Sex,
+  title = "Passenger survival on the Titanic by gender",   # title for the entire plot
+  caption = "Source: Titanic survival dataset",            # caption for the entire plot
+  legend.title = "Survived?",                              # legend title
+  ggtheme = ggplot2::theme_grey(),                         # changing plot theme 
+  palette = "category10_d3",                               # choosing a different color palette
+  package = "ggsci",                                       # package to which color palette belongs
+  stat.title = "Pearson's chi-squared test: ",             # title for statistical test
+  k = 2,                                                   # decimal places in result
+  perc.k = 1,                                              # decimal places in percentage labels
+  nboot = 10,                                              # no. of bootstrap sample for effect size CI
+  messages = FALSE
+)  +                                                       # further modification with `ggplot2` commands
+  ggplot2::theme(plot.title = ggplot2::element_text(
     color = "black",
-    size = 10,
-    face = "bold",
-    hjust = 0.5
+    size = 14,
+    hjust = 0
   ))
 
-## ----ggpiestats3, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 6----
-ggstatsplot::ggpiestats(
-  data = ggstatsplot::Titanic_full,                          
-  main = Age
-)
+## ----ggpiestats4, warning = FALSE, message = FALSE, fig.height = 10, fig.width = 8----
+# since effect size confidence intervals are computed using bootstrapping, let's
+# set seed for reproducibility
+set.seed(123)
 
-## ----ggpiestats4, warning = FALSE, message = FALSE, fig.height = 20, fig.width = 9----
+# plot
 ggstatsplot::grouped_ggpiestats(
   # arguments relevant for ggstatsplot::gghistostats
   data = ggstatsplot::Titanic_full,
-  grouping.var = Class,
-  title.prefix = "Passenger class",
-  stat.title = "survival x gender: ",
+  grouping.var = Age,
+  title.prefix = "Child or Adult?: ",
+  stat.title = "Pearson's chi-squared test: ",
   main = Survived,
   condition = Sex,
+  nboot = 10,
+  k = 2,
+  perc.k = 1,
+  package = "ggsci",
+  palette = "category10_d3",
+  messages = FALSE,
   # arguments relevant for ggstatsplot::combine_plots
-  title.text = "Survival in Titanic disaster by gender for all passenger classes",
-  caption.text = "Asterisks denote results from proportion tests; ***: p < 0.001, ns: non-significant",
-  nrow = 4,
-  ncol = 1,
-  labels = c("(a)","(b)","(c)", "(d)")
-)
-
-## ----ggpiestats5, warning = FALSE, message = FALSE, fig.height = 10, fig.width = 10----
-ggstatsplot::grouped_ggpiestats(
-  data = ggstatsplot::Titanic_full,
-  main = Age,
-  grouping.var = Class,
-  title.prefix = "Passenger Class"
-) 
-
-## ----ggpiestats6, warning = FALSE, message = FALSE, fig.height = 20, fig.width = 9----
-# let's split the dataframe and create a list by passenger class
-class_list <- ggstatsplot::Titanic_full %>%
-  base::split(x = ., f = .$Class, drop = TRUE)
-
-# this created a list with 4 elements, one for each class
-# you can check the structure of the file for yourself
-# str(class_list)
-
-# checking the length and names of each element
-length(class_list)
-names(class_list)
-
-# running function on every element of this list note that if you want the same
-# value for a given argument across all elements of the list, you need to
-# specify it just once
-plot_list <- purrr::pmap(
-  .l = list(
-    data = class_list,
-    main = "Survived",
-    condition = "Sex",
-    facet.wrap.name = "Gender",
-    title = list(
-      "Passenger class: 1st",
-      "Passenger class: 2nd",
-      "Passenger class: 3rd",
-      "Passenger class: Crew"
-    ),
-    caption = list(
-      "Total: 319, Died: 120, Survived: 199, % Survived: 62%",
-      "Total: 272, Died: 155, Survived: 117, % Survived: 43%",
-      "Total: 709, Died: 537, Survived: 172, % Survived: 25%",
-      "Not available"
-    ),
-    palette = list("Accent", "Paired", "Pastel1", "Set2"),
-    ggtheme = list(
-      ggplot2::theme_grey(),
-      ggplot2::theme_classic(),
-      ggplot2::theme_light(),
-      ggplot2::theme_minimal()
-    ),
-    sample.size.label = list(TRUE, FALSE, TRUE, FALSE),
-    messages = FALSE
-  ),
-  .f = ggstatsplot::ggpiestats
-)
-  
-# combining all individual plots from the list into a single plot using combine_plots function
-ggstatsplot::combine_plots(
-  plotlist = plot_list,
-  title.text = "Survival in Titanic disaster by gender for all passenger classes",
-  caption.text = "Asterisks denote results from proportion tests; ***: p < 0.001, ns: non-significant",
-  nrow = 4,
-  ncol = 1,
-  labels = c("(a)","(b)","(c)", "(d)")
+  title.text = "Passenger survival on the Titanic by gender and age",
+  caption.text = "Asterisks denote results from proportion tests; \n***: p < 0.001, ns: non-significant",
+  nrow = 2,
+  ncol = 1
 )
 
 ## ----ggpiestats7, message = FALSE, warning = FALSE, fig.height = 8, fig.width = 9----
@@ -173,48 +124,58 @@ set.seed(123)
     tibble::as_data_frame(x = .)
 )
 
+## ----ggpiestats8, message = FALSE, warning = FALSE, fig.height = 5, fig.width = 8----
 # running `ggpiestats` with counts information
 ggstatsplot::ggpiestats(
   data = fishing,
   main = Fish,
   condition = Month,
-  counts = SumOfCaught
-)
-
-
-## ----ggpiestats8, message = FALSE, warning = FALSE, fig.height = 12, fig.width = 8----
-# running the grouped variant of the function
-ggstatsplot::grouped_ggpiestats(
-  data = fishing,
-  main = Fish,
-  condition = Month,
   counts = SumOfCaught,
-  grouping.var = Boat,
-  title.prefix = "Boat",
-  nrow = 2
+  package = "ggsci",
+  palette = "default_jama",
+  title = "Type fish caught by month",
+  caption = "Source: completely made up",
+  legend.title = "Type fish caught: ",
+  messages = FALSE
 )
 
 ## ----ggpiestats9, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 8----
 # seed for reproducibility
 set.seed(123)
 
-# data
+# create our imaginary data
 clinical_trial <- 
   tibble::tribble(
-    ~Control,	~Case,	~pairs,
-    "No",	"Yes",	25,
-    "Yes",	"No",	4,
+    ~SickBefore,	~SickAfter,	~Counts,
+    "No",	"Yes",	4,
+    "Yes",	"No",	25,
     "Yes",	"Yes",	13,
     "No",	"No",	92
   )
 
+# display it as a simple table
+stats::xtabs(
+  formula = Counts ~ SickBefore + SickAfter,
+  subset = NULL,
+  data = clinical_trial
+)
+
 # plot
-ggstatsplot::ggpiestats(data = clinical_trial,
-                        condition = Control,
-                        main = Case,
-                        counts = pairs,
-                        paired = TRUE,
-                        stat.title = "McNemar test: ",
-                        title = "Results from case-control study",
-                        palette = "Accent") 
+ggstatsplot::ggpiestats(
+  data = clinical_trial,
+  condition = SickBefore,
+  main = SickAfter,
+  counts = Counts,
+  paired = TRUE,
+  stat.title = "McNemar test: ",
+  title = "Results from imaginary clinical trial",
+  package = "ggsci",
+  palette = "default_ucscgb",
+  direction = -1,
+  messages = FALSE
+) 
+
+## ----session_info-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+options(width = 200)
+devtools::session_info()
 

@@ -1,0 +1,430 @@
+---
+title: "using `ggstatsplot` with `purrr` package"
+author: "Indrajeet Patil"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    fig_width: 6
+    fig.align: 'center'
+    fig.asp: 0.618
+    dpi: 150
+    toc: true
+    eval: FALSE
+    warning: FALSE
+    message: FALSE
+vignette: >
+  %\VignetteIndexEntry{using `ggstatsplot` with `purrr` package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Why `purrr`?
+
+Most of `ggstatsplot` functions have `grouped_` variants, which are designed to
+quickly run the same `ggstatsplot` function across multiple levels of a single
+grouping variable. Although this function has its utility for quick data
+exploration, it has two strong weaknesses-
+
+  * The arguments applied to `grouped_` function call are applied uniformly to
+  all levels of the grouping variable when we might want to customize them for
+  different levels of the grouping variable.
+  
+  * Only one grouping variable can be used to repeat the analysis when in
+  reality there can be a combination of grouping variables and the operation
+  needs to be repeated for all resulting combinations.
+
+We will see how to overcome this limitation by combining `ggstatsplot` with the
+`purrr` package. Although output from only one example is shown here, the users
+are encouraged to execute the other examples.
+
+**Note before**:
+
+  * Unlike the typical function call for `ggstatsplot` functions where arguments
+  can be quoted (`"x"`) or unquoted (`x`), while using `purrr::pmap`, we **must**
+  *quote* the arguments.
+  * You can use `ggplot2` themes from extension packages (like `ggthemes`).
+
+# `ggbetweenstats`
+
+```{r purrr_ggbetweenstats, warning = FALSE, message = FALSE, fig.height = 10, fig.width = 7}
+library(ggstatsplot)
+
+# for reproducibility
+set.seed(123)
+
+# let's split the dataframe and create a list by years of interest
+year_list <- gapminder::gapminder %>%
+  dplyr::filter(
+    .data = .,
+    year == 1967 |
+    year == 1987 |
+    year == 2007, 
+    continent != "Oceania"
+  ) %>%
+  base::split(x = ., f = .$year, drop = TRUE)
+
+# this created a list with 3 elements, one for each mpaa rating
+# you can check the structure of the file for yourself
+# str(year_list)
+
+# checking the length and names of each element
+length(year_list)
+names(year_list)
+
+# running function on every element of this list; note that if you want the same
+# value for a given argument across all elements of the list, you need to
+# specify it just once
+plot_list <- purrr::pmap(
+  .l = list(
+    data = year_list,
+    x = "continent",
+    y = "lifeExp",
+    outlier.label = "country",
+    outlier.label.color = list(
+      "#56B4E9",
+      "#009E73",
+      "#F0E442"
+    ),
+    xlab = "Continent",
+    ylab = "Life expectancy",
+    title = list(
+      "Year: 1967",
+      "Year: 1987",
+      "Year: 2007"
+    ),
+    type = list("r", "p", "np"),
+    nboot = 25,
+    k = list(1, 2, 3),
+    effsize.type = list(
+      NULL,
+      "partial_omega",
+       "partial_eta"
+    ),
+    plot.type = list("box", "boxviolin", "violin"),
+    mean.ci = list(TRUE, FALSE, FALSE),
+    package = list("nord", "ochRe", "awtools"),
+    palette = list("aurora", "parliament", "ppalette"),
+    ggtheme = list(
+      ggthemes::theme_stata(),
+      ggplot2::theme_classic(),
+      ggthemes::theme_fivethirtyeight()
+    ),
+    ggstatsplot.layer = list(FALSE, FALSE, FALSE),
+    sample.size.label = list(TRUE, FALSE, TRUE),
+    messages = FALSE
+  ),
+  .f = ggstatsplot::ggbetweenstats
+)
+  
+# combining all individual plots from the list into a single plot using combine_plots function
+ggstatsplot::combine_plots(
+  plotlist = plot_list,
+  title.text = "Changes in life expectancy across continents (1967-2007)",
+  title.color = "red",
+  nrow = 3,
+  ncol = 1
+)
+```
+
+# `ggscatterstats`
+
+```{r purrr_ggscatterstats, warning = FALSE, message = FALSE, fig.height = 12, fig.width = 7}
+# for reproducibility
+set.seed(123)
+
+# let's split the dataframe and create a list by mpaa rating
+# let's use only 25% of the data
+# also let's leave out movies with NC-17 rating because there are so few of them
+mpaa_list <- ggstatsplot::movies_wide %>%
+  dplyr::filter(.data = ., mpaa != "NC-17") %>%
+  dplyr::sample_frac(tbl = ., size = 0.25) %>%
+  base::split(x = ., f = .$mpaa, drop = TRUE)
+
+# this created a list with 3 elements, one for each mpaa rating
+# you can check the structure of the file for yourself
+# str(mpaa_list)
+
+# checking the length and names of each element
+length(mpaa_list)
+names(mpaa_list)
+
+# running function on every element of this list note that if you want the same
+# value for a given argument across all elements of the list, you need to
+# specify it just once
+plot_list <- purrr::pmap(
+  .l = list(
+    data = mpaa_list,
+    x = "budget",
+    y = "rating",
+    xlab = "Budget (in millions of US dollars)",
+    ylab = "Rating on IMDB",
+    title = list(
+      "MPAA Rating: PG",
+      "MPAA Rating: PG-13",
+      "MPAA Rating: R"
+    ),
+    label.var = list("title", "year", "length"),
+    label.expression = list(
+       "rating > 8.5 &
+         budget < 100",
+       "rating > 8 & budget < 50",
+       "rating > 9 & budget < 10"
+     ),
+    type = list("r", "np", "p"),
+    method = list(MASS::rlm, "lm", "lm"),
+    nboot = 25,
+    marginal.type = list("boxplot", "density", "violin"),
+    centrality.para = list("mean", "median", "mean"),
+    xfill = list("#009E73", "#999999", "#0072B2"),
+    yfill = list("#CC79A7", "#F0E442", "#D55E00"),
+    ggtheme = list(
+      ggthemes::theme_tufte(),
+      ggplot2::theme_classic(),
+      ggplot2::theme_light()
+    ),
+    ggstatsplot.layer = list(FALSE, TRUE, TRUE),
+    messages = FALSE
+  ),
+  .f = ggstatsplot::ggscatterstats
+)
+  
+# combining all individual plots from the list into a single plot using combine_plots function
+ggstatsplot::combine_plots(
+  plotlist = plot_list,
+  title.text = "Relationship between movie budget and IMDB rating",
+  caption.text = "Source: www.imdb.com",
+  caption.size = 16,
+  title.color = "red",
+  caption.color = "blue",
+  nrow = 3,
+  ncol = 1,
+  labels = c("(a)","(b)","(c)","(d)")
+)
+```
+
+# `ggcorrmat`
+
+```{r purrr_ggcorrmat, warning = FALSE, message = FALSE, fig.height = 10, fig.width = 10}
+# splitting the dataframe by cut and creting a list
+# let's leave out "fair" cut
+# also, to make this fast, let's only use 5% of the sample
+cut_list <- ggplot2::diamonds %>%
+  dplyr::sample_frac(tbl = ., size = 0.05) %>%
+  dplyr::filter(.data = ., cut != "Fair") %>% 
+  base::split(x = ., f = .$cut, drop = TRUE)
+
+# this created a list with 4 elements, one for each quality of cut
+# you can check the structure of the file for yourself
+# str(cut_list)
+
+# checking the length and names of each element
+length(cut_list)
+names(cut_list)
+
+# running function on every element of this list note that if you want the same
+# value for a given argument across all elements of the list, you need to
+# specify it just once
+plot_list <- purrr::pmap(
+  .l = list(
+    data = cut_list,
+    cor.vars = list(c("carat", "depth", "table", "price")),
+    cor.vars.names = list(c(
+      "carat",
+      "total depth",
+      "table",
+      "price"
+    )),
+    corr.method = list("pearson", "np", "robust", "kendall"),
+    title = list("Cut: Good", "Cut: Very Good", "Cut: Premium", "Cut: Ideal"), 
+    # note that we are changing both p-value adjustment method *and*
+    # significance level to display the significant correlations in the
+    # visualization matrix
+    p.adjust.method = list("hommel", "fdr", "BY", "hochberg"),
+    sig.level = list(0.001, 0.01, 0.05, 0.003),
+    lab.size = 3.5,
+    colors = list(
+      c("#56B4E9", "white", "#999999"),
+      c("#CC79A7", "white", "#F0E442"),
+      c("#56B4E9", "white", "#D55E00"),
+      c("#999999", "white", "#0072B2")
+    ),
+    ggstatsplot.layer = FALSE,
+    ggtheme = list(
+      ggplot2::theme_grey(),
+      ggplot2::theme_classic(),
+      ggthemes::theme_fivethirtyeight(),
+      ggthemes::theme_tufte()
+    )
+  ),
+  .f = ggstatsplot::ggcorrmat
+)
+
+# combining all individual plots from the list into a single plot using
+# `combine_plots` function
+ggstatsplot::combine_plots(
+  plotlist = plot_list,
+  title.text = "Relationship between diamond attributes and price across cut",
+  title.size = 14,
+  title.color = "red",
+  caption.text = "Dataset: Diamonds from ggplot2 package",
+  caption.size = 12,
+  caption.color = "blue",
+  nrow = 2
+)
+```
+
+
+# `gghistostats`
+
+```{r purrr_gghistostats, warning = FALSE, message = FALSE, fig.height = 14, fig.width = 6}
+# for reproducibility
+set.seed(123)
+
+# libraries needed
+library(ggthemes)
+
+# let's split the dataframe and create a list by continent
+# let's leave out Oceania because it has just two data points
+continent_list <- gapminder::gapminder %>%
+  dplyr::filter(.data = ., year == 2007, continent != "Oceania") %>%
+  base::split(x = ., f = .$continent, drop = TRUE)
+
+# this created a list with 4 elements, one for each continent
+# you can check the structure of the file for yourself
+# str(continent_list)
+
+# checking the length and names of each element
+length(continent_list)
+names(continent_list)
+
+# running function on every element of this list note that if you want the same
+# value for a given argument across all elements of the list, you need to
+# specify it just once
+plot_list <- purrr::pmap(
+  .l = list(
+    data = continent_list,
+    x = "lifeExp",
+    xlab = "Life expectancy",
+    test.value = list(35.6, 58.4, 41.6, 64.7),
+    type = list("p", "np", "r", "bf"),
+    bf.message = list(TRUE, FALSE, FALSE, FALSE),
+    title = list(
+      "Continent: Africa",
+      "Continent: Americas",
+      "Continent: Asia",
+      "Continent: Europe"
+    ),
+    bar.measure = list("proportion", "count", "proportion", "density"),
+    fill.gradient = list(TRUE, FALSE, FALSE, TRUE),
+    low.color = list("#56B4E9", "white", "#999999", "#009E73"),
+    high.color = list("#D55E00", "white", "#F0E442", "#F0E442"),
+    bar.fill = list("white", "red", "orange", "blue"),
+    centrality.color = "black",
+    test.value.line = TRUE,
+    test.value.color = "black",
+    centrality.para = "mean",
+    ggtheme = list(
+      ggplot2::theme_classic(),
+      ggthemes::theme_fivethirtyeight(),
+      ggplot2::theme_minimal(),
+      ggthemes::theme_few()
+    ),
+    messages = FALSE
+  ),
+  .f = ggstatsplot::gghistostats
+)
+  
+# combining all individual plots from the list into a single plot using combine_plots function
+ggstatsplot::combine_plots(
+  plotlist = plot_list,
+  title.text = "Improvement in life expectancy worldwide since 1950",
+  caption.text = "Note: black line - 1950; blue line - 2007",
+  nrow = 4,
+  ncol = 1,
+  labels = c("(a)", "(b)", "(c)", "(d)")
+)
+```  
+
+# `ggpiestats`
+
+```{r purrr_ggpiestats, warning = FALSE, message = FALSE, fig.height = 20, fig.width = 9}
+# let's split the dataframe and create a list by passenger class
+class_list <- ggstatsplot::Titanic_full %>%
+  base::split(x = ., f = .$Class, drop = TRUE)
+
+# this created a list with 4 elements, one for each class
+# you can check the structure of the file for yourself
+# str(class_list)
+
+# checking the length and names of each element
+length(class_list)
+names(class_list)
+
+# running function on every element of this list note that if you want the same
+# value for a given argument across all elements of the list, you need to
+# specify it just once
+plot_list <- purrr::pmap(
+  .l = list(
+    data = class_list,
+    main = "Survived",
+    condition = "Sex",
+    nboot = 10,
+    facet.wrap.name = "Gender",
+    title = list(
+      "Passenger class: 1st",
+      "Passenger class: 2nd",
+      "Passenger class: 3rd",
+      "Passenger class: Crew"
+    ),
+    caption = list(
+      "Total: 319, Died: 120, Survived: 199, % Survived: 62%",
+      "Total: 272, Died: 155, Survived: 117, % Survived: 43%",
+      "Total: 709, Died: 537, Survived: 172, % Survived: 25%",
+      "Data not available for crew passengers"
+    ),
+    package = list("RColorBrewer", "ghibli", "palettetown", "yarrr"),
+    palette = list("Accent", "MarnieMedium1", "pikachu", "nemo"),
+    ggtheme = list(
+      ggplot2::theme_grey(),
+      ggplot2::theme_bw(),
+      ggthemes::theme_tufte(),
+      ggthemes::theme_economist()
+    ),
+    ggstatsplot.layer = list(TRUE, TRUE, FALSE, FALSE),
+    sample.size.label = list(TRUE, FALSE, TRUE, FALSE),
+    messages = FALSE
+  ),
+  .f = ggstatsplot::ggpiestats
+)
+  
+# combining all individual plots from the list into a single plot using combine_plots function
+ggstatsplot::combine_plots(
+  plotlist = plot_list,
+  title.text = "Survival in Titanic disaster by gender for all passenger classes",
+  caption.text = "Asterisks denote results from proportion tests: \n***: p < 0.001, ns: non-significant",
+  nrow = 4,
+  ncol = 1,
+  labels = c("(a)","(b)","(c)", "(d)")
+)
+``` 
+
+# Suggestions
+
+If you find any bugs or have any suggestions/remarks, please file an issue on GitHub:
+<https://github.com/IndrajeetPatil/ggstatsplot/issues>
+
+# Session Information
+
+Summarizing session information for reproducibility.
+
+```{r session_info}
+options(width = 200)
+devtools::session_info()
+```

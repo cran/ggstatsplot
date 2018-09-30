@@ -132,6 +132,9 @@ combine_plots(
   caption.color = "blue"
 )
 }
+\references{
+\url{https://cran.r-project.org/package=ggstatsplot/vignettes/combine_plots.html}
+}
 \author{
 Indrajeet Patil
 }

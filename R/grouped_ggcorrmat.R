@@ -1,6 +1,5 @@
-#'
-#' @title Visualization of a correlalogram (or correlation matrix) using
-#'   'ggplot2'/'ggcorrplot' for all levels of a grouping variable
+#' @title Visualization of a correlalogram (or correlation matrix) for all
+#'   levels of a grouping variable
 #' @name grouped_ggcorrmat
 #' @aliases grouped_ggcorrmat
 #' @description Helper function for `ggstatsplot::ggcorrmat` to apply this
@@ -30,37 +29,48 @@
 #' @importFrom purrr map
 #' @importFrom tidyr nest
 #'
-#' @seealso \code{\link{ggcorrmat}} \code{\link{ggscatterstats}}
+#' @seealso \code{\link{ggcorrmat}}, \code{\link{ggscatterstats}},
 #'   \code{\link{grouped_ggscatterstats}}
 #'
-#' @references
-#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggcorrmat.html}
-#'
-#' @note If you are using R Notebook or Markdown and see a blank image being
-#'   inserted when a chunk is executed, this behavior can be turned off by
-#'   setting `legend.title.margin = FALSE`.
+#' @inherit ggcorrmat return references
+#' @inherit ggcorrmat return details
 #'
 #' @examples
 #' 
-#' # for getting correlations
+#' # for getting plot
 #' ggstatsplot::grouped_ggcorrmat(
-#'   data = datasets::iris,
-#'   grouping.var = Species,
-#'   cor.vars = Sepal.Length:Petal.Width,
-#'   output = "plot",
-#'   nrow = 3,
-#'   ncol = 1
+#'   data = ggplot2::msleep,
+#'   grouping.var = vore,
+#'   cor.vars = sleep_total:bodywt,
+#'   corr.method = "r",
+#'   p.adjust.method = "holm",
+#'   colors = NULL,
+#'   package = "wesanderson",
+#'   palette = "BottleRocket2",
+#'   nrow = 2
 #' )
 #' 
 #' # for getting correlations
 #' ggstatsplot::grouped_ggcorrmat(
-#'   data = datasets::iris,
-#'   grouping.var = Species,
-#'   cor.vars = Sepal.Length:Petal.Width,
+#'   data = ggplot2::msleep,
+#'   grouping.var = vore,
+#'   cor.vars = sleep_total:bodywt,
 #'   output = "correlations"
 #' )
+#' 
+#' # for getting confidence intervals
+#' # if **robust** correlation is selected, confidence intervals will not be
+#' # available
+#' # it will work for all other correlation types
+#' ggstatsplot::grouped_ggcorrmat(
+#'   data = datasets::iris,
+#'   grouping.var = Species,
+#'   corr.method = "r",
+#'   p.adjust.method = "holm",
+#'   cor.vars = Sepal.Length:Petal.Width,
+#'   output = "ci"
+#' )
 #' @export
-#'
 
 # defining the function
 grouped_ggcorrmat <- function(data,
@@ -69,7 +79,7 @@ grouped_ggcorrmat <- function(data,
                               grouping.var,
                               title.prefix = "Group",
                               output = "plot",
-                              type = "full",
+                              matrix.type = "full",
                               method = "square",
                               corr.method = "pearson",
                               exact = FALSE,
@@ -77,13 +87,17 @@ grouped_ggcorrmat <- function(data,
                               beta = 0.1,
                               digits = 2,
                               sig.level = 0.05,
+                              p.adjust.method = "none",
                               hc.order = FALSE,
                               hc.method = "complete",
                               lab = TRUE,
+                              package = "RColorBrewer",
+                              palette = "Dark2",
+                              direction = 1,
                               colors = c("#E69F00", "white", "#009E73"),
                               outline.color = "black",
-                              ggtheme = ggplot2::theme_bw,
-                              ggstatsplot.theme = TRUE,
+                              ggtheme = ggplot2::theme_bw(),
+                              ggstatsplot.layer = TRUE,
                               subtitle = NULL,
                               caption = NULL,
                               caption.default = TRUE,
@@ -100,9 +114,6 @@ grouped_ggcorrmat <- function(data,
                               axis.text.x.margin.r = 0,
                               axis.text.x.margin.b = 0,
                               axis.text.x.margin.l = 0,
-                              legend.title.margin = FALSE,
-                              t.margin = unit(0, "mm"),
-                              b.margin = unit(3, "mm"),
                               messages = TRUE,
                               ...) {
   # ========================================= preparing dataframe ==================================================
@@ -116,8 +127,7 @@ grouped_ggcorrmat <- function(data,
     dplyr::mutate(
       .data = .,
       title.text = !!rlang::enquo(grouping.var)
-    ) %>%
-    stats::na.omit(object = .)
+    )
 
   # creating a nested dataframe
   df %<>%
@@ -131,6 +141,7 @@ grouped_ggcorrmat <- function(data,
       .predicate = is.factor,
       .funs = ~base::droplevels(.)
     ) %>%
+    dplyr::filter(.data = ., !is.na(!!rlang::enquo(grouping.var))) %>%
     dplyr::arrange(.data = ., !!rlang::enquo(grouping.var)) %>%
     dplyr::group_by(.data = ., !!rlang::enquo(grouping.var)) %>%
     tidyr::nest(data = .)
@@ -152,7 +163,7 @@ grouped_ggcorrmat <- function(data,
               cor.vars = !!rlang::enquo(cor.vars),
               cor.vars.names = cor.vars.names,
               output = output,
-              type = type,
+              matrix.type = matrix.type,
               method = method,
               corr.method = corr.method,
               exact = exact,
@@ -160,13 +171,17 @@ grouped_ggcorrmat <- function(data,
               beta = beta,
               digits = digits,
               sig.level = sig.level,
+              p.adjust.method = p.adjust.method,
               hc.order = hc.order,
               hc.method = hc.method,
               lab = lab,
+              package = package,
+              palette = palette,
+              direction = direction,
               colors = colors,
               outline.color = outline.color,
               ggtheme = ggtheme,
-              ggstatsplot.theme = ggstatsplot.theme,
+              ggstatsplot.layer = ggstatsplot.layer,
               subtitle = subtitle,
               caption = caption,
               caption.default = caption.default,
@@ -183,9 +198,6 @@ grouped_ggcorrmat <- function(data,
               axis.text.x.margin.r = axis.text.x.margin.r,
               axis.text.x.margin.b = axis.text.x.margin.b,
               axis.text.x.margin.l = axis.text.x.margin.l,
-              legend.title.margin = legend.title.margin,
-              t.margin = t.margin,
-              b.margin = b.margin,
               messages = messages
             )
           )
@@ -197,6 +209,12 @@ grouped_ggcorrmat <- function(data,
         plotlist = plotlist_purrr$plots,
         ...
       )
+
+    # show the note about grouped_ variant producing object which is not of
+    # class ggplot
+    if (isTRUE(messages)) {
+      grouped_message()
+    }
 
     # return the combined plot
     return(combined_plot)
@@ -216,9 +234,10 @@ grouped_ggcorrmat <- function(data,
               cor.vars = !!rlang::enquo(cor.vars),
               cor.vars.names = cor.vars.names,
               output = output,
-              type = type,
+              matrix.type = matrix.type,
               method = method,
               corr.method = corr.method,
+              p.adjust.method = p.adjust.method,
               exact = exact,
               continuity = continuity,
               beta = beta,

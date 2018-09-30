@@ -7,17 +7,17 @@ designs.}
 \usage{
 ggbetweenstats(data, x, y, plot.type = "boxviolin",
   type = "parametric", effsize.type = "unbiased",
-  effsize.noncentral = FALSE, xlab = NULL, ylab = NULL,
-  caption = NULL, title = NULL, sample.size.label = TRUE, k = 3,
-  var.equal = FALSE, nboot = 100, tr = 0.1, conf.level = 0.95,
-  conf.type = "norm", mean.label.size = 3,
-  mean.label.fontface = "bold", mean.label.color = "black",
-  notch = FALSE, notchwidth = 0.5, linetype = "solid",
-  outlier.tagging = FALSE, outlier.label = NULL,
+  effsize.noncentral = FALSE, bf.prior = 0.707, bf.message = FALSE,
+  xlab = NULL, ylab = NULL, caption = NULL, title = NULL,
+  sample.size.label = TRUE, k = 3, var.equal = FALSE, nboot = 100,
+  tr = 0.1, mean.label.size = 3, mean.label.fontface = "bold",
+  mean.label.color = "black", notch = FALSE, notchwidth = 0.5,
+  linetype = "solid", outlier.tagging = FALSE, outlier.label = NULL,
   outlier.label.color = "black", outlier.color = "black",
   outlier.coef = 1.5, mean.plotting = TRUE, mean.ci = FALSE,
   mean.size = 5, mean.color = "darkred",
-  ggtheme = ggplot2::theme_bw(), palette = "Dark2",
+  ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
+  package = "RColorBrewer", palette = "Dark2", direction = 1,
   point.jitter.width = NULL, point.jitter.height = 0.1,
   point.dodge.width = 0.6, messages = TRUE)
 }
@@ -34,17 +34,25 @@ plots are \code{"box"} (for pure boxplots), \code{"violin"} (for pure violin plo
 and \code{"boxviolin"} (for a mix of box and violin plots; default).}
 
 \item{type}{Type of statistic expected (\code{"parametric"} or \code{"nonparametric"}
-or \code{"robust"}).Corresponding abbreviations are also accepted: \code{"p"} (for
-parametric), \code{"np"} (nonparametric), \code{"r"} (robust), resp.}
+or \code{"robust"} or \code{"bayes"}).Corresponding abbreviations are also accepted:
+\code{"p"} (for parametric), \code{"np"} (nonparametric), \code{"r"} (robust), or
+\code{"bf"}resp.}
 
-\item{effsize.type}{Type of effect size needed for \emph{parametric} tests
-(\code{"biased"} (Cohen's \emph{d} for \strong{t-test}; partial eta-squared for \strong{anova})
-or \code{"unbiased"} (Hedge's \emph{g} for \strong{t-test}; partial omega-squared for
-\strong{anova})).}
+\item{effsize.type}{Type of effect size needed for \emph{parametric} tests. The
+argument can be \code{"biased"} (\code{"d"} for Cohen's \emph{d} for \strong{t-test};
+\code{"partial_eta"} for partial eta-squared for \strong{anova}) or \code{"unbiased"}
+(\code{"g"} Hedge's \emph{g} for \strong{t-test}; \code{"partial_omega"} for partial
+omega-squared for \strong{anova})).}
 
 \item{effsize.noncentral}{Logical indicating whether to use non-central
 \emph{t}-distributions for computing the 95% confidence interval for Cohen's \emph{d}
 or Hedge's \emph{g} (Default: \code{FALSE}).}
+
+\item{bf.prior}{A number between 0.5 and 2 (default \code{0.707}), the prior width
+to use in calculating Bayes factors.}
+
+\item{bf.message}{Logical. Decides whether to display Bayes Factor in favor
+of \emph{null} hypothesis \strong{for parametric test} (Default: \code{bf.message = FALSE}).}
 
 \item{xlab}{Label for \code{x} axis variable.}
 
@@ -58,10 +66,14 @@ or Hedge's \emph{g} (Default: \code{FALSE}).}
 should be displayed for each level of the grouping variable \code{x} (Default:
 \code{TRUE}).}
 
-\item{k}{Number of decimal places expected for results.}
+\item{k}{Number of digits after decimal point (should be an integer) (Default: \code{k = 3}).}
 
-\item{var.equal}{A logical variable indicating whether to treat the two
-variances as being equal (Default: \code{FALSE}).}
+\item{var.equal}{a logical variable indicating whether to treat the
+    variances in the samples as equal.  If \code{TRUE}, then a simple F
+    test for the equality of means in a one-way analysis of variance is
+    performed.  If \code{FALSE}, an approximate method of Welch (1951)
+    is used, which generalizes the commonly known 2-sample Welch test to
+    the case of arbitrarily many samples.}
 
 \item{nboot}{Number of bootstrap samples for computing effect size (Default:
 \code{100}).}
@@ -71,14 +83,6 @@ get error stating "Standard error cannot be computed because of Winsorized
 variance of 0 (e.g., due to ties). Try to decrease the trimming level.",
 try to play around with the value of \code{tr}, which is by default set to
 \code{0.1}. Lowering the value might help.}
-
-\item{conf.level}{Scalar between 0 and 1. If \code{NULL}, the defaults return
-\code{95\%} lower and upper confidence intervals (\code{0.95}).}
-
-\item{conf.type}{A vector of character strings representing the type of
-confidence intervals required from bootstrapping for partial eta- and
-omega-squared. The value should be any subset of the values \code{"norm"},
-\code{"basic"}, \code{"perc"}, \code{"bca"}. For more, see \code{?boot::boot.ci}.}
 
 \item{mean.label.size, mean.label.fontface, mean.label.color}{Aesthetics for
 the label displaying mean. Defaults: \code{3}, \code{"bold"},\code{"black"}, respectively.}
@@ -126,13 +130,22 @@ is to be displayed (Default: \code{FALSE}).}
 \code{"darkred"}).}
 
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
-\code{ggplot2::theme_bw()}. Allowed values are the official \code{ggplot2} themes,
-including \code{ggplot2::theme_grey()}, \code{ggplot2::theme_minimal()},
-\code{ggplot2::theme_classic()}, \code{ggplot2::theme_void()}, etc.}
+\code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
+extension packages are allowed (e.g., \code{ggthemes::theme_economist()},
+\code{hrbrthemes::theme_ipsum_ps()}, \code{ggthemes::theme_fivethirtyeight()}, etc.).}
+
+\item{ggstatsplot.layer}{Logical that decides whether \code{theme_ggstatsplot}
+theme elements are to be displayed along with the selected \code{ggtheme}
+(Default: \code{TRUE}).}
+
+\item{package}{Name of package from which the palette is desired as string
+or symbol.}
 
 \item{palette}{If a character string (e.g., \code{"Set1"}), will use that named
 palette. If a number, will index into the list of palettes of appropriate
 type. Default palette is \code{"Dark2"}.}
+
+\item{direction}{Either \code{1} or \code{-1}. If \code{-1} the palette will be reversed.}
 
 \item{point.jitter.width}{Numeric specifying the degree of jitter in \code{x}
 direction. Defaults to \code{40\%} of the resolution of the data.}
@@ -151,6 +164,24 @@ A combination of box and violin plots along with jittered data
 points for between-subjects designs with statistical details included in
 the plot as a subtitle.
 }
+\details{
+For parametric tests, Welch's ANOVA/t-test are used as a default. References:
+\itemize{
+\item ANOVA: Delacre, Leys, Mora, & Lakens, \emph{PsyArXiv}, 2018
+\item t-test: Delacre, Lakens, & Leys, \emph{International Review of Social Psychology}, 2017
+}
+
+If robust tests are selected, following tests are used is .
+\itemize{
+\item ANOVA: one-way ANOVA on trimmed means (see \code{?WRS2::t1way})
+\item t-test: Yuen's test for trimmed means (see \code{?WRS2::yuen})
+}
+
+Variant of this function \code{ggwithinstats} is currently under work. You \emph{can}
+still use this function just to prepare the \strong{plot} for exploratory data
+analysis, but the statistical details displayed in the subtitle will be
+incorrect. You can remove them by adding \code{+ ggplot2::labs(subtitle = NULL)}.
+}
 \examples{
 
 # to get reproducible results from bootstrapping
@@ -158,23 +189,30 @@ set.seed(123)
 
 # simple function call with the defaults
 ggstatsplot::ggbetweenstats(
-  data = datasets::iris,
-  x = Species,
-  y = Sepal.Length
+  data = mtcars,
+  x = am,
+  y = mpg,
+  title = "Fuel efficiency by type of car transmission",
+  caption = "Transmission (0 = automatic, 1 = manual)",
+  bf.message = TRUE
 )
 
 # more detailed function call
 ggstatsplot::ggbetweenstats(
-  data = datasets::ToothGrowth,
-  x = supp,
-  y = len,
+  data = datasets::morley,
+  x = Expt,
+  y = Speed,
   plot.type = "box",
-  xlab = "Supplement type",
-  ylab = "Tooth length"
+  xlab = "The experiment number",
+  ylab = "Speed-of-light measurement",
+  outlier.tagging = TRUE,
+  outlier.label = Run,
+  ggtheme = ggthemes::theme_few(),
+  ggstatsplot.layer = FALSE
 )
 }
 \references{
-\url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggbetweenstats.html}
+\url{https://cran.r-project.org/package=ggstatsplot/vignettes/ggbetweenstats.html}
 }
 \seealso{
 \code{\link{grouped_ggbetweenstats}}

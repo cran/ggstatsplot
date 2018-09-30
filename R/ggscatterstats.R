@@ -1,4 +1,3 @@
-#'
 #' @title Scatterplot with marginal distributions
 #' @name ggscatterstats
 #' @aliases ggscatterstats
@@ -11,10 +10,17 @@
 #'   taken.
 #' @param x A vector containing the explanatory variable.
 #' @param y The response - a vector of length the number of rows of `x`.
+#' @param label.var Variable to use for points labels. **Must** be entered as a
+#'   character string e.g. `"y"`
+#' @param label.expression An expression evaluating to a logical vector that
+#'   determines the subset of data points to label. **Must** be entered as a
+#'   character string e.g. `"y < 4 & z < 20"`.
 #' @param xlab Label for `x` axis variable.
 #' @param ylab Label for `y` axis variable.
 #' @param line.color color for the regression line.
 #' @param line.size Size for the regression line.
+#' @param point.color,point.size,point.alpha Aesthetics specifying geom point
+#'   (defaults: `point.color = "black"`, `point.size = 3`,`point.alpha = 0.4`).
 #' @param marginal Decides whether `ggExtra::ggMarginal()` plots will be
 #'   displayed; the default is `TRUE`.
 #' @param marginal.type Type of marginal distribution to be plotted on the axes
@@ -26,40 +32,34 @@
 #'   Any of the following arguments are accepted: `"both"`, `"x"`, `"y"`.
 #' @param xfill,yfill Character describing color fill for `x` and `y` axes
 #'   marginal distributions (default: `"#009E73"` (for `x`) and `"#D55E00"` (for
-#'   `y`)).
+#'   `y`)). If set to `NULL`, manual specification of colors will be turned off
+#'   and 2 colors from the specified `palette` from `package` will be selected.
 #' @param xalpha,yalpha Numeric deciding transparency levels for the marginal
 #'   distributions. Any numbers from `0` (transparent) to `1` (opaque). The
 #'   default is `1` for both axes.
-#' @param xsize,ysize Size for the marginal distribution boundaries (Default: `0.7`).
-#' @param type Type of association between paired samples required
-#'   ("`"parametric"`: Pearson's product moment correlation coefficient" or
-#'   "`"nonparametric"`: Spearman's rho" or "`"robust"`: Robust regression using
-#'   an M estimator"). Corresponding abbreviations are also accepted: `"p"` (for
-#'   parametric/pearson's), `"np"` (nonparametric/spearman), `"r"` (robust),
-#'   resp.
+#' @param xsize,ysize Size for the marginal distribution boundaries (Default:
+#'   `0.7`).
 #' @param results.subtitle Decides whether the results of statistical tests are
 #'   to be displayed as subtitle.
 #' @param centrality.para Decides *which* measure of central tendency (`"mean"`
 #'   or `"median"`) is to be displayed as vertical (for `x`) and horizontal (for
 #'   `y`) lines.
 #' @param title The text for the plot title.
+#' @param subtitle The text for the plot subtitle. Will work only if
+#'   `results.subtitle = FALSE`.
 #' @param caption The text for the plot caption.
-#' @param nboot Number of bootstrap samples for computing effect size (Default:
-#'   `100`).
-#' @param beta bending constant (Default: `0.1`). For more, see `?WRS2::pbcor`.
 #' @param k Number of decimal places expected for results.
-#' @param width.jitter Degree of jitter in `x` direction. Defaults to 40\% of
-#'   the resolution of the data.
-#' @param height.jitter Degree of jitter in `y` direction. Defaults to 40\% of
-#'   the resolution of the data.
-#' @param axes.range.restrict Logical decides whether to restrict the axes values
-#'   ranges to min and max values of the `x` and `y` variables (Default: `FALSE`).
-#' @param ggtheme A function, `ggplot2` theme name. Default value is
-#'   `ggplot2::theme_bw()`. Allowed values are the official `ggplot2` themes,
-#'   including `theme_grey()`, `theme_minimal()`, `theme_classic()`,
-#'   `theme_void()`, etc.
-#' @param messages Decides whether messages references, notes, and warnings are
-#'   to be displayed (Default: `TRUE`).
+#' @param point.width.jitter Degree of jitter in `x` direction. Defaults to 40\%
+#'   of the resolution of the data.
+#' @param point.height.jitter Degree of jitter in `y` direction. Defaults to
+#'   40\% of the resolution of the data.
+#' @param axes.range.restrict Logical decides whether to restrict the axes
+#'   values ranges to min and max values of the `x` and `y` variables (Default:
+#'   `FALSE`).
+#' @inheritParams subtitle_ggscatterstats
+#' @inheritParams ggplot2::geom_smooth
+#' @inheritParams theme_ggstatsplot
+#' @inheritParams paletteer::paletteer_d
 #'
 #' @import ggplot2
 #'
@@ -71,55 +71,85 @@
 #' @importFrom dplyr mutate
 #' @importFrom dplyr mutate_at
 #' @importFrom dplyr mutate_if
+#' @importFrom dplyr filter
 #' @importFrom magrittr "%<>%"
 #' @importFrom magrittr "%>%"
 #' @importFrom rlang enquo
 #' @importFrom rlang quo_name
-#' @importFrom broom tidy
+#' @importFrom rlang parse_expr
 #' @importFrom ggExtra ggMarginal
 #' @importFrom stats cor.test
 #' @importFrom stats na.omit
-#' @importFrom stats confint.default
+#' @importFrom ggrepel geom_label_repel
 #'
-#' @seealso \code{\link{grouped_ggscatterstats}} \code{\link{ggcorrmat}} \code{\link{grouped_ggcorrmat}}
+#' @seealso \code{\link{grouped_ggscatterstats}}, \code{\link{ggcorrmat}},
+#' \code{\link{grouped_ggcorrmat}}
 #'
 #' @references
-#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggscatterstats.html}
+#' \url{https://cran.r-project.org/package=ggstatsplot/vignettes/ggscatterstats.html}
 #'
-#' @note `marginal.type = "densigram"` will work only with the development
+#' @note
+#' \itemize{
+#' \item `marginal.type = "densigram"` will work only with the development
 #'   version of `ggExtra` that you can download from `GitHub`:
 #'   `devtools::install_github("daattali/ggExtra")`
+#'
+#' \item The plot uses `ggrepel::geom_label_repel` to attempt to keep labels
+#'   from over-lapping to the largest degree possible.  As a consequence plot
+#'   times will slow down massively (and the plot file will grow in size) if you
+#'   have a lot of labels that overlap.
+#' }
 #'
 #' @examples
 #' 
 #' # to get reproducible results from bootstrapping
 #' set.seed(123)
 #' 
+#' # creating dataframe
+#' mtcars_new <- mtcars %>%
+#'   tibble::rownames_to_column(., var = "car") %>%
+#'   tibble::as_data_frame(x = .)
+#' 
 #' # simple function call with the defaults
 #' ggstatsplot::ggscatterstats(
-#'   data = datasets::mtcars,
+#'   data = mtcars_new,
 #'   x = wt,
 #'   y = mpg,
-#'   type = "np"
+#'   type = "np",
+#'   label.var = "car",
+#'   label.expression = "wt < 4 & mpg < 20",
+#'   axes.range.restrict = TRUE,
+#'   centrality.para = "median",
+#'   xfill = NULL
 #' )
 #' @export
-#'
 
 # defining the function
 ggscatterstats <-
   function(data,
              x,
              y,
+             label.var = NULL,
+             label.expression = NULL,
              xlab = NULL,
              ylab = NULL,
+             method = "lm",
+             method.args = list(),
+             formula = y ~ x,
+             point.color = "black",
+             point.size = 3,
+             point.alpha = 0.4,
+             point.width.jitter = NULL,
+             point.height.jitter = NULL,
              line.size = 1.5,
              line.color = "blue",
              marginal = TRUE,
              marginal.type = "histogram",
              marginal.size = 5,
              margins = c("both", "x", "y"),
-             width.jitter = NULL,
-             height.jitter = NULL,
+             package = "wesanderson",
+             palette = "Royal1",
+             direction = 1,
              xfill = "#009E73",
              yfill = "#D55E00",
              xalpha = 1,
@@ -128,310 +158,331 @@ ggscatterstats <-
              ysize = 0.7,
              centrality.para = NULL,
              type = "pearson",
-             results.subtitle = NULL,
+             results.subtitle = TRUE,
              title = NULL,
+             subtitle = NULL,
              caption = NULL,
              nboot = 100,
              beta = 0.1,
              k = 3,
              axes.range.restrict = FALSE,
              ggtheme = ggplot2::theme_bw(),
+             ggstatsplot.layer = TRUE,
              messages = TRUE) {
-    ################################################### dataframe ####################################################
 
+    #--------------------------------- variable names ----------------------------------------------------------
+
+    # preparing a dataframe with variable names
     lab.df <- colnames(dplyr::select(
       .data = data,
       !!rlang::enquo(x),
       !!rlang::enquo(y)
     ))
-    # if xlab is not provided, use the variable x name
+
+    # if `xlab` is not provided, use the variable `x` name
     if (is.null(xlab)) {
       xlab <- lab.df[1]
     }
-    # if ylab is not provided, use the variable y name
+
+    # if `ylab` is not provided, use the variable `y` name
     if (is.null(ylab)) {
       ylab <- lab.df[2]
     }
-    # if dataframe is provided
-    data <-
-      dplyr::select(
-        .data = data,
-        x = !!rlang::enquo(x),
-        y = !!rlang::enquo(y)
-      )
 
-    ######################################## statistical labels ######################################################
+    #--------------------------------- dataframe ----------------------------------------------------------
 
-    # if results.subtitle argument is not specified, default to showing the results
-    if (is.null(results.subtitle)) {
-      results.subtitle <- TRUE
+    # preparing the dataframe
+    data <- dplyr::full_join(
+      # dataframe where x and y are named "x...internal" and "y...internal"
+      # these bizarre names are used to protect against the possibility
+      # that user has already used "x" and "y" as variable names, in which case the
+      # full_join() will create variable names that will create problems
+      x = data %>%
+        dplyr::select(
+          .data = .,
+          x...internal = !!rlang::enquo(x),
+          y...internal = !!rlang::enquo(y)
+        ) %>%
+        tibble::rowid_to_column(., var = "rowid"),
+      # dataframe where x and y retain their original names
+      y = data %>%
+        dplyr::select(
+          .data = .,
+          !!rlang::enquo(x),
+          !!rlang::enquo(y),
+          dplyr::everything()
+        ) %>%
+        tibble::rowid_to_column(., var = "rowid"),
+      by = "rowid"
+    ) %>%
+      dplyr::select(.data = ., -rowid) %>%
+      dplyr::filter(.data = ., !is.na(x...internal), !is.na(y...internal)) %>%
+      tibble::as_data_frame(x = .)
+
+    #--------------------------------- user expression ----------------------------------------------------------
+
+    # create a list of function call to check for label.expression
+    param_list <- base::as.list(base::match.call())
+
+    # check labeling variable has been entered
+    if ("label.var" %in% names(param_list)) {
+      point.labelling <- TRUE
+    } else {
+      point.labelling <- FALSE
     }
-    # if results.subtitle argument is set to FALSE then subtitle should be set to NULL
-    if (results.subtitle != TRUE) {
-      stats_subtitle <- NULL
-    }
 
-    if (results.subtitle == TRUE) {
-      # running the correlation test and preparing the subtitle text
-      if (type == "pearson" || type == "p") {
-        ################################################### Pearson's r ##################################################
-
-        c <-
-          stats::cor.test(
-            formula = ~x + y,
-            data = data,
-            method = "pearson",
-            alternative = "two.sided",
-            exact = FALSE,
-            na.action = na.omit
-          )
-
-        # preparing the label
-        stats_subtitle <-
-          base::substitute(
-            expr =
-              paste(
-                "Pearson's ",
-                italic("r"),
-                "(",
-                df,
-                ")",
-                " = ",
-                estimate,
-                ", 95% CI [",
-                LL,
-                ", ",
-                UL,
-                "], ",
-                italic("p"),
-                " = ",
-                pvalue,
-                ", ",
-                italic("n"),
-                " = ",
-                n
-              ),
-            env = base::list(
-              # degrees of freedom are always integer
-              df = c$parameter[[1]],
-              t = ggstatsplot::specify_decimal_p(x = c$statistic[[1]], k),
-              estimate = ggstatsplot::specify_decimal_p(x = c$estimate[[1]], k),
-              LL = ggstatsplot::specify_decimal_p(x = c$conf.int[1][[1]], k),
-              UL = ggstatsplot::specify_decimal_p(x = c$conf.int[2][[1]], k),
-              pvalue = ggstatsplot::specify_decimal_p(x = c$p.value[[1]], k, p.value = TRUE),
-              n = nrow(x = data)
-            )
-          )
-      } else if (type == "spearman" || type == "np") {
-        ################################################### Spearnman's rho ##################################################
-        # running the correlation test and preparing the subtitle text
-        # note that stats::cor.test doesn't give degress of freedom; it's calculated as df = (no. of pairs - 2)
-        c <-
-          stats::cor.test(
-            formula = ~x + y,
-            data = data,
-            method = "spearman",
-            alternative = "two.sided",
-            exact = FALSE,
-            na.action = na.omit
-          )
-
-        # getting confidence interval for rho using broom bootstrap
-        c_ci <- cor_tets_ci(
-          data = data,
-          x = x,
-          y = y,
-          nboot = nboot
-        )
-
-        # preparing the label
-        stats_subtitle <-
-          base::substitute(
-            expr =
-              paste(
-                "Spearman's ",
-                italic(rho),
-                "(",
-                df,
-                ")",
-                " = ",
-                estimate,
-                ", 95% CI [",
-                LL,
-                ", ",
-                UL,
-                "], ",
-                italic("p"),
-                " = ",
-                pvalue,
-                ", ",
-                italic("n"),
-                " = ",
-                n
-              ),
-            env = base::list(
-              df = (length(data$x) - 2),
-              # degrees of freedom are always integer
-              estimate = ggstatsplot::specify_decimal_p(x = c$estimate[[1]], k),
-              LL = ggstatsplot::specify_decimal_p(x = c_ci$conf.low[[1]], k),
-              UL = ggstatsplot::specify_decimal_p(x = c_ci$conf.high[[1]], k),
-              pvalue = ggstatsplot::specify_decimal_p(
-                x = c$p.value[[1]],
-                k,
-                p.value = TRUE
-              ),
-              n = nrow(x = data)
-            )
-          )
-        ################################################### robust ##################################################
-      } else if (type == "robust" || type == "r") {
-        # running robust correlation
-        rob_res <- robcor_ci(
-          data = data,
-          x = x,
-          y = y,
-          beta = beta,
-          nboot = nboot,
-          conf.level = 0.95,
-          conf.type = "norm"
-        )
-
-        # preparing the subtitle
-        stats_subtitle <-
-          base::substitute(
-            expr =
-              paste(
-                "robust ",
-                italic(r),
-                " = ",
-                estimate,
-                ", 95% CI [",
-                LL,
-                ", ",
-                UL,
-                "], ",
-                italic("p"),
-                " = ",
-                pvalue,
-                ", ",
-                italic("n"),
-                " = ",
-                n
-              ),
-
-            env = base::list(
-              estimate = ggstatsplot::specify_decimal_p(x = rob_res$r[[1]], k),
-              LL = ggstatsplot::specify_decimal_p(x = rob_res$conf.low[[1]], k),
-              UL = ggstatsplot::specify_decimal_p(x = rob_res$conf.high[[1]], k),
-              # degrees of freedom are always integer
-              pvalue = ggstatsplot::specify_decimal_p(rob_res$`p-value`[[1]],
-                k,
-                p.value = TRUE
-              ),
-              n = rob_res$n[[1]]
-            )
-          )
-
-        # displaying message about what correlation was used
-        if (isTRUE(messages)) {
-          base::message(cat(
-            crayon::green("Note:"),
-            crayon::blue(
-              "Percentage bend correlation with",
-              crayon::yellow(nboot),
-              "bootstrap samples was run."
-            )
-          ))
+    # creating a new dataframe for showing labels
+    label_data <-
+      data %>%
+      {
+        if ("label.expression" %in% names(param_list)) {
+          #          dplyr::filter(.data = ., !!rlang::enquo(label.expression))  # original
+          dplyr::filter(.data = ., !!rlang::parse_expr(label.expression))
+        }
+        else {
+          (.)
         }
       }
+    #--------------------------------- creating results subtitle --------------------------------------
+    #
+    # adding a subtitle with statistical results
+    if (results.subtitle == TRUE) {
+      subtitle <- subtitle_ggscatterstats(
+        data = data,
+        x = x...internal,
+        y = y...internal,
+        nboot = nboot,
+        beta = beta,
+        type = type,
+        conf.level = 0.95,
+        conf.type = "norm",
+        messages = messages,
+        k = k
+      )
     }
-    ################################################### plot ################################################################
+
+    #------------------------------------ basic plot -----------------------------
+
+    # if user has not specified colors, then use a color palette
+    if (is.null(xfill) || is.null(yfill)) {
+      colors <- paletteer::paletteer_d(
+        package = !!package,
+        palette = !!palette,
+        n = 2,
+        direction = direction,
+        type = "discrete"
+      )
+
+      # assigning selected colors
+      xfill <- colors[1]
+      yfill <- colors[2]
+    }
 
     # preparing the scatterplotplot
     plot <-
       ggplot2::ggplot(
         data = data,
         mapping = ggplot2::aes(
-          x = x,
-          y = y
+          x = x...internal,
+          y = y...internal
         )
       ) +
       ggplot2::geom_point(
-        size = 3,
-        alpha = 0.5,
-        position = position_jitter(
-          width = width.jitter,
-          height = height.jitter
+        color = point.color,
+        size = point.size,
+        alpha = point.alpha,
+        stroke = 0,
+        position = ggplot2::position_jitter(
+          width = point.width.jitter,
+          height = point.height.jitter
         ),
         na.rm = TRUE
       ) +
       ggplot2::geom_smooth(
-        method = "lm",
+        method = method,
+        method.args = method.args,
+        formula = formula,
         se = TRUE,
         size = line.size,
         color = line.color,
-        na.rm = TRUE
+        na.rm = TRUE,
+        level = 0.95
       ) +
-      ggstatsplot::theme_mprl(ggtheme = ggtheme) +
+      ggstatsplot::theme_mprl(
+        ggtheme = ggtheme,
+        ggstatsplot.layer = ggstatsplot.layer
+      ) +
       ggplot2::labs(
         x = xlab,
         y = ylab,
         title = title,
-        subtitle = stats_subtitle,
+        subtitle = subtitle,
         caption = caption
       )
 
-    # forcing the plots to get cut off at min and max values of the variable
-    if (isTRUE(axes.range.restrict)) {
-      plot <- plot +
-        ggplot2::coord_cartesian(xlim = c(min(data$x), max(data$x))) +
-        ggplot2::coord_cartesian(ylim = c(min(data$y), max(data$y)))
-    }
-    ################################################ centrality.para ##################################################
+    #--------------------------------- adding centrality parameters ----------------------------------
 
     # by default, if the input is NULL, then no centrality.para lines will be plotted
 
+    # computing summary statistics needed for displaying labels
+    x_mean <- mean(x = data$x...internal, na.rm = TRUE)
+    x_median <- median(x = data$x...internal, na.rm = TRUE)
+    y_mean <- mean(x = data$y...internal, na.rm = TRUE)
+    y_median <- median(x = data$y...internal, na.rm = TRUE)
+    x_label_pos <- median(x = ggplot2::layer_scales(plot)$x$range$range, na.rm = TRUE)
+    y_label_pos <- median(x = ggplot2::layer_scales(plot)$y$range$range, na.rm = TRUE)
+
+    # adding vertical and horizontal lines and attaching labels
     if (is.null(centrality.para)) {
       plot <- plot
     } else if (isTRUE(centrality.para) ||
       centrality.para == "mean") {
-      plot <- plot +
+      plot <-
+        plot +
+        # vertical line
         ggplot2::geom_vline(
-          xintercept = mean(x = data$x, na.rm = TRUE),
+          xintercept = x_mean,
           linetype = "dashed",
           color = xfill,
-          size = 1.2,
+          size = 1.0,
           na.rm = TRUE
         ) +
+        # horizontal line
         ggplot2::geom_hline(
-          yintercept = mean(x = data$y, na.rm = TRUE),
+          yintercept = y_mean,
           linetype = "dashed",
           color = yfill,
-          size = 1.2,
+          size = 1.0,
           na.rm = TRUE
+        ) +
+        # label for vertical line
+        ggplot2::geom_label(
+          mapping = ggplot2::aes(
+            label = list(bquote(
+              "mean" == .(ggstatsplot::specify_decimal_p(
+                x = x_mean, k = 2
+              ))
+            )),
+            x = x_mean,
+            y = y_label_pos * (1 + 0.25)
+          ),
+          alpha = 0.5,
+          show.legend = FALSE,
+          parse = TRUE,
+          color = xfill
+        ) +
+        # label for horizontal line
+        ggplot2::geom_label(
+          mapping = ggplot2::aes(
+            label = list(bquote(
+              "mean" == .(ggstatsplot::specify_decimal_p(
+                x = y_mean, k = 2
+              ))
+            )),
+            x = x_label_pos * (1 + 0.25),
+            y = y_mean
+          ),
+          alpha = 0.5,
+          show.legend = FALSE,
+          parse = TRUE,
+          color = yfill
         )
     } else if (centrality.para == "median") {
-      plot <- plot +
+      plot <-
+        plot +
+        # vertical line
         ggplot2::geom_vline(
-          xintercept = median(x = data$x, na.rm = TRUE),
+          xintercept = x_median,
           linetype = "dashed",
           color = xfill,
-          size = 1.2,
+          size = 1.0,
           na.rm = TRUE
         ) +
+        # horizontal line
         ggplot2::geom_hline(
-          yintercept = median(x = data$y, na.rm = TRUE),
+          yintercept = y_median,
           linetype = "dashed",
           color = yfill,
-          size = 1.2,
+          size = 1.0,
           na.rm = TRUE
+        ) +
+        # label for vertical line
+        ggplot2::geom_label(
+          mapping = ggplot2::aes(
+            label = list(bquote(
+              "median" == .(ggstatsplot::specify_decimal_p(
+                x = x_median, k = 2
+              ))
+            )),
+            x = x_median,
+            y = y_label_pos * (1 + 0.25)
+          ),
+          alpha = 0.5,
+          show.legend = FALSE,
+          parse = TRUE,
+          color = xfill
+        ) +
+        # label for horizontal line
+        ggplot2::geom_label(
+          mapping = ggplot2::aes(
+            label = list(bquote(
+              "median" == .(ggstatsplot::specify_decimal_p(
+                x = y_median, k = 2
+              ))
+            )),
+            x = x_label_pos * (1 + 0.25),
+            y = y_median
+          ),
+          alpha = 0.5,
+          show.legend = FALSE,
+          parse = TRUE,
+          color = yfill
         )
     }
 
-    #################################################### ggMarginal ######################################################
+    #--------------------------------- range restriction -------------------------------------
 
+    # forcing the plots to get cut off at min and max values of the variable
+    if (isTRUE(axes.range.restrict)) {
+      plot <- plot +
+        ggplot2::coord_cartesian(xlim = c(
+          min(data$x...internal, na.rm = TRUE),
+          max(data$x...internal, na.rm = TRUE)
+        )) +
+        ggplot2::coord_cartesian(ylim = c(
+          min(data$y...internal, na.rm = TRUE),
+          max(data$y...internal, na.rm = TRUE)
+        ))
+    }
+
+    #--------------------------------- adding point labels --------------------------
+
+    if (isTRUE(point.labelling)) {
+      # using geom_repel_label
+      plot <-
+        plot +
+        ggrepel::geom_label_repel(
+          data = label_data,
+          mapping = aes_string(
+            label = label.var
+          ),
+          fontface = "bold",
+          color = "black",
+          max.iter = 3e2,
+          box.padding = 0.35,
+          point.padding = 0.5,
+          segment.color = "black",
+          force = 2,
+          seed = 123,
+          na.rm = TRUE
+        )
+    }
+    #-------------------------------------- ggMarginal  ----------------------------
+
+    # creating the ggMarginal plot of a given marginal.type
     if (isTRUE(marginal)) {
-      # creating the ggMarginal plot of a given marginal.type
+
+      # adding marginals to plot
       plot <-
         ggExtra::ggMarginal(
           p = plot,
@@ -453,16 +504,16 @@ ggscatterstats <-
         )
     }
 
-    ################################################### messages ##########################################################
-
-    # display warning that this doesn't produce a ggplot2 object
-    if (isTRUE(messages) &&
-      isTRUE(marginal)) {
+    #---------------------------- messages  ------------------------------------
+    #
+    # display warning that this function doesn't produce a ggplot2 object
+    if (isTRUE(marginal) && isTRUE(messages)) {
       base::message(cat(
-        crayon::red("Warning:"),
+        crayon::red("Warning: "),
         crayon::blue(
-          "This function doesn't return a `ggplot2` object and is not further modifiable with `ggplot2` functions."
-        )
+          "The plot is not a `ggplot` object and therefore can't be further modified with `ggplot2` functions.\n"
+        ),
+        sep = ""
       ))
     }
 

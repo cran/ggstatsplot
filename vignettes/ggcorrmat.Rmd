@@ -7,7 +7,8 @@ output:
     fig_width: 6
     fig.align: 'center'
     fig.asp: 0.618
-    dpi: 300
+    dpi: 150
+    toc: true
     warning: FALSE
     message: FALSE
 vignette: >
@@ -28,21 +29,19 @@ The function `ggstatsplot::ggcorrmat` provides a quick way to produce
 can also be used for quick **data exploration**. In addition to the plot, it can
 also be used to get a correlation coefficient matrix or the associated p-value
 matrix. Currently, the plot can display Pearson's *r*, Spearman's *rho*, and
-Kendall's *tau*. Robust correlation coefficient option is available only to
-output coefficients and p-values. The percentage bend correlation is used as a
-robust correlation. Future release will also support robust correlation matrix.
-This function is a convenient wrapper around
-\code{\link[ggcorrplot]{ggcorrplot}} function with some additional
-functionality, so its documentation will be helpful.
+Kendall's *tau*, and *robust* correlation coefficient (percentage bend
+correlation; see `?WRS2::pbcor`). This function is a convenient wrapper around
+`ggcorrplot::ggcorrplot` function with some additional functionality.
 
 We will see examples of how to use this function in this vignette with the
-`gapminder` dataset.
+`gapminder` and `diamonds` dataset.
 
 To begin with, here are some instances where you would want to use
 `ggcorrmat`-
 
   - to easily visualize a correlation matrix using `ggplot2`
-  - to quickly explore correlation between numeric variables in the dataset
+  - to quickly explore correlation between (all) numeric variables in the
+  dataset
 
 **Note before**: The following demo uses the pipe operator (`%>%`), so in case
 you are not familiar with this operator, here is a good explanation:
@@ -86,13 +85,17 @@ This plot can be further modified with additional arguments-
 ggstatsplot::ggcorrmat(
   data = gapminder_2007,                      # data from which variable is to be taken
   cor.vars = lifeExp:gdpPercap,               # specifying correlation matrix variables
-  cor.vars.names = c("Life Expectancy", "population", "GDP (per capita)"),
+  cor.vars.names = c("Life Expectancy", 
+                     "population", 
+                     "GDP (per capita)"),
   corr.method = "kendall",                    # which correlation coefficient is to be computed
   lab.col = "red",                            # label color
-  ggtheme = ggplot2::theme_light,             # selected ggplot2 theme
-  ggstatsplot.theme = FALSE,                  # turn off default ggestatsplot theme overlay
-  type = "lower",                             # type of correlation matrix
-  colors = c("green", "white", "yellow"),     # selecting color combination
+  ggtheme = ggplot2::theme_light(),           # selected ggplot2 theme
+  ggstatsplot.layer = FALSE,                  # turn off default ggestatsplot theme overlay
+  matrix.type = "lower",                      # correlation matrix structure
+  colors = NULL,                              # turning off manual specification of colors
+  palette = "category10_d3",                  # choosing a color palette
+  package = "ggsci",                          # package to which color palette belongs
   title = "Gapminder correlation matrix",     # custom title
   subtitle = "Source: Gapminder Foundation"   # custom subtitle
 )
@@ -113,17 +116,29 @@ Let's have a look at the data-
 ```{r diamonds, warning = FALSE, message = FALSE}
 library(ggplot2)
 
-dplyr::glimpse(x = diamonds)
+dplyr::glimpse(x = ggplot2::diamonds)
 ```
 
 Let's see the correlation matrix between different attributes of the diamond and
 the price.
 
 ```{r ggcorrmat3, warning = FALSE, message = FALSE, fig.height = 7, fig.width = 7}
+# for reproducibility
+set.seed(123)
+
+# let's use just 5% of the data to speed it up
 ggstatsplot::ggcorrmat(
-  data = diamonds,             
+  data = dplyr::sample_frac(tbl = ggplot2::diamonds, size = 0.05),             
   cor.vars = c(carat, depth:z),        # note how the variables are getting selected
-  cor.vars.names = c("carat", "total depth", "table", "price", "length (in mm)", "width (in mm)", "depth (in mm)"),
+  cor.vars.names = c(
+    "carat",
+    "total depth",
+    "table",
+    "price",
+    "length (in mm)",
+    "width (in mm)",
+    "depth (in mm)"
+    ), 
   hc.order = TRUE                      # use hierarchical clustering
 )
 ```
@@ -138,13 +153,25 @@ always make sure that the order in which `cor.vars` and `cor.vars.names` are
 entered is in sync. Otherwise, wrong column labels will be displayed.
 
 ```{r ggcorrmat4, warning = FALSE, message = FALSE, fig.height = 7, fig.width = 7}
+# for reproducibility
+set.seed(123)
+
+# let's use just 5% of the data to speed it up
 ggstatsplot::ggcorrmat(
-  data = diamonds,             
+  data = dplyr::sample_frac(tbl = ggplot2::diamonds, size = 0.05),             
   cor.vars = c(price, carat, depth:table, x:z),    # note how the variables are getting selected
-  cor.vars.names = c("price", "carat", "total depth", "table",  "length (in mm)", "width (in mm)", "depth (in mm)"),
+  cor.vars.names = c(
+    "price",
+    "carat",
+    "total depth",
+    "table",
+    "length (in mm)",
+    "width (in mm)",
+    "depth (in mm)"
+  ), 
   corr.method = "spearman",
   sig.level = 0.008,
-  type = "lower",
+  matrix.type = "lower",
   title = "Relationship between diamond attributes and price",
   subtitle = "Dataset: Diamonds from ggplot2 package",
   colors = c("#0072B2", "#D55E00", "#CC79A7"),
@@ -164,16 +191,17 @@ As seen here, and unsurprisingly, the strongest predictor of the diamond price i
 ## Correlation statistics matrix with `ggcorrmat`
 
 Another utility of `ggcorrmat` is in obtaining matrix of correlation
-coefficients and their p-values for a quick and dirty exploratory data analysis.
-For example, for the correlation matrix we just ran, we can get a coefficient
-matrix and a p-value matrix. We will use robust correlation for this
-illustration as this correlation is supported only to get correlation
-coefficients and p-values.
+coefficients and their *p*-values for a quick and dirty exploratory data
+analysis. For example, for the correlation matrix we just ran, we can get a
+coefficient matrix and a *p*-value matrix.
 
 ```{r ggcorrmat5, warning = FALSE, message = FALSE}
+# for reproducibility
+set.seed(123)
+
 # to get correlations
 ggstatsplot::ggcorrmat(
-  data = diamonds,             
+  data = dplyr::sample_frac(tbl = ggplot2::diamonds, size = 0.15),             
   cor.vars = c(price, carat, depth:table, x:z),
   output = "correlations",
   corr.method = "robust",
@@ -182,7 +210,7 @@ ggstatsplot::ggcorrmat(
 
 # to get p-values
 ggstatsplot::ggcorrmat(
-  data = diamonds,             
+  data = dplyr::sample_frac(tbl = ggplot2::diamonds, size = 0.15),             
   cor.vars = c(price, carat, depth:table, x:z),
   output = "p-values",
   corr.method = "robust",
@@ -192,8 +220,8 @@ ggstatsplot::ggcorrmat(
 
 ## Grouped analysis with `grouped_ggcorrmat`
 
-What if we want to do the same analysis separately for each type of quality of
-the diamond `cut` (Fair, Good, Very Good, Premium, Ideal)? In that case, we will
+What if we want to do the same analysis separately for each quality of the
+diamond `cut` (Fair, Good, Very Good, Premium, Ideal)? In that case, we will
 have to either write a `for` loop or use `purrr`, none of which seem like an
 exciting prospect.
 
@@ -205,9 +233,16 @@ into a single plot. Note that the grouping variable can be anything: conditions
 in a given study, groups in a study sample, different studies, etc. 
 
 ```{r ggcorrmat6, warning = FALSE, message = FALSE, fig.height = 16, fig.width = 10}
+# for reproducibility
+set.seed(123)
+
+# let's use just 5% of the data to speed it up
 ggstatsplot::grouped_ggcorrmat(
   # arguments relevant for ggstatsplot::ggcorrmat
-  data = ggplot2::diamonds,
+  data = dplyr::sample_frac(tbl = ggplot2::diamonds, size = 0.05),
+  corr.method = "r",                  # percentage bend correlation coefficient
+  beta = 0.2,                         # bending constant
+  p.adjust.method = "holm",           # method to adjust p-values for multiple comparisons
   grouping.var = cut,
   title.prefix = "Quality of cut",
   cor.vars = c(carat, depth:z),
@@ -240,8 +275,12 @@ to get the same correlation coefficient matrix for `color` of the diamond, we
 can do the following-
 
 ```{r ggcorrmat7, warning = FALSE, message = FALSE}
+# for reproducibility
+set.seed(123)
+
+# let's use just 5% of the data to speed it up
 ggstatsplot::grouped_ggcorrmat(
-  data = ggplot2::diamonds,
+  data = dplyr::sample_frac(tbl = ggplot2::diamonds, size = 0.05),
   grouping.var = cut,
   cor.vars = c(price, carat, depth:table, x:z),
   output = "correlations",
@@ -258,85 +297,22 @@ correlations in your dataset with the `grouped_ggcorrmat` function.
 Although `grouped_` function is good for quickly exploring the data, it reduces
 the flexibility with which this function can be used. This is the because the
 common parameters used are applied to plots corresponding to all levels of the
-grouping variable and there is no way to adapt them based on the level of the
-grouping variable. We will see how this can be done using the `purrr` package
-from tidyverse. 
+grouping variable and there is no way to customize the arguments for different
+levels of the grouping variable. We will see how this can be done using the
+`purrr` package in the associated vignette:
+<https://indrajeetpatil.github.io/ggstatsplot/articles/purrr_examples.html>
 
-**Note before**: Unlike the function call so far, while using `purrr::pmap`, we
-will need to *quote* the arguments.
+# Suggestions
 
-```{r ggcorrmat8, warning = FALSE, message = FALSE, fig.height = 16, fig.width = 10}
-# splitting the dataframe by cut and creting a list
-cut_list <- ggplot2::diamonds %>%
-  base::split(x = ., f = .$cut, drop = TRUE)
+If you find any bugs or have any suggestions/remarks, please file an issue on
+`GitHub`: <https://github.com/IndrajeetPatil/ggstatsplot/issues>
 
-# this created a list with 5 elements, one for each quality of cut
-# you can check the structure of the file for yourself
-# str(cut_list)
+# Session Information
 
-# checking the length and names of each element
-length(cut_list)
-names(cut_list)
+Summarizing session information for reproducibility.
 
-# running function on every element of this list note that if you want the same
-# value for a given argument across all elements of the list, you need to
-# specify it just once
-plot_list <- purrr::pmap(
-  .l = list(
-    data = cut_list,
-    cor.vars = list(c("carat", "depth", "table",
-                 "price", "x", "y", "z")),
-    cor.vars.names = list(c(
-      "carat",
-      "total depth",
-      "table",
-      "price",
-      "length (in mm)",
-      "width (in mm)",
-      "depth (in mm)"
-    )),
-    corr.method = list("pearson", "spearman", "spearman", "pearson", "pearson"),
-    sig.level = list(0.05, 0.001, 0.01, 0.05, 0.003),
-    lab.size = 3.5,
-    colors = list(
-      c("#56B4E9", "white", "#999999"),
-      c("#0072B2", "white", "#D55E00"),
-      c("#CC79A7", "white", "#F0E442"),
-      c("#56B4E9", "white", "#D55E00"),
-      c("#999999", "white", "#0072B2")
-    ),
-    ggstatsplot.theme = list(FALSE),
-    ggtheme = list(
-      ggplot2::theme_grey,
-      ggplot2::theme_classic,
-      ggplot2::theme_minimal,
-      ggplot2::theme_bw,
-      ggplot2::theme_dark
-    )
-  ),
-  .f = ggstatsplot::ggcorrmat
-)
-
-# combining all individual plots from the list into a single plot using combine_plots function
-ggstatsplot::combine_plots(
-  plotlist = plot_list,
-  title.text = "Relationship between diamond attributes and price across cut",
-  title.size = 16,
-  title.color = "red",
-  caption.text = "Dataset: Diamonds from ggplot2 package",
-  caption.size = 14,
-  caption.color = "blue",
-  labels = c("(a)", "(b)", "(c)", "(d)", "(e)"),
-  nrow = 3,
-  ncol = 2
-)
+```{r session_info}
+options(width = 200)
+devtools::session_info()
 ```
 
-As can be seen from this example, combination of `purrr` and `ggstatsplot` much
-more flexibility in analyzing the data and preparing a combined plot across
-studies or conditions.
-
-## Suggestions
-
-If you find any bugs or have any suggestions/remarks, please file an issue on GitHub: 
-<https://github.com/IndrajeetPatil/ggstatsplot/issues>

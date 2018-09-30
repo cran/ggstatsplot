@@ -7,17 +7,17 @@
 gghistostats(data = NULL, x, binwidth = NULL, bar.measure = "count",
   xlab = NULL, title = NULL, subtitle = NULL, caption = NULL,
   type = "parametric", test.value = 0, bf.prior = 0.707,
-  bf.message = TRUE, robust.estimator = "onestep", nboot = 500,
-  k = 3, low.color = "#0072B2", high.color = "#D55E00",
-  results.subtitle = TRUE, legend.title.margin = FALSE,
-  t.margin = unit(0, "mm"), b.margin = unit(3, "mm"),
-  centrality.para = NULL, centrality.color = "blue",
-  centrality.size = 1.2, centrality.linetype = "dashed",
-  test.value.line = FALSE, test.value.color = "black",
-  test.value.size = 1.2, test.value.linetype = "dashed",
-  line.labeller = FALSE, line.labeller.y = -2,
-  ggtheme = ggplot2::theme_bw(), fill.gradient = TRUE,
-  messages = TRUE)
+  bf.message = FALSE, robust.estimator = "onestep", nboot = 100,
+  k = 3, ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
+  fill.gradient = FALSE, low.color = "#0072B2",
+  high.color = "#D55E00", bar.fill = "grey50",
+  results.subtitle = TRUE, centrality.para = "mean",
+  centrality.color = "blue", centrality.size = 1,
+  centrality.linetype = "dashed", centrality.line.labeller = TRUE,
+  centrality.k = 2, test.value.line = FALSE,
+  test.value.color = "black", test.value.size = 1,
+  test.value.linetype = "dashed", test.line.labeller = TRUE,
+  test.k = 0, messages = TRUE)
 }
 \arguments{
 \item{data}{Dataframe from which variables specified are preferentially to be
@@ -25,24 +25,25 @@ taken. This argument is optional.}
 
 \item{x}{A numeric variable.}
 
-\item{binwidth}{The width of the bins. Can be specified as a numeric value,
-or a function that calculates width from \code{x}. The default is to use bins
-bins that cover the range of the data. You should always override this
-value, exploring multiple widths to find the best to illustrate the stories
-in your data.}
+\item{binwidth}{The width of the histogram bins. Can be specified as a numeric
+value, or a function that calculates width from \code{x}. The default is to use the
+\code{max(x) - min(x) / sqrt(N)}. You should always check this value and explore
+multiple widths to find the best to illustrate the stories in your data.}
 
 \item{bar.measure}{Character describing what value needs to be represented as
 height in the bar chart. This can either be \code{"count"}, which shows number
 of points in bin, or \code{"density"}, which density of points in bin, scaled to
 integrate to 1, or "\code{proportion}", which shows relative frequencies of
-observations in each bin.}
+observations in each bin, or "\code{mix}", which shows both count and proportion
+in the same plot (only available from \code{ggplot2 3.0.1} onward).}
 
 \item{xlab}{Label for \code{x} axis variable.}
 
 \item{title}{The text for the plot title.}
 
 \item{subtitle}{The text for the plot subtitle \emph{if} you don't want results
-from one sample test to be displayed.}
+from one sample test to be displayed (i.e. \code{results.subtitle} should be set
+to \code{FALSE}).}
 
 \item{caption}{The text for the plot caption.}
 
@@ -50,35 +51,48 @@ from one sample test to be displayed.}
 or \code{"robust"} or \code{"bayes"}). Abbreviations accepted are \code{"p"} or \code{"np"} or
 \code{"r"} or \code{"bf"}, respectively.}
 
-\item{test.value}{A number specifying the value of the null hypothesis.}
+\item{test.value}{A number specifying the value of the null hypothesis
+(Default: \code{0}).}
 
-\item{bf.prior}{A number between 0.5 and 2 (default 0.707), the prior width
+\item{bf.prior}{A number between 0.5 and 2 (default \code{0.707}), the prior width
 to use in calculating Bayes factors.}
 
 \item{bf.message}{Logical. Decides whether to display Bayes Factor in favor
-of null hypothesis for parametric test if the null hypothesis can't be
-rejected (Default: \code{bf.message = TRUE}).}
+of \emph{null} hypothesis \strong{for parametric test} (Default: \code{bf.message = FALSE}).
+This will work only if \code{results.subtitle = TRUE}.}
 
 \item{robust.estimator}{If \code{test = "robust"} robust estimator to be used
 (\code{"onestep"} (Default), \code{"mom"}, or \code{"median"}). For more, see
 \code{?WRS2::onesampb}.}
 
-\item{nboot}{Number of bootstrap samples for robust one-sample location test.}
+\item{nboot}{Number of bootstrap samples for robust one-sample location test
+(Default: \code{100}).}
 
-\item{k}{Number of decimal places expected for results.}
+\item{k}{Number of digits after decimal point (should be an integer) (Default: \code{k = 3}).}
+
+\item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
+\code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
+extension packages are allowed (e.g., \code{ggthemes::theme_economist()},
+\code{hrbrthemes::theme_ipsum_ps()}, \code{ggthemes::theme_fivethirtyeight()}, etc.).}
+
+\item{ggstatsplot.layer}{Logical that decides whether \code{theme_ggstatsplot}
+theme elements are to be displayed along with the selected \code{ggtheme}
+(Default: \code{TRUE}).}
+
+\item{fill.gradient}{Logical decides whether color fill gradient is to be
+displayed (Default: \code{FALSE}). If \code{FALSE}, the legend and the color gradient
+will also be removed. The default is set to \code{FALSE} because the gradient
+provides redundant information in light of y-axis labels.}
 
 \item{low.color, high.color}{Colors for low and high ends of the gradient.
 Defaults are colorblind-friendly.}
 
+\item{bar.fill}{If \code{fill.gradient = FALSE}, then \code{bar.fill} decides which
+color will uniformly fill all the bars in the histogram (Default: \code{"grey50"}).}
+
 \item{results.subtitle}{Decides whether the results of statistical tests are
 to be displayed as subtitle (Default: \code{results.subtitle = TRUE}). If set to
 \code{FALSE}, no statistical tests will be run.}
-
-\item{legend.title.margin}{Adjusting the margin between legend title and the
-colorbar (Default: \code{FALSE}).}
-
-\item{t.margin, b.margin}{Margins in grid units. For more details, see
-\code{?grid::unit()}.}
 
 \item{centrality.para}{Decides \emph{which} measure of central tendency (\code{"mean"}
 or \code{"median"}) is to be displayed as a vertical line.}
@@ -104,19 +118,12 @@ value (Default: \code{"black"}).}
 \item{test.value.linetype}{Decides linetype for the vertical line for test
 value (Default: \code{"dashed"}).}
 
-\item{line.labeller}{A logical that decides whether line labels should be
-displayed (Default: \code{FALSE}).}
+\item{test.line.labeller, centrality.line.labeller}{A logical that decides
+whether line labels should be displayed (Default: \code{TRUE}).}
 
-\item{line.labeller.y}{A numeric denoting the y-coordinate for displaying
-line labels (Default: \code{-2}).}
-
-\item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
-\code{ggplot2::theme_bw()}. Allowed values are the official \code{ggplot2} themes,
-including \code{theme_grey()}, \code{theme_minimal()}, \code{theme_classic()},
-\code{theme_void()}, etc.}
-
-\item{fill.gradient}{Logical decides whether color fill gradient is to be
-displayed (Default: \code{TRUE}). If \code{FALSE}, the legend will also be removed.}
+\item{test.k, centrality.k}{Integer denoting the number of decimal places
+expected for test and centrality parameters. (Default: \code{0} and \code{2},
+respectively).}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
@@ -125,34 +132,33 @@ to be displayed (Default: \code{TRUE}).}
 Histogram with statistical details from one-sample test included
 in the plot as a subtitle.
 }
-\note{
-If you are using R Notebook and see a blank image being inserted when a
-chunk is executed, this behavior can be turned off by setting
-\code{legend.title.margin = FALSE}.
-}
 \examples{
 
 # most basic function call with the defaults
+# this is the only function where data argument can be `NULL`.
 ggstatsplot::gghistostats(
-  data = datasets::ToothGrowth,
-  x = len,
-  xlab = "Tooth length"
+  x = ToothGrowth$len,
+  xlab = "Tooth length",
+  centrality.para = "median"
 )
 
 # a detailed function call
 ggstatsplot::gghistostats(
   data = datasets::iris,
   x = Sepal.Length,
-  type = "bf",
+  bar.measure = "count",
+  type = "p",
+  bf.message = TRUE,
+  caption = substitute(paste(italic("Note"), ": Iris dataset by Fisher.")),
   bf.prior = 0.8,
   test.value = 3,
-  centrality.para = "mean",
   test.value.line = TRUE,
-  binwidth = 0.10
+  binwidth = 0.10,
+  bar.fill = "grey50"
 )
 }
 \references{
-\url{https://indrajeetpatil.github.io/ggstatsplot/articles/gghistostats.html}
+\url{https://cran.r-project.org/package=ggstatsplot/vignettes/gghistostats.html}
 }
 \seealso{
 \code{\link{grouped_gghistostats}}

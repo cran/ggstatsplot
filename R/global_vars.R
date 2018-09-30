@@ -17,6 +17,8 @@ utils::globalVariables(
     "estimate",
     "eta",
     "omega",
+    "etasq",
+    "omegasq",
     "perc",
     "cramer",
     "cramer_ci",
@@ -45,6 +47,7 @@ utils::globalVariables(
     "sd",
     "bf",
     "bf_error",
+    "bf_prior",
     "Df",
     "F value",
     "F.value",
@@ -106,7 +109,15 @@ utils::globalVariables(
     "n.y",
     "sd.y",
     "se.y",
-    "std.error"
+    "std.error",
+    "pair",
+    "bold",
+    "x...internal",
+    "y...internal",
+    "or",
+    "atop",
+    "top.text",
+    "bottom.text"
   ),
   package = "ggstatsplot",
   add = FALSE

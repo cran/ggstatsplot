@@ -2,23 +2,22 @@
 % Please edit documentation in R/ggcorrmat.R
 \name{ggcorrmat}
 \alias{ggcorrmat}
-\title{Visualization of a correlalogram (or correlation matrix) using
-'ggplot2'/'ggcorrplot'}
+\title{Visualization of a correlalogram (or correlation matrix)}
 \usage{
 ggcorrmat(data, cor.vars, cor.vars.names = NULL, output = "plot",
-  type = "full", method = "square", corr.method = "pearson",
+  matrix.type = "full", method = "square", corr.method = "pearson",
   exact = FALSE, continuity = TRUE, beta = 0.1, digits = 2,
-  sig.level = 0.05, hc.order = FALSE, hc.method = "complete",
-  lab = TRUE, colors = c("#E69F00", "white", "#009E73"),
-  outline.color = "black", ggtheme = ggplot2::theme_bw,
-  ggstatsplot.theme = TRUE, title = NULL, subtitle = NULL,
+  sig.level = 0.05, p.adjust.method = "none", hc.order = FALSE,
+  hc.method = "complete", lab = TRUE, package = "RColorBrewer",
+  palette = "Dark2", direction = 1, colors = c("#E69F00", "white",
+  "#009E73"), outline.color = "black", ggtheme = ggplot2::theme_bw(),
+  ggstatsplot.layer = TRUE, title = NULL, subtitle = NULL,
   caption = NULL, caption.default = TRUE, lab.col = "black",
   lab.size = 5, insig = "pch", pch = 4, pch.col = "black",
   pch.cex = 11, tl.cex = 12, tl.col = "black", tl.srt = 45,
-  axis.text.x.margin.t = 0, axis.text.x.margin.r = 0,
-  axis.text.x.margin.b = 0, axis.text.x.margin.l = 0,
-  legend.title.margin = FALSE, t.margin = unit(0, "mm"),
-  b.margin = unit(3, "mm"), messages = TRUE)
+  axis.text.x.margin.l = 0, axis.text.x.margin.t = 0,
+  axis.text.x.margin.r = 0, axis.text.x.margin.b = 0,
+  messages = TRUE)
 }
 \arguments{
 \item{data}{Dataframe from which variables specified are preferentially to be
@@ -30,11 +29,15 @@ computed and visualized.}
 \item{cor.vars.names}{Optional list of names to be used for \code{cor.vars}. The
 names should be entered in the same order.}
 
-\item{output}{Expected output from this function: \code{"plot"} (visualization
-matrix) or \code{"correlations"} (correlation matrix) or \code{"p-values"} (matrix of
-p-values).}
+\item{output}{Character that decides expected output from this function:
+\code{"plot"} (for visualization matrix) or \code{"correlations"} (or \code{"corr"} or
+\code{"r"}; for correlation matrix) or \code{"p-values"} (or \code{"p.values"} or \code{"p"};
+for a matrix of \emph{p}-values) or \code{"ci"} (for a tibble with confidence
+intervals for unique correlation pairs; not available for robust
+correlation) or \code{"n"} (or \code{"sample.size"} for a tibble with sample sizes
+for each correlation pair).}
 
-\item{type}{Character, \code{"full"} (default), \code{"upper"} or \code{"lower"}, display
+\item{matrix.type}{Character, \code{"full"} (default), \code{"upper"} or \code{"lower"}, display
 full matrix, lower triangular or upper triangular matrix.}
 
 \item{method}{Character argument that decides the visualization method of
@@ -46,7 +49,8 @@ coefficient is to be computed (\code{"pearson"} (default) or \code{"kendall"} or
 \code{"spearman"}). \code{"robust"} can also be entered but only if \code{output} argument
 is set to either \code{"correlations"} or \code{"p-values"}. The robust correlation
 used is percentage bend correlation (see \code{?WRS2::pball}). Abbreviations
-will \strong{not} work.}
+will also work: \code{"p"} (for parametric/Pearson's \emph{r}), \code{"np"}
+(nonparametric/Spearman's \emph{rho}), \code{"r"} (robust).}
 
 \item{exact}{A logical indicating whether an exact \emph{p}-value should be
 computed. Used for Kendall's \emph{tau} and Spearman's \emph{rho}. For more details,
@@ -59,12 +63,22 @@ Kendall's \emph{tau} and Spearman's \emph{rho} when not computed exactly (Defaul
 \item{beta}{A numeric bending constant for robust correlation coefficient
 (Default: \code{0.1}).}
 
-\item{digits}{Decides the number of decimal digits to be added into the plot
-(Default: \code{2}).}
+\item{digits}{Decides the number of decimal digits to be displayed (Default:
+\code{2}).}
 
-\item{sig.level}{Significance level (Default: \code{0.05}). If the p-value in
-p-mat (p-value matrix) is bigger than \code{sig.level}, then the corresponding
-correlation coefficient is regarded as insignificant.}
+\item{sig.level}{Significance level (Default: \code{0.05}). If the \emph{p}-value in
+\emph{p}-value matrix is bigger than \code{sig.level}, then the corresponding
+correlation coefficient is regarded as insignificant and flagged as such in
+the plot. This argument is relevant only when \code{output = "plot"}.}
+
+\item{p.adjust.method}{What adjustment for multiple tests should be used?
+(\code{"holm"}, \code{"hochberg"}, \code{"hommel"}, \code{"bonferroni"}, \code{"BH"}, \code{"BY"},
+\code{"fdr"}, \code{"none"}). See \code{stats::p.adjust} for details about why to use
+\code{"holm"} rather than \code{"bonferroni"}). Default is \code{"none"}. If adjusted
+\emph{p}-values are displayed in the visualization of correlation matrix, the
+\strong{adjusted} \emph{p}-values will be used for the \strong{upper} triangle, while
+\strong{unadjusted} \emph{p}-values will be used for the \strong{lower} triangle of the
+matrix.}
 
 \item{hc.order}{Logical value. If \code{TRUE}, correlation matrix will be
 hc.ordered using \code{hclust} function (Default is \code{FALSE}).}
@@ -75,18 +89,28 @@ hc.ordered using \code{hclust} function (Default is \code{FALSE}).}
 \item{lab}{Logical value. If \code{TRUE}, correlation coefficient values will be
 displayed in the plot.}
 
-\item{colors}{A vector of 3 colors for low, mid, and high correlation values.}
+\item{package}{Name of package from which the palette is desired as string
+or symbol.}
+
+\item{palette}{Name of palette as string or symbol.}
+
+\item{direction}{Either \code{1} or \code{-1}. If \code{-1} the palette will be reversed.}
+
+\item{colors}{A vector of 3 colors for low, mid, and high correlation values.
+If set to \code{NULL}, manual specification of colors will be turned off and 3
+colors from the specified \code{palette} from \code{package} will be selected.}
 
 \item{outline.color}{The outline color of square or circle. Default value is
 \code{"gray"}.}
 
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
-\code{ggplot2::theme_bw}. Allowed values are the official \code{ggplot2} themes,
-including \code{theme_grey}, \code{theme_minimal}, \code{theme_classic}, \code{theme_void}, etc.}
+\code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
+extension packages are allowed (e.g., \code{ggthemes::theme_economist()},
+\code{hrbrthemes::theme_ipsum_ps()}, \code{ggthemes::theme_fivethirtyeight()}, etc.).}
 
-\item{ggstatsplot.theme}{A logical. Decides whether default theme for
-\code{ggstatsplot}, which is \code{theme_mprl}, is to be overlaid on the entered
-theme (Default: \code{ggstatsplot.theme = TRUE}).}
+\item{ggstatsplot.layer}{Logical that decides whether \code{theme_ggstatsplot}
+theme elements are to be displayed along with the selected \code{ggtheme}
+(Default: \code{TRUE}).}
 
 \item{title}{The text for the plot title.}
 
@@ -109,8 +133,9 @@ coefficients (\code{"pch"} (default) or \code{"blank"}). If \code{"blank"}, the
 corresponding glyphs will be removed; if "pch" is used, characters (see
 \code{?pch} for details) will be added on the corresponding glyphs.}
 
-\item{pch}{Decides the glyphs (read point shapes) to be used for insignificant correlation
-coefficients (only valid when \code{insig = "pch"}). Default value is \code{pch = 4}.}
+\item{pch}{Decides the glyphs (read point shapes) to be used for
+insignificant correlation coefficients (only valid when \code{insig = "pch"}).
+Default value is \code{pch = 4}.}
 
 \item{pch.col, pch.cex}{The color and the cex (size) of \code{pch} (only valid when
 \code{insig = "pch"}). Defaults are \code{pch.col = "#F0E442"} and \code{pch.cex = 10}.}
@@ -119,14 +144,8 @@ coefficients (only valid when \code{insig = "pch"}). Default value is \code{pch 
 text label (variable names, i.e.).}
 
 \item{axis.text.x.margin.t, axis.text.x.margin.r, axis.text.x.margin.b, axis.text.x.margin.l}{Margins between x-axis and the variable name texts (t: top, r: right, b:
-bottom, l:left), especially useful in case the names are slanted, i.e. when the tl.srt is
-between \code{45} and \code{75} (Defaults: \code{0}, \code{0}, \code{0}, \code{0}, resp.).}
-
-\item{legend.title.margin}{Logical indicating whether to adjust the margin between legend title and the
-colorbar (Default: \code{FALSE}).}
-
-\item{t.margin, b.margin}{Margins in grid units. For more details, see
-\code{?grid::unit()}.}
+bottom, l:left), especially useful in case the names are slanted, i.e. when
+the tl.srt is between \code{45} and \code{75} (Defaults: \code{0}, \code{0}, \code{0}, \code{0}, resp.).}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
@@ -136,43 +155,58 @@ Correlation matrix plot or correlation coefficient matrix or matrix
 of p-values.
 }
 \description{
-Visualization of a correlalogram (or correlation matrix) using
-'ggplot2'/'ggcorrplot'
-}
-\note{
-If you are using R Notebook or Markdown and see a blank image being
-inserted when a chunk is executed, this behavior can be turned off by
-setting \code{legend.title.margin = FALSE}.
+Visualization of a correlalogram (or correlation matrix)
 }
 \examples{
 
 # to get the correlalogram
+# note that the function will run even if the vector with variable names is
+# not of same length as the number of variables
 ggstatsplot::ggcorrmat(
-  data = datasets::iris,
-  cor.vars = c(Sepal.Length:Petal.Width)
+  data = ggplot2::msleep,
+  cor.vars = sleep_total:bodywt,
+  cor.vars.names = c("total sleep", "REM sleep")
 )
 
 # to get the correlation matrix
 ggstatsplot::ggcorrmat(
-  data = datasets::iris,
-  cor.vars = c(Sepal.Length:Petal.Width),
-  output = "correlations"
+  data = ggplot2::msleep,
+  cor.vars = sleep_total:bodywt,
+  output = "r"
 )
 
-# setting output = "p-values" will return the p-value matrix
+# setting output = "p-values" (or "p") will return the p-value matrix
+ggstatsplot::ggcorrmat(
+  data = ggplot2::msleep,
+  cor.vars = sleep_total:bodywt,
+  corr.method = "r",
+  p.adjust.method = "bonferroni",
+  output = "p"
+)
+
+# setting output = "ci" will return the confidence intervals for unique
+# correlation pairs
+ggstatsplot::ggcorrmat(
+  data = ggplot2::msleep,
+  cor.vars = sleep_total:bodywt,
+  p.adjust.method = "BH",
+  output = "ci"
+)
 
 # modifying few elements of the correlation matrix by changing function defaults
 ggstatsplot::ggcorrmat(
   data = datasets::iris,
   cor.vars = c(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width),
   sig.level = 0.01,
-  ggtheme = ggplot2::theme_bw,
-  hc.order = TRUE, type = "lower", outline.col = "white",
+  ggtheme = ggplot2::theme_bw(),
+  hc.order = TRUE,
+  matrix.type = "lower",
+  outline.col = "white",
   title = "Dataset: Iris"
 )
 }
 \references{
-\url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggcorrmat.html}
+\url{https://cran.r-project.org/package=ggstatsplot/vignettes/ggcorrmat.html}
 }
 \seealso{
 \code{\link{grouped_ggcorrmat}} \code{\link{ggscatterstats}}

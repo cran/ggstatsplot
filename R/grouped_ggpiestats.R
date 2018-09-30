@@ -1,4 +1,3 @@
-#'
 #' @title Grouped pie charts with statistical tests
 #' @name grouped_ggpiestats
 #' @aliases grouped_ggpiestats
@@ -31,8 +30,8 @@
 #'
 #' @seealso \code{\link{ggpiestats}}
 #'
-#' @references
-#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggpiestats.html}
+#' @inherit ggpiestats return references
+#' @inherit ggpiestats return details
 #'
 #' @examples
 #' 
@@ -42,8 +41,17 @@
 #'   grouping.var = am,
 #'   main = cyl
 #' )
+#' 
+#' # without condition and with count data
+#' library(jmv)
+#' 
+#' ggstatsplot::grouped_ggpiestats(
+#'   data = as.data.frame(HairEyeColor),
+#'   main = Hair,
+#'   counts = Freq,
+#'   grouping.var = Sex
+#' )
 #' @export
-#'
 
 # defining the function
 grouped_ggpiestats <- function(data,
@@ -59,19 +67,26 @@ grouped_ggpiestats <- function(data,
                                sample.size.label = TRUE,
                                caption = NULL,
                                nboot = 25,
-                               palette = "Dark2",
                                legend.title = NULL,
                                facet.wrap.name = NULL,
                                k = 3,
+                               perc.k = 0,
                                facet.proptest = TRUE,
                                ggtheme = ggplot2::theme_bw(),
+                               ggstatsplot.layer = TRUE,
+                               package = "RColorBrewer",
+                               palette = "Dark2",
+                               direction = 1,
                                messages = TRUE,
                                ...) {
   # ================================ preparing dataframe ======================================
 
-  if (!base::missing(condition)) {
-    if (base::missing(counts)) {
-      # if condition variable *is* provided
+  if (!missing(condition)) {
+
+    # if condition variable *is* provided
+    if (missing(counts)) {
+
+      # if the data is not tabled
       df <- dplyr::select(
         .data = data,
         !!rlang::enquo(grouping.var),
@@ -82,7 +97,9 @@ grouped_ggpiestats <- function(data,
           .data = .,
           title.text = !!rlang::enquo(grouping.var)
         )
-    } else {
+    } else if (!missing(counts)) {
+
+      # if data is tabled
       df <- dplyr::select(
         .data = data,
         !!rlang::enquo(grouping.var),
@@ -95,7 +112,8 @@ grouped_ggpiestats <- function(data,
           title.text = !!rlang::enquo(grouping.var)
         )
     }
-  } else {
+  } else if (missing(condition)) {
+
     # if condition variable is *not* provided
     if (base::missing(counts)) {
       df <- dplyr::select(
@@ -107,7 +125,7 @@ grouped_ggpiestats <- function(data,
           .data = .,
           title.text = !!rlang::enquo(grouping.var)
         )
-    } else {
+    } else if (!missing(counts)) {
       df <- dplyr::select(
         .data = data,
         !!rlang::enquo(grouping.var),
@@ -133,12 +151,13 @@ grouped_ggpiestats <- function(data,
       .predicate = is.factor,
       .funs = ~base::droplevels(.)
     ) %>%
+    dplyr::filter(.data = ., !is.na(!!rlang::enquo(grouping.var))) %>%
     dplyr::arrange(.data = ., !!rlang::enquo(grouping.var)) %>%
     dplyr::group_by(.data = ., !!rlang::enquo(grouping.var)) %>%
     tidyr::nest(data = .)
 
-  if (!base::missing(condition)) {
-    if (base::missing(counts)) {
+  if (!missing(condition)) {
+    if (missing(counts)) {
       # creating a list of plots
       plotlist_purrr <- df %>%
         dplyr::mutate(
@@ -159,12 +178,16 @@ grouped_ggpiestats <- function(data,
                 sample.size.label = sample.size.label,
                 caption = caption,
                 nboot = nboot,
-                palette = palette,
                 legend.title = legend.title,
                 facet.wrap.name = facet.wrap.name,
                 k = k,
+                perc.k = perc.k,
                 facet.proptest = facet.proptest,
                 ggtheme = ggtheme,
+                ggstatsplot.layer = ggstatsplot.layer,
+                package = package,
+                palette = palette,
+                direction = direction,
                 messages = messages
               )
             )
@@ -190,19 +213,23 @@ grouped_ggpiestats <- function(data,
                 sample.size.label = sample.size.label,
                 caption = caption,
                 nboot = nboot,
-                palette = palette,
                 legend.title = legend.title,
                 facet.wrap.name = facet.wrap.name,
                 k = k,
+                perc.k = perc.k,
                 facet.proptest = facet.proptest,
                 ggtheme = ggtheme,
+                ggstatsplot.layer = ggstatsplot.layer,
+                package = package,
+                palette = palette,
+                direction = direction,
                 messages = messages
               )
             )
         )
     }
-  } else {
-    if (base::missing(counts)) {
+  } else if (missing(condition)) {
+    if (missing(counts)) {
       # creating a list of plots
       plotlist_purrr <- df %>%
         dplyr::mutate(
@@ -221,44 +248,54 @@ grouped_ggpiestats <- function(data,
                 stat.title = stat.title,
                 caption = caption,
                 nboot = nboot,
-                palette = palette,
                 legend.title = legend.title,
                 facet.wrap.name = facet.wrap.name,
                 k = k,
+                perc.k = perc.k,
                 facet.proptest = facet.proptest,
                 ggtheme = ggtheme,
+                ggstatsplot.layer = ggstatsplot.layer,
+                package = package,
+                palette = palette,
+                direction = direction,
                 messages = messages
               )
             )
         )
-    } else {
-      dplyr::mutate(
-        .data = .,
-        plots = data %>%
-          purrr::set_names(!!rlang::enquo(grouping.var)) %>%
-          purrr::map(
-            .x = .,
-            .f = ~ggstatsplot::ggpiestats(
-              data = .,
-              main = !!rlang::enquo(main),
-              counts = !!rlang::enquo(counts),
-              title = glue::glue("{title.prefix}: {as.character(.$title.text)}"),
-              ratio = ratio,
-              paired = paired,
-              factor.levels = factor.levels,
-              stat.title = stat.title,
-              caption = caption,
-              nboot = nboot,
-              palette = palette,
-              legend.title = legend.title,
-              facet.wrap.name = facet.wrap.name,
-              k = k,
-              facet.proptest = facet.proptest,
-              ggtheme = ggtheme,
-              messages = messages
+    } else if (!missing(counts)) {
+      # creating a list of plots
+      plotlist_purrr <- df %>%
+        dplyr::mutate(
+          .data = .,
+          plots = data %>%
+            purrr::set_names(!!rlang::enquo(grouping.var)) %>%
+            purrr::map(
+              .x = .,
+              .f = ~ggstatsplot::ggpiestats(
+                data = .,
+                main = !!rlang::enquo(main),
+                counts = !!rlang::enquo(counts),
+                title = glue::glue("{title.prefix}: {as.character(.$title.text)}"),
+                ratio = ratio,
+                paired = paired,
+                factor.levels = factor.levels,
+                stat.title = stat.title,
+                caption = caption,
+                nboot = nboot,
+                legend.title = legend.title,
+                facet.wrap.name = facet.wrap.name,
+                k = k,
+                perc.k = perc.k,
+                facet.proptest = facet.proptest,
+                ggtheme = ggtheme,
+                ggstatsplot.layer = ggstatsplot.layer,
+                package = package,
+                palette = palette,
+                direction = direction,
+                messages = messages
+              )
             )
-          )
-      )
+        )
     }
   }
 
@@ -268,6 +305,12 @@ grouped_ggpiestats <- function(data,
       plotlist = plotlist_purrr$plots,
       ...
     )
+
+  # show the note about grouped_ variant producing object which is not of
+  # class ggplot
+  if (isTRUE(messages)) {
+    grouped_message()
+  }
 
   # return the combined plot
   return(combined_plot)

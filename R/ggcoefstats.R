@@ -1,4 +1,3 @@
-#'
 #' @title Model coefficients for fitted models with the model summary as a
 #'   caption.
 #' @name ggcoefstats
@@ -34,6 +33,9 @@
 #'   display in the plot. By default only `"beta"` (a vector of regression
 #'   parameters) parameters will be show. Other options are `"alpha"` (a vector
 #'   of threshold parameters) or `"both"`.
+#' @param se.type Character specifying the method used to compute standard
+#'   standard errors for quantile regression (Default: `"nid"`). To see all
+#'   available methods, see `quantreg::summary.rq()`.
 #' @param k Number of decimal places expected for results displayed in labels.
 #' @param k.caption.summary Number of decimal places expected for results
 #'   displayed in captions.
@@ -64,7 +66,9 @@
 #'   displayed as a cation to the plot (Default: `TRUE`). Color of the line
 #'   segment. Defaults to the same color as the text.
 #' @param stats.label.size,stats.label.fontface,stats.label.color Aesthetics for
-#'   the labels. Defaults: `3`, `"bold"`,`"black"`, resp.
+#'   the labels. Defaults: `3`, `"bold"`,`NULL`, resp. If `stats.label.color` is
+#'   `NULL`, colors will be chosen from the specified `package` (Default:
+#'   `"RColorBrewer"`) and `palette` (Default: `"Dark2"`).
 #' @param label.r, Radius of rounded corners, as unit or number. Defaults to
 #'   `0.15`. (Default unit is lines).
 #' @param label.size Size of label border, in mm. Defaults to `0.25`.
@@ -92,13 +96,11 @@
 #'   entire plot area. Defaults to `c(NA, NA)`.
 #' @param label.direction Character (`"both"`, `"x"`, or `"y"`) -- direction in
 #'   which to adjust position of labels (Default: `"y"`).
-#' @param ggtheme A function, `ggplot2` theme name. Default value is
-#'   `ggplot2::theme_bw()`. Allowed values are the official `ggplot2` themes,
-#'   including `theme_bw()`, `theme_minimal()`, `theme_classic()`,
-#'   `theme_void()`, etc.
 #' @inheritParams lm_effsize_ci
 #' @inheritParams broom::tidy.merMod
 #' @inheritParams broom::tidy.clm
+#' @inheritParams theme_ggstatsplot
+#' @inheritParams paletteer::paletteer_d
 #' @param \dots Extra arguments to pass to \code{\link[broom]{tidy}}.
 #'
 #' @import ggplot2
@@ -106,6 +108,9 @@
 #' @importFrom broom glance
 #' @importFrom broom tidy
 #' @importFrom broom augment
+#' @importFrom broom.mixed glance
+#' @importFrom broom.mixed tidy
+#' @importFrom broom.mixed augment
 #' @importFrom dplyr select
 #' @importFrom dplyr filter
 #' @importFrom dplyr mutate_at
@@ -126,7 +131,7 @@
 #' @importFrom tibble as_data_frame
 #'
 #' @references
-#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggcoefstats.html}
+#' \url{https://cran.r-project.org/package=ggstatsplot/vignettes/ggcoefstats.html}
 #'
 #' @examples
 #' 
@@ -143,12 +148,14 @@ ggcoefstats <- function(x,
                         p.kr = TRUE,
                         coefficient.type = "beta",
                         effsize = "eta",
-                        nboot = 1000,
+                        partial = TRUE,
+                        nboot = 500,
                         point.color = "blue",
                         point.size = 3,
                         point.shape = 16,
                         conf.int = TRUE,
                         conf.level = 0.95,
+                        se.type = "nid",
                         k = 3,
                         k.caption.summary = 0,
                         exclude.intercept = TRUE,
@@ -170,7 +177,7 @@ ggcoefstats <- function(x,
                         caption.summary = TRUE,
                         stats.label.size = 3,
                         stats.label.fontface = "bold",
-                        stats.label.color = "black",
+                        stats.label.color = NULL,
                         label.r = 0.15,
                         label.size = 0.25,
                         label.box.padding = 1,
@@ -187,24 +194,28 @@ ggcoefstats <- function(x,
                         label.xlim = c(NA, NA),
                         label.ylim = c(NA, NA),
                         label.direction = "y",
+                        package = "RColorBrewer",
+                        palette = "Dark2",
+                        direction = 1,
                         ggtheme = ggplot2::theme_bw(),
+                        ggstatsplot.layer = TRUE,
                         ...) {
-  # ================================== list of objects (for tidy and glance) ==========================================================
+  # =================== list of objects (for tidy and glance) ====================
 
   # creating a list of objects which will have fixed and random "effects"
   # only fixed effects will be selected
   lmm.mods <- c("lmerMod", "glmerMod", "nlmerMod")
 
   # models which are currently not supported
-  unsupported.mods <- c("glht", "kmeans", "rq")
+  unsupported.mods <- c("glht", "kmeans")
 
   # models for which glance is not supported
-  noglance.mods <- c("aovlist")
+  noglance.mods <- c("aovlist", "anova")
 
   # models for which the diagnostics is not available (AIC, BIC, loglik)
   nodiagnostics.mods <- c("lmRob", "glmRob")
 
-  # ================================== list of objects (for statistic) ================================================================
+  # ============== list of objects (for statistic) ================================
 
   # models for which statistic is t-value
   t.mods <- c("lmerMod", "lm", "nls", "lmRob", "rq", "rlm")
@@ -213,46 +224,53 @@ ggcoefstats <- function(x,
   z.mods <- c("clm", "clmm")
 
   # models for which statistic is F-value
-  f.mods <- c("aov", "aovlist")
+  f.mods <- c("aov", "aovlist", "anova")
 
   # models for which there is no clear t-or z-statistic
   # which statistic to use will be decided based on the family used
   g.mods <- c("glm", "glmerMod", "glmRob")
 
-  # ====================================== checking if object is supported =============================================================
+  # =========================== checking if object is supported ======================
   # glace is not supported for all models
   if (class(x)[[1]] %in% unsupported.mods) {
     base::stop(base::message(cat(
-      crayon::green("Note:"),
+      crayon::green("Note: "),
       crayon::blue(
-        "The object of class",
+        "The object of class ",
         crayon::yellow(class(x)[[1]]),
-        "aren't currently supported."
-      )
+        "aren't currently supported.\n"
+      ),
+      sep = ""
     )))
   }
-  # ================================================== model and its summary ===========================================================
+  # ============================= model and its summary ==========================
 
   # glance object from broom
   if (!(class(x)[[1]] %in% noglance.mods)) {
-    glance_df <- broom::glance(x = x) %>%
-      tibble::as_data_frame(x = .)
+    if (class(x)[[1]] %in% lmm.mods) {
+      glance_df <- broom.mixed::glance(x = x) %>%
+        tibble::as_data_frame(x = .)
+    } else {
+      glance_df <- broom::glance(x = x) %>%
+        tibble::as_data_frame(x = .)
+    }
   } else {
     base::message(cat(
-      crayon::green("Note:"),
+      crayon::green("Note: "),
       crayon::blue(
-        "No model diagnostics information available for the object of class",
+        "No model diagnostics information available for the object of class ",
         crayon::yellow(class(x)[[1]]),
-        ". Future release might support this."
-      )
+        ". Future release might support this.\n"
+      ),
+      sep = ""
     ))
   }
 
   # tidy dataframe of results from the model
-  # ===================================== lmm tidying =======================================================================
+  # ===================================== lmm tidying ===========================
   if (class(x)[[1]] %in% lmm.mods) {
     tidy_df <-
-      broom::tidy(
+      broom.mixed::tidy(
         x = x,
         conf.int = TRUE,
         conf.level = conf.level,
@@ -263,12 +281,12 @@ ggcoefstats <- function(x,
       )
   } else if (class(x)[[1]] %in% f.mods) {
 
-    # ===================================== aov tidying =======================================================================
+    # =========================== aov tidying ===================================
     #
     tidy_df <- lm_effsize_ci(
       object = x,
       effsize = effsize,
-      partial = TRUE,
+      partial = partial,
       conf.level = conf.level,
       nboot = nboot
     ) %>%
@@ -276,15 +294,31 @@ ggcoefstats <- function(x,
 
     # renaming the effect size to estimate
     if (effsize == "eta") {
-      tidy_df %<>%
-        dplyr::rename(.data = ., estimate = partial.etasq)
-      xlab <- "partial eta-squared"
+      # partial eta-squared
+      if (isTRUE(partial)) {
+        tidy_df %<>%
+          dplyr::rename(.data = ., estimate = partial.etasq)
+        xlab <- "partial eta-squared"
+      } else {
+        # eta-squared
+        tidy_df %<>%
+          dplyr::rename(.data = ., estimate = etasq)
+        xlab <- "eta-squared"
+      }
     } else if (effsize == "omega") {
-      tidy_df %<>%
-        dplyr::rename(.data = ., estimate = partial.omegasq)
-      xlab <- "partial omega-squared"
+      # partial omega-squared
+      if (isTRUE(partial)) {
+        tidy_df %<>%
+          dplyr::rename(.data = ., estimate = partial.omegasq)
+        xlab <- "partial omega-squared"
+      } else {
+        # omega-squared
+        tidy_df %<>%
+          dplyr::rename(.data = ., estimate = omegasq)
+        xlab <- "omega-squared"
+      }
     }
-    # ===================================== clm and clmm tidying =======================================================================
+    # ================== clm and clmm tidying ====================================
   } else if (class(x)[[1]] == "clm" || class(x)[[1]] == "clmm") {
     tidy_df <-
       broom::tidy(
@@ -292,7 +326,8 @@ ggcoefstats <- function(x,
         conf.int = TRUE,
         conf.level = conf.level,
         quick = FALSE,
-        conf.type = "Wald"
+        conf.type = "Wald",
+        ...
       )
 
     # selecting which coeffiecients to display
@@ -304,21 +339,35 @@ ggcoefstats <- function(x,
         dplyr::filter(.data = ., coefficient_type == "beta")
     }
 
-    # ===================================== tidying robust models =======================================================================
+    # ============ tidying robust models ========================================
   } else if (class(x)[[1]] == "lmRob" || class(x)[[1]] == "glmRob") {
     tidy_df <-
-      broom::tidy(x = x)
-    # ===================================== tidying everything else =======================================================================
+      broom::tidy(
+        x = x,
+        ...
+      )
+    # ===================== quantile regression =================================
+  } else if (class(x)[[1]] == "rq" || class(x)[[1]] == "rqs") {
+    tidy_df <-
+      broom::tidy(
+        x = x,
+        conf.int = TRUE,
+        conf.level = conf.level,
+        se.type = se.type,
+        ...
+      )
+    # ==================== tidying everything else ==============================
   } else {
     tidy_df <-
       broom::tidy(
         x = x,
         conf.int = TRUE,
-        conf.level = conf.level
+        conf.level = conf.level,
+        ...
       )
   }
 
-  # ===================================== p-value computation =======================================================================
+  # =================== p-value computation =====================================
   #
   # p-values won't be computed by default for the lmer models
   if (class(x)[[1]] == "lmerMod" || class(x)[[1]] == "rlm") {
@@ -344,7 +393,7 @@ ggcoefstats <- function(x,
       )
   }
 
-  # ===================================== p-value and CI check =======================================================================
+  # =============================== p-value and CI check =======================
   #
   # if broom output doesn't contain p-value
   if (!"p.value" %in% names(tidy_df)) {
@@ -353,12 +402,13 @@ ggcoefstats <- function(x,
 
     # inform the user that skipping labels for the same reason
     base::message(cat(
-      crayon::green("Note:"),
+      crayon::green("Note: "),
       crayon::blue(
-        "No p-values available for regression coefficients from",
+        "No p-values available for regression coefficients from ",
         crayon::yellow(class(x)[[1]]),
-        "object, so skipping labels."
-      )
+        " object, so skipping labels.\n"
+      ),
+      sep = ""
     ))
   }
 
@@ -377,16 +427,17 @@ ggcoefstats <- function(x,
 
     # inform the user that skipping labels for the same reason
     base::message(cat(
-      crayon::green("Note:"),
+      crayon::green("Note: "),
       crayon::blue(
-        "No 95% confidence intervals available for regression coefficients from",
+        "No 95% confidence intervals available for regression coefficients from ",
         crayon::yellow(class(x)[[1]]),
-        "object, so skipping whiskers in the plot."
-      )
+        " object, so skipping whiskers in the plot.\n"
+      ),
+      sep = ""
     ))
   }
 
-  # =============================  intercept, exponentiation, and final tidy dataframe ================================================
+  # ============== intercept, exponentiation, and final tidy dataframe ============
 
   # ordering the dataframe
   tidy_df %<>%
@@ -399,7 +450,8 @@ ggcoefstats <- function(x,
       dplyr::everything()
     )
 
-  # whether to show model intercept; if not, remove the corresponding terms from the dataframe
+  # whether to show model intercept; if not, remove the corresponding terms from
+  # the dataframe
   if (isTRUE(exclude.intercept)) {
     tidy_df %<>%
       dplyr::filter(
@@ -412,7 +464,8 @@ ggcoefstats <- function(x,
       )
   }
 
-  # if the coefficients are to be exponentiated, the label positions will also have to be adjusted
+  # if the coefficients are to be exponentiated, the label positions will also
+  # have to be adjusted
   if (isTRUE(exponentiate)) {
     # tidy_df$estimate <- base::exp(tidy_df$estimate)
     tidy_df %<>%
@@ -425,7 +478,7 @@ ggcoefstats <- function(x,
       )
   }
 
-  # ========================================================= p-value formatting =========================================================
+  # ================================= p-value formatting =======================
   #
   # formatting the numbers for display and preparing labels
   if (isTRUE(stats.labels)) {
@@ -455,7 +508,7 @@ ggcoefstats <- function(x,
         )
       )
 
-    # ========================================================= t-statistic labels =========================================================
+    # ================================= t-statistic labels ======================
     if (class(x)[[1]] %in% t.mods) {
       tidy_df %<>%
         tz_labeller(
@@ -464,7 +517,7 @@ ggcoefstats <- function(x,
           statistic = "t",
           k = k
         )
-      # ========================================================= z-statistic labels =========================================================
+      # ======================== z-statistic labels =============================
     } else if (class(x)[[1]] %in% z.mods) {
       tidy_df %<>%
         tz_labeller(
@@ -474,7 +527,7 @@ ggcoefstats <- function(x,
           k = k
         )
 
-      # ========================================================= t/z-statistic labels =========================================================
+      # ================= t/z-statistic labels ==================================
     } else if (class(x)[[1]] %in% g.mods) {
       if (class(x)[[1]] == "glm") {
         if (summary(x)$family$family[[1]] %in% c(
@@ -552,67 +605,117 @@ ggcoefstats <- function(x,
             )
         }
       }
-      # ========================================================= F-statistic =========================================================
+      # ====================== F-statistic ======================================
     } else if (class(x)[[1]] %in% f.mods) {
       # which effect size is needed?
       if (effsize == "eta") {
-        tidy_df %<>%
-          purrrlyr::by_row(
-            .d = .,
-            ..f = ~paste(
-              "list(~italic(F)",
-              "(",
-              .$df1,
-              ",",
-              .$df2,
-              ")==",
-              .$statistic,
-              ", ~italic(p)",
-              .$p.value.formatted2,
-              ", ~italic(eta)[p]^2==",
-              ggstatsplot::specify_decimal_p(x = .$estimate, k = k),
-              ")",
-              sep = ""
-            ),
-            .collate = "rows",
-            .to = "label",
-            .labels = TRUE
-          )
+        if (isTRUE(partial)) {
+          tidy_df %<>%
+            purrrlyr::by_row(
+              .d = .,
+              ..f = ~paste(
+                "list(~italic(F)",
+                "(",
+                .$df1,
+                ",",
+                .$df2,
+                ")==",
+                .$statistic,
+                ", ~italic(p)",
+                .$p.value.formatted2,
+                ", ~italic(eta)[p]^2==",
+                ggstatsplot::specify_decimal_p(x = .$estimate, k = k),
+                ")",
+                sep = ""
+              ),
+              .collate = "rows",
+              .to = "label",
+              .labels = TRUE
+            )
+        } else {
+          tidy_df %<>%
+            purrrlyr::by_row(
+              .d = .,
+              ..f = ~paste(
+                "list(~italic(F)",
+                "(",
+                .$df1,
+                ",",
+                .$df2,
+                ")==",
+                .$statistic,
+                ", ~italic(p)",
+                .$p.value.formatted2,
+                ", ~italic(eta)^2==",
+                ggstatsplot::specify_decimal_p(x = .$estimate, k = k),
+                ")",
+                sep = ""
+              ),
+              .collate = "rows",
+              .to = "label",
+              .labels = TRUE
+            )
+        }
       } else if (effsize == "omega") {
-        tidy_df %<>%
-          purrrlyr::by_row(
-            .d = .,
-            ..f = ~paste(
-              "list(~italic(F)",
-              "(",
-              .$df1,
-              ",",
-              .$df2,
-              ")==",
-              .$statistic,
-              ", ~italic(p)",
-              .$p.value.formatted2,
-              ", ~italic(omega)[p]^2==",
-              ggstatsplot::specify_decimal_p(x = .$estimate, k = k),
-              ")",
-              sep = ""
-            ),
-            .collate = "rows",
-            .to = "label",
-            .labels = TRUE
-          )
+        if (isTRUE(partial)) {
+          tidy_df %<>%
+            purrrlyr::by_row(
+              .d = .,
+              ..f = ~paste(
+                "list(~italic(F)",
+                "(",
+                .$df1,
+                ",",
+                .$df2,
+                ")==",
+                .$statistic,
+                ", ~italic(p)",
+                .$p.value.formatted2,
+                ", ~italic(omega)[p]^2==",
+                ggstatsplot::specify_decimal_p(x = .$estimate, k = k),
+                ")",
+                sep = ""
+              ),
+              .collate = "rows",
+              .to = "label",
+              .labels = TRUE
+            )
+        } else {
+          tidy_df %<>%
+            purrrlyr::by_row(
+              .d = .,
+              ..f = ~paste(
+                "list(~italic(F)",
+                "(",
+                .$df1,
+                ",",
+                .$df2,
+                ")==",
+                .$statistic,
+                ", ~italic(p)",
+                .$p.value.formatted2,
+                ", ~italic(omega)^2==",
+                ggstatsplot::specify_decimal_p(x = .$estimate, k = k),
+                ")",
+                sep = ""
+              ),
+              .collate = "rows",
+              .to = "label",
+              .labels = TRUE
+            )
+        }
       }
     }
   }
 
-  # ================================================== summary caption ===========================================================
+  # ========================== summary caption =================================
 
   # caption containing model diagnostics
   if (isTRUE(caption.summary)) {
     if (!(class(x)[[1]] %in% noglance.mods) && !(class(x)[[1]] %in% nodiagnostics.mods)) {
       if (!is.na(glance_df$AIC[[1]])) {
         # preparing caption with model diagnostics
-        caption.text <-
+        caption <-
           base::substitute(
             expr =
               paste(
@@ -630,15 +733,16 @@ ggcoefstats <- function(x,
             )
           )
       } else {
-        caption.text <- NULL
+        caption <- NULL
       }
     } else {
-      caption.text <- NULL
+      caption <- NULL
     }
   } else {
-    caption.text <- NULL
+    caption <- NULL
   }
-  # ================================================== basic plot ===========================================================
+
+  # ============================== basic plot ==============================================
 
   # whether the term need to be arranged in any specified order
   if (sort != "none") {
@@ -661,6 +765,9 @@ ggcoefstats <- function(x,
       base::factor(x = tidy_df$term, levels = tidy_df$term[new_order])
     tidy_df %<>% dplyr::select(.data = ., -rowid)
   }
+
+  # counting the number of terms in the tidy dataframe
+  count_term <- length(tidy_df$term)
 
   # setting up the basic architecture
   plot <-
@@ -715,10 +822,21 @@ ggcoefstats <- function(x,
       na.rm = TRUE
     )
 
-  # ================================================== ggrepel labels ===========================================================
+  # ========================= ggrepel labels ====================================
 
+  # if user has not specified colors, then use a color palette
+  if (is.null(stats.label.color)) {
+    stats.label.color <- paletteer::paletteer_d(
+      package = !!package,
+      palette = !!palette,
+      n = count_term,
+      direction = direction,
+      type = "discrete"
+    )
+  }
+
+  # adding the labels
   if (isTRUE(stats.labels)) {
-    # adding the labels
     plot <- plot +
       ggrepel::geom_label_repel(
         data = tidy_df,
@@ -749,32 +867,45 @@ ggcoefstats <- function(x,
       )
   }
 
-  # ================================================== other plot labels ===========================================================
+  # ========================== other plot labels ================================
   #
   # adding other labels to the plot
   plot <- plot +
     ggplot2::labs(
       x = xlab,
       y = ylab,
-      caption = caption.text,
+      caption = caption,
       subtitle = subtitle,
       title = title
     ) +
-    ggstatsplot::theme_mprl(ggtheme = ggtheme) +
+    ggstatsplot::theme_mprl(
+      ggtheme = ggtheme,
+      ggstatsplot.layer = ggstatsplot.layer
+    ) +
     ggplot2::theme(plot.caption = ggplot2::element_text(size = 10))
 
-  # ================================================== output ===========================================================
+  # ================================ output =====================================
   #
   # what needs to be returned?
   if (output == "plot") {
     # return the final plot
     return(plot)
   } else if (output == "tidy") {
+    # return the tidy output dataframe
     return(tidy_df)
   } else if (output == "glance") {
+    # return the glance summary
     return(glance_df)
   } else if (output == "augment") {
-    return(broom::augment(x = x) %>%
-      tibble::as_data_frame(x = .))
+    # return the augmented dataframe
+    if (class(x)[[1]] %in% lmm.mods) {
+      # for mixed-effects models
+      return(broom::augment(x = x) %>%
+        tibble::as_data_frame(x = .))
+    } else {
+      # everything else
+      return(broom.mixed::augment(x = x) %>%
+        tibble::as_data_frame(x = .))
+    }
   }
 }

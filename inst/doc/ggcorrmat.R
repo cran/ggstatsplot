@@ -26,13 +26,17 @@ ggstatsplot::ggcorrmat(
 ggstatsplot::ggcorrmat(
   data = gapminder_2007,                      # data from which variable is to be taken
   cor.vars = lifeExp:gdpPercap,               # specifying correlation matrix variables
-  cor.vars.names = c("Life Expectancy", "population", "GDP (per capita)"),
+  cor.vars.names = c("Life Expectancy", 
+                     "population", 
+                     "GDP (per capita)"),
   corr.method = "kendall",                    # which correlation coefficient is to be computed
   lab.col = "red",                            # label color
-  ggtheme = ggplot2::theme_light,             # selected ggplot2 theme
-  ggstatsplot.theme = FALSE,                  # turn off default ggestatsplot theme overlay
-  type = "lower",                             # type of correlation matrix
-  colors = c("green", "white", "yellow"),     # selecting color combination
+  ggtheme = ggplot2::theme_light(),           # selected ggplot2 theme
+  ggstatsplot.layer = FALSE,                  # turn off default ggestatsplot theme overlay
+  matrix.type = "lower",                      # correlation matrix structure
+  colors = NULL,                              # turning off manual specification of colors
+  palette = "category10_d3",                  # choosing a color palette
+  package = "ggsci",                          # package to which color palette belongs
   title = "Gapminder correlation matrix",     # custom title
   subtitle = "Source: Gapminder Foundation"   # custom subtitle
 )
@@ -40,24 +44,48 @@ ggstatsplot::ggcorrmat(
 ## ----diamonds, warning = FALSE, message = FALSE--------------------------
 library(ggplot2)
 
-dplyr::glimpse(x = diamonds)
+dplyr::glimpse(x = ggplot2::diamonds)
 
 ## ----ggcorrmat3, warning = FALSE, message = FALSE, fig.height = 7, fig.width = 7----
+# for reproducibility
+set.seed(123)
+
+# let's use just 5% of the data to speed it up
 ggstatsplot::ggcorrmat(
-  data = diamonds,             
+  data = dplyr::sample_frac(tbl = ggplot2::diamonds, size = 0.05),             
   cor.vars = c(carat, depth:z),        # note how the variables are getting selected
-  cor.vars.names = c("carat", "total depth", "table", "price", "length (in mm)", "width (in mm)", "depth (in mm)"),
+  cor.vars.names = c(
+    "carat",
+    "total depth",
+    "table",
+    "price",
+    "length (in mm)",
+    "width (in mm)",
+    "depth (in mm)"
+    ), 
   hc.order = TRUE                      # use hierarchical clustering
 )
 
 ## ----ggcorrmat4, warning = FALSE, message = FALSE, fig.height = 7, fig.width = 7----
+# for reproducibility
+set.seed(123)
+
+# let's use just 5% of the data to speed it up
 ggstatsplot::ggcorrmat(
-  data = diamonds,             
+  data = dplyr::sample_frac(tbl = ggplot2::diamonds, size = 0.05),             
   cor.vars = c(price, carat, depth:table, x:z),    # note how the variables are getting selected
-  cor.vars.names = c("price", "carat", "total depth", "table",  "length (in mm)", "width (in mm)", "depth (in mm)"),
+  cor.vars.names = c(
+    "price",
+    "carat",
+    "total depth",
+    "table",
+    "length (in mm)",
+    "width (in mm)",
+    "depth (in mm)"
+  ), 
   corr.method = "spearman",
   sig.level = 0.008,
-  type = "lower",
+  matrix.type = "lower",
   title = "Relationship between diamond attributes and price",
   subtitle = "Dataset: Diamonds from ggplot2 package",
   colors = c("#0072B2", "#D55E00", "#CC79A7"),
@@ -72,9 +100,12 @@ ggstatsplot::ggcorrmat(
 )
 
 ## ----ggcorrmat5, warning = FALSE, message = FALSE------------------------
+# for reproducibility
+set.seed(123)
+
 # to get correlations
 ggstatsplot::ggcorrmat(
-  data = diamonds,             
+  data = dplyr::sample_frac(tbl = ggplot2::diamonds, size = 0.15),             
   cor.vars = c(price, carat, depth:table, x:z),
   output = "correlations",
   corr.method = "robust",
@@ -83,7 +114,7 @@ ggstatsplot::ggcorrmat(
 
 # to get p-values
 ggstatsplot::ggcorrmat(
-  data = diamonds,             
+  data = dplyr::sample_frac(tbl = ggplot2::diamonds, size = 0.15),             
   cor.vars = c(price, carat, depth:table, x:z),
   output = "p-values",
   corr.method = "robust",
@@ -91,9 +122,16 @@ ggstatsplot::ggcorrmat(
 )
 
 ## ----ggcorrmat6, warning = FALSE, message = FALSE, fig.height = 16, fig.width = 10----
+# for reproducibility
+set.seed(123)
+
+# let's use just 5% of the data to speed it up
 ggstatsplot::grouped_ggcorrmat(
   # arguments relevant for ggstatsplot::ggcorrmat
-  data = ggplot2::diamonds,
+  data = dplyr::sample_frac(tbl = ggplot2::diamonds, size = 0.05),
+  corr.method = "r",                  # percentage bend correlation coefficient
+  beta = 0.2,                         # bending constant
+  p.adjust.method = "holm",           # method to adjust p-values for multiple comparisons
   grouping.var = cut,
   title.prefix = "Quality of cut",
   cor.vars = c(carat, depth:z),
@@ -120,8 +158,12 @@ ggstatsplot::grouped_ggcorrmat(
 )
 
 ## ----ggcorrmat7, warning = FALSE, message = FALSE------------------------
+# for reproducibility
+set.seed(123)
+
+# let's use just 5% of the data to speed it up
 ggstatsplot::grouped_ggcorrmat(
-  data = ggplot2::diamonds,
+  data = dplyr::sample_frac(tbl = ggplot2::diamonds, size = 0.05),
   grouping.var = cut,
   cor.vars = c(price, carat, depth:table, x:z),
   output = "correlations",
@@ -129,69 +171,7 @@ ggstatsplot::grouped_ggcorrmat(
   digits = 3
 )
 
-## ----ggcorrmat8, warning = FALSE, message = FALSE, fig.height = 16, fig.width = 10----
-# splitting the dataframe by cut and creting a list
-cut_list <- ggplot2::diamonds %>%
-  base::split(x = ., f = .$cut, drop = TRUE)
-
-# this created a list with 5 elements, one for each quality of cut
-# you can check the structure of the file for yourself
-# str(cut_list)
-
-# checking the length and names of each element
-length(cut_list)
-names(cut_list)
-
-# running function on every element of this list note that if you want the same
-# value for a given argument across all elements of the list, you need to
-# specify it just once
-plot_list <- purrr::pmap(
-  .l = list(
-    data = cut_list,
-    cor.vars = list(c("carat", "depth", "table",
-                 "price", "x", "y", "z")),
-    cor.vars.names = list(c(
-      "carat",
-      "total depth",
-      "table",
-      "price",
-      "length (in mm)",
-      "width (in mm)",
-      "depth (in mm)"
-    )),
-    corr.method = list("pearson", "spearman", "spearman", "pearson", "pearson"),
-    sig.level = list(0.05, 0.001, 0.01, 0.05, 0.003),
-    lab.size = 3.5,
-    colors = list(
-      c("#56B4E9", "white", "#999999"),
-      c("#0072B2", "white", "#D55E00"),
-      c("#CC79A7", "white", "#F0E442"),
-      c("#56B4E9", "white", "#D55E00"),
-      c("#999999", "white", "#0072B2")
-    ),
-    ggstatsplot.theme = list(FALSE),
-    ggtheme = list(
-      ggplot2::theme_grey,
-      ggplot2::theme_classic,
-      ggplot2::theme_minimal,
-      ggplot2::theme_bw,
-      ggplot2::theme_dark
-    )
-  ),
-  .f = ggstatsplot::ggcorrmat
-)
-
-# combining all individual plots from the list into a single plot using combine_plots function
-ggstatsplot::combine_plots(
-  plotlist = plot_list,
-  title.text = "Relationship between diamond attributes and price across cut",
-  title.size = 16,
-  title.color = "red",
-  caption.text = "Dataset: Diamonds from ggplot2 package",
-  caption.size = 14,
-  caption.color = "blue",
-  labels = c("(a)", "(b)", "(c)", "(d)", "(e)"),
-  nrow = 3,
-  ncol = 2
-)
+## ----session_info-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+options(width = 200)
+devtools::session_info()
 

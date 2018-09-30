@@ -1,4 +1,3 @@
-#'
 #' @title A heteroscedastic one-way ANOVA for trimmed means with confidence
 #'   interval for effect size.
 #' @name t1way_ci
@@ -49,7 +48,9 @@ t1way_ci <- function(data,
     .data = data,
     x = !!rlang::enquo(x),
     y = !!rlang::enquo(y)
-  )
+  ) %>%
+    stats::na.omit(.) %>%
+    tibble::as.tibble(x = .)
 
   # running robust one-way anova
   fit <-
@@ -60,7 +61,7 @@ t1way_ci <- function(data,
     )
 
   # function to obtain 95% CI for xi
-  xici <- function(formula, data, tr = tr, indices) {
+  xici <- function(formula, data, tr, indices) {
     # allows boot to select sample
     d <- data[indices, ]
     # running the function
@@ -198,7 +199,9 @@ cor_tets_ci <- function(data,
     .data = data,
     x = !!rlang::enquo(x),
     y = !!rlang::enquo(y)
-  )
+  ) %>%
+    stats::na.omit(.) %>%
+    tibble::as.tibble(x = .)
 
   # running correlation and creating a tidy dataframe
   tidy_df <- broom::tidy(
@@ -364,7 +367,9 @@ chisq_v_ci <- function(data,
     .data = data,
     rows = !!rlang::enquo(rows),
     cols = !!rlang::enquo(cols)
-  )
+  ) %>%
+    stats::na.omit(.) %>%
+    tibble::as.tibble(x = .)
 
   # results from jamovi
   jmv_df <- jmv::contTables(
@@ -469,22 +474,21 @@ chisq_v_ci <- function(data,
 }
 
 
-#'
 #' @title Robust correlation coefficient and its confidence interval
 #' @name robcor_ci
-#' @description Custom function to get confidence intervals for robust
+#' @description Custom function to get confidence intervals for percentage bend
 #'   correlation coefficient.
-#' @return A tibble with correlation coefficient, along with its confidence
-#'   intervals, and the number of bootstrap samples used to generate confidence
-#'   intervals. Additionally, it also includes information about sample size,
-#'   bending constant, no. of bootstrap samples, etc.
+#' @return A tibble with percentage bend correlation coefficient, along with its
+#'   confidence intervals, and the number of bootstrap samples used to generate
+#'   confidence intervals. Additionally, it also includes information about
+#'   sample size, bending constant, no. of bootstrap samples, etc.
 #'
 #' @param data Dataframe from which variables specified are preferentially to be
 #'   taken.
 #' @param x A vector containing the explanatory variable.
 #' @param y The response - a vector of length the number of rows of `x`.
 #' @param nboot Number of bootstrap samples for computing effect size (Default:
-#'   `500`).
+#'   `100`).
 #' @param beta bending constant (Default: `0.1`). For more, see `?WRS2::pbcor`.
 #' @param conf.type A vector of character strings representing the type of
 #'   intervals required. The value should be any subset of the values `"norm"`,
@@ -510,7 +514,7 @@ robcor_ci <- function(data,
                       x,
                       y,
                       beta = 0.1,
-                      nboot = 500,
+                      nboot = 100,
                       conf.level = 0.95,
                       conf.type = "norm",
                       ...) {
@@ -520,7 +524,8 @@ robcor_ci <- function(data,
     x = !!rlang::enquo(x),
     y = !!rlang::enquo(y)
   ) %>%
-    stats::na.omit(object = .)
+    stats::na.omit(.) %>%
+    tibble::as.tibble(x = .)
 
   # getting the p-value for the correlation coefficient
   fit <-
@@ -620,7 +625,6 @@ robcor_ci <- function(data,
   return(results_df)
 }
 
-#'
 #' @title Confidence intervals for partial eta-squared and omega-squared for
 #'   linear models.
 #' @name lm_effsize_ci
@@ -631,16 +635,18 @@ robcor_ci <- function(data,
 #' @return A dataframe with results from `stats::lm()` with partial eta-squared,
 #'   omega-squared, and bootstrapped confidence interval for the same.
 #'
-#' @param object The linear model object (can be of class `lm`, `aov`, or
+#' @param object The linear model object (can be of class `lm`, `aov`, `anova`, or
 #'   `aovlist`).
 #' @param effsize Character describing the effect size to be displayed: `"eta"`
 #'   (default) or `"omega"`.
 #' @param partial Logical that decides if partial eta-squared or omega-squared
-#'   are returned (Default: `TRUE`).
+#'   are returned (Default: `TRUE`). If `FALSE`, eta-squared or omega-squared
+#'   will be returned. Valid only for objects of class `lm`, `aov`, `anova`, or
+#'   `aovlist`.
 #' @param conf.level Numeric specifying Level of confidence for the confidence
 #'   interval (Default: `0.95`).
 #' @param nboot Number of bootstrap samples for confidence intervals for partial
-#'   eta-squared and omega-squared (Default: `1000`).
+#'   eta-squared and omega-squared (Default: `500`).
 #'
 #' @importFrom sjstats eta_sq
 #' @importFrom sjstats omega_sq
@@ -659,12 +665,13 @@ lm_effsize_ci <-
              effsize = "eta",
              partial = TRUE,
              conf.level = 0.95,
-             nboot = 1000) {
+             nboot = 500) {
+
     # based on the class, get the tidy output using broom
     if (class(object)[[1]] == "lm") {
       aov_df <-
         broom::tidy(stats::anova(object = object))
-    } else if (class(object)[[1]] == "aov") {
+    } else if (class(object)[[1]] %in% c("aov", "anova")) {
       aov_df <- broom::tidy(x = object)
     } else if (class(object)[[1]] == "aovlist") {
       aov_df <- broom::tidy(x = object) %>%

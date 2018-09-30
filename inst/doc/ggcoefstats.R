@@ -4,24 +4,29 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
-## ----aov, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 8----
+## ----aov1, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 8----
 # for reproducibility
 set.seed(123)
 
 # looking at the data
 dplyr::glimpse(x = ggstatsplot::movies_long)
 
+# to speed up the calculation, let's use only 10% of the data
+movies_10 <- dplyr::sample_frac(tbl = ggstatsplot::movies_long, size = 0.1)
+  
 # plot
 ggstatsplot::ggcoefstats(
   x = stats::aov(
     formula = rating ~ mpaa * genre,
-    data = ggstatsplot::movies_long
+    data = movies_10
   ),
   effsize = "omega",                        # changing the effect size estimate being displayed
   point.color = "red",                      # changing the point color
   point.size = 4,                           # changing the point size
   point.shape = 15,                         # changing the point shape
-  title = "omnibus ANOVA"
+  package = "dutchmasters",                 # package from which color paletter is to be taken
+  palette = "milkmaid",                     # color palette for labels
+  title = "omnibus ANOVA"                   # title for the plot
 ) +                                    
   # further modification with the ggplot2 commands
   # note the order in which the labels are entered
@@ -32,6 +37,9 @@ ggstatsplot::ggcoefstats(
 ## ----aov2, warning = FALSE, message = FALSE, fig.height = 10, fig.width = 10----
 library(ggstatsplot)
 
+# to speed up the calculation, let's use only 10% of the data
+movies_10 <- dplyr::sample_frac(tbl = ggstatsplot::movies_long, size = 0.1)
+
 # for reproducibility
 set.seed(123)
 
@@ -39,38 +47,66 @@ set.seed(123)
 ggstatsplot::combine_plots(
   # model 1
   ggstatsplot::ggcoefstats(
-    x = stats::aov(formula = rating ~ mpaa,
-                   data = ggstatsplot::movies_long),
+    x = stats::aov(
+      formula = rating ~ mpaa,
+      data = movies_10
+    ),
+    stats.label.color = "black",
     title = "1. Only MPAA ratings"
   ),
   ggstatsplot::ggcoefstats(
-    x = stats::aov(formula = rating ~ genre,
-                   data = ggstatsplot::movies_long),
+    x = stats::aov(
+      formula = rating ~ genre,
+      data = movies_10
+    ),
+    stats.label.color = "black",
     title = "2. Only genre"
   ),
   ggstatsplot::ggcoefstats(
-    x = stats::aov(formula = rating ~ mpaa + genre,
-                   data = ggstatsplot::movies_long),
+    x = stats::aov(
+      formula = rating ~ mpaa + genre,
+      data = movies_10
+    ),
+    stats.label.color = "black",
     title = "3. Additive effect of MPAA and genre"
   ),
   ggstatsplot::ggcoefstats(
-    x = stats::aov(formula = rating ~ mpaa * genre,
-                   data = ggstatsplot::movies_long),
+    x = stats::aov(
+      formula = rating ~ mpaa * genre,
+      data = movies_10
+    ),
+    stats.label.color = "black",
     title = "4. Multiplicative effect of MPAA and genre"
   ),
   title.text = "Model selection using ggcoefstats",
   labels = c("(a)", "(b)", "(c)", "(d)")
 )
 
+## ----anova1, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 8----
+library(car)
+
+# creating a model
+mod <- stats::lm(
+  formula = conformity ~ fcategory * partner.status,
+  data = Moore,
+  contrasts = list(fcategory = contr.sum, partner.status = contr.sum)
+)
+
+# plotting estimates
+ggstatsplot::ggcoefstats(x = car::Anova(mod, type = "III"))
+
 ## ----lm, warning = FALSE, message = FALSE, fig.height = 8, fig.width = 8----
 # let's check all the levels for the genre variable
 levels(ggstatsplot::movies_long$genre)
+
+# to speed up the calculation, let's use only 10% of the data
+movies_10 <- dplyr::sample_frac(tbl = ggstatsplot::movies_long, size = 0.1)
 
 # plot
 ggstatsplot::ggcoefstats(
   x = stats::lm(
     formula = rating ~ genre,
-    data = ggstatsplot::movies_long
+    data = movies_10
   ),
   conf.level = 0.99,                      # changing the confidence levels for confidence intervals
   sort = "ascending",                     # sorting the terms of the model based on estimate values
@@ -86,27 +122,12 @@ ggstatsplot::ggcoefstats(
   ggplot2::labs(y = "genre (comparison level: Action)") + 
   ggplot2::theme(axis.title.y = ggplot2::element_text(size = 14, face = "bold"))
 
-## ----rlm, warning = FALSE, message = FALSE, fig.height = 8, fig.width = 8----
-ggstatsplot::ggcoefstats(
-  x = MASS::rlm(
-    formula = rating ~ genre,
-    data = ggstatsplot::movies_long
-  ),
-  conf.level = 0.99,                      # changing the confidence levels for confidence intervals
-  sort = "ascending",                     # sorting the terms of the model based on estimate values
-  label.direction = "both",               # direction in which to adjust position of labels (both x and y)
-  ggtheme = ggplot2::theme_gray(),        # changing the default theme
-  stats.label.color = c("#CC79A7", "darkgreen", "#0072B2", "black", "red"),
-  title = "Movie ratings by their genre",
-  subtitle = "Source: www.imdb.com"
-) +                                    
-  ggplot2::scale_y_discrete(labels = c("Comedy", "Romance", "Documentary", "Animation", "Drama")) +
-  ggplot2::labs(y = "genre (comparison level: Action)") + 
-  ggplot2::theme(axis.title.y = ggplot2::element_text(size = 14, face = "bold"))
-
-## ----lmer, warning = FALSE, message = FALSE, fig.height = 14, fig.width = 7----
+## ----lmer1, warning = FALSE, message = FALSE, fig.height = 14, fig.width = 7----
 library(lme4)
 library(ggstatsplot)
+
+# to speed up the calculation, let's use only 10% of the data
+movies_10 <- dplyr::sample_frac(tbl = ggstatsplot::movies_long, size = 0.1)
 
 # combining the two different plots
 ggstatsplot::combine_plots(
@@ -114,21 +135,23 @@ ggstatsplot::combine_plots(
   ggstatsplot::ggcoefstats(
     x = stats::lm(
       formula = scale(rating) ~ scale(budget),
-      data = ggstatsplot::movies_long
+      data = movies_10
     ),
     title = "linear model",
+    stats.label.color = "black",
     exclude.intercept = FALSE                       # show the intercept
   ) +
     ggplot2::labs(x = parse(text = "'standardized regression coefficient' ~italic(beta)")),
   # model 2: linear mixed-effects model
   ggstatsplot::ggcoefstats(
     x = lme4::lmer(
-      formula = rating ~ budget + (budget | genre),
-      data = ggstatsplot::movies_long,
+      formula = scale(rating) ~ scale(budget) + (budget | genre),
+      data = movies_10,
       control = lme4::lmerControl(calc.derivs = FALSE)
     ),
     p.kr = TRUE,                                    # use Kenward-Roger approximation to compute p-values (fast)
     title = "linear mixed-effects model",
+    stats.label.color = "black",
     exclude.intercept = FALSE                       # show the intercept
   ) +
     ggplot2::labs(x = parse(text = "'standardized regression coefficient' ~italic(beta)"), 
@@ -140,10 +163,16 @@ ggstatsplot::combine_plots(
 )
 
 ## ----lmer2, warning = FALSE, message = FALSE-----------------------------
+library(ggstatsplot)
+
+# to speed up the calculation, let's use only 10% of the data
+movies_10 <- dplyr::sample_frac(tbl = ggstatsplot::movies_long, size = 0.1)
+
+# tidy output
 broom::tidy(
   x = lme4::lmer(
-    formula = rating ~ budget + (budget | genre),
-    data = ggstatsplot::movies_long,
+    formula = scale(rating) ~ scale(budget) + (budget | genre),
+    data = movies_10,
     control = lme4::lmerControl(calc.derivs = FALSE)
   ),
   conf.int = TRUE,
@@ -153,18 +182,21 @@ broom::tidy(
 ## ----nls, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6----
 library(ggstatsplot)
 
+# to speed up the calculation, let's use only 10% of the data
+movies_10 <- dplyr::sample_frac(tbl = ggstatsplot::movies_long, size = 0.1)
+
 # plot
 ggstatsplot::ggcoefstats(
     x = stats::nls(
       formula = rating ~ k / budget + c,                # try toying around with the form of non-linear function
-      data = ggstatsplot::movies_long,
+      data = movies_10,
       start = list(k = 1, c = 0)
     ),
     title = "Non-linear relationship between budget and rating",
     subtitle = "Source: IMDB"
   )
 
-## ----glm, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6----
+## ----glm1, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6----
 library(ggstatsplot)
 
 # having a look at the Titanic dataset
@@ -229,53 +261,65 @@ y2 <- rbinom(n = 100,
 
 # combining all plots in a single plot
 ggstatsplot::combine_plots(
+  # Family: Poisson
   ggstatsplot::ggcoefstats(
     x = stats::glm(
       formula = counts ~ outcome + treatment,
       data = df.counts,
       family = stats::poisson(link = "log")
     ),
-    title = "Family: Poisson"
+    title = "Family: Poisson",
+    stats.label.color = "black"
   ),
+  # Family: Gamma
   ggstatsplot::ggcoefstats(
     x = stats::glm(
       formula = lot1 ~ log(u),
       data = df.clotting,
       family = stats::Gamma(link = "inverse")
     ),
-    title = "Family: Gamma"
+    title = "Family: Gamma",
+    stats.label.color = "black"
   ),
+  # Family: Quasi
   ggstatsplot::ggcoefstats(
     x = stats::glm(
       formula = y ~ x,
       family = quasi(variance = "mu", link = "log"),
       data = df.3
     ),
-    title = "Family: Quasi"
+    title = "Family: Quasi",
+    stats.label.color = "black"
   ),
+  # Family: Quasibinomial
   ggstatsplot::ggcoefstats(
     x = stats::glm(
       formula = y ~ x,
       family = stats::quasibinomial(link = "logit"),
       data = df.4
     ),
-    title = "Family: Quasibinomial"
+    title = "Family: Quasibinomial",
+    stats.label.color = "black"
   ),
+  # Family: Quasipoisson
     ggstatsplot::ggcoefstats(
     x = stats::glm(
       formula = y ~ x,
       family = stats::quasipoisson(link = "log"),
       data = df.4
     ),
-    title = "Family: Quasipoisson"
+    title = "Family: Quasipoisson",
+    stats.label.color = "black"
   ),
+  # Family: Gaussian
     ggstatsplot::ggcoefstats(
     x = stats::glm(
       formula = Sepal.Length ~ Species,
       family = stats::gaussian(link = "identity"),
       data = iris
     ),
-    title = "Family: Gaussian"
+    title = "Family: Gaussian",
+    stats.label.color = "black"
   ),
   labels = c("(a)", "(b)", "(c)", "(d)", "(e)", "(f)"),
   ncol = 2,
@@ -287,7 +331,8 @@ ggstatsplot::combine_plots(
 ggstatsplot::ggcoefstats(
   x = lme4::glmer(
     formula = Survived ~ Sex + Age + (Sex + Age | Class),
-    data = ggstatsplot::Titanic_full,
+    # select 30% of the sample to reduce the time of execution
+    data = dplyr::sample_frac(tbl = ggstatsplot::Titanic_full, size = 0.3),
     family = stats::binomial(link = "logit"),
     control = lme4::glmerControl(
       optimizer = "Nelder_Mead",
@@ -295,7 +340,8 @@ ggstatsplot::ggcoefstats(
       boundary.tol = 1e-7
     )
   ),
-  exponentiate = TRUE
+  exponentiate = TRUE,
+  stats.label.color = "black"
 )
 
 ## ----clm, warning = FALSE, message = FALSE, fig.height = 12, fig.width = 12----
@@ -304,8 +350,8 @@ library(purrr)
 library(glue)
 
 # running the function for each type of harm and creating a list of plots
-# to speed up calculations, we will use just half of the dataset
-plotlist <- dplyr::filter(.data = ggstatsplot::intent_morality, id <= 250) %>%
+# to speed up calculations, we will use just 25% of the dataset
+plotlist <- dplyr::sample_frac(tbl = ggstatsplot::intent_morality, size = 0.25) %>%
   dplyr::mutate(.data = ., plot.title = harm) %>%
   base::split(x = ., f = .$harm) %>%
   purrr::map(
@@ -320,10 +366,10 @@ plotlist <- dplyr::filter(.data = ggstatsplot::intent_morality, id <= 250) %>%
           convergence = "silent"
         ),
       ),
+      stats.label.color = "black",
       title = glue::glue("Type of harm: {.$plot.title}"),
       caption.summary = FALSE                            # suppress model diagnostics
     ) +
-      #ggplot2::scale_y_discrete(labels = c("belief (neutral)", "interaction", "outcome (neutral)")) +
       ggplot2::labs(x = "logit regression coefficient",
                     y = NULL)
   )
@@ -332,15 +378,15 @@ plotlist <- dplyr::filter(.data = ggstatsplot::intent_morality, id <= 250) %>%
 ggstatsplot::combine_plots(plotlist = plotlist)
 
 
-## ----clmm, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6----
+## ----clmm1, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6----
 library(ggstatsplot)
 
 ggstatsplot::ggcoefstats(
   x = ordinal::clmm(
     formula = as.factor(rating) ~ belief * outcome + (belief + outcome |
                                                         harm),
-    # to speed up calculations, we will use just half of the dataset
-    data = dplyr::filter(.data = ggstatsplot::intent_morality, id <= 250),
+    # to speed up calculations, we will use just 30% of the dataset
+    data = dplyr::sample_frac(tbl = ggstatsplot::intent_morality, size = 0.3),
     control = ordinal::clmm.control(
       method = "nlminb",
       maxIter = 50,
@@ -355,16 +401,16 @@ ggstatsplot::ggcoefstats(
   ggplot2::labs(x = "coefficient from ordinal mixed-effects regression",
                 y = "fixed effects")
 
-## ----clmm1, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6----
+## ----clmm2, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6----
 library(ggstatsplot)
 
-# to speed up calculations, we will use just half of the dataset
+# to speed up calculations, we will use just 30% of the dataset
 ggstatsplot::ggcoefstats(
   x = ordinal::clmm(
     formula = as.factor(rating) ~ belief * outcome + (belief + outcome |
                                                         harm),
     link = "logit",
-    data = dplyr::filter(.data = ggstatsplot::intent_morality, id <= 250),
+    data = dplyr::sample_frac(tbl = ggstatsplot::intent_morality, size = 0.3),
     control = ordinal::clmm.control(
       maxIter = 50,
       gradTol = 1e-4,
@@ -376,7 +422,7 @@ ggstatsplot::ggcoefstats(
   ggplot2::labs(x = "logit regression coefficients",
                 y = "threshold parameters")
 
-## ----aovlist, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 8----
+## ----aovlist1, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 8----
 library(ggstatsplot)
 library(ggplot2)
 
@@ -408,12 +454,18 @@ iris_long <- datasets::iris %>%
 # looking at the long format data
 dplyr::glimpse(x = iris_long)
 
+# let's use 20% of the sample to speed up the analysis
+iris_long_20 <- dplyr::sample_frac(tbl = iris_long, size = 0.20)
+
 # specifying the model (note the error structure)
 ggstatsplot::ggcoefstats(
   x = stats::aov(formula = value ~ attribute * measure + Error(id / (attribute * measure)),
-             data = iris_long),
-  effsize = "omega",
-  ggtheme = ggplot2::theme_grey(),
+             data = iris_long_20),
+  effsize = "eta",
+  partial = FALSE,
+  nboot = 50,
+  ggtheme = ggthemes::theme_fivethirtyeight(),
+  ggstatsplot.layer = FALSE,
   stats.label.color = c("#0072B2", "#D55E00", "darkgreen"),
   title = "Variation in measurements for Iris species",
   subtitle = "Source: Iris data set (by Fisher or Anderson)"
@@ -423,21 +475,37 @@ ggstatsplot::ggcoefstats(
 
 ## ----robust, warning = FALSE, message = FALSE, fig.height = 12, fig.width = 8----
 ggstatsplot::combine_plots(
+  # plot 1: glmRob
   ggstatsplot::ggcoefstats(
     x = robust::glmRob(
       formula = Survived ~ Sex,
-      data = ggstatsplot::Titanic_full,
+      data = dplyr::sample_frac(tbl = ggstatsplot::Titanic_full, size = 0.25),
       family = stats::binomial(link = "logit")
     ),
-    title = "generalized robust linear model"
+    title = "generalized robust linear model",
+    package = "dichromat",
+    palette = "BrowntoBlue.10",
+    ggtheme = ggthemes::theme_fivethirtyeight(),
+    ggstatsplot.layer = FALSE
   ),
+  # plot 2: lmRob
   ggstatsplot::ggcoefstats(
-    x = robust::lmRob(formula = Sepal.Length ~ Sepal.Width * Species, data = iris),
-    title = "robust linear model"
+    x = robust::lmRob(formula = Sepal.Length ~ Sepal.Width * Species, 
+                      data = iris),
+    title = "robust linear model",
+    package = "awtools",
+    palette = "a_palette",
+    ggtheme = ggthemes::theme_tufte(),
+    ggstatsplot.layer = FALSE
   ),
+  # arguments relevant for `combine_plots` function
   labels = c("(a)", "(b)"),
   title.text = "Robust variants of lm and glm",
   nrow = 2,
   ncol = 1
 )
+
+## ----session_info-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+options(width = 200)
+devtools::session_info()
 

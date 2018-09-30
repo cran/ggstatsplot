@@ -5,16 +5,20 @@
 \title{Scatterplot with marginal distributions for all levels of a grouping
 variable}
 \usage{
-grouped_ggscatterstats(data, x, y, grouping.var, title.prefix = "Group",
-  xlab = NULL, ylab = NULL, line.size = 1.5, line.color = "blue",
-  marginal = TRUE, marginal.type = "histogram", marginal.size = 5,
-  margins = c("both", "x", "y"), width.jitter = NULL,
-  height.jitter = NULL, xfill = "#009E73", yfill = "#D55E00",
-  xalpha = 1, yalpha = 1, xsize = 0.7, ysize = 0.7,
-  centrality.para = NULL, type = "pearson", results.subtitle = NULL,
-  caption = NULL, nboot = 100, beta = 0.1, k = 3,
+grouped_ggscatterstats(data, x, y, label.var = NULL,
+  label.expression = NULL, grouping.var, title.prefix = "Group",
+  xlab = NULL, ylab = NULL, method = "lm", method.args = list(),
+  formula = y ~ x, point.color = "black", point.size = 3,
+  point.alpha = 0.4, line.size = 1.5, point.width.jitter = NULL,
+  point.height.jitter = NULL, line.color = "blue", marginal = TRUE,
+  marginal.type = "histogram", marginal.size = 5, margins = c("both",
+  "x", "y"), package = "wesanderson", palette = "Royal1",
+  direction = 1, xfill = "#009E73", yfill = "#D55E00", xalpha = 1,
+  yalpha = 1, xsize = 0.7, ysize = 0.7, centrality.para = NULL,
+  type = "pearson", results.subtitle = TRUE, caption = NULL,
+  subtitle = NULL, nboot = 100, beta = 0.1, k = 3,
   axes.range.restrict = FALSE, ggtheme = ggplot2::theme_bw(),
-  messages = TRUE, ...)
+  ggstatsplot.layer = TRUE, messages = TRUE, ...)
 }
 \arguments{
 \item{data}{Dataframe from which variables specified are preferentially to be
@@ -23,6 +27,13 @@ taken.}
 \item{x}{A vector containing the explanatory variable.}
 
 \item{y}{The response - a vector of length the number of rows of \code{x}.}
+
+\item{label.var}{Variable to use for points labels. \strong{Must} be entered as a
+character string e.g. \code{"y"}}
+
+\item{label.expression}{An expression evaluating to a logical vector that
+determines the subset of data points to label. \strong{Must} be entered as a
+character string e.g. \code{"y < 4 & z < 20"}.}
 
 \item{grouping.var}{Grouping variable.}
 
@@ -33,7 +44,43 @@ title (name of each factor level) (Default: \code{"Group"}).}
 
 \item{ylab}{Label for \code{y} axis variable.}
 
+\item{method}{Smoothing method (function) to use, accepts either a character vector,
+e.g. \code{"auto"}, \code{"lm"}, \code{"glm"}, \code{"gam"}, \code{"loess"} or a function, e.g.
+\code{MASS::rlm} or \code{mgcv::gam}, \code{base::lm}, or \code{base::loess}.
+
+For \code{method = "auto"} the smoothing method is chosen based on the
+size of the largest group (across all panels). \code{\link[=loess]{loess()}} is
+used for less than 1,000 observations; otherwise \code{\link[mgcv:gam]{mgcv::gam()}} is
+used with \code{formula = y ~ s(x, bs = "cs")}. Somewhat anecdotally,
+\code{loess} gives a better appearance, but is \eqn{O(N^{2})}{O(N^2)} in memory,
+so does not work for larger datasets.
+
+If you have fewer than 1,000 observations but want to use the same \code{gam()}
+model that \code{method = "auto"} would use, then set
+\code{method = "gam", formula = y ~ s(x, bs = "cs")}.}
+
+\item{method.args}{List of additional arguments passed on to the modelling
+function defined by \code{method}.}
+
+\item{formula}{Formula to use in smoothing function, eg. \code{y ~ x},
+\code{y ~ poly(x, 2)}, \code{y ~ log(x)}}
+
+\item{point.color}{Aesthetics specifying geom point
+(defaults: \code{point.color = "black"}, \code{point.size = 3},\code{point.alpha = 0.4}).}
+
+\item{point.size}{Aesthetics specifying geom point
+(defaults: \code{point.color = "black"}, \code{point.size = 3},\code{point.alpha = 0.4}).}
+
+\item{point.alpha}{Aesthetics specifying geom point
+(defaults: \code{point.color = "black"}, \code{point.size = 3},\code{point.alpha = 0.4}).}
+
 \item{line.size}{Size for the regression line.}
+
+\item{point.width.jitter}{Degree of jitter in \code{x} direction. Defaults to 40\%
+of the resolution of the data.}
+
+\item{point.height.jitter}{Degree of jitter in \code{y} direction. Defaults to
+40\% of the resolution of the data.}
 
 \item{line.color}{color for the regression line.}
 
@@ -50,19 +97,22 @@ plots compared to the main plot. A size of \code{5} means that the main plot is
 \item{margins}{Character describing along which margins to show the plots.
 Any of the following arguments are accepted: \code{"both"}, \code{"x"}, \code{"y"}.}
 
-\item{width.jitter}{Degree of jitter in \code{x} direction. Defaults to 40\% of
-the resolution of the data.}
+\item{package}{Name of package from which the palette is desired as string
+or symbol.}
 
-\item{height.jitter}{Degree of jitter in \code{y} direction. Defaults to 40\% of
-the resolution of the data.}
+\item{palette}{Name of palette as string or symbol.}
+
+\item{direction}{Either \code{1} or \code{-1}. If \code{-1} the palette will be reversed.}
 
 \item{xfill}{Character describing color fill for \code{x} and \code{y} axes
 marginal distributions (default: \code{"#009E73"} (for \code{x}) and \code{"#D55E00"} (for
-\code{y})).}
+\code{y})). If set to \code{NULL}, manual specification of colors will be turned off
+and 2 colors from the specified \code{palette} from \code{package} will be selected.}
 
 \item{yfill}{Character describing color fill for \code{x} and \code{y} axes
 marginal distributions (default: \code{"#009E73"} (for \code{x}) and \code{"#D55E00"} (for
-\code{y})).}
+\code{y})). If set to \code{NULL}, manual specification of colors will be turned off
+and 2 colors from the specified \code{palette} from \code{package} will be selected.}
 
 \item{xalpha}{Numeric deciding transparency levels for the marginal
 distributions. Any numbers from \code{0} (transparent) to \code{1} (opaque). The
@@ -72,9 +122,11 @@ default is \code{1} for both axes.}
 distributions. Any numbers from \code{0} (transparent) to \code{1} (opaque). The
 default is \code{1} for both axes.}
 
-\item{xsize}{Size for the marginal distribution boundaries (Default: \code{0.7}).}
+\item{xsize}{Size for the marginal distribution boundaries (Default:
+\code{0.7}).}
 
-\item{ysize}{Size for the marginal distribution boundaries (Default: \code{0.7}).}
+\item{ysize}{Size for the marginal distribution boundaries (Default:
+\code{0.7}).}
 
 \item{centrality.para}{Decides \emph{which} measure of central tendency (\code{"mean"}
 or \code{"median"}) is to be displayed as vertical (for \code{x}) and horizontal (for
@@ -82,15 +134,18 @@ or \code{"median"}) is to be displayed as vertical (for \code{x}) and horizontal
 
 \item{type}{Type of association between paired samples required
 ("\code{"parametric"}: Pearson's product moment correlation coefficient" or
-"\code{"nonparametric"}: Spearman's rho" or "\code{"robust"}: Robust regression using
-an M estimator"). Corresponding abbreviations are also accepted: \code{"p"} (for
-parametric/pearson's), \code{"np"} (nonparametric/spearman), \code{"r"} (robust),
-resp.}
+"\code{"nonparametric"}: Spearman's rho" or "\code{"robust"}: percentage bend
+correlation coefficient"). Corresponding abbreviations are also accepted:
+\code{"p"} (for parametric/pearson's), \code{"np"} (nonparametric/spearman), \code{"r"}
+(robust), resp.}
 
 \item{results.subtitle}{Decides whether the results of statistical tests are
 to be displayed as subtitle.}
 
 \item{caption}{The text for the plot caption.}
+
+\item{subtitle}{The text for the plot subtitle. Will work only if
+\code{results.subtitle = FALSE}.}
 
 \item{nboot}{Number of bootstrap samples for computing effect size (Default:
 \code{100}).}
@@ -99,13 +154,18 @@ to be displayed as subtitle.}
 
 \item{k}{Number of decimal places expected for results.}
 
-\item{axes.range.restrict}{Logical decides whether to restrict the axes values
-ranges to min and max values of the \code{x} and \code{y} variables (Default: \code{FALSE}).}
+\item{axes.range.restrict}{Logical decides whether to restrict the axes
+values ranges to min and max values of the \code{x} and \code{y} variables (Default:
+\code{FALSE}).}
 
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
-\code{ggplot2::theme_bw()}. Allowed values are the official \code{ggplot2} themes,
-including \code{theme_grey()}, \code{theme_minimal()}, \code{theme_classic()},
-\code{theme_void()}, etc.}
+\code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
+extension packages are allowed (e.g., \code{ggthemes::theme_economist()},
+\code{hrbrthemes::theme_ipsum_ps()}, \code{ggthemes::theme_fivethirtyeight()}, etc.).}
+
+\item{ggstatsplot.layer}{Logical that decides whether \code{theme_ggstatsplot}
+theme elements are to be displayed along with the selected \code{ggtheme}
+(Default: \code{TRUE}).}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
@@ -169,20 +229,61 @@ subtitle.
 # to ensure reproducibility
 set.seed(123)
 
-# basic functio call
+# basic function call
 ggstatsplot::grouped_ggscatterstats(
-  data = datasets::iris,
-  x = Sepal.Length,
-  y = Sepal.Width,
-  grouping.var = Species,
+  data = dplyr::filter(
+    ggstatsplot::movies_long,
+    genre == "Comedy" |
+      genre == "Drama"
+  ),
+  x = length,
+  y = rating,
+  method = "lm",
+  formula = y ~ x + I(x^3),
+  grouping.var = genre
+)
+
+# using labeling
+ggstatsplot::grouped_ggscatterstats(
+  data = dplyr::filter(ggplot2::mpg, cyl != 5),
+  x = displ,
+  y = hwy,
+  grouping.var = cyl,
+  title.prefix = "Cylinder count",
+  type = "robust",
+  label.var = "manufacturer",
+  label.expression = "hwy > 25 & displ > 2.5",
+  xfill = NULL,
+  package = "yarrr",
+  palette = "appletv",
   messages = FALSE
 )
+
+# labeling without expression
+\dontrun{
+ggstatsplot::grouped_ggscatterstats(
+  data = dplyr::filter(
+    .data = ggstatsplot::movies_long,
+    rating == 8,
+    genre \%in\% c("Drama", "Comedy")
+  ),
+  x = budget,
+  y = length,
+  grouping.var = genre,
+  label.var = "title",
+  results.subtitle = FALSE,
+  marginal = FALSE,
+  title.prefix = "Genre",
+  caption.text = "All movies have IMDB rating greater than 8."
+)
+}
 }
 \references{
-\url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggscatterstats.html}
+\url{https://cran.r-project.org/package=ggstatsplot/vignettes/ggscatterstats.html}
 }
 \seealso{
-\code{\link{ggscatterstats}} \code{\link{ggcorrmat}} \code{\link{grouped_ggcorrmat}}
+\code{\link{ggscatterstats}}, \code{\link{ggcorrmat}},
+\code{\link{grouped_ggcorrmat}}
 }
 \author{
 Indrajeet Patil

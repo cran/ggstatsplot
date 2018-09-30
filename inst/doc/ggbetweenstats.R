@@ -50,65 +50,96 @@ ggstatsplot::ggbetweenstats(
   mean.plotting = TRUE,                                       # whether the mean is to be displayed
   mean.color = "darkblue",                                    # color for mean
   messages = FALSE,                                           # turn off messages
+  ggtheme = ggthemes::theme_economist(),                      # a different theme
+  package = "yarrr",                                          # package for a color palette
+  palette = "info2",                                          # choosing a color palette
   title = "Comparison of life expectancy across continents (Year: 2007)",
   caption = "Source: Gapminder Foundation"
 ) +                                                           # modifying the plot further
   ggplot2::scale_y_continuous(limits = c(35,85), breaks = seq(from = 35, to = 85, by = 5))
 
-## ----ggbetweenstats3, message = FALSE, warning = FALSE, fig.height = 12, fig.width = 8----
+## ----ggbetweenstats3, message = FALSE, warning = FALSE, fig.height = 10, fig.width = 10----
 library(ggstatsplot)
 library(gapminder)
+
+# selecting subset of the data
+df_year <- dplyr::filter(.data = gapminder::gapminder, 
+                         year == 2007 | year == 1957)
 
 # for reproducibility
 set.seed(123)
 
 # parametric ANOVA and box plot
 p1 <- ggstatsplot::ggbetweenstats(
-  data = dplyr::filter(.data = gapminder, year == 2007, continent != "Oceania"),
-  x = continent,
+  data = df_year,
+  x = year,
   y = lifeExp,
   plot.type = "box",
   type = "p",
+  effsize.type = "d",
   title = "parametric test",
+  package = "ggsci",
+  palette = "nrc_npg",
+  k = 2,
   messages = FALSE
 )
 
 # Kruskal-Wallis test (nonparametric ANOVA) and violin plot
 p2 <- ggstatsplot::ggbetweenstats(
-  data = dplyr::filter(.data = gapminder, year == 1997, continent != "Oceania"),
-  x = continent,
+  data = df_year,
+  x = year,
   y = lifeExp,
   plot.type = "violin",
   type = "np",
   title = "non-parametric test",
+  package = "ggsci",
+  palette = "uniform_startrek",
+  k = 2,
   messages = FALSE
 )
 
 # robust ANOVA and boxviolin plot
 p3 <- ggstatsplot::ggbetweenstats(
-  data = dplyr::filter(.data = gapminder, year == 1987, continent != "Oceania"),
-  x = continent,
+  data = df_year,
+  x = year,
   y = lifeExp,
   plot.type = "boxviolin",
   type = "r",
   title = "robust test",
   tr = 0.005,
+  package = "wesanderson",
+  palette = "Royal2",
+  nboot = 15,
+  k = 2,
+  messages = FALSE
+)
+
+# robust ANOVA and boxviolin plot
+p4 <- ggstatsplot::ggbetweenstats(
+  data = df_year,
+  x = year,
+  y = lifeExp,
+  type = "bf",
+  title = "bayesian test",
+  package = "palettetown",
+  palette = "natu",
+  k = 2,
   messages = FALSE
 )
 
 # combining the individual plots into a single plot
 ggstatsplot::combine_plots(
-  p1, p2, p3, 
-  nrow = 3, 
-  ncol = 1, 
+  p1, p2, p3, p4, 
+  nrow = 2, 
+  ncol = 2, 
   labels = c("(a)", "(b)", "(c)"),
-  title.text = "Comparison of life expectancy across continents (1987-2007)",
-  caption.text = "Note: Comparing results from parametric, non-parametric, and robust tests",
+  title.text = "Comparison of life expectancy between 1957 and 2007",
+  caption.text = "Note: Comparing results from parametric, non-parametric, robust, and bayesian tests",
   title.size = 14,
   caption.size = 12
 )
 
-## ----grouped1, warning = FALSE, message = FALSE, fig.height = 22, fig.width = 7----
+## ----grouped1, warning = FALSE, message = FALSE, fig.height = 15, fig.width = 7----
 # for reproducibility
 set.seed(123)
 
@@ -116,113 +147,33 @@ ggstatsplot::grouped_ggbetweenstats(
   # arguments relevant for ggstatsplot::ggbetweenstats
   data = dplyr::filter(
     .data = gapminder::gapminder,
-    year == 1957 |
     year == 1967 |
-    year == 1977 |
     year == 1987 |
-    year == 1997 |
-    year == 2007, continent != "Oceania"
+    year == 2007, 
+    continent != "Oceania"
   ),
   x = continent,
   y = lifeExp,
+  # number of decimal places in results
+  k = 2,
+  nboot = 10,
+  ggtheme = ggthemes::theme_tufte(),
+  package = "ggsci",
+  palette = "default_jco",
   outlier.tagging = TRUE,
+  ggstatsplot.layer = FALSE,
   outlier.label = country,
   grouping.var = year,
   title.prefix = "Year",
   messages = FALSE,
   # arguments relevant for ggstatsplot::combine_plots
-  title.text = "Changes in life expectancy across continents (1957-2007)",
-  nrow = 6,
+  title.text = "Changes in life expectancy across continents (1967-2007)",
+  nrow = 3,
   ncol = 1,
-  labels = c("(a)","(b)","(c)", "(d)", "(e)", "(f)")
+  labels = c("(a)","(b)","(c)")
 )
 
-## ----grouped2, warning = FALSE, message = FALSE, fig.height = 22, fig.width = 7----
-# for reproducibility
-set.seed(123)
-
-# let's split the dataframe and create a list by years of interest
-year_list <- gapminder::gapminder %>%
-  dplyr::filter(
-    .data = .,
-    year == 1957 |
-    year == 1967 |
-    year == 1977 |
-    year == 1987 |
-    year == 1997 |
-    year == 2007, continent != "Oceania"
-  ) %>%
-  base::split(x = ., f = .$year, drop = TRUE)
-
-# this created a list with 4 elements, one for each mpaa rating
-# you can check the structure of the file for yourself
-# str(year_list)
-
-# checking the length and names of each element
-length(year_list)
-names(year_list)
-
-# running function on every element of this list note that if you want the same
-# value for a given argument across all elements of the list, you need to
-# specify it just once
-plot_list <- purrr::pmap(
-  .l = list(
-    data = year_list,
-    x = "continent",
-    y = "lifeExp",
-    outlier.label = "country",
-    outlier.label.color = list(
-      "#56B4E9",
-      "#009E73",
-      "#F0E442",
-      "#0072B2",
-      "#D55E00",
-      "#CC79A7"
-    ),
-    xlab = "Continent",
-    ylab = "Life expectancy",
-    title = list(
-      "Year: 1957",
-      "Year: 1967",
-      "Year: 1977",
-      "Year: 1987",
-      "Year: 1997",
-      "Year: 2007"
-    ),
-    type = list("r", "p", "np", "p", "p", "r"),
-    k = list(1, 2, 3, 3, 2, 1),
-    effsize.type = list(
-      "biased",
-      "unbiased",
-      "biased",
-      "unbiased",
-      "biased",
-      "unbiased"
-    ),
-    plot.type = list("box", "boxviolin", "box", "boxviolin", "box", "violin"),
-    mean.ci = list(TRUE, FALSE, TRUE, FALSE, TRUE, TRUE),
-    palette = list("Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1"),
-    ggtheme = list(
-      ggplot2::theme_grey(),
-      ggplot2::theme_classic(),
-      ggplot2::theme_light(),
-      ggplot2::theme_minimal(),
-      ggplot2::theme_bw(),
-      ggplot2::theme_void()
-    ),
-    sample.size.label = list(TRUE, FALSE, TRUE, FALSE, FALSE, TRUE),
-    messages = FALSE
-  ),
-  .f = ggstatsplot::ggbetweenstats
-)
-  
-# combining all individual plots from the list into a single plot using combine_plots function
-ggstatsplot::combine_plots(
-  plotlist = plot_list,
-  title.text = "Changes in life expectancy across continents (1957-2007)",
-  title.color = "red",
-  nrow = 6,
-  ncol = 1,
-  labels = c("(a)","(b)","(c)","(d)", "(e)", "(f)")
-)
+## ----session_info, eval = FALSE------------------------------------------
+#  options(width = 200)
+#  devtools::session_info()
 

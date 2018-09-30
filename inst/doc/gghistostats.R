@@ -4,195 +4,76 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
-## ----gapminder, warning = FALSE, message = FALSE-------------------------
-library(gapminder)
+## ----psychact, warning = FALSE, message = FALSE--------------------------
+# loading needed libraries
+library(ggstatsplot)
+library(psych)
 library(dplyr)
 
-dplyr::glimpse(x = gapminder::gapminder)
+# looking at the structure of the data using glimpse
+dplyr::glimpse(x = psych::sat.act)
 
-## ----age_distribution1, warning = FALSE, message = FALSE, fig.height = 6----
-library(ggstatsplot)
-
-gapminder::gapminder %>%
-  dplyr::filter(.data = ., year == 2007) %>%            # select data only from the year 2007
-  ggstatsplot::gghistostats(
-    data = .,                                           # data from which variable is to be taken
-    x = pop,                                            # numeric variable
+## ----psychact2, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 7----
+ggstatsplot::gghistostats(
+    data = psych::sat.act,                              # data from which variable is to be taken
+    x = ACT,                                            # numeric variable
     results.subtitle = FALSE,                           # don't run statistical tests
     messages = FALSE,                                   # turn off messages
-    xlab = "Population",                                # x-axis label
-    title = "Distribution of population worldwide",     # title for the plot
-    subtitle = "Year: 2007",                            # subtitle for the plot
-    caption = "Data courtesy of: Gapminder Foundation"  # caption for the plot
+    xlab = "ACT Score",                                 # x-axis label
+    title = "Distribution of ACT Scores",               # title for the plot
+    subtitle = "N = 700",                               # subtitle for the plot
+    caption = "Data courtesy of: SAPA project (https://sapa-project.org)", # caption for the plot
+    centrality.k = 1                                    # show 1 decimal places for centrality label
   )
 
-## ----age_distribution2, warning = FALSE, message = FALSE, fig.height = 6----
-gapminder::gapminder %>%
-  dplyr::filter(.data = ., year == 2007) %>%            # select data only from the year 2007
-  dplyr::mutate(.data = ., pop_log = log10(pop)) %>%    # creating new population variable
-  ggstatsplot::gghistostats(
-    data = .,                                           # data from which variable is to be taken
-    x = pop_log,                                        # numeric variable
-    results.subtitle = FALSE,                           # don't run statistical tests
-    messages = FALSE,                                   # turn off messages
-    xlab = "Population (logarithmic)",                  # x-axis label
-    title = "Distribution of population worldwide",     # title for the plot
-    subtitle = "Year: 2007",                            # subtitle for the plot
-    caption = "Data courtesy of: Gapminder Foundation", # caption for the plot
-    binwidth = 1                                        # new binwidth
+## ----psychact3, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 7----
+ggstatsplot::gghistostats(
+    data = psych::sat.act,                              # data from which variable is to be taken
+    x = ACT,                                            # numeric variable
+    results.subtitle = TRUE,                            # run statistical tests
+    messages = TRUE,                                    # turn on messages
+    bar.measure = "proportion",                         # proportions
+    xlab = "ACT Score",                                 # x-axis label
+    title = "Distribution of ACT Scores",               # title for the plot
+    type = "p",                                         # one sample t-test
+    bf.message = TRUE,                                  # display Bayes method results
+    ggtheme = ggthemes::theme_tufte(),                  # changing default theme
+    bar.fill = "#D55E00",                               # change fill color
+    test.value = 20,                                    # test value 
+    test.value.line = TRUE,                             # show a vertical line at `test.value`
+    caption = "Data courtesy of: SAPA project (https://sapa-project.org)", # caption for the plot
+    centrality.k = 1                                    # show 1 decimal places for centrality label
   )
 
-## ----age_distribution3, warning = FALSE, message = FALSE, fig.height = 6----
-gapminder::gapminder %>%
-  dplyr::filter(.data = ., year == 2007) %>%            # select data only from the year 2007
-  dplyr::mutate(.data = ., pop_log = log10(pop)) %>%    # creating new population variable
-  ggstatsplot::gghistostats(
-    data = .,                                           # data from which variable is to be taken
-    x = pop_log,                                        # numeric variable
-    bar.measure = "density",                            # bar height measure
-    results.subtitle = FALSE,                           # don't run statistical tests
-    messages = FALSE,                                   # turn off messages
-    xlab = "Population (logarithmic)",                  # x-axis label
-    title = "Distribution of population worldwide",     # title for the plot
-    subtitle = "Year: 2007",                            # subtitle for the plot
-    caption = "Data courtesy of: Gapminder Foundation", # caption for the plot
-    binwidth = 1,                                       # new binwidth
-    low.color = "#009E73",                              # color for the lower end of the colorbar
-    high.color = "#F0E442"                              # color for the upper end of the colorbar
-  )
-
-## ----age_distribution4, warning = FALSE, message = FALSE, fig.height = 6----
-gapminder::gapminder %>%
-  dplyr::filter(.data = ., year == 2007) %>%            
-  ggstatsplot::gghistostats(
-    data = .,                                           # data from which variable is to be taken
-    x = lifeExp,                                        # numeric variable
-    bar.measure = "proportion",                         # bar height measure
-    results.subtitle = FALSE,                           # don't run statistical tests
-    messages = FALSE,                                   # turn off messages
-    xlab = "Life expectancy",                           # x-axis label
-    title = "Distribution of life expectancy",          # title for the plot
-    subtitle = "Year: 2007",                            # subtitle for the plot
-    caption = "Data courtesy of: Gapminder Foundation", # caption for the plot
-    binwidth = 5,                                       # new binwidth
-    low.color = "#009E73",                              # color for the lower end of the colorbar
-    high.color = "#F0E442"                              # color for the upper end of the colorbar
-  )
-
-## ----stats1, warning = FALSE, message = FALSE, fig.height = 6------------
-gapminder::gapminder %>%
-  dplyr::filter(.data = ., year == 2007) %>%            # select data only from the year 2007
-  ggstatsplot::gghistostats(
-    data = .,                                           # data from which variable is to be taken
-    x = lifeExp,                                        # numeric variable
-    messages = FALSE,                                   # turn off messages
-    test.value = 48,                                    # test value against which sample mean is to be compared
-    xlab = "Life expectancy",                           # x-axis label
-    title = "Life expectancy worldwide",                # title for the plot
-    subtitle = "Year: 2007",                            # subtitle for the plot
-    caption = "Data courtesy of: Gapminder Foundation", # caption for the plot
-    centrality.para = "mean",                           # plotting centrality parameter (mean)
-    ggtheme = ggplot2::theme_grey(),                    # change the default theme
-    fill.gradient = FALSE                               # turn off color fill gradient
-  )
-
-## ----stats_bf, warning = FALSE, message = FALSE, fig.height = 6----------
-gapminder::gapminder %>%
-  dplyr::filter(.data = ., year == 2007) %>%
-  ggstatsplot::gghistostats(
-    data = .,                                              # data from which variable is to be taken
-    x = lifeExp,                                           # numeric variable
-    messages = FALSE,                                      # turn off messages
-    type = "bf",                                           # bayesian one sample t-test
-    test.value = 48,                                       # test value 
-    xlab = "Life expectancy",                              # x-axis label
-    title = "Life expectancy worldwide",                   # title for the plot
-    subtitle = "Year: 2007",                               # subtitle for the plot
-    caption = "Note: black line - 1950; blue line - 2007", # caption for the plot
-    test.value.line = TRUE,                                # show a vertical line at `test.value`
-    centrality.para = "mean"                               # plotting centrality parameter (mean)
-  )
-
-## ----grouped1, warning = FALSE, message = FALSE, fig.height = 12, fig.width = 12----
-gapminder::gapminder %>%                        # select data only for the year 2007
-  dplyr::filter(.data = ., year == 2007) %>%
+## ----grouped1, warning = FALSE, message = FALSE, fig.height = 10, fig.width = 7----
 ggstatsplot::grouped_gghistostats(
   # arguments relevant for ggstatsplot::gghistostats
-  data = .,                                     # `.` is placeholder for data plugged by %>%
-  x = lifeExp,
-  xlab = "Life expectancy",
-  title.prefix = "Continent",                   # prefix for the fixed title
-  type = "robust",                              # robust test: one-sample percentile bootstrap
-  robust.estimator = "mom",                     # the modified one-step M-estimator of location
-  test.value = 48,                              # test value against which sample mean is to be compared
+  data = psych::sat.act,                        # same dataset
+  x = ACT,                                      # same outcome variable
+  xlab = "ACT Score",
+  grouping.var = gender,                        # grouping variable males = 1, females = 2
+  title.prefix = "Gender",                      # prefix for the fixed title
+  k = 1,                                        # number of decimal places in results
+  type = "r",                                   # robust test: one-sample percentile bootstrap
+  robust.estimator = "mom",                     # changing the robust estimator used
+  test.value = 20,                              # test value against which sample mean is to be compared
   test.value.line = TRUE,                       # show a vertical line at `test.value`
+  bar.measure = "density",                      # density
+  centrality.para = "median",                   # plotting centrality parameter
+  centrality.color = "#D55E00",                 # color for centrality line and label
+  test.value.color = "#009E73",                 # color for test line and label
   messages = FALSE,                             # turn off messages
-  centrality.para = "mean",                     # plotting centrality parameter (mean)
-  grouping.var = continent,                     # grouping variable with multiple levels
+  ggtheme = ggthemes::theme_stata(),            # changing default theme
+  ggstatsplot.layer = FALSE,                    # turn off ggstatsplot theme layer
   # arguments relevant for ggstatsplot::combine_plots
-  title.text = "Life expectancy change in different continents since 1950",
-  caption.text = "Note: black line - 1950; blue line - 2007",
-  nrow = 3,
-  ncol = 2,
-  labels = c("(a)","(b)","(c)","(d)","(e)")
+  title.text = "Distribution of ACT scores across genders",
+  caption.text = "Data courtesy of: SAPA project (https://sapa-project.org)",
+  nrow = 2,
+  ncol = 1,
+  labels = c("Male","Female")
 )
 
-## ----grouped2, warning = FALSE, message = FALSE, fig.height = 14, fig.width = 12----
-# let's split the dataframe and create a list by continent
-continent_list <- gapminder::gapminder %>%
-  dplyr::filter(.data = ., year == 2007) %>%
-  base::split(x = ., f = .$continent, drop = TRUE)
-
-# this created a list with 5 elements, one for each continent
-# you can check the structure of the file for yourself
-# str(continent_list)
-
-# checking the length and names of each element
-length(continent_list)
-names(continent_list)
-
-# running function on every element of this list note that if you want the same
-# value for a given argument across all elements of the list, you need to
-# specify it just once
-plot_list <- purrr::pmap(
-  .l = list(
-    data = continent_list,
-    x = "lifeExp",
-    xlab = "Life expectancy",
-    test.value = list(35.6, 58.4, 41.6, 64.7, 63.4),
-    type = list("p", "np", "r", "np", "p"),
-    title = list(
-      "Continent: Africa",
-      "Continent: Americas",
-      "Continent: Asia",
-      "Continent: Europe",
-      "Continent: Oceania"
-    ),
-    messages = FALSE,
-    test.value.line = TRUE,
-    test.value.color = "black",
-    centrality.para = "mean",
-    centrality.color = "blue",
-    low.color = list("#56B4E9", "#009E73", "#999999", "#0072B2", "#D55E00"),
-    high.color = list("#D55E00", "#CC79A7", "#F0E442", "#D55E00", "#56B4E9"),
-    ggtheme = list(
-      ggplot2::theme_grey(),
-      ggplot2::theme_classic(),
-      ggplot2::theme_light(),
-      ggplot2::theme_minimal(),
-      ggplot2::theme_bw()
-    )
-  ),
-  .f = ggstatsplot::gghistostats
-)
-  
-# combining all individual plots from the list into a single plot using combine_plots function
-ggstatsplot::combine_plots(
-  plotlist = plot_list,
-  title.text = "Improvement in life expectancy worldwide since 1950",
-  caption.text = "Note: black line - 1950; blue line - 2007",
-  nrow = 3,
-  ncol = 2,
-  labels = c("(a)", "(b)", "(c)", "(d)", "(e)")
-)
+## ----session_info-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+options(width = 200)
+devtools::session_info()
 

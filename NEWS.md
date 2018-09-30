@@ -1,5 +1,67 @@
-# ggstatsplot 0.0.5.9000
+# ggstatsplot 0.0.6
 
+MAJOR CHANGES
+  - The package now exports all functions used to create text expressions with
+  results. This makes it easy for people to use these results in their own plots
+  at any location they want (and not just in `subtitle`, the current default for
+  `ggstatsplot`).
+  - `ggcorrmat` gains `p.adjust.method` argument which allows *p*-values for
+  correlations to be corrected for multiple comparisons.
+  - `ggscatterstats` gains `label.var` and `label.expression` arguments to
+  attach labels to points.
+  - `gghistostats` now defaults to not showing (redundant) color gradient
+  (`fill.gradient = FALSE`) and shows both `"count"` and `"proportion"` data. It
+  also gains a new argument `bar.fill` that can be used to fill bars with a
+  uniform color.
+  - `ggbetweenstats`,  `ggcoefstats`, `ggcorrmat`, `ggscatterstats`, and
+  `ggpiestats` now support all palettes contained in the `paletteer` package.
+  This helps avoid situations where people had large number of groups (> 12) and
+  there were not enough colors in any of the `RColorBrewer` palettes.
+  - `ggbetweenstats` gains `bf.message` argument to display bayes factors in
+  favor of the null (currently works only for parametric t-test).
+  - `gghistostats` function no longer has `line.labeller.y` argument; this
+  position is automatically determined now.
+
+BREAKING CHANGES
+  - `legend.title.margin` function has been depcrecated since `ggplot2 3.0.0` has
+  improved on the margin issues from previous versions. All functions that
+  wrapped around this function now lose the relevant arguments
+  (`legend.title.margin`, `t.margin`, `b.margin`).
+  - The argument `ggstatsplot.theme` has been changed to `ggstatsplot.layer` for
+  `ggcorrmat` function to be consistent across functions.
+  - For consistency, `conf.level` and `conf.type` arguments for `ggbetweenstats`
+  have been deprecated. No other function in the package allowed changing
+  confidence interval or their type for effect size estimation. These arguments
+  were relevant only for `robust` tests anyway.
+  - `ggocorrmat` argument `type` has been changed to `matrix.type` because for
+  all other functions `type` argument specifies the type of the test, while for
+  this function it specified the display of the virsualization matrix. This will
+  make the syntax more consistent across functions.
+  - `ggscatterstats` gains new arguments to specify aesthetics for geom point
+  (`point.color`, `point.size`, `point.alpha`). To be consistent with this
+  naming schema, the `width.jitter` and `height.jitter` arguments have been
+  renamed to `point.width.jitter` and `point.height.jitter`, resp.
+
+MINOR CHANGES
+  - `gghistostats`: To be compatible with `JASP`, natural logarithm of Bayes
+  Factors is displayed, and not base 10 logarithm.
+  - `ggscatterstats` gains `method` and `formula` arguments to modify smoothing
+  functions.
+  - `ggcorrmat` can now show `robust` correlation coefficients in the matrix
+  plot.
+  - For `gghistostats`, `binwidth` value, if not specified, is computed with
+  `(max-min)/sqrt(n)`. This is basically to get rid of the warnings ggplot2
+  produces. Thanks to Chuck Powell's PR (#43).
+  - `ggcoefstats` gains a new argument `partial` and can display eta-squared and
+  omega-squared effect sizes for anovas, in addition to the prior partial
+  variants of these effect sizes.
+  - `ggpiestats` gains `perc.k` argument to show desired number of decimal
+  places in percentage labels.
+
+BUG FIXES
+  - `grouped_ggpiestats` wasn't working when only `main` variable was provided
+  with `counts` data. Fixed that.
+  
 # ggstatsplot 0.0.5
 
 MAJOR CHANGES
@@ -8,7 +70,8 @@ MAJOR CHANGES
     so feel free to use either or both of them since they are identical.
   - `ggcoefstats` no longer has arguments `effects` and `ran_params` because
     only fixed effects are shown for mixed-effects models.
-  - `ggpiestats` can now handle within-subjects designs (McNemar test).
+  - `ggpiestats` can now handle within-subjects designs (McNemar test results
+  will be displayed).
      
 BUG FIXES
   - `ggbetweenstats` was producing wrong axes labels when `sample.size.label`

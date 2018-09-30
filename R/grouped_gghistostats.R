@@ -1,4 +1,3 @@
-#'
 #' @title Grouped histograms for distribution of a numeric variable
 #' @name grouped_gghistostats
 #' @aliases grouped_gghistostats
@@ -31,8 +30,8 @@
 #'
 #' @seealso \code{\link{gghistostats}}
 #'
-#' @references
-#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/gghistostats.html}
+#' @inherit gghistostats return references
+#' @inherit gghistostats return details
 #'
 #' @examples
 #' 
@@ -40,7 +39,9 @@
 #'   data = iris,
 #'   x = Sepal.Length,
 #'   test.value = 5,
+#'   bf.message = TRUE,
 #'   grouping.var = Species,
+#'   bar.fill = "orange",
 #'   nrow = 1,
 #'   messages = FALSE
 #' )
@@ -52,39 +53,42 @@ grouped_gghistostats <- function(data,
                                  x,
                                  grouping.var,
                                  title.prefix = "Group",
+                                 binwidth = NULL,
                                  bar.measure = "count",
                                  xlab = NULL,
+                                 title = NULL,
                                  subtitle = NULL,
                                  caption = NULL,
                                  type = "parametric",
                                  test.value = 0,
                                  bf.prior = 0.707,
-                                 bf.message = TRUE,
+                                 bf.message = FALSE,
                                  robust.estimator = "onestep",
                                  nboot = 500,
                                  k = 3,
+                                 ggtheme = ggplot2::theme_bw(),
+                                 ggstatsplot.layer = TRUE,
+                                 fill.gradient = FALSE,
                                  low.color = "#0072B2",
                                  high.color = "#D55E00",
+                                 bar.fill = "grey50",
                                  results.subtitle = TRUE,
-                                 legend.title.margin = FALSE,
-                                 t.margin = unit(0, "mm"),
-                                 b.margin = unit(3, "mm"),
-                                 centrality.para = NULL,
+                                 centrality.para = "mean",
                                  centrality.color = "blue",
-                                 centrality.size = 1.2,
+                                 centrality.size = 1.0,
                                  centrality.linetype = "dashed",
+                                 centrality.line.labeller = TRUE,
+                                 centrality.k = 2,
                                  test.value.line = FALSE,
                                  test.value.color = "black",
-                                 test.value.size = 1.2,
+                                 test.value.size = 1.0,
                                  test.value.linetype = "dashed",
-                                 line.labeller = FALSE,
-                                 line.labeller.y = -2,
-                                 binwidth = NULL,
-                                 ggtheme = ggplot2::theme_bw(),
-                                 fill.gradient = TRUE,
+                                 test.line.labeller = TRUE,
+                                 test.k = 0,
                                  messages = TRUE,
                                  ...) {
-  # ================== preparing dataframe ==================
+
+  # ============================================= preparing dataframe =====================================================
 
   # getting the dataframe ready
   df <- dplyr::select(
@@ -96,6 +100,28 @@ grouped_gghistostats <- function(data,
       .data = .,
       title.text = !!rlang::enquo(grouping.var)
     )
+
+  # maximum value for x
+  binmax <- dplyr::select(
+    .data = data,
+    !!rlang::enquo(x)
+  ) %>%
+    max(x = ., na.rm = TRUE)
+
+  # minimum value for x
+  binmin <- dplyr::select(
+    .data = data,
+    !!rlang::enquo(x)
+  ) %>%
+    min(x = ., na.rm = TRUE)
+
+  # number of datapoints
+  bincount <- as.integer(data %>% dplyr::count(x = .))
+
+  # adding some binwidth sanity checking
+  if (is.null(binwidth)) {
+    binwidth <- (binmax - binmin) / sqrt(bincount)
+  }
 
   # creating a nested dataframe
   df %<>%
@@ -109,6 +135,7 @@ grouped_gghistostats <- function(data,
       .predicate = is.factor,
       .funs = ~base::droplevels(.)
     ) %>%
+    dplyr::filter(.data = ., !is.na(!!rlang::enquo(grouping.var))) %>%
     dplyr::arrange(.data = ., !!rlang::enquo(grouping.var)) %>%
     dplyr::group_by(.data = ., !!rlang::enquo(grouping.var)) %>%
     tidyr::nest(data = .)
@@ -137,20 +164,24 @@ grouped_gghistostats <- function(data,
             nboot = nboot,
             low.color = low.color,
             high.color = high.color,
+            bar.fill = bar.fill,
             k = k,
             results.subtitle = results.subtitle,
             centrality.para = centrality.para,
             centrality.color = centrality.color,
             centrality.size = centrality.size,
             centrality.linetype = centrality.linetype,
+            centrality.line.labeller = centrality.line.labeller,
+            centrality.k = centrality.k,
             test.value.line = test.value.line,
             test.value.color = test.value.color,
             test.value.size = test.value.size,
             test.value.linetype = test.value.linetype,
-            line.labeller = line.labeller,
-            line.labeller.y = line.labeller.y,
+            test.line.labeller = test.line.labeller,
+            test.k = test.k,
             binwidth = binwidth,
             ggtheme = ggtheme,
+            ggstatsplot.layer = ggstatsplot.layer,
             fill.gradient = fill.gradient,
             messages = messages
           )
@@ -163,6 +194,12 @@ grouped_gghistostats <- function(data,
       plotlist = plotlist_purrr$plots,
       ...
     )
+
+  # show the note about grouped_ variant producing object which is not of
+  # class ggplot
+  if (isTRUE(messages)) {
+    grouped_message()
+  }
 
   # return the combined plot
   return(combined_plot)

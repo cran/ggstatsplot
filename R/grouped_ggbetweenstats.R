@@ -1,4 +1,3 @@
-#'
 #' @title Violin plots for group or condition comparisons in between-subjects
 #'   designs repeated across all levels of a grouping variable.
 #' @name grouped_ggbetweenstats
@@ -34,8 +33,8 @@
 #'
 #' @seealso \code{\link{ggbetweenstats}}
 #'
-#' @references
-#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/ggbetweenstats.html}
+#' @inherit ggbetweenstats return references
+#' @inherit ggbetweenstats return details
 #'
 #' @examples
 #' 
@@ -44,13 +43,13 @@
 #' 
 #' # the most basic function call
 #' ggstatsplot::grouped_ggbetweenstats(
-#'   data = mtcars,
-#'   x = cyl,
-#'   y = wt,
-#'   grouping.var = am
+#'   data = dplyr::filter(ggplot2::mpg, drv != "4"),
+#'   x = year,
+#'   y = hwy,
+#'   grouping.var = drv,
+#'   bf.message = TRUE
 #' )
 #' @export
-#'
 
 # defining the function
 grouped_ggbetweenstats <- function(data,
@@ -62,6 +61,8 @@ grouped_ggbetweenstats <- function(data,
                                    type = "parametric",
                                    effsize.type = "unbiased",
                                    effsize.noncentral = FALSE,
+                                   bf.prior = 0.707,
+                                   bf.message = FALSE,
                                    xlab = NULL,
                                    ylab = NULL,
                                    caption = NULL,
@@ -70,8 +71,6 @@ grouped_ggbetweenstats <- function(data,
                                    var.equal = FALSE,
                                    nboot = 100,
                                    tr = 0.1,
-                                   conf.level = 0.95,
-                                   conf.type = "norm",
                                    mean.label.size = 3,
                                    mean.label.fontface = "bold",
                                    mean.label.color = "black",
@@ -91,7 +90,10 @@ grouped_ggbetweenstats <- function(data,
                                    point.jitter.height = 0.2,
                                    point.dodge.width = 0.75,
                                    ggtheme = ggplot2::theme_bw(),
+                                   ggstatsplot.layer = TRUE,
+                                   package = "RColorBrewer",
                                    palette = "Dark2",
+                                   direction = 1,
                                    messages = TRUE,
                                    ...) {
   # ================== preparing dataframe ==================
@@ -108,7 +110,8 @@ grouped_ggbetweenstats <- function(data,
       dplyr::mutate(
         .data = .,
         title.text = !!rlang::enquo(grouping.var)
-      )
+      ) %>%
+      stats::na.omit(.)
   } else {
     # getting the dataframe ready
     df <- dplyr::select(
@@ -120,7 +123,8 @@ grouped_ggbetweenstats <- function(data,
       dplyr::mutate(
         .data = .,
         title.text = !!rlang::enquo(grouping.var)
-      )
+      ) %>%
+      stats::na.omit(.)
   }
 
   # creating a nested dataframe
@@ -135,6 +139,7 @@ grouped_ggbetweenstats <- function(data,
       .predicate = is.factor,
       .funs = ~base::droplevels(.)
     ) %>%
+    dplyr::filter(.data = ., !is.na(!!rlang::enquo(grouping.var))) %>%
     dplyr::arrange(.data = ., !!rlang::enquo(grouping.var)) %>%
     dplyr::group_by(.data = ., !!rlang::enquo(grouping.var)) %>%
     tidyr::nest(data = .)
@@ -157,6 +162,8 @@ grouped_ggbetweenstats <- function(data,
               type = type,
               effsize.type = effsize.type,
               effsize.noncentral = effsize.noncentral,
+              bf.prior = bf.prior,
+              bf.message = bf.message,
               xlab = xlab,
               ylab = ylab,
               caption = caption,
@@ -165,8 +172,6 @@ grouped_ggbetweenstats <- function(data,
               var.equal = var.equal,
               nboot = nboot,
               tr = tr,
-              conf.level = conf.level,
-              conf.type = conf.type,
               mean.label.size = mean.label.size,
               mean.label.fontface = mean.label.fontface,
               mean.label.color = mean.label.color,
@@ -183,7 +188,10 @@ grouped_ggbetweenstats <- function(data,
               mean.size = mean.size,
               mean.color = mean.color,
               ggtheme = ggtheme,
+              ggstatsplot.layer = ggstatsplot.layer,
+              package = package,
               palette = palette,
+              direction = direction,
               messages = messages,
               point.jitter.width = point.jitter.width,
               point.dodge.width = point.dodge.width,
@@ -209,6 +217,8 @@ grouped_ggbetweenstats <- function(data,
               type = type,
               effsize.type = effsize.type,
               effsize.noncentral = effsize.noncentral,
+              bf.prior = bf.prior,
+              bf.message = bf.message,
               xlab = xlab,
               ylab = ylab,
               caption = caption,
@@ -217,8 +227,6 @@ grouped_ggbetweenstats <- function(data,
               var.equal = var.equal,
               nboot = nboot,
               tr = tr,
-              conf.level = conf.level,
-              conf.type = conf.type,
               mean.label.size = mean.label.size,
               mean.label.fontface = mean.label.fontface,
               mean.label.color = mean.label.color,
@@ -234,7 +242,10 @@ grouped_ggbetweenstats <- function(data,
               mean.size = mean.size,
               mean.color = mean.color,
               ggtheme = ggtheme,
+              ggstatsplot.layer = ggstatsplot.layer,
+              package = package,
               palette = palette,
+              direction = direction,
               messages = messages,
               point.jitter.width = point.jitter.width,
               point.dodge.width = point.dodge.width,
@@ -250,6 +261,12 @@ grouped_ggbetweenstats <- function(data,
       plotlist = plotlist_purrr$plots,
       ...
     )
+
+  # show the note about grouped_ variant producing object which is not of
+  # class ggplot
+  if (isTRUE(messages)) {
+    grouped_message()
+  }
 
   # return the combined plot
   return(combined_plot)
