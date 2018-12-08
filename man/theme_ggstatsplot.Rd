@@ -2,10 +2,13 @@
 % Please edit documentation in R/theme_ggstatsplot.R
 \name{theme_ggstatsplot}
 \alias{theme_ggstatsplot}
+\alias{theme_mprl}
 \title{Default theme used in all \code{ggstatsplot} package plots}
 \usage{
 theme_ggstatsplot(ggtheme = ggplot2::theme_bw(),
   ggstatsplot.layer = TRUE)
+
+theme_mprl(ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE)
 }
 \arguments{
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
@@ -26,7 +29,7 @@ and \emph{assumed} by the author to be aesthetically pleasing to the
 user/reader.
 }
 \references{
-\url{https://indrajeetpatil.github.io/ggstatsplot/articles/theme_ggstatsplot.html}
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/theme_ggstatsplot.html}
 }
 \author{
 Indrajeet Patil

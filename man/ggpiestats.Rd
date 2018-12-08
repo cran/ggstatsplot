@@ -6,11 +6,15 @@
 \usage{
 ggpiestats(data, main, condition = NULL, counts = NULL, ratio = NULL,
   paired = FALSE, factor.levels = NULL, stat.title = NULL,
-  sample.size.label = TRUE, title = NULL, caption = NULL,
-  nboot = 25, legend.title = NULL, facet.wrap.name = NULL, k = 3,
-  perc.k = 0, facet.proptest = TRUE, ggtheme = ggplot2::theme_bw(),
-  ggstatsplot.layer = TRUE, package = "RColorBrewer",
-  palette = "Dark2", direction = 1, messages = TRUE)
+  sample.size.label = TRUE, bf.message = FALSE,
+  sampling.plan = "indepMulti", fixed.margin = "rows",
+  prior.concentration = 1, title = NULL, caption = NULL,
+  conf.level = 0.95, nboot = 25, legend.title = NULL,
+  facet.wrap.name = NULL, k = 2, perc.k = 0,
+  slice.label = "percentage", facet.proptest = TRUE,
+  ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
+  package = "RColorBrewer", palette = "Dark2", direction = 1,
+  messages = TRUE)
 }
 \arguments{
 \item{data}{The data as a data frame (matrix or tables will not be accepted).}
@@ -40,12 +44,32 @@ effect being shown. An example of a \code{stat.title} argument will be something
 like \code{"main x condition"} or \code{"interaction"}.}
 
 \item{sample.size.label}{Logical that decides whether sample size information
-should be displayed for each level of the grouping variable \code{condition} (Default:
-\code{TRUE}).}
+should be displayed for each level of the grouping variable \code{condition}
+(Default: \code{TRUE}).}
+
+\item{bf.message}{Logical that decides whether to display a caption with
+results from bayes factor test in favor of the null hypothesis (default:
+\code{FALSE}).}
+
+\item{sampling.plan}{Character describing the sampling plan. Possible options
+are \code{"indepMulti"} (independent multinomial; default), \code{"poisson"},
+\code{"jointMulti"} (joint multinomial), \code{"hypergeom"} (hypergeometric). For
+more, see \code{?BayesFactor::contingencyTableBF()}.}
+
+\item{fixed.margin}{For the independent multinomial sampling plan, which
+margin is fixed (\code{"rows"} or \code{"cols"}). Defaults to \code{"rows"}.}
+
+\item{prior.concentration}{Specifies the prior concentration parameter, set
+to \code{1} by default. It indexes the expected deviation from the null
+hypothesis under the alternative, and corresponds to Gunel and Dickey's
+(1974) \code{"a"} parameter.}
 
 \item{title}{The text for the plot title.}
 
 \item{caption}{The text for the plot caption.}
+
+\item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
+\code{95\%} lower and upper confidence intervals (\code{0.95}).}
 
 \item{nboot}{Number of bootstrap samples for computing effect size (Default:
 \code{25}).}
@@ -54,10 +78,15 @@ should be displayed for each level of the grouping variable \code{condition} (De
 
 \item{facet.wrap.name}{The text for the facet_wrap variable label.}
 
-\item{k}{Number of digits after decimal point (should be an integer) (Default: \code{k = 3}).}
+\item{k}{Number of digits after decimal point (should be an integer)
+(Default: \code{k = 2}).}
 
 \item{perc.k}{Numeric that decides number of decimal places for percentage
 labels (Default: \code{0}).}
+
+\item{slice.label}{Character decides what information needs to be displayed
+on the label in each pie slice. Possible options are \code{"percentage"}
+(default), \code{"counts"}, \code{"both"}.}
 
 \item{facet.proptest}{Decides whether proportion test for \code{main} variable is
 to be carried out for each level of \code{condition} (Default: \code{TRUE}).}
@@ -83,6 +112,16 @@ type. Default palette is \code{"Dark2"}.}
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
 }
+\value{
+Unlike a number of statistical softwares, \code{ggstatsplot} doesn't
+provide the option for Yates' correction for the Pearson's chi-squared
+statistic. This is due to compelling amount of Monte-Carlo simulation
+research which suggests that the Yates' correction is overly conservative,
+even in small sample sizes. As such it is recommended that it should not
+ever be applied in practice (Camilli & Hopkins, 1978, 1979; Feinberg, 1980;
+Larntz, 1978; Thompson, 1988). For more, see-
+\url{http://www.how2stats.net/2011/09/yates-correction.html}
+}
 \description{
 Pie charts for categorical data with statistical details
 included in the plot as a subtitle.
@@ -105,6 +144,7 @@ ggstatsplot::ggpiestats(
   data = datasets::mtcars,
   main = vs,
   condition = cyl,
+  bf.message = TRUE,
   nboot = 10,
   factor.levels = c("0 = V-shaped", "1 = straight"),
   legend.title = "Engine"
@@ -120,7 +160,7 @@ ggstatsplot::ggpiestats(
 )
 }
 \references{
-\url{https://cran.r-project.org/package=ggstatsplot/vignettes/ggpiestats.html}
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html}
 }
 \author{
 Indrajeet Patil

@@ -4,9 +4,10 @@
 \alias{ggcorrmat}
 \title{Visualization of a correlalogram (or correlation matrix)}
 \usage{
-ggcorrmat(data, cor.vars, cor.vars.names = NULL, output = "plot",
-  matrix.type = "full", method = "square", corr.method = "pearson",
-  exact = FALSE, continuity = TRUE, beta = 0.1, digits = 2,
+ggcorrmat(data, cor.vars = NULL, cor.vars.names = NULL,
+  output = "plot", matrix.type = "full", method = "square",
+  corr.method = "pearson", type = NULL, exact = FALSE,
+  continuity = TRUE, beta = 0.1, digits = 2, k = NULL,
   sig.level = 0.05, p.adjust.method = "none", hc.order = FALSE,
   hc.method = "complete", lab = TRUE, package = "RColorBrewer",
   palette = "Dark2", direction = 1, colors = c("#E69F00", "white",
@@ -24,7 +25,8 @@ ggcorrmat(data, cor.vars, cor.vars.names = NULL, output = "plot",
 taken.}
 
 \item{cor.vars}{List of variables for which the correlation matrix is to be
-computed and visualized.}
+computed and visualized. If \code{NULL} (default), all numeric variables from
+\code{data} will be used.}
 
 \item{cor.vars.names}{Optional list of names to be used for \code{cor.vars}. The
 names should be entered in the same order.}
@@ -37,14 +39,14 @@ intervals for unique correlation pairs; not available for robust
 correlation) or \code{"n"} (or \code{"sample.size"} for a tibble with sample sizes
 for each correlation pair).}
 
-\item{matrix.type}{Character, \code{"full"} (default), \code{"upper"} or \code{"lower"}, display
-full matrix, lower triangular or upper triangular matrix.}
+\item{matrix.type}{Character, \code{"full"} (default), \code{"upper"} or \code{"lower"},
+display full matrix, lower triangular or upper triangular matrix.}
 
 \item{method}{Character argument that decides the visualization method of
 correlation matrix to be used. Allowed values are \code{"square"} (default),
 \code{"circle"}}
 
-\item{corr.method}{A character string indicating which correlation
+\item{corr.method, type}{A character string indicating which correlation
 coefficient is to be computed (\code{"pearson"} (default) or \code{"kendall"} or
 \code{"spearman"}). \code{"robust"} can also be entered but only if \code{output} argument
 is set to either \code{"correlations"} or \code{"p-values"}. The robust correlation
@@ -63,8 +65,8 @@ Kendall's \emph{tau} and Spearman's \emph{rho} when not computed exactly (Defaul
 \item{beta}{A numeric bending constant for robust correlation coefficient
 (Default: \code{0.1}).}
 
-\item{digits}{Decides the number of decimal digits to be displayed (Default:
-\code{2}).}
+\item{digits, k}{Decides the number of decimal digits to be displayed
+(Default: \code{2}).}
 
 \item{sig.level}{Significance level (Default: \code{0.05}). If the \emph{p}-value in
 \emph{p}-value matrix is bigger than \code{sig.level}, then the corresponding
@@ -159,6 +161,12 @@ Visualization of a correlalogram (or correlation matrix)
 }
 \examples{
 
+# for reproducibility
+set.seed(123)
+
+# if `cor.vars` not specified, all numeric varibles used
+ggstatsplot::ggcorrmat(data = iris)
+
 # to get the correlalogram
 # note that the function will run even if the vector with variable names is
 # not of same length as the number of variables
@@ -184,7 +192,7 @@ ggstatsplot::ggcorrmat(
   output = "p"
 )
 
-# setting output = "ci" will return the confidence intervals for unique
+# setting `output = "ci"` will return the confidence intervals for unique
 # correlation pairs
 ggstatsplot::ggcorrmat(
   data = ggplot2::msleep,
@@ -193,7 +201,7 @@ ggstatsplot::ggcorrmat(
   output = "ci"
 )
 
-# modifying few elements of the correlation matrix by changing function defaults
+# modifying elements of the correlation matrix by changing function defaults
 ggstatsplot::ggcorrmat(
   data = datasets::iris,
   cor.vars = c(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width),
@@ -206,7 +214,7 @@ ggstatsplot::ggcorrmat(
 )
 }
 \references{
-\url{https://cran.r-project.org/package=ggstatsplot/vignettes/ggcorrmat.html}
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html}
 }
 \seealso{
 \code{\link{grouped_ggcorrmat}} \code{\link{ggscatterstats}}

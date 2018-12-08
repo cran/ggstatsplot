@@ -1,5 +1,4 @@
 #' @title Default theme used in all `ggstatsplot` package plots
-#' @name theme_ggstatsplot
 #' @author Indrajeet Patil
 #' @description Common theme used across all plots generated in `ggstatsplot`
 #'   and *assumed* by the author to be aesthetically pleasing to the
@@ -18,9 +17,8 @@
 #' @import ggplot2
 #' @importFrom grid unit
 #'
-#'
 #' @references
-#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/theme_ggstatsplot.html}
+#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/theme_ggstatsplot.html}
 #'
 #' @export
 
@@ -29,16 +27,16 @@ theme_ggstatsplot <- function(ggtheme = ggplot2::theme_bw(),
   if (isTRUE(ggstatsplot.layer)) {
     ggtheme +
       ggplot2::theme(
-        axis.title.x = ggplot2::element_text(size = 10, face = "bold"),
-        strip.text.x = ggplot2::element_text(size = 10, face = "bold"),
-        strip.text.y = ggplot2::element_text(size = 10, face = "bold"),
-        strip.text = ggplot2::element_text(size = 10, face = "bold"),
-        axis.title.y = ggplot2::element_text(size = 10, face = "bold"),
-        axis.text.x = ggplot2::element_text(size = 10, face = "bold"),
-        axis.text.y = ggplot2::element_text(size = 10, face = "bold"),
+        axis.title.x = ggplot2::element_text(size = 11, face = "bold"),
+        strip.text.x = ggplot2::element_text(size = 11, face = "bold"),
+        strip.text.y = ggplot2::element_text(size = 11, face = "bold"),
+        strip.text = ggplot2::element_text(size = 11, face = "bold"),
+        axis.title.y = ggplot2::element_text(size = 11, face = "bold"),
+        axis.text.x = ggplot2::element_text(size = 11, face = "bold"),
+        axis.text.y = ggplot2::element_text(size = 11, face = "bold"),
         axis.line = ggplot2::element_line(),
-        legend.text = ggplot2::element_text(size = 10),
-        legend.title = ggplot2::element_text(size = 10, face = "bold"),
+        legend.text = ggplot2::element_text(size = 11),
+        legend.title = ggplot2::element_text(size = 11, face = "bold"),
         legend.title.align = 0.5,
         legend.text.align = 0.5,
         legend.key.height = grid::unit(x = 1, units = "line"),
@@ -57,7 +55,7 @@ theme_ggstatsplot <- function(ggtheme = ggplot2::theme_bw(),
         ),
         plot.subtitle = ggplot2::element_text(
           color = "black",
-          size = 10,
+          size = 11,
           face = "plain",
           hjust = 0.5
         )
@@ -67,19 +65,8 @@ theme_ggstatsplot <- function(ggtheme = ggplot2::theme_bw(),
   }
 }
 
-#' @title Default theme used in all `ggstatsplot` package plots
-#' @name theme_mprl
-#' @author Indrajeet Patil
-#' @description Common theme used across all plots generated in `ggstatsplot`
-#'   and *assumed* by the author to be aesthetically pleasing to the
-#'   user/reader.
-#'
-#' @inheritParams theme_ggstatsplot
-#' @note This is just another name for the function `theme_ggstatsplot()`.
-#'
-#' @references
-#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/theme_ggstatsplot.html}
-#'
+#' @rdname theme_ggstatsplot
+#' @aliases theme_ggstatsplot
 #' @export
 
 theme_mprl <- theme_ggstatsplot
@@ -96,11 +83,7 @@ theme_mprl <- theme_ggstatsplot
 #'
 #' @importFrom grid unit
 #'
-#' @note This is a helper function used internally in the package and not
-#' exported. In case you want to use it, you can do so by
-#' `ggstatsplot:::theme_pie`. Note that it is `:::` and not `::`.
-#'
-#' @keywords internal
+#' @export
 
 theme_pie <- function(ggtheme = ggplot2::theme_bw(),
                       ggstatsplot.layer = TRUE) {
@@ -164,17 +147,13 @@ theme_pie <- function(ggtheme = ggplot2::theme_bw(),
 #' @title Default theme used for correlation matrix
 #' @name theme_corrmat
 #' @author Indrajeet Patil
-#' @return A `ggplot2` object with the `theme_mprl` theme.
+#' @return A `ggplot2` object with the `theme_ggstatsplot` overlaid.
 #'
 #' @import ggplot2
 #'
 #' @importFrom grid unit
 #'
-#' @note This is a helper function used internally in the package and not
-#' exported. In case you want to use it, you can do so by
-#' `ggstatsplot:::theme_corrmat`. Note that it is `:::` and not `::`.
-#'
-#' @keywords internal
+#' @export
 
 theme_corrmat <- function() {
   ggplot2::theme(

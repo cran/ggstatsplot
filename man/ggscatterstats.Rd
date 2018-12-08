@@ -4,20 +4,21 @@
 \alias{ggscatterstats}
 \title{Scatterplot with marginal distributions}
 \usage{
-ggscatterstats(data, x, y, label.var = NULL, label.expression = NULL,
-  xlab = NULL, ylab = NULL, method = "lm", method.args = list(),
-  formula = y ~ x, point.color = "black", point.size = 3,
-  point.alpha = 0.4, point.width.jitter = NULL,
+ggscatterstats(data, x, y, type = "pearson", conf.level = 0.95,
+  bf.prior = 0.707, bf.message = FALSE, label.var = NULL,
+  label.expression = NULL, xlab = NULL, ylab = NULL, method = "lm",
+  method.args = list(), formula = y ~ x, point.color = "black",
+  point.size = 3, point.alpha = 0.4, point.width.jitter = NULL,
   point.height.jitter = NULL, line.size = 1.5, line.color = "blue",
   marginal = TRUE, marginal.type = "histogram", marginal.size = 5,
   margins = c("both", "x", "y"), package = "wesanderson",
   palette = "Royal1", direction = 1, xfill = "#009E73",
   yfill = "#D55E00", xalpha = 1, yalpha = 1, xsize = 0.7,
-  ysize = 0.7, centrality.para = NULL, type = "pearson",
-  results.subtitle = TRUE, title = NULL, subtitle = NULL,
-  caption = NULL, nboot = 100, beta = 0.1, k = 3,
-  axes.range.restrict = FALSE, ggtheme = ggplot2::theme_bw(),
-  ggstatsplot.layer = TRUE, messages = TRUE)
+  ysize = 0.7, centrality.para = NULL, results.subtitle = TRUE,
+  title = NULL, subtitle = NULL, caption = NULL, nboot = 100,
+  beta = 0.1, k = 2, axes.range.restrict = FALSE,
+  ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
+  messages = TRUE)
 }
 \arguments{
 \item{data}{Dataframe from which variables specified are preferentially to be
@@ -27,8 +28,25 @@ taken.}
 
 \item{y}{The response - a vector of length the number of rows of \code{x}.}
 
+\item{type}{Type of association between paired samples required
+("\code{"parametric"}: Pearson's product moment correlation coefficient" or
+"\code{"nonparametric"}: Spearman's rho" or "\code{"robust"}: percentage bend
+correlation coefficient" or "\code{"bayes"}: Bayes Factor for Pearson's \emph{r}").
+Corresponding abbreviations are also accepted: \code{"p"} (for
+parametric/pearson's), \code{"np"} (nonparametric/spearman), \code{"r"} (robust),
+\code{"bf"} (for bayes factor), resp.}
+
+\item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
+\code{95\%} lower and upper confidence intervals (\code{0.95}).}
+
+\item{bf.prior}{A number between 0.5 and 2 (default \code{0.707}), the prior width
+to use in calculating Bayes factors.}
+
+\item{bf.message}{Logical. Decides whether to display Bayes Factor in favor
+of \emph{null} hypothesis \strong{for parametric test} (Default: \code{FALSE}).}
+
 \item{label.var}{Variable to use for points labels. \strong{Must} be entered as a
-character string e.g. \code{"y"}}
+character string e.g. \code{"y"}.}
 
 \item{label.expression}{An expression evaluating to a logical vector that
 determines the subset of data points to label. \strong{Must} be entered as a
@@ -108,15 +126,9 @@ default is \code{1} for both axes.}
 or \code{"median"}) is to be displayed as vertical (for \code{x}) and horizontal (for
 \code{y}) lines.}
 
-\item{type}{Type of association between paired samples required
-("\code{"parametric"}: Pearson's product moment correlation coefficient" or
-"\code{"nonparametric"}: Spearman's rho" or "\code{"robust"}: percentage bend
-correlation coefficient"). Corresponding abbreviations are also accepted:
-\code{"p"} (for parametric/pearson's), \code{"np"} (nonparametric/spearman), \code{"r"}
-(robust), resp.}
-
 \item{results.subtitle}{Decides whether the results of statistical tests are
-to be displayed as subtitle.}
+to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
+the plot will be returned.}
 
 \item{title}{The text for the plot title.}
 
@@ -173,7 +185,7 @@ set.seed(123)
 # creating dataframe
 mtcars_new <- mtcars \%>\%
   tibble::rownames_to_column(., var = "car") \%>\%
-  tibble::as_data_frame(x = .)
+  tibble::as_tibble(x = .)
 
 # simple function call with the defaults
 ggstatsplot::ggscatterstats(
@@ -189,7 +201,7 @@ ggstatsplot::ggscatterstats(
 )
 }
 \references{
-\url{https://cran.r-project.org/package=ggstatsplot/vignettes/ggscatterstats.html}
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggscatterstats.html}
 }
 \seealso{
 \code{\link{grouped_ggscatterstats}}, \code{\link{ggcorrmat}},

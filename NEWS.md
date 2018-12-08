@@ -1,79 +1,172 @@
+# ggstatsplot 0.0.7
+
+BUG FIXES
+
+  - `ggcoefstats` was showing wrong confidence intervals for `merMod` class
+    objects due to a bug in the `broom.mixed` package
+    (<https://github.com/bbolker/broom.mixed/issues/30#issuecomment-428385005>).
+    This was fixed in `broom.mixed` and so `ggcoefstats` should no longer have
+    any issues.
+  - `specify_decimal_p` has been modified because it produced incorrect results
+    when `k < 3` and `p.value = TRUE` (e.g., `0.002` was printed as `< 0.001`).
+  - `ggpiestats` produced incorrect results if some levels of the factor had
+    been filtered out prior to using this function. It now drops unused levels
+    and produces correct results.
+  - `gghistostats` wasn't filtering out `NA`s properly. This has been fixed.
+
+MAJOR CHANGES
+
+  - New function `ggdotplotstats` for creating a dot plot/chart for labelled
+    numeric data.
+  - All primary functions gain `conf.level` argument to control confidence level
+    for effect size measures.
+  - As per APA guidelines, all results show results with two decimal places.
+    That is, the default value for `k` argument for all functions has been
+    changed from `3` to `2`.
+  - All helper functions for the `ggbetweenstats` subtitles have been renamed to
+    remove `_ggbetween_` from their names as this was becoming confusing for the
+    user. Some of these functions work both with the between- and
+    within-subjects designs, so having `_ggbetween_` in their names made users
+    suspect if they could use these functions for within-subjects designs.
+  - `ggstatsplot` now depends on `R 3.5.0`. This is because some of its
+    dependencies require 3.5.0 to work (e.g., `broom.mixed`).
+  - All `theme_` functions are now exported (`theme_pie()`, `theme_corrmat()`).   
+  - `ggbetweenstats` now supports multiple pairwise comparison tests
+    (parametric, nonparametric, and robust variants). It gains a new dependency
+    `ggsignif`.
+  - `ggbetweenstats` now supports eta-squared and omega-squared effect sizes for
+    anova models. TThis function gains a new argument `partial`. 
+  - Following functions are now reexported from the `groupedstats` package to
+    avoid repeating the same code in two packages: `specify_decimal_p`,
+    `signif_column`, `lm_effsize_ci`, and `set_cwd`. Therefore, `groupedstats`
+    is now added as a dependency.
+  - `gghistostats` can now show both counts and proportions information on the
+    same plot when `bar.measure` argument is set to `"mix"`.
+  - `ggcoefstats` works with tidy dataframes.
+  - The helper function `untable` has been depcreated in light of
+    `tidyr::uncount`, which does exactly what `untable` was doing. The author
+    wasn't aware of this function when `untable` was written.
+  - Vignette with `purrr` examples removed from `CRAN` to reduce the size of the
+    package. It is now available on the package website:
+    <https://indrajeetpatil.github.io/ggstatsplot/articles/>.
+  - `subtitle_t_robust` function can now handle dependent samples and
+    gains `paired` argument.
+  - A number of tidyverse operators are now reexported by `ggstatsplot`: `%>%`,
+    `%<>%`, `%$%`.
+
+MINOR CHANGES
+
+  - `ggscatterstats`, `ggpiestats`, and their `grouped_` variant support bayes
+    factor tests and gain new arguments relevant to this test.
+  - Effect size and their confidence intervals now available for Kruskal-Wallis
+    test.
+  - Minor stylistic changes to how symbols for partial-eta-/omega-squared were
+    being displayed in subtitles.
+  - `ggbetweenstats` supports bayes factor tests for anova designs.
+  - `ggpiestats` (and its `grouped_` version) gain `slice.label` argument that
+    decides what information needs to be displayed as a label on the slices of
+    the pie chart: `"percentage"` (which has been the default thus far),
+    `"counts"`, or `"both"`.
+  - `ggcorrmat` can work with `cor.vars = NULL`. In such case, **all** numeric
+    variables from the provided dataframe will be used for computing the
+    correlation matrix.
+  - Given the constant changes to the default behavior of functions, the
+    lifecycle badge has been changed from `stable` to `maturing`.
+  - When the number of colors needed by a function exceeds the number of colors
+    contained in a given palette, informative message is displayed to the user
+    (with the new internal function `palette_message()`).
+  - Several users had requested an easier way to turn off subtitles with results
+    from tests (which was already implemented in `ggscatterstats` and
+    `gghistostats` with the argument `results.subtitle`), so `ggbetweenstats`
+    also gains two new arguments to do this: `results.subtitle` and `subtitle`.
+  - New dataset added: `iris_long`.
+  - More tests added and the code coverage has now jumped to over 75%.
+  - To avoid code repitition, there is a now a function that produces a generic
+    message any time confidence intervals for effect size estimate are computed
+    using bootstrapping.
+
 # ggstatsplot 0.0.6
 
 MAJOR CHANGES
+
   - The package now exports all functions used to create text expressions with
-  results. This makes it easy for people to use these results in their own plots
-  at any location they want (and not just in `subtitle`, the current default for
-  `ggstatsplot`).
+    results. This makes it easy for people to use these results in their own
+    plots at any location they want (and not just in `subtitle`, the current
+    default for `ggstatsplot`).
   - `ggcorrmat` gains `p.adjust.method` argument which allows *p*-values for
-  correlations to be corrected for multiple comparisons.
+    correlations to be corrected for multiple comparisons.
   - `ggscatterstats` gains `label.var` and `label.expression` arguments to
-  attach labels to points.
+    attach labels to points.
   - `gghistostats` now defaults to not showing (redundant) color gradient
-  (`fill.gradient = FALSE`) and shows both `"count"` and `"proportion"` data. It
-  also gains a new argument `bar.fill` that can be used to fill bars with a
-  uniform color.
-  - `ggbetweenstats`,  `ggcoefstats`, `ggcorrmat`, `ggscatterstats`, and
-  `ggpiestats` now support all palettes contained in the `paletteer` package.
-  This helps avoid situations where people had large number of groups (> 12) and
-  there were not enough colors in any of the `RColorBrewer` palettes.
+    (`fill.gradient = FALSE`) and shows both `"count"` and `"proportion"` data.
+    It also gains a new argument `bar.fill` that can be used to fill bars with a
+    uniform color.
+  - `ggbetweenstats`, `ggcoefstats`, `ggcorrmat`, `ggscatterstats`, and
+    `ggpiestats` now support all palettes contained in the `paletteer` package.
+    This helps avoid situations where people had large number of groups (\> 12)
+    and there were not enough colors in any of the `RColorBrewer` palettes.
   - `ggbetweenstats` gains `bf.message` argument to display bayes factors in
-  favor of the null (currently works only for parametric t-test).
+    favor of the null (currently works only for parametric t-test).
   - `gghistostats` function no longer has `line.labeller.y` argument; this
-  position is automatically determined now.
+    position is automatically determined now.
 
 BREAKING CHANGES
-  - `legend.title.margin` function has been depcrecated since `ggplot2 3.0.0` has
-  improved on the margin issues from previous versions. All functions that
-  wrapped around this function now lose the relevant arguments
-  (`legend.title.margin`, `t.margin`, `b.margin`).
+
+  - `legend.title.margin` function has been depcrecated since `ggplot2 3.0.0`
+    has improved on the margin issues from previous versions. All functions that
+    wrapped around this function now lose the relevant arguments
+    (`legend.title.margin`, `t.margin`, `b.margin`).
   - The argument `ggstatsplot.theme` has been changed to `ggstatsplot.layer` for
-  `ggcorrmat` function to be consistent across functions.
+    `ggcorrmat` function to be consistent across functions.
   - For consistency, `conf.level` and `conf.type` arguments for `ggbetweenstats`
-  have been deprecated. No other function in the package allowed changing
-  confidence interval or their type for effect size estimation. These arguments
-  were relevant only for `robust` tests anyway.
+    have been deprecated. No other function in the package allowed changing
+    confidence interval or their type for effect size estimation. These
+    arguments were relevant only for `robust` tests anyway.
   - `ggocorrmat` argument `type` has been changed to `matrix.type` because for
-  all other functions `type` argument specifies the type of the test, while for
-  this function it specified the display of the virsualization matrix. This will
-  make the syntax more consistent across functions.
+    all other functions `type` argument specifies the type of the test, while
+    for this function it specified the display of the virsualization matrix.
+    This will make the syntax more consistent across functions.
   - `ggscatterstats` gains new arguments to specify aesthetics for geom point
-  (`point.color`, `point.size`, `point.alpha`). To be consistent with this
-  naming schema, the `width.jitter` and `height.jitter` arguments have been
-  renamed to `point.width.jitter` and `point.height.jitter`, resp.
+    (`point.color`, `point.size`, `point.alpha`). To be consistent with this
+    naming schema, the `width.jitter` and `height.jitter` arguments have been
+    renamed to `point.width.jitter` and `point.height.jitter`, resp.
 
 MINOR CHANGES
+
   - `gghistostats`: To be compatible with `JASP`, natural logarithm of Bayes
-  Factors is displayed, and not base 10 logarithm.
+    Factors is displayed, and not base 10 logarithm.
   - `ggscatterstats` gains `method` and `formula` arguments to modify smoothing
-  functions.
+    functions.
   - `ggcorrmat` can now show `robust` correlation coefficients in the matrix
-  plot.
+    plot.
   - For `gghistostats`, `binwidth` value, if not specified, is computed with
-  `(max-min)/sqrt(n)`. This is basically to get rid of the warnings ggplot2
-  produces. Thanks to Chuck Powell's PR (#43).
+    `(max-min)/sqrt(n)`. This is basically to get rid of the warnings ggplot2
+    produces. Thanks to Chuck Powell's PR (\#43).
   - `ggcoefstats` gains a new argument `partial` and can display eta-squared and
-  omega-squared effect sizes for anovas, in addition to the prior partial
-  variants of these effect sizes.
+    omega-squared effect sizes for anovas, in addition to the prior partial
+    variants of these effect sizes.
   - `ggpiestats` gains `perc.k` argument to show desired number of decimal
-  places in percentage labels.
+    places in percentage labels.
 
 BUG FIXES
+
   - `grouped_ggpiestats` wasn't working when only `main` variable was provided
-  with `counts` data. Fixed that.
+    with `counts` data. Fixed that.
   
 # ggstatsplot 0.0.5
 
 MAJOR CHANGES
+
   - For the sake of consistency, `theme_mprl` is now called `theme_ggstatsplot`.
     The `theme_mprl` function will still be around and will **not** be deprecated,
     so feel free to use either or both of them since they are identical.
   - `ggcoefstats` no longer has arguments `effects` and `ran_params` because
     only fixed effects are shown for mixed-effects models.
   - `ggpiestats` can now handle within-subjects designs (McNemar test results
-  will be displayed).
+    will be displayed).
      
 BUG FIXES
+
   - `ggbetweenstats` was producing wrong axes labels when `sample.size.label`
     was set to `TRUE` and user had reordered factor levels before using this
     function. The new version fixes this.
@@ -81,6 +174,7 @@ BUG FIXES
     Fixed that with new version of `sjstats`.
 
 MINOR CHANGES
+
   - Removed the trailing comma from the robust correlation analyses.
   - `gghistostats` has a new argument to remove color fill gradient.
   - `ggbetweenstats` takes new argument `mean.ci` to show confidence intervals
@@ -92,7 +186,7 @@ MINOR CHANGES
     `MBESS` are removed from dependencies.
   - `ggscatterstats` supports `densigram` with the development version of
     `ggExtra`. It additionally gains few extra arguments to change aesthetics of
-    marginals (alpha, size, etc.).
+     marginals (alpha, size, etc.).
 
 # ggstatsplot 0.0.4
 
@@ -229,4 +323,4 @@ MINOR CHANGES
 
 # ggstatsplot 0.0.1
 
-- First release of the package.
+  - First release of the package.

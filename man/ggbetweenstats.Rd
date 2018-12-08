@@ -2,24 +2,28 @@
 % Please edit documentation in R/ggbetweenstats.R
 \name{ggbetweenstats}
 \alias{ggbetweenstats}
-\title{Violin plots for group or condition comparisons in between-subjects
-designs.}
+\title{Box/Violin plots for group or condition comparisons in
+between-subjects designs.}
 \usage{
 ggbetweenstats(data, x, y, plot.type = "boxviolin",
-  type = "parametric", effsize.type = "unbiased",
-  effsize.noncentral = FALSE, bf.prior = 0.707, bf.message = FALSE,
-  xlab = NULL, ylab = NULL, caption = NULL, title = NULL,
-  sample.size.label = TRUE, k = 3, var.equal = FALSE, nboot = 100,
-  tr = 0.1, mean.label.size = 3, mean.label.fontface = "bold",
-  mean.label.color = "black", notch = FALSE, notchwidth = 0.5,
-  linetype = "solid", outlier.tagging = FALSE, outlier.label = NULL,
+  type = "parametric", pairwise.comparisons = FALSE,
+  pairwise.annotation = "asterisk", pairwise.display = "significant",
+  p.adjust.method = "holm", effsize.type = "unbiased",
+  partial = TRUE, effsize.noncentral = FALSE, bf.prior = 0.707,
+  bf.message = FALSE, results.subtitle = TRUE, xlab = NULL,
+  ylab = NULL, caption = NULL, title = NULL, subtitle = NULL,
+  sample.size.label = TRUE, k = 2, var.equal = FALSE,
+  conf.level = 0.95, nboot = 100, tr = 0.1, mean.label.size = 3,
+  mean.label.fontface = "bold", mean.label.color = "black",
+  notch = FALSE, notchwidth = 0.5, linetype = "solid",
+  outlier.tagging = FALSE, outlier.label = NULL,
   outlier.label.color = "black", outlier.color = "black",
   outlier.coef = 1.5, mean.plotting = TRUE, mean.ci = FALSE,
-  mean.size = 5, mean.color = "darkred",
+  mean.size = 5, mean.color = "darkred", point.jitter.width = NULL,
+  point.jitter.height = 0.1, point.dodge.width = 0.6,
   ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
   package = "RColorBrewer", palette = "Dark2", direction = 1,
-  point.jitter.width = NULL, point.jitter.height = 0.1,
-  point.dodge.width = 0.6, messages = TRUE)
+  messages = TRUE)
 }
 \arguments{
 \item{data}{Dataframe from which variables specified are preferentially to be
@@ -38,21 +42,50 @@ or \code{"robust"} or \code{"bayes"}).Corresponding abbreviations are also accep
 \code{"p"} (for parametric), \code{"np"} (nonparametric), \code{"r"} (robust), or
 \code{"bf"}resp.}
 
+\item{pairwise.comparisons}{Logical that decides whether pairwise comparisons
+are to be displayed. \strong{Only significant comparisons} will be shown by
+default. (default: \code{FALSE}). To change this behavior, select appropriate
+option with \code{pairwise.display} argument.}
+
+\item{pairwise.annotation}{Character that decides the annotations to use for
+pairwise comparisons. Either \code{"p.value"} or \code{"asterisk"} (default).}
+
+\item{pairwise.display}{Decides which pairwise comparisons to display.
+Available options are \code{"significant"} (abbreviation accepted: \code{"s"}) or
+\code{"non-significant"} (abbreviation accepted: \code{"ns"}) or
+\code{"everything"}/\code{"all"}. The default is \code{"significant"}. You can use this
+argument to make sure that your plot is not uber-cluttered when you have
+multiple groups being compared and scores of pairwise comparisons being
+displayed.}
+
+\item{p.adjust.method}{Adjustment method for \emph{p}-values for multiple
+comparisons. Possible methods are: \code{"holm"} (default), \code{"hochberg"},
+\code{"hommel"}, \code{"bonferroni"}, \code{"BH"}, \code{"BY"}, \code{"fdr"}, \code{"none"}.}
+
 \item{effsize.type}{Type of effect size needed for \emph{parametric} tests. The
 argument can be \code{"biased"} (\code{"d"} for Cohen's \emph{d} for \strong{t-test};
 \code{"partial_eta"} for partial eta-squared for \strong{anova}) or \code{"unbiased"}
 (\code{"g"} Hedge's \emph{g} for \strong{t-test}; \code{"partial_omega"} for partial
 omega-squared for \strong{anova})).}
 
+\item{partial}{Logical that decides if partial eta-squared or omega-squared
+are returned (Default: \code{TRUE}). If \code{FALSE}, eta-squared or omega-squared
+will be returned. Valid only for objects of class \code{lm}, \code{aov}, \code{anova}, or
+\code{aovlist}.}
+
 \item{effsize.noncentral}{Logical indicating whether to use non-central
-\emph{t}-distributions for computing the 95% confidence interval for Cohen's \emph{d}
+\emph{t}-distributions for computing the confidence interval for Cohen's \emph{d}
 or Hedge's \emph{g} (Default: \code{FALSE}).}
 
 \item{bf.prior}{A number between 0.5 and 2 (default \code{0.707}), the prior width
 to use in calculating Bayes factors.}
 
-\item{bf.message}{Logical. Decides whether to display Bayes Factor in favor
-of \emph{null} hypothesis \strong{for parametric test} (Default: \code{bf.message = FALSE}).}
+\item{bf.message}{Logical that decides whether to display Bayes Factor in
+favor of the \emph{null} hypothesis \strong{for parametric test} (Default: \code{FALSE}).}
+
+\item{results.subtitle}{Decides whether the results of statistical tests are
+to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
+the plot will be returned.}
 
 \item{xlab}{Label for \code{x} axis variable.}
 
@@ -62,11 +95,15 @@ of \emph{null} hypothesis \strong{for parametric test} (Default: \code{bf.messag
 
 \item{title}{The text for the plot title.}
 
+\item{subtitle}{The text for the plot subtitle. Will work only if
+\code{results.subtitle = FALSE}.}
+
 \item{sample.size.label}{Logical that decides whether sample size information
 should be displayed for each level of the grouping variable \code{x} (Default:
 \code{TRUE}).}
 
-\item{k}{Number of digits after decimal point (should be an integer) (Default: \code{k = 3}).}
+\item{k}{Number of digits after decimal point (should be an integer)
+(Default: \code{k = 2}).}
 
 \item{var.equal}{a logical variable indicating whether to treat the
     variances in the samples as equal.  If \code{TRUE}, then a simple F
@@ -74,6 +111,9 @@ should be displayed for each level of the grouping variable \code{x} (Default:
     performed.  If \code{FALSE}, an approximate method of Welch (1951)
     is used, which generalizes the commonly known 2-sample Welch test to
     the case of arbitrarily many samples.}
+
+\item{conf.level}{A scalar value between 0 and 1. If unspecified, the
+default is to return \code{95\%} lower and upper confidence intervals (\code{0.95}).}
 
 \item{nboot}{Number of bootstrap samples for computing effect size (Default:
 \code{100}).}
@@ -91,8 +131,8 @@ the label displaying mean. Defaults: \code{3}, \code{"bold"},\code{"black"}, res
 displayed. If \code{TRUE}, a notched box plot will be used. Notches are used to
 compare groups; if the notches of two boxes do not overlap, this suggests
 that the medians are significantly different. In a notched box plot, the
-notches extend \code{1.58 * IQR / sqrt(n)}. This gives a roughly \code{95\%} confidence
-interval for comparing medians. IQR: Inter-Quartile Range.}
+notches extend \code{1.58 * IQR / sqrt(n)}. This gives a roughly \code{95\%}
+confidence interval for comparing medians. IQR: Inter-Quartile Range.}
 
 \item{notchwidth}{For a notched box plot, width of the notch relative to the
 body (default \code{0.5}).}
@@ -129,6 +169,15 @@ is to be displayed (Default: \code{FALSE}).}
 \item{mean.color}{Color for the data point corresponding to mean (Default:
 \code{"darkred"}).}
 
+\item{point.jitter.width}{Numeric specifying the degree of jitter in \code{x}
+direction. Defaults to \code{40\%} of the resolution of the data.}
+
+\item{point.jitter.height}{Numeric specifying the degree of jitter in \code{y}
+direction. Defaults to \code{0.1}.}
+
+\item{point.dodge.width}{Numeric specifying the amount to dodge in the \code{x}
+direction. Defaults to \code{0.60}.}
+
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
 \code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
 extension packages are allowed (e.g., \code{ggthemes::theme_economist()},
@@ -147,15 +196,6 @@ type. Default palette is \code{"Dark2"}.}
 
 \item{direction}{Either \code{1} or \code{-1}. If \code{-1} the palette will be reversed.}
 
-\item{point.jitter.width}{Numeric specifying the degree of jitter in \code{x}
-direction. Defaults to \code{40\%} of the resolution of the data.}
-
-\item{point.jitter.height}{Numeric specifying the degree of jitter in \code{y}
-direction. Defaults to \code{0.1}.}
-
-\item{point.dodge.width}{Numeric specifying the amount to dodge in the \code{x}
-direction. Defaults to \code{0.60}.}
-
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
 }
@@ -165,16 +205,19 @@ points for between-subjects designs with statistical details included in
 the plot as a subtitle.
 }
 \details{
-For parametric tests, Welch's ANOVA/t-test are used as a default. References:
+For parametric tests, Welch's ANOVA/\emph{t}-test are used as a default (i.e.,
+\code{var.equal = FALSE}).
+References:
 \itemize{
 \item ANOVA: Delacre, Leys, Mora, & Lakens, \emph{PsyArXiv}, 2018
-\item t-test: Delacre, Lakens, & Leys, \emph{International Review of Social Psychology}, 2017
+\item \emph{t}-test: Delacre, Lakens, & Leys,
+\emph{International Review of Social Psychology}, 2017
 }
 
 If robust tests are selected, following tests are used is .
 \itemize{
 \item ANOVA: one-way ANOVA on trimmed means (see \code{?WRS2::t1way})
-\item t-test: Yuen's test for trimmed means (see \code{?WRS2::yuen})
+\item \emph{t}-test: Yuen's test for trimmed means (see \code{?WRS2::yuen})
 }
 
 Variant of this function \code{ggwithinstats} is currently under work. You \emph{can}
@@ -203,19 +246,26 @@ ggstatsplot::ggbetweenstats(
   x = Expt,
   y = Speed,
   plot.type = "box",
+  conf.level = 0.99,
   xlab = "The experiment number",
   ylab = "Speed-of-light measurement",
+  pairwise.comparisons = TRUE,
+  pairwise.annotation = "p.value",
+  p.adjust.method = "fdr",
   outlier.tagging = TRUE,
   outlier.label = Run,
+  nboot = 10,
   ggtheme = ggthemes::theme_few(),
-  ggstatsplot.layer = FALSE
+  ggstatsplot.layer = FALSE,
+  bf.message = TRUE
 )
 }
 \references{
-\url{https://cran.r-project.org/package=ggstatsplot/vignettes/ggbetweenstats.html}
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggbetweenstats.html}
 }
 \seealso{
-\code{\link{grouped_ggbetweenstats}}
+\code{\link{grouped_ggbetweenstats}},
+\code{\link{pairwise_p}}
 }
 \author{
 Indrajeet Patil

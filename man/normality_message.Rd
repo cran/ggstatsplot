@@ -4,7 +4,7 @@
 \alias{normality_message}
 \title{Display normality test result as a message.}
 \usage{
-normality_message(x, lab = NULL, k = 3, output = "message")
+normality_message(x, lab = NULL, k = 2, output = "message")
 }
 \arguments{
 \item{x}{A numeric vector.}
@@ -12,9 +12,10 @@ normality_message(x, lab = NULL, k = 3, output = "message")
 \item{lab}{A character describing label for the variable. If \code{NULL}, a
 generic \code{"x"} label will be used.}
 
-\item{k}{Number of decimal places expected for results (Default: \code{3}).}
+\item{k}{Number of decimal places expected for results (Default: \code{2}).}
 
-\item{output}{What output is desired: \code{"message"} (default) or \code{"stats"} objects.}
+\item{output}{What output is desired: \code{"message"} (default) or \code{"stats"}
+objects.}
 }
 \value{
 A list with class \code{"htest"} containing the following components:
@@ -42,6 +43,13 @@ normality_message(
 \seealso{
 \code{\link{ggbetweenstats}}
 
-Other helper_messages: \code{\link{bartlett_message}}
+Other helper_messages: \code{\link{bartlett_message}},
+  \code{\link{effsize_ci_message}},
+  \code{\link{ggcorrmat_matrix_message}},
+  \code{\link{grouped_message}}, \code{\link{pairwise_p}},
+  \code{\link{palette_message}}
+}
+\author{
+Indrajeet Patil
 }
 \concept{helper_messages}

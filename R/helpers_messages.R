@@ -1,20 +1,19 @@
 #' @title Display normality test result as a message.
 #' @name normality_message
 #' @aliases normality_message
+#' @author Indrajeet Patil
 #'
 #' @param x A numeric vector.
 #' @param lab A character describing label for the variable. If `NULL`, a
 #'   generic `"x"` label will be used.
-#' @param k Number of decimal places expected for results (Default: `3`).
-#' @param output What output is desired: `"message"` (default) or `"stats"` objects.
+#' @param k Number of decimal places expected for results (Default: `2`).
+#' @param output What output is desired: `"message"` (default) or `"stats"`
+#'   objects.
 #' @description A note to the user about the validity of assumptions for the
 #'   default linear model.
 #'
 #' @importFrom stats shapiro.test
-#' @importFrom crayon green
-#' @importFrom crayon blue
-#' @importFrom crayon yellow
-#' @importFrom crayon red
+#' @importFrom crayon green blue yellow red
 #'
 #' @inherit stats::shapiro.test return value
 #'
@@ -37,7 +36,7 @@
 # function body
 normality_message <- function(x,
                               lab = NULL,
-                              k = 3,
+                              k = 2,
                               output = "message") {
 
   # if label is not provided, use generic "x" variable
@@ -45,7 +44,8 @@ normality_message <- function(x,
     lab <- "x"
   }
 
-  # for SW test of normality, sample size must be greater than 3 and less than 5000
+  # for SW test of normality, sample size must be greater than 3 and less than
+  # 5000
   if (length(x) > 3 && length(x) < 5000) {
 
     # test object
@@ -60,7 +60,6 @@ normality_message <- function(x,
         crayon::blue(
           "Shapiro-Wilk Normality Test for",
           crayon::yellow(lab),
-          # entered y argument
           ": p-value = "
         ),
         crayon::yellow(
@@ -75,8 +74,8 @@ normality_message <- function(x,
       ))
     } else if (output == "stats") {
 
-      # other return the stats object
-      return(sw_norm)
+      # other return the tidy output
+      return(broom::tidy(sw_norm))
     }
   }
 }
@@ -85,20 +84,20 @@ normality_message <- function(x,
 #' @title Display homogeneity of variance test as a message
 #' @name bartlett_message
 #' @aliases bartlett_message
+#' @author Indrajeet Patil
 #'
 #' @inheritParams ggbetweenstats
 #' @param lab A character describing label for the variable. If `NULL`, variable
 #'   name will be used.
-#' @param output What output is desired: `"message"` (default) or `"stats"` objects.
+#' @param output What output is desired: `"message"` (default) or `"stats"`
+#'   objects.
 #'
 #' @description A note to the user about the validity of assumptions for the
 #'   default linear model.
 #'
+#' @importFrom rlang enquo quo_name !!
 #' @importFrom stats bartlett.test
-#' @importFrom crayon green
-#' @importFrom crayon blue
-#' @importFrom crayon yellow
-#' @importFrom crayon red
+#' @importFrom crayon green blue yellow red
 #'
 #' @inherit stats::bartlett.test return value
 #'
@@ -130,10 +129,10 @@ bartlett_message <- function(data,
                              x,
                              y,
                              lab = NULL,
-                             k = 3,
+                             k = 2,
                              output = "message") {
 
-  #------------------------------------- variable names --------------------------------------
+  #--------------------------- variable names ---------------------------------
 
   # preparing a dataframe with variable names
   lab.df <- colnames(x = dplyr::select(
@@ -142,12 +141,12 @@ bartlett_message <- function(data,
     !!rlang::enquo(y)
   ))
 
-  # if `xlab` is not provided, use the variable `x` name
+  # if `lab` is not provided, use the variable `x` name
   if (is.null(lab)) {
     lab <- lab.df[1]
   }
 
-  #---------------------------------------- data ----------------------------------------------------
+  #-------------------------- data -------------------------------------------
 
   # creating a dataframe
   data <-
@@ -163,10 +162,10 @@ bartlett_message <- function(data,
     dplyr::mutate_at(
       .tbl = .,
       .vars = "x",
-      .funs = ~base::droplevels(x = base::as.factor(x = .))
+      .funs = ~ base::droplevels(x = base::as.factor(x = .))
     )
 
-  #---------------------------------------- bartlett's test -------------------------------------------
+  #------------------------------ bartlett's test ----------------------------
 
   # running the test
   bartlett <- stats::bartlett.test(
@@ -183,8 +182,7 @@ bartlett_message <- function(data,
       crayon::blue(
         "Bartlett's test for homogeneity of variances for factor",
         crayon::yellow(lab),
-        # entered x argument
-        ": p-value ="
+        ": p-value = "
       ),
       crayon::yellow(
         ggstatsplot::specify_decimal_p(
@@ -197,16 +195,19 @@ bartlett_message <- function(data,
       sep = ""
     ))
   } else if (output == "stats") {
-    return(bartlett)
+    return(broom::tidy(bartlett))
   }
 }
 
 #' @title grouped_message
 #' @description A note to the user about the class of the output object.
+#' @author Indrajeet Patil
 #'
-#' @seealso \code{\link{grouped_ggbetweenstats}}, \code{\link{grouped_gghistostats}},
-#' \code{\link{grouped_ggscatterstats}}, \code{\link{grouped_ggpiestats}},
-#' \code{\link{grouped_ggcorrmat}}
+#' @seealso \code{\link{grouped_ggbetweenstats}},
+#'   \code{\link{grouped_gghistostats}}, \code{\link{grouped_ggscatterstats}},
+#'   \code{\link{grouped_ggpiestats}}, \code{\link{grouped_ggcorrmat}}
+#'
+#' @family helper_messages
 #'
 #' @keywords internal
 
@@ -214,8 +215,109 @@ bartlett_message <- function(data,
 grouped_message <- function() {
   base::message(cat(
     crayon::red("Warning: "),
+    crayon::blue("Individual plots in the combined `grouped_` plots\n"),
+    crayon::blue("can't be further modified with `ggplot2` functions.\n"),
+    sep = ""
+  ))
+}
+
+#' @title Message if palette doesn't have enough number of colors.
+#' @name palette_message
+#' @author Indrajeet Patil
+#' @description A note to the user about not using the default color palette
+#'   when the number of factor levels is greater than 8, the maximum number of
+#'   colors allowed by `"Dark2"` palette from the `RColorBrewer` package.
+#'
+#' @inheritParams paletteer::scale_fill_paletteer_d
+#' @param min_length Minimum number of colors needed.
+#'
+#' @importFrom tibble as_tibble
+#' @importFrom dplyr filter select
+#' @importFrom crayon green blue yellow red
+#' @importFrom rlang !! enquo
+#'
+#' @family helper_messages
+#'
+#' @examples
+#' \dontrun{
+#' ggstatsplot:::palette_message(
+#'   package = "RColorBrewer",
+#'   palette = "Dark2",
+#'   min_length = 20
+#' )
+#' }
+#' 
+#' @keywords internal
+
+# function body
+palette_message <- function(package,
+                            palette,
+                            min_length) {
+  # computing the number of colors in a given palette
+  palette_df <-
+    tibble::as_tibble(paletteer::palettes_d_names) %>%
+    dplyr::filter(.data = ., package == !!package, palette == !!palette) %>%
+    dplyr::select(.data = ., length)
+
+  # if insufficient number of colors are available in a given palette
+  if (palette_df$length[[1]] < min_length) {
+    # message to display
+    base::message(cat(
+      crayon::red("Warning: "),
+      crayon::blue(
+        "No. of factor levels is greater than specified palette color count.\n"
+      ),
+      crayon::blue("Try using another color `palette` (and/or `package`).\n")
+    ),
+    sep = ""
+    )
+  }
+}
+
+
+#' @title Message to display when adjusted p-values are displayed in correlation
+#'   matrix.
+#' @name ggcorrmat_matrix_message
+#' @author Indrajeet Patil
+#'
+#' @family helper_messages
+#'
+#' @keywords internal
+
+# function body
+ggcorrmat_matrix_message <- function() {
+  base::message(
+    cat(
+      crayon::green("Note: "),
+      crayon::blue("In the correlation matrix,\n"),
+      crayon::blue(
+        "the upper triangle: p-values adjusted for multiple comparisons\n"
+      ),
+      crayon::blue("the lower triangle: unadjusted p-values.\n"),
+      sep = ""
+    )
+  )
+}
+
+
+#' @title Message to display when bootstrapped confidence intervals are shown
+#'   for effect size measure.
+#' @name effsize_ci_message
+#' @author Indrajeet Patil
+#'
+#' @inheritParams t1way_ci
+#' @family helper_messages
+#' @keywords internal
+
+# displaying message about bootstrap
+effsize_ci_message <- function(nboot = 100, conf.level = 0.95) {
+  base::message(cat(
+    crayon::green("Note: "),
     crayon::blue(
-      "The output from `grouped_` functions are not `ggplot` objects and therefore can't be further modified with `ggplot2` functions.\n"
+      crayon::yellow(paste(conf.level * 100, "%", sep = "")),
+      "CI for effect size estimate was computed with",
+      crayon::yellow(nboot),
+      "bootstrap samples.\n"
     ),
     sep = ""
   ))

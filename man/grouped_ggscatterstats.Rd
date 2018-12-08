@@ -5,7 +5,8 @@
 \title{Scatterplot with marginal distributions for all levels of a grouping
 variable}
 \usage{
-grouped_ggscatterstats(data, x, y, label.var = NULL,
+grouped_ggscatterstats(data, x, y, type = "pearson", conf.level = 0.95,
+  bf.prior = 0.707, bf.message = FALSE, label.var = NULL,
   label.expression = NULL, grouping.var, title.prefix = "Group",
   xlab = NULL, ylab = NULL, method = "lm", method.args = list(),
   formula = y ~ x, point.color = "black", point.size = 3,
@@ -15,10 +16,10 @@ grouped_ggscatterstats(data, x, y, label.var = NULL,
   "x", "y"), package = "wesanderson", palette = "Royal1",
   direction = 1, xfill = "#009E73", yfill = "#D55E00", xalpha = 1,
   yalpha = 1, xsize = 0.7, ysize = 0.7, centrality.para = NULL,
-  type = "pearson", results.subtitle = TRUE, caption = NULL,
-  subtitle = NULL, nboot = 100, beta = 0.1, k = 3,
-  axes.range.restrict = FALSE, ggtheme = ggplot2::theme_bw(),
-  ggstatsplot.layer = TRUE, messages = TRUE, ...)
+  results.subtitle = TRUE, caption = NULL, subtitle = NULL,
+  nboot = 100, beta = 0.1, k = 2, axes.range.restrict = FALSE,
+  ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
+  messages = TRUE, ...)
 }
 \arguments{
 \item{data}{Dataframe from which variables specified are preferentially to be
@@ -28,8 +29,25 @@ taken.}
 
 \item{y}{The response - a vector of length the number of rows of \code{x}.}
 
+\item{type}{Type of association between paired samples required
+("\code{"parametric"}: Pearson's product moment correlation coefficient" or
+"\code{"nonparametric"}: Spearman's rho" or "\code{"robust"}: percentage bend
+correlation coefficient" or "\code{"bayes"}: Bayes Factor for Pearson's \emph{r}").
+Corresponding abbreviations are also accepted: \code{"p"} (for
+parametric/pearson's), \code{"np"} (nonparametric/spearman), \code{"r"} (robust),
+\code{"bf"} (for bayes factor), resp.}
+
+\item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
+\code{95\%} lower and upper confidence intervals (\code{0.95}).}
+
+\item{bf.prior}{A number between 0.5 and 2 (default \code{0.707}), the prior width
+to use in calculating Bayes factors.}
+
+\item{bf.message}{Logical. Decides whether to display Bayes Factor in favor
+of \emph{null} hypothesis \strong{for parametric test} (Default: \code{FALSE}).}
+
 \item{label.var}{Variable to use for points labels. \strong{Must} be entered as a
-character string e.g. \code{"y"}}
+character string e.g. \code{"y"}.}
 
 \item{label.expression}{An expression evaluating to a logical vector that
 determines the subset of data points to label. \strong{Must} be entered as a
@@ -132,15 +150,9 @@ default is \code{1} for both axes.}
 or \code{"median"}) is to be displayed as vertical (for \code{x}) and horizontal (for
 \code{y}) lines.}
 
-\item{type}{Type of association between paired samples required
-("\code{"parametric"}: Pearson's product moment correlation coefficient" or
-"\code{"nonparametric"}: Spearman's rho" or "\code{"robust"}: percentage bend
-correlation coefficient"). Corresponding abbreviations are also accepted:
-\code{"p"} (for parametric/pearson's), \code{"np"} (nonparametric/spearman), \code{"r"}
-(robust), resp.}
-
 \item{results.subtitle}{Decides whether the results of statistical tests are
-to be displayed as subtitle.}
+to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
+the plot will be returned.}
 
 \item{caption}{The text for the plot caption.}
 
@@ -176,12 +188,12 @@ to be displayed (Default: \code{TRUE}).}
 \emph{combined plot}.}
   \item{title.color}{Text color for title.}
   \item{title.size}{Point size of title text.}
-  \item{title.vjust}{Vertical justification for title. Default = \code{0.5} (centered
-on y). \code{0} = baseline at y, 1 = ascender at y.}
+  \item{title.vjust}{Vertical justification for title. Default = \code{0.5}
+(centered on \code{y}). \code{0} = baseline at \code{y}, \code{1} = ascender at \code{y}.}
   \item{title.hjust}{Horizontal justification for title. Default = \code{0.5}
-(centered on x). \code{0} = flush-left at x, \code{1} = flush-right.}
-  \item{title.fontface}{The font face (\code{"plain"}, \code{"bold"} (default), \code{"italic"},
-\code{"bold.italic"}) for title.}
+(centered on \code{x}). \code{0} = flush-left at x, \code{1} = flush-right.}
+  \item{title.fontface}{The font face (\code{"plain"}, \code{"bold"} (default),
+\code{"italic"}, \code{"bold.italic"}) for title.}
   \item{caption.text}{String or plotmath expression to be drawn as the caption
 for the \emph{combined plot}.}
   \item{caption.color}{Text color for caption.}
@@ -190,8 +202,8 @@ for the \emph{combined plot}.}
 (centered on y). \code{0} = baseline at y, \code{1} = ascender at y.}
   \item{caption.hjust}{Horizontal justification for caption. Default = \code{0.5}
 (centered on x). \code{0} = flush-left at x, \code{1} = flush-right.}
-  \item{caption.fontface}{The font face (\code{"plain"} (default), \code{"bold"}, \code{"italic"},
-\code{"bold.italic"}) for caption.}
+  \item{caption.fontface}{The font face (\code{"plain"} (default), \code{"bold"},
+\code{"italic"}, \code{"bold.italic"}) for caption.}
   \item{sub.text}{The label with which the \emph{combined plot} should be annotated.
 Can be a plotmath expression.}
   \item{sub.color}{Text color for annotation label (Default: \code{"black"}).}
@@ -270,8 +282,8 @@ ggstatsplot::grouped_ggscatterstats(
   x = budget,
   y = length,
   grouping.var = genre,
+  bf.message = TRUE,
   label.var = "title",
-  results.subtitle = FALSE,
   marginal = FALSE,
   title.prefix = "Genre",
   caption.text = "All movies have IMDB rating greater than 8."
@@ -279,7 +291,7 @@ ggstatsplot::grouped_ggscatterstats(
 }
 }
 \references{
-\url{https://cran.r-project.org/package=ggstatsplot/vignettes/ggscatterstats.html}
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggscatterstats.html}
 }
 \seealso{
 \code{\link{ggscatterstats}}, \code{\link{ggcorrmat}},

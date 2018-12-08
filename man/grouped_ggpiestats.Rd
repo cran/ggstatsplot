@@ -7,8 +7,11 @@
 grouped_ggpiestats(data, main, condition = NULL, counts = NULL,
   grouping.var, title.prefix = "Group", ratio = NULL, paired = FALSE,
   factor.levels = NULL, stat.title = NULL, sample.size.label = TRUE,
-  caption = NULL, nboot = 25, legend.title = NULL,
-  facet.wrap.name = NULL, k = 3, perc.k = 0, facet.proptest = TRUE,
+  bf.message = FALSE, sampling.plan = "indepMulti",
+  fixed.margin = "rows", prior.concentration = 1, caption = NULL,
+  conf.level = 0.95, nboot = 25, legend.title = NULL,
+  facet.wrap.name = NULL, k = 2, perc.k = 0,
+  slice.label = "percentage", facet.proptest = TRUE,
   ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
   package = "RColorBrewer", palette = "Dark2", direction = 1,
   messages = TRUE, ...)
@@ -46,10 +49,30 @@ effect being shown. An example of a \code{stat.title} argument will be something
 like \code{"main x condition"} or \code{"interaction"}.}
 
 \item{sample.size.label}{Logical that decides whether sample size information
-should be displayed for each level of the grouping variable \code{condition} (Default:
-\code{TRUE}).}
+should be displayed for each level of the grouping variable \code{condition}
+(Default: \code{TRUE}).}
+
+\item{bf.message}{Logical that decides whether to display a caption with
+results from bayes factor test in favor of the null hypothesis (default:
+\code{FALSE}).}
+
+\item{sampling.plan}{Character describing the sampling plan. Possible options
+are \code{"indepMulti"} (independent multinomial; default), \code{"poisson"},
+\code{"jointMulti"} (joint multinomial), \code{"hypergeom"} (hypergeometric). For
+more, see \code{?BayesFactor::contingencyTableBF()}.}
+
+\item{fixed.margin}{For the independent multinomial sampling plan, which
+margin is fixed (\code{"rows"} or \code{"cols"}). Defaults to \code{"rows"}.}
+
+\item{prior.concentration}{Specifies the prior concentration parameter, set
+to \code{1} by default. It indexes the expected deviation from the null
+hypothesis under the alternative, and corresponds to Gunel and Dickey's
+(1974) \code{"a"} parameter.}
 
 \item{caption}{The text for the plot caption.}
+
+\item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
+\code{95\%} lower and upper confidence intervals (\code{0.95}).}
 
 \item{nboot}{Number of bootstrap samples for computing effect size (Default:
 \code{25}).}
@@ -58,10 +81,15 @@ should be displayed for each level of the grouping variable \code{condition} (De
 
 \item{facet.wrap.name}{The text for the facet_wrap variable label.}
 
-\item{k}{Number of digits after decimal point (should be an integer) (Default: \code{k = 3}).}
+\item{k}{Number of digits after decimal point (should be an integer)
+(Default: \code{k = 2}).}
 
 \item{perc.k}{Numeric that decides number of decimal places for percentage
 labels (Default: \code{0}).}
+
+\item{slice.label}{Character decides what information needs to be displayed
+on the label in each pie slice. Possible options are \code{"percentage"}
+(default), \code{"counts"}, \code{"both"}.}
 
 \item{facet.proptest}{Decides whether proportion test for \code{main} variable is
 to be carried out for each level of \code{condition} (Default: \code{TRUE}).}
@@ -93,12 +121,12 @@ to be displayed (Default: \code{TRUE}).}
 \emph{combined plot}.}
   \item{title.color}{Text color for title.}
   \item{title.size}{Point size of title text.}
-  \item{title.vjust}{Vertical justification for title. Default = \code{0.5} (centered
-on y). \code{0} = baseline at y, 1 = ascender at y.}
+  \item{title.vjust}{Vertical justification for title. Default = \code{0.5}
+(centered on \code{y}). \code{0} = baseline at \code{y}, \code{1} = ascender at \code{y}.}
   \item{title.hjust}{Horizontal justification for title. Default = \code{0.5}
-(centered on x). \code{0} = flush-left at x, \code{1} = flush-right.}
-  \item{title.fontface}{The font face (\code{"plain"}, \code{"bold"} (default), \code{"italic"},
-\code{"bold.italic"}) for title.}
+(centered on \code{x}). \code{0} = flush-left at x, \code{1} = flush-right.}
+  \item{title.fontface}{The font face (\code{"plain"}, \code{"bold"} (default),
+\code{"italic"}, \code{"bold.italic"}) for title.}
   \item{caption.text}{String or plotmath expression to be drawn as the caption
 for the \emph{combined plot}.}
   \item{caption.color}{Text color for caption.}
@@ -107,8 +135,8 @@ for the \emph{combined plot}.}
 (centered on y). \code{0} = baseline at y, \code{1} = ascender at y.}
   \item{caption.hjust}{Horizontal justification for caption. Default = \code{0.5}
 (centered on x). \code{0} = flush-left at x, \code{1} = flush-right.}
-  \item{caption.fontface}{The font face (\code{"plain"} (default), \code{"bold"}, \code{"italic"},
-\code{"bold.italic"}) for caption.}
+  \item{caption.fontface}{The font face (\code{"plain"} (default), \code{"bold"},
+\code{"italic"}, \code{"bold.italic"}) for caption.}
   \item{sub.text}{The label with which the \emph{combined plot} should be annotated.
 Can be a plotmath expression.}
   \item{sub.color}{Text color for annotation label (Default: \code{"black"}).}
@@ -136,6 +164,16 @@ combining (title, plot).}
 combining (plot, caption).}
 }}
 }
+\value{
+Unlike a number of statistical softwares, \code{ggstatsplot} doesn't
+provide the option for Yates' correction for the Pearson's chi-squared
+statistic. This is due to compelling amount of Monte-Carlo simulation
+research which suggests that the Yates' correction is overly conservative,
+even in small sample sizes. As such it is recommended that it should not
+ever be applied in practice (Camilli & Hopkins, 1978, 1979; Feinberg, 1980;
+Larntz, 1978; Thompson, 1988). For more, see-
+\url{http://www.how2stats.net/2011/09/yates-correction.html}
+}
 \description{
 Helper function for \code{ggstatsplot::ggpiestats} to apply this
 function across multiple levels of a given factor and combining the
@@ -159,9 +197,35 @@ ggstatsplot::grouped_ggpiestats(
   counts = Freq,
   grouping.var = Sex
 )
+
+# the following will take slightly more amount of time
+\dontrun{
+# for reproducibility
+set.seed(123)
+
+# let's create a smaller dataframe
+diamonds_short <- ggplot2::diamonds \%>\%
+  dplyr::filter(.data = ., cut \%in\% c("Fair", "Very Good", "Ideal")) \%>\%
+  dplyr::sample_frac(tbl = ., size = 0.10)
+
+# plot
+ggstatsplot::grouped_ggpiestats(
+  data = diamonds_short,
+  main = color,
+  condition = clarity,
+  grouping.var = cut,
+  bf.message = TRUE,
+  sampling.plan = "poisson",
+  title.prefix = "Quality",
+  slice.label = "both",
+  messages = FALSE,
+  perc.k = 1,
+  nrow = 3
+)
+}
 }
 \references{
-\url{https://cran.r-project.org/package=ggstatsplot/vignettes/ggpiestats.html}
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html}
 }
 \seealso{
 \code{\link{ggpiestats}}

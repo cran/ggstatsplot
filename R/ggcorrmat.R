@@ -8,7 +8,8 @@
 #' @param data Dataframe from which variables specified are preferentially to be
 #'   taken.
 #' @param cor.vars List of variables for which the correlation matrix is to be
-#'   computed and visualized.
+#'   computed and visualized. If `NULL` (default), all numeric variables from
+#'   `data` will be used.
 #' @param cor.vars.names Optional list of names to be used for `cor.vars`. The
 #'   names should be entered in the same order.
 #' @param output Character that decides expected output from this function:
@@ -18,12 +19,12 @@
 #'   intervals for unique correlation pairs; not available for robust
 #'   correlation) or `"n"` (or `"sample.size"` for a tibble with sample sizes
 #'   for each correlation pair).
-#' @param matrix.type Character, `"full"` (default), `"upper"` or `"lower"`, display
-#'   full matrix, lower triangular or upper triangular matrix.
+#' @param matrix.type Character, `"full"` (default), `"upper"` or `"lower"`,
+#'   display full matrix, lower triangular or upper triangular matrix.
 #' @param method Character argument that decides the visualization method of
 #'   correlation matrix to be used. Allowed values are `"square"` (default),
 #'   `"circle"`
-#' @param corr.method A character string indicating which correlation
+#' @param corr.method,type A character string indicating which correlation
 #'   coefficient is to be computed (`"pearson"` (default) or `"kendall"` or
 #'   `"spearman"`). `"robust"` can also be entered but only if `output` argument
 #'   is set to either `"correlations"` or `"p-values"`. The robust correlation
@@ -38,8 +39,8 @@
 #'   `TRUE`).
 #' @param beta A numeric bending constant for robust correlation coefficient
 #'   (Default: `0.1`).
-#' @param digits Decides the number of decimal digits to be displayed (Default:
-#'   `2`).
+#' @param digits,k Decides the number of decimal digits to be displayed
+#'   (Default: `2`).
 #' @param sig.level Significance level (Default: `0.05`). If the *p*-value in
 #'   *p*-value matrix is bigger than `sig.level`, then the corresponding
 #'   correlation coefficient is regarded as insignificant and flagged as such in
@@ -96,39 +97,29 @@
 #' @import ggplot2
 #'
 #' @importFrom ggcorrplot ggcorrplot
-#' @importFrom dplyr select
-#' @importFrom dplyr group_by
-#' @importFrom dplyr summarize
-#' @importFrom dplyr n
-#' @importFrom dplyr arrange
-#' @importFrom dplyr mutate
-#' @importFrom dplyr mutate_at
-#' @importFrom dplyr mutate_if
-#' @importFrom magrittr "%<>%"
-#' @importFrom magrittr "%>%"
-#' @importFrom purrr is_bare_double
-#' @importFrom stats cor
-#' @importFrom stats na.omit
-#' @importFrom tibble as_data_frame
-#' @importFrom tibble rownames_to_column
-#' @importFrom rlang enquo
-#' @importFrom rlang quo_name
-#' @importFrom crayon green
-#' @importFrom crayon blue
-#' @importFrom crayon yellow
-#' @importFrom crayon red
+#' @importFrom dplyr select group_by summarize n arrange
+#' @importFrom dplyr mutate mutate_at mutate_if
+#' @importFrom purrr is_bare_double flatten_dbl keep %||%
+#' @importFrom stats cor na.omit
+#' @importFrom tibble as_tibble rownames_to_column
+#' @importFrom rlang !! enquo quo_name
+#' @importFrom crayon green blue yellow red
 #' @importFrom WRS2 pball
-#' @importFrom psych corr.test
-#' @importFrom psych corr.p
-#' @importFrom purrr flatten_dbl
+#' @importFrom psych corr.p corr.test
 #'
 #' @seealso \code{\link{grouped_ggcorrmat}} \code{\link{ggscatterstats}}
 #'   \code{\link{grouped_ggscatterstats}}
 #'
 #' @references
-#' \url{https://cran.r-project.org/package=ggstatsplot/vignettes/ggcorrmat.html}
+#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html}
 #'
 #' @examples
+#' 
+#' # for reproducibility
+#' set.seed(123)
+#' 
+#' # if `cor.vars` not specified, all numeric varibles used
+#' ggstatsplot::ggcorrmat(data = iris)
 #' 
 #' # to get the correlalogram
 #' # note that the function will run even if the vector with variable names is
@@ -155,7 +146,7 @@
 #'   output = "p"
 #' )
 #' 
-#' # setting output = "ci" will return the confidence intervals for unique
+#' # setting `output = "ci"` will return the confidence intervals for unique
 #' # correlation pairs
 #' ggstatsplot::ggcorrmat(
 #'   data = ggplot2::msleep,
@@ -164,7 +155,7 @@
 #'   output = "ci"
 #' )
 #' 
-#' # modifying few elements of the correlation matrix by changing function defaults
+#' # modifying elements of the correlation matrix by changing function defaults
 #' ggstatsplot::ggcorrmat(
 #'   data = datasets::iris,
 #'   cor.vars = c(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width),
@@ -177,221 +168,226 @@
 #' )
 #' @export
 
-
 # defining the function
-ggcorrmat <-
-  function(data,
-             cor.vars,
-             cor.vars.names = NULL,
-             output = "plot",
-             matrix.type = "full",
-             method = "square",
-             corr.method = "pearson",
-             exact = FALSE,
-             continuity = TRUE,
-             beta = 0.1,
-             digits = 2,
-             sig.level = 0.05,
-             p.adjust.method = "none",
-             hc.order = FALSE,
-             hc.method = "complete",
-             lab = TRUE,
-             package = "RColorBrewer",
-             palette = "Dark2",
-             direction = 1,
-             colors = c("#E69F00", "white", "#009E73"),
-             outline.color = "black",
-             ggtheme = ggplot2::theme_bw(),
-             ggstatsplot.layer = TRUE,
-             title = NULL,
-             subtitle = NULL,
-             caption = NULL,
-             caption.default = TRUE,
-             lab.col = "black",
-             lab.size = 5,
-             insig = "pch",
-             pch = 4,
-             pch.col = "black",
-             pch.cex = 11,
-             tl.cex = 12,
-             tl.col = "black",
-             tl.srt = 45,
-             axis.text.x.margin.l = 0,
-             axis.text.x.margin.t = 0,
-             axis.text.x.margin.r = 0,
-             axis.text.x.margin.b = 0,
-             messages = TRUE) {
-    # ======================= dataframe =======================================
-    #
+ggcorrmat <- function(data,
+                      cor.vars = NULL,
+                      cor.vars.names = NULL,
+                      output = "plot",
+                      matrix.type = "full",
+                      method = "square",
+                      corr.method = "pearson",
+                      type = NULL,
+                      exact = FALSE,
+                      continuity = TRUE,
+                      beta = 0.1,
+                      digits = 2,
+                      k = NULL,
+                      sig.level = 0.05,
+                      p.adjust.method = "none",
+                      hc.order = FALSE,
+                      hc.method = "complete",
+                      lab = TRUE,
+                      package = "RColorBrewer",
+                      palette = "Dark2",
+                      direction = 1,
+                      colors = c("#E69F00", "white", "#009E73"),
+                      outline.color = "black",
+                      ggtheme = ggplot2::theme_bw(),
+                      ggstatsplot.layer = TRUE,
+                      title = NULL,
+                      subtitle = NULL,
+                      caption = NULL,
+                      caption.default = TRUE,
+                      lab.col = "black",
+                      lab.size = 5,
+                      insig = "pch",
+                      pch = 4,
+                      pch.col = "black",
+                      pch.cex = 11,
+                      tl.cex = 12,
+                      tl.col = "black",
+                      tl.srt = 45,
+                      axis.text.x.margin.l = 0,
+                      axis.text.x.margin.t = 0,
+                      axis.text.x.margin.r = 0,
+                      axis.text.x.margin.b = 0,
+                      messages = TRUE) {
+
+  # ======================= dataframe ========================================
+
+  # creating a dataframe out of the entered variables
+  if (base::missing(cor.vars)) {
+    df <- purrr::keep(.x = data, .p = purrr::is_bare_numeric)
+  } else {
     # creating a dataframe out of the entered variables
     df <- data %>%
       dplyr::select(.data = ., !!rlang::enquo(cor.vars))
+  }
 
-    # counting number of NAs present in the dataframe
-    na_total <- df %>%
-      purrr::map_df(.x = ., .f = ~sum(is.na(.))) %>%
-      purrr::flatten_dbl(.x = .) %>%
-      sum(., na.rm = TRUE)
+  # counting number of NAs present in the dataframe
+  na_total <- df %>%
+    purrr::map_df(.x = ., .f = ~ sum(is.na(.))) %>%
+    purrr::flatten_dbl(.x = .) %>%
+    sum(., na.rm = TRUE)
 
-    # renaming the columns if so desired (must be equal to the number of number of cor.vars)
-    if (!is.null(cor.vars.names)) {
-      # check if number of cor.vars is equal to the number of names entered
-      if (length(df) != length(cor.vars.names)) {
-        # display error message if not
-        base::message(cat(
-          crayon::red("Warning: "),
-          crayon::blue(
-            "The number of variable names does not equal the number of variables.\n"
-          ),
-          sep = ""
-        ))
-      } else {
-        # otherwise rename the columns with the new names
-        colnames(df) <- cor.vars.names
-      }
+  # renaming the columns if so desired (must be equal to the number of number
+  # of cor.vars)
+  if (!is.null(cor.vars.names)) {
+    # check if number of cor.vars is equal to the number of names entered
+    if (length(df) != length(cor.vars.names)) {
+      # display error message if not
+      base::message(cat(
+        crayon::red("Warning: "),
+        crayon::blue(
+          "Number of variable names does not equal the number of variables.\n"
+        ),
+        sep = ""
+      ))
+    } else {
+      # otherwise rename the columns with the new names
+      colnames(df) <- cor.vars.names
+    }
+  }
+
+  # ============================ checking corr.method =======================
+
+  # see which method was used to specify type of correlation
+  corr.method <- type %||% corr.method
+  digits <- k %||% digits
+
+  # if any of the abbreviations have been entered, change them
+  if (corr.method == "p") {
+    corr.method <- "pearson"
+  } else if (corr.method == "np") {
+    corr.method <- "spearman"
+  } else if (corr.method == "r") {
+    corr.method <- "robust"
+  }
+
+  # ===================== statistics ========================================
+  #
+  if (corr.method %in% c("pearson", "spearman", "kendall")) {
+    # confidence interval computation can take some time and also produce
+    # warnings, so compute them only when requested by the user
+    if (output == "ci") {
+      ci <- TRUE
+    } else {
+      ci <- FALSE
     }
 
-    # ============================= checking corr.method ==========================
-
-    # if any of the abbreviations have been entered, change them
-    if (corr.method == "p") {
-      corr.method <- "pearson"
-    } else if (corr.method == "np") {
-      corr.method <- "spearman"
-    } else if (corr.method == "r") {
-      corr.method <- "robust"
-    }
-
-    # ===================== statistics ===========================================
-    #
-    if (corr.method %in% c("pearson", "spearman", "kendall")) {
-      if (output == "ci") {
-        ci <- TRUE
-      } else {
-        ci <- FALSE
-      }
-
-      # computing correlations using `psych` package
-      corr_df <- psych::corr.test(
+    # computing correlations using `psych` package
+    corr_df <-
+      psych::corr.test(
         x = base::as.data.frame(df),
         y = NULL,
         use = "pairwise",
         method = corr.method,
         adjust = p.adjust.method,
         alpha = .05,
-        ci = ci
+        ci = ci,
+        minlength = 20
       )
 
-      # computing correlations on all included variables
-      corr.mat <- base::round(x = corr_df$r, digits = digits)
+    # computing correlations on all included variables
+    corr.mat <- base::round(x = corr_df$r, digits = digits)
 
-      # compute a correlation matrix of p-values
-      p.mat <- corr_df$p
+    # compute a correlation matrix of p-values
+    p.mat <- corr_df$p
+  } else if (corr.method == "robust") {
 
-      # in case of NAs, compute minimum and maximum sample sizes of pairs
-      if (na_total != 0) {
-
-        # dataframe with minimum, median, and maximum sample sizes
-        n_summary <- numdf_n_summary(df = corr_df$n)
-      }
-    } else if (corr.method == "robust") {
-
-      # this is just get a matrix of samples sizes to be used `n` argument in
-      # corr.p function
-      n_df <- psych::corr.test(
+    # get matrix of samples sizes to be used later in `corr.p` function (`n`)
+    corr_df <-
+      psych::corr.test(
         x = base::as.data.frame(df),
         y = NULL,
         use = "pairwise",
         adjust = "none",
         alpha = .05,
-        ci = FALSE
+        ci = FALSE,
+        minlength = 20
       )
 
-      # in case of NAs, compute minimum, median, and maximum sample sizes of
-      # pairs
-      if (na_total != 0) {
+    # computing the percentage bend correlation matrix
+    rob_cor <- WRS2::pball(x = df, beta = beta)
 
-        # dataframe with minimum, median, and maximum sample sizes
-        n_summary <- numdf_n_summary(df = n_df$n)
-      }
+    # extracting the correlations and formatting them
+    corr.mat <- base::round(x = rob_cor$pbcorm, digits = digits)
 
-      # computing the percentage bend correlation matrix
-      rob_cor <- WRS2::pball(x = df, beta = beta)
+    # converting NAs to 1's
+    rob_cor$p.values[is.na(rob_cor$p.values)] <- 0
 
-      # extracting the correlations and formatting them
-      corr.mat <- base::round(x = rob_cor$pbcorm, digits = digits)
+    # adjusting for multiple comparisons (if needed)
+    if (p.adjust.method != "none") {
+      p.mat <-
+        psych::corr.p(
+          r = corr.mat,
+          n = corr_df$n,
+          adjust = p.adjust.method,
+          alpha = 0.05,
+          minlength = 20
+        )$p
+    } else {
+      # creating a correlation matrix of p-values
+      p.mat <- rob_cor$p.values
+    }
+  }
 
-      # converting NAs to 1's
-      rob_cor$p.values[is.na(rob_cor$p.values)] <- 0
+  # ========================== plot =========================================
 
-      # adjusting for multiple comparisons (if needed)
-      if (p.adjust.method != "none") {
-        p.mat <-
-          psych::corr.p(
-            r = corr.mat,
-            n = n_df$n,
-            adjust = p.adjust.method,
-            alpha = 0.05
-          )$p
+  # if user has not specified colors, then use a color palette
+  if (is.null(colors)) {
+    colors <- paletteer::paletteer_d(
+      package = !!package,
+      palette = !!palette,
+      n = 3,
+      direction = direction,
+      type = "discrete"
+    )
+  }
+
+  # creating the basic plot
+  if (output == "plot") {
+    if (corr.method %in% c("pearson", "spearman", "kendall", "robust")) {
+
+      # legend title with information about correlation type and sample
+      if (na_total == 0) {
+        legend.title.text <-
+          bquote(atop(
+            atop(
+              scriptstyle(bold("sample size:")),
+              italic(n) ~ "=" ~ .(nrow(x = data))
+            ),
+            atop(
+              scriptstyle(bold("correlation:")),
+              .(corr.method)
+            )
+          ))
       } else {
-        # creating a correlation matrix of p-values
-        p.mat <- rob_cor$p.values
+        # in case of NAs, compute minimum and maximum sample sizes of pairs
+        n_summary <- numdf_summary(df = corr_df$n)
+
+        legend.title.text <-
+          bquote(atop(
+            atop(
+              atop(
+                scriptstyle(bold("sample size:")),
+                italic(n)[min] ~ "=" ~ .(n_summary$n_min[[1]])
+              ),
+              atop(
+                italic(n)[median] ~ "=" ~ .(n_summary$n_median[[1]]),
+                italic(n)[max] ~ "=" ~ .(n_summary$n_max[[1]])
+              )
+            ),
+            atop(
+              scriptstyle(bold("correlation:")),
+              .(corr.method)
+            )
+          ))
       }
-    }
 
-    # ========================== plot =======================================
-
-    # if user has not specified colors, then use a color palette
-    if (is.null(colors)) {
-      colors <- paletteer::paletteer_d(
-        package = !!package,
-        palette = !!palette,
-        n = 3,
-        direction = direction,
-        type = "discrete"
-      )
-    }
-
-    # creating the basic plot
-    if (output == "plot") {
-      if (corr.method %in% c("pearson", "spearman", "kendall", "robust")) {
-
-        # legend title with information about correlation type and sample
-        if (na_total == 0) {
-          legend.title.text <-
-            bquote(atop(
-              atop(
-                bold("sample size:"),
-                italic(n) ~ "=" ~ .(nrow(x = data))
-              ),
-              atop(
-                bold("correlation:"),
-                .(corr.method)
-              )
-            ))
-        } else {
-          legend.title.text <-
-            bquote(atop(
-              atop(
-                atop(
-                  bold("sample size:"),
-                  italic(n)[min] ~ "=" ~ .(n_summary$n_min[[1]])
-                ),
-                atop(
-                  italic(n)[median] ~ "=" ~ .(n_summary$n_median[[1]]),
-                  italic(n)[max] ~ "=" ~ .(n_summary$n_max[[1]])
-                )
-              ),
-              atop(
-                bold("correlation:"),
-                .(corr.method)
-              )
-            ))
-        }
-
-
-        # plotting the correlalogram
-        plot <- ggcorrplot::ggcorrplot(
+      # plotting the correlalogram
+      plot <-
+        ggcorrplot::ggcorrplot(
           corr = corr.mat,
           method = method,
           p.mat = p.mat,
@@ -412,40 +408,29 @@ ggcorrmat <-
           pch.cex = pch.cex,
           tl.cex = tl.cex,
           tl.col = tl.col,
-          tl.srt = tl.srt
+          tl.srt = tl.srt,
+          digits = digits
         )
 
-        # ============================ labels ==================================
+      # =========================== labels ==================================
 
-        # if caption is not specified, use the generic version only if caption.default is TRUE
-        if (is.null(caption) &&
-          pch == 4 && isTRUE(caption.default)) {
+      # if `caption` is not specified, use the generic version only if
+      # `caption.default` is `TRUE`
+      if (is.null(caption) &&
+        pch == 4 && isTRUE(caption.default)) {
 
-          # preparing text for which p-value adjustment method was used
-          p.adjust.method.description <- function(p.adjust.method) {
-            switch(p.adjust.method,
-              none = "None",
-              bonferroni = "Bonferroni",
-              holm = "Holm",
-              hochberg = "Hochberg",
-              hommel = "Hommel",
-              BH = "Benjamini & Hochberg",
-              fdr = "Benjamini & Hochberg",
-              BY = "Benjamini & Yekutieli"
-            )
-          }
+        # p value adjustment method description
+        p.adjust.method.text <-
+          paste(
+            " (Adjustment: ",
+            p.adjust.method.description(p.adjust.method = p.adjust.method),
+            ")",
+            sep = ""
+          )
 
-          # p value adjustment method description
-          p.adjust.method.text <-
-            paste(
-              " (Adjustment: ",
-              p.adjust.method.description(p.adjust.method = p.adjust.method),
-              ")",
-              sep = ""
-            )
-
-          # preparing the caption
-          caption <- base::substitute(
+        # preparing the caption
+        caption <-
+          base::substitute(
             atop(
               expr = paste(
                 bold("X"),
@@ -462,140 +447,108 @@ ggcorrmat <-
               bottom.text = p.adjust.method.text
             )
           )
+      }
 
-          # adding text details to the plot
-          plot <- plot +
-            ggplot2::labs(
-              title = title,
-              subtitle = subtitle,
-              caption = caption,
-              xlab = NULL,
-              ylab = NULL
-            )
-        } else {
-          # adding text details to the plot
-          plot <- plot +
-            ggplot2::labs(
-              title = title,
-              subtitle = subtitle,
-              caption = caption,
-              xlab = NULL,
-              ylab = NULL
-            )
-        }
+      # adding text details to the plot
+      plot <- plot +
+        ggplot2::labs(
+          title = title,
+          subtitle = subtitle,
+          caption = caption,
+          xlab = NULL,
+          ylab = NULL
+        )
 
-        # adding ggstatsplot theme for correlation matrix
-        if (isTRUE(ggstatsplot.layer)) {
-          plot <- plot +
-            theme_corrmat()
-        }
-
-        # even if ggstatsplot theme is not overlaid, still make sure there is
-        # enough distance between the axis and the label
+      # adding ggstatsplot theme for correlation matrix
+      if (isTRUE(ggstatsplot.layer)) {
         plot <- plot +
-          ggplot2::theme(
-            axis.text.x = ggplot2::element_text(
-              margin = ggplot2::margin(
-                t = axis.text.x.margin.t,
-                r = axis.text.x.margin.r,
-                b = axis.text.x.margin.b,
-                l = axis.text.x.margin.l,
-                unit = "pt"
-              )
+          theme_corrmat()
+      }
+
+      # even if ggstatsplot theme is not overlaid, still make sure there is
+      # enough distance between the axis and the label
+      plot <- plot +
+        ggplot2::theme(
+          axis.text.x = ggplot2::element_text(
+            margin = ggplot2::margin(
+              t = axis.text.x.margin.t,
+              r = axis.text.x.margin.r,
+              b = axis.text.x.margin.b,
+              l = axis.text.x.margin.l,
+              unit = "pt"
             )
           )
-      }
-    }
-    # ========================================== output ==============================================================
-
-    # return the desired result
-    if (output %in% c("correlations", "corr", "r")) {
-
-      # correlation matrix
-      corr.mat %<>%
-        base::as.data.frame(x = .) %>%
-        tibble::rownames_to_column(., var = "variable") %>%
-        tibble::as_data_frame(x = .)
-
-      # return the tibble
-      return(corr.mat)
-    } else if (output %in% c("n", "sample.size")) {
-      if (corr.method %in% c("pearson", "spearman", "kendall")) {
-        # sample size matrix
-        sample_size_df <- corr_df$n %>%
-          base::as.data.frame(x = .) %>%
-          tibble::rownames_to_column(., var = "variable") %>%
-          tibble::as_data_frame(x = .)
-
-        return(sample_size_df)
-      } else {
-        # sample size matrix
-        sample_size_df <- n_df$n %>%
-          base::as.data.frame(x = .) %>%
-          tibble::rownames_to_column(., var = "variable") %>%
-          tibble::as_data_frame(x = .)
-
-        return(sample_size_df)
-      }
-    } else if (output %in% c("p-values", "p.values", "p")) {
-
-      # if p-values were adjusted, notify how they are going to be displayed
-      if (p.adjust.method != "none") {
-        base::message(cat(
-          crayon::green("Note: "),
-          crayon::blue(
-            "In the correlation matrix, the upper triangle denotes p-values adjusted for multiple comparisons,\nwhile the lower triangle denotes unadjusted p-values.\n"
-          ),
-          sep = ""
-        ))
-      }
-
-      # p-value matrix
-      p.mat %<>%
-        base::as.data.frame(x = .) %>%
-        tibble::rownames_to_column(., var = "variable") %>%
-        tibble::as_data_frame(x = .)
-
-      # return the final tibble
-      return(p.mat)
-    } else if (output == "ci") {
-      if (corr.method %in% c("pearson", "spearman", "kendall")) {
-        # compute confidence intervals
-        ci.mat <- dplyr::full_join(
-          x = tibble::as_tibble(corr_df$ci) %>%
-            tibble::rownames_to_column(., "pair") %>%
-            tibble::rowid_to_column(.),
-          y = tibble::as_tibble(corr_df$ci.adj) %>%
-            tibble::rowid_to_column(.),
-          by = "rowid"
-        ) %>%
-          dplyr::select(.data = ., pair, r, dplyr::everything(), -rowid)
-
-        # return a tible with CIs
-        return(ci.mat)
-      } else {
-        base::message(cat(
-          crayon::red("Warning: "),
-          crayon::blue(
-            "Confidence intervals are currently not available for robust correlations.\n"
-          ),
-          sep = ""
-        ))
-      }
-    } else if (output == "plot") {
-
-      # if p-values were adjusted, notify how they are going to be displayed
-      if (p.adjust.method != "none") {
-        base::message(cat(
-          crayon::green("Note: "),
-          crayon::blue(
-            "In the correlation matrix, the upper triangle is based on p-values adjusted for multiple comparisons,\nwhile the lower triangle is based on unadjusted p-values.\n"
-          ),
-          sep = ""
-        ))
-      }
-
-      # correlalogram plot
-      return(plot)
+        )
     }
   }
+  # =============================== output ==================================
+
+  # return the desired result
+  if (output %in% c("correlations", "corr", "r")) {
+
+    # correlation matrix
+    corr.mat %<>%
+      base::as.data.frame(x = .) %>%
+      tibble::rownames_to_column(., var = "variable") %>%
+      tibble::as_tibble(x = .)
+
+    # return the tibble
+    return(corr.mat)
+  } else if (output %in% c("n", "sample.size")) {
+    # sample size matrix
+    sample_size_df <- corr_df$n %>%
+      base::as.data.frame(x = .) %>%
+      tibble::rownames_to_column(., var = "variable") %>%
+      tibble::as_tibble(x = .)
+
+    return(sample_size_df)
+  } else if (output %in% c("p-values", "p.values", "p")) {
+
+    # if p-values were adjusted, notify how they are going to be displayed
+    if (p.adjust.method != "none" && isTRUE(messages)) {
+      ggcorrmat_matrix_message()
+    }
+
+    # p-value matrix
+    p.mat %<>%
+      base::as.data.frame(x = .) %>%
+      tibble::rownames_to_column(., var = "variable") %>%
+      tibble::as_tibble(x = .)
+
+    # return the final tibble
+    return(p.mat)
+  } else if (output == "ci") {
+    if (corr.method %in% c("pearson", "spearman", "kendall")) {
+      # compute confidence intervals
+      ci.mat <- dplyr::full_join(
+        x = tibble::as_tibble(corr_df$ci) %>%
+          tibble::rownames_to_column(., "pair") %>%
+          tibble::rowid_to_column(.),
+        y = tibble::as_tibble(corr_df$ci.adj) %>%
+          tibble::rowid_to_column(.),
+        by = "rowid"
+      ) %>%
+        dplyr::select(.data = ., pair, r, dplyr::everything(), -rowid)
+
+      # return a tible with CIs
+      return(ci.mat)
+    } else {
+      base::message(cat(
+        crayon::red("Warning: "),
+        crayon::blue(
+          "Confidence intervals currently not supported for robust correlation.\n"
+        ),
+        sep = ""
+      ))
+    }
+  } else if (output == "plot") {
+
+    # if p-values were adjusted, notify how they are going to be displayed
+    if (p.adjust.method != "none" && isTRUE(messages)) {
+      ggcorrmat_matrix_message()
+    }
+
+    # correlalogram plot
+    return(plot)
+  }
+}

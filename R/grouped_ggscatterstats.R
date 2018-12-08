@@ -15,19 +15,12 @@
 #'
 #' @import ggplot2
 #'
-#' @importFrom dplyr select
-#' @importFrom dplyr group_by
-#' @importFrom dplyr summarize
-#' @importFrom dplyr n
-#' @importFrom dplyr arrange
-#' @importFrom dplyr mutate
-#' @importFrom dplyr mutate_at
-#' @importFrom dplyr mutate_if
-#' @importFrom magrittr "%<>%"
-#' @importFrom magrittr "%>%"
-#' @importFrom rlang enquo
-#' @importFrom rlang quo_name
-#' @importFrom purrr set_names
+#' @importFrom dplyr select bind_rows summarize mutate mutate_at mutate_if
+#' @importFrom dplyr group_by n arrange
+#' @importFrom rlang !! enquo quo_name ensym
+#' @importFrom glue glue
+#' @importFrom purrr map set_names
+#' @importFrom tidyr nest
 #'
 #' @seealso \code{\link{ggscatterstats}}, \code{\link{ggcorrmat}},
 #' \code{\link{grouped_ggcorrmat}}
@@ -81,8 +74,8 @@
 #'   x = budget,
 #'   y = length,
 #'   grouping.var = genre,
+#'   bf.message = TRUE,
 #'   label.var = "title",
-#'   results.subtitle = FALSE,
 #'   marginal = FALSE,
 #'   title.prefix = "Genre",
 #'   caption.text = "All movies have IMDB rating greater than 8."
@@ -94,6 +87,10 @@
 grouped_ggscatterstats <- function(data,
                                    x,
                                    y,
+                                   type = "pearson",
+                                   conf.level = 0.95,
+                                   bf.prior = 0.707,
+                                   bf.message = FALSE,
                                    label.var = NULL,
                                    label.expression = NULL,
                                    grouping.var,
@@ -124,13 +121,12 @@ grouped_ggscatterstats <- function(data,
                                    xsize = 0.7,
                                    ysize = 0.7,
                                    centrality.para = NULL,
-                                   type = "pearson",
                                    results.subtitle = TRUE,
                                    caption = NULL,
                                    subtitle = NULL,
                                    nboot = 100,
                                    beta = 0.1,
-                                   k = 3,
+                                   k = 2,
                                    axes.range.restrict = FALSE,
                                    ggtheme = ggplot2::theme_bw(),
                                    ggstatsplot.layer = TRUE,
@@ -141,14 +137,15 @@ grouped_ggscatterstats <- function(data,
   param_list <- base::as.list(base::match.call())
 
   # check that label.var and grouping.var are different
-  if (("label.var" %in% names(param_list)) && ("grouping.var" %in% names(param_list))) {
+  if (("label.var" %in% names(param_list)) &&
+    ("grouping.var" %in% names(param_list))) {
     if (as.character(param_list$label.var) == as.character(param_list$grouping.var)) {
       base::message(cat(
         crayon::red("Error: "),
         crayon::blue(
           "Identical variable (",
           crayon::yellow(param_list$label.var),
-          ") was used for both grouping and labeling, which is not allowed."
+          ") was used for both grouping and labeling, which is not allowed.\n"
         ),
         sep = ""
       ))
@@ -169,16 +166,19 @@ grouped_ggscatterstats <- function(data,
     expression.present <- FALSE
   }
 
-  # ========================================= preparing dataframe =======================================================
+  # ======================== preparing dataframe =============================
+  # ensure the grouping variable works quoted or unquoted
+  grouping.var <- rlang::ensym(grouping.var)
 
   # getting the dataframe ready
-  df <- dplyr::select(
-    .data = data,
-    !!rlang::enquo(grouping.var),
-    !!rlang::enquo(x),
-    !!rlang::enquo(y),
-    dplyr::everything()
-  ) %>%
+  df <-
+    dplyr::select(
+      .data = data,
+      !!rlang::enquo(grouping.var),
+      !!rlang::enquo(x),
+      !!rlang::enquo(y),
+      dplyr::everything()
+    ) %>%
     dplyr::mutate(
       .data = .,
       title.text = !!rlang::enquo(grouping.var)
@@ -189,12 +189,12 @@ grouped_ggscatterstats <- function(data,
     dplyr::mutate_if(
       .tbl = .,
       .predicate = purrr::is_bare_character,
-      .funs = ~as.factor(.)
+      .funs = ~ as.factor(.)
     ) %>%
     dplyr::mutate_if(
       .tbl = .,
       .predicate = is.factor,
-      .funs = ~base::droplevels(.)
+      .funs = ~ base::droplevels(.)
     ) %>%
     dplyr::filter(.data = ., !is.na(!!rlang::enquo(grouping.var))) %>%
     dplyr::arrange(.data = ., !!rlang::enquo(grouping.var)) %>%
@@ -203,18 +203,21 @@ grouped_ggscatterstats <- function(data,
 
   if (isTRUE(point.labelling)) {
     if (isTRUE(expression.present)) {
-      # creating a list of plots
-      plotlist_purrr <- df %>%
+      plotlist_purrr <-
+        df %>%
         dplyr::mutate(
           .data = .,
           plots = data %>%
-            purrr::set_names(!!rlang::enquo(grouping.var)) %>%
+            purrr::set_names(x = ., nm = !!rlang::enquo(grouping.var)) %>%
             purrr::map(
               .x = .,
-              .f = ~ggstatsplot::ggscatterstats(
+              .f = ~ ggstatsplot::ggscatterstats(
                 data = .,
                 x = !!rlang::enquo(x),
                 y = !!rlang::enquo(y),
+                bf.prior = bf.prior,
+                bf.message = bf.message,
+                conf.level = conf.level,
                 label.var = !!rlang::enquo(label.var),
                 label.expression = !!rlang::enquo(label.expression),
                 title = glue::glue("{title.prefix}: {as.character(.$title.text)}"),
@@ -254,25 +257,26 @@ grouped_ggscatterstats <- function(data,
                 axes.range.restrict = axes.range.restrict,
                 ggtheme = ggtheme,
                 ggstatsplot.layer = ggstatsplot.layer,
-                # there is already grouped_message() being displayed, which says
-                # the same thing
                 messages = messages
               )
             )
         )
     } else {
-      # creating a list of plots
-      plotlist_purrr <- df %>%
+      plotlist_purrr <-
+        df %>%
         dplyr::mutate(
           .data = .,
           plots = data %>%
-            purrr::set_names(!!rlang::enquo(grouping.var)) %>%
+            purrr::set_names(x = ., nm = !!rlang::enquo(grouping.var)) %>%
             purrr::map(
               .x = .,
-              .f = ~ggstatsplot::ggscatterstats(
+              .f = ~ ggstatsplot::ggscatterstats(
                 data = .,
                 x = !!rlang::enquo(x),
                 y = !!rlang::enquo(y),
+                bf.prior = bf.prior,
+                bf.message = bf.message,
+                conf.level = conf.level,
                 label.var = !!rlang::enquo(label.var),
                 title = glue::glue("{title.prefix}: {as.character(.$title.text)}"),
                 xlab = xlab,
@@ -311,26 +315,27 @@ grouped_ggscatterstats <- function(data,
                 axes.range.restrict = axes.range.restrict,
                 ggtheme = ggtheme,
                 ggstatsplot.layer = ggstatsplot.layer,
-                # there is already grouped_message() being displayed, which says
-                # the same thing
                 messages = messages
               )
             )
         )
     }
   } else {
-    # creating a list of plots
-    plotlist_purrr <- df %>%
+    plotlist_purrr <-
+      df %>%
       dplyr::mutate(
         .data = .,
         plots = data %>%
-          purrr::set_names(!!rlang::enquo(grouping.var)) %>%
+          purrr::set_names(x = ., nm = !!rlang::enquo(grouping.var)) %>%
           purrr::map(
             .x = .,
-            .f = ~ggstatsplot::ggscatterstats(
+            .f = ~ ggstatsplot::ggscatterstats(
               data = .,
               x = !!rlang::enquo(x),
               y = !!rlang::enquo(y),
+              bf.prior = bf.prior,
+              bf.message = bf.message,
+              conf.level = conf.level,
               title = glue::glue("{title.prefix}: {as.character(.$title.text)}"),
               xlab = xlab,
               ylab = ylab,
@@ -368,8 +373,6 @@ grouped_ggscatterstats <- function(data,
               axes.range.restrict = axes.range.restrict,
               ggtheme = ggtheme,
               ggstatsplot.layer = ggstatsplot.layer,
-              # there is already grouped_message() being displayed, which says
-              # the same thing
               messages = messages
             )
           )

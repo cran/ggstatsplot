@@ -7,13 +7,16 @@ designs repeated across all levels of a grouping variable.}
 \usage{
 grouped_ggbetweenstats(data, x, y, grouping.var, title.prefix = "Group",
   plot.type = "boxviolin", type = "parametric",
-  effsize.type = "unbiased", effsize.noncentral = FALSE,
-  bf.prior = 0.707, bf.message = FALSE, xlab = NULL, ylab = NULL,
-  caption = NULL, sample.size.label = TRUE, k = 3,
-  var.equal = FALSE, nboot = 100, tr = 0.1, mean.label.size = 3,
-  mean.label.fontface = "bold", mean.label.color = "black",
-  notch = FALSE, notchwidth = 0.5, linetype = "solid",
-  outlier.tagging = NULL, outlier.label = NULL,
+  pairwise.comparisons = FALSE, pairwise.annotation = "asterisk",
+  pairwise.display = "significant", p.adjust.method = "holm",
+  effsize.type = "unbiased", partial = TRUE,
+  effsize.noncentral = FALSE, bf.prior = 0.707, bf.message = FALSE,
+  results.subtitle = TRUE, xlab = NULL, ylab = NULL,
+  subtitle = NULL, caption = NULL, sample.size.label = TRUE, k = 2,
+  var.equal = FALSE, conf.level = 0.95, nboot = 100, tr = 0.1,
+  mean.label.size = 3, mean.label.fontface = "bold",
+  mean.label.color = "black", notch = FALSE, notchwidth = 0.5,
+  linetype = "solid", outlier.tagging = NULL, outlier.label = NULL,
   outlier.label.color = "black", outlier.color = "black",
   outlier.coef = 1.5, mean.plotting = TRUE, mean.ci = FALSE,
   mean.size = 5, mean.color = "darkred", point.jitter.width = NULL,
@@ -44,25 +47,57 @@ or \code{"robust"} or \code{"bayes"}).Corresponding abbreviations are also accep
 \code{"p"} (for parametric), \code{"np"} (nonparametric), \code{"r"} (robust), or
 \code{"bf"}resp.}
 
+\item{pairwise.comparisons}{Logical that decides whether pairwise comparisons
+are to be displayed. \strong{Only significant comparisons} will be shown by
+default. (default: \code{FALSE}). To change this behavior, select appropriate
+option with \code{pairwise.display} argument.}
+
+\item{pairwise.annotation}{Character that decides the annotations to use for
+pairwise comparisons. Either \code{"p.value"} or \code{"asterisk"} (default).}
+
+\item{pairwise.display}{Decides which pairwise comparisons to display.
+Available options are \code{"significant"} (abbreviation accepted: \code{"s"}) or
+\code{"non-significant"} (abbreviation accepted: \code{"ns"}) or
+\code{"everything"}/\code{"all"}. The default is \code{"significant"}. You can use this
+argument to make sure that your plot is not uber-cluttered when you have
+multiple groups being compared and scores of pairwise comparisons being
+displayed.}
+
+\item{p.adjust.method}{Adjustment method for \emph{p}-values for multiple
+comparisons. Possible methods are: \code{"holm"} (default), \code{"hochberg"},
+\code{"hommel"}, \code{"bonferroni"}, \code{"BH"}, \code{"BY"}, \code{"fdr"}, \code{"none"}.}
+
 \item{effsize.type}{Type of effect size needed for \emph{parametric} tests. The
 argument can be \code{"biased"} (\code{"d"} for Cohen's \emph{d} for \strong{t-test};
 \code{"partial_eta"} for partial eta-squared for \strong{anova}) or \code{"unbiased"}
 (\code{"g"} Hedge's \emph{g} for \strong{t-test}; \code{"partial_omega"} for partial
 omega-squared for \strong{anova})).}
 
+\item{partial}{Logical that decides if partial eta-squared or omega-squared
+are returned (Default: \code{TRUE}). If \code{FALSE}, eta-squared or omega-squared
+will be returned. Valid only for objects of class \code{lm}, \code{aov}, \code{anova}, or
+\code{aovlist}.}
+
 \item{effsize.noncentral}{Logical indicating whether to use non-central
-\emph{t}-distributions for computing the 95% confidence interval for Cohen's \emph{d}
+\emph{t}-distributions for computing the confidence interval for Cohen's \emph{d}
 or Hedge's \emph{g} (Default: \code{FALSE}).}
 
 \item{bf.prior}{A number between 0.5 and 2 (default \code{0.707}), the prior width
 to use in calculating Bayes factors.}
 
-\item{bf.message}{Logical. Decides whether to display Bayes Factor in favor
-of \emph{null} hypothesis \strong{for parametric test} (Default: \code{bf.message = FALSE}).}
+\item{bf.message}{Logical that decides whether to display Bayes Factor in
+favor of the \emph{null} hypothesis \strong{for parametric test} (Default: \code{FALSE}).}
+
+\item{results.subtitle}{Decides whether the results of statistical tests are
+to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
+the plot will be returned.}
 
 \item{xlab}{Label for \code{x} axis variable.}
 
 \item{ylab}{Label for \code{y} axis variable.}
+
+\item{subtitle}{The text for the plot subtitle. Will work only if
+\code{results.subtitle = FALSE}.}
 
 \item{caption}{The text for the plot caption.}
 
@@ -70,7 +105,8 @@ of \emph{null} hypothesis \strong{for parametric test} (Default: \code{bf.messag
 should be displayed for each level of the grouping variable \code{x} (Default:
 \code{TRUE}).}
 
-\item{k}{Number of digits after decimal point (should be an integer) (Default: \code{k = 3}).}
+\item{k}{Number of digits after decimal point (should be an integer)
+(Default: \code{k = 2}).}
 
 \item{var.equal}{a logical variable indicating whether to treat the
     variances in the samples as equal.  If \code{TRUE}, then a simple F
@@ -78,6 +114,9 @@ should be displayed for each level of the grouping variable \code{x} (Default:
     performed.  If \code{FALSE}, an approximate method of Welch (1951)
     is used, which generalizes the commonly known 2-sample Welch test to
     the case of arbitrarily many samples.}
+
+\item{conf.level}{A scalar value between 0 and 1. If unspecified, the
+default is to return \code{95\%} lower and upper confidence intervals (\code{0.95}).}
 
 \item{nboot}{Number of bootstrap samples for computing effect size (Default:
 \code{100}).}
@@ -101,8 +140,8 @@ the label displaying mean. Defaults: \code{3}, \code{"bold"},\code{"black"}, res
 displayed. If \code{TRUE}, a notched box plot will be used. Notches are used to
 compare groups; if the notches of two boxes do not overlap, this suggests
 that the medians are significantly different. In a notched box plot, the
-notches extend \code{1.58 * IQR / sqrt(n)}. This gives a roughly \code{95\%} confidence
-interval for comparing medians. IQR: Inter-Quartile Range.}
+notches extend \code{1.58 * IQR / sqrt(n)}. This gives a roughly \code{95\%}
+confidence interval for comparing medians. IQR: Inter-Quartile Range.}
 
 \item{notchwidth}{For a notched box plot, width of the notch relative to the
 body (default \code{0.5}).}
@@ -175,12 +214,12 @@ to be displayed (Default: \code{TRUE}).}
 \emph{combined plot}.}
   \item{title.color}{Text color for title.}
   \item{title.size}{Point size of title text.}
-  \item{title.vjust}{Vertical justification for title. Default = \code{0.5} (centered
-on y). \code{0} = baseline at y, 1 = ascender at y.}
+  \item{title.vjust}{Vertical justification for title. Default = \code{0.5}
+(centered on \code{y}). \code{0} = baseline at \code{y}, \code{1} = ascender at \code{y}.}
   \item{title.hjust}{Horizontal justification for title. Default = \code{0.5}
-(centered on x). \code{0} = flush-left at x, \code{1} = flush-right.}
-  \item{title.fontface}{The font face (\code{"plain"}, \code{"bold"} (default), \code{"italic"},
-\code{"bold.italic"}) for title.}
+(centered on \code{x}). \code{0} = flush-left at x, \code{1} = flush-right.}
+  \item{title.fontface}{The font face (\code{"plain"}, \code{"bold"} (default),
+\code{"italic"}, \code{"bold.italic"}) for title.}
   \item{caption.text}{String or plotmath expression to be drawn as the caption
 for the \emph{combined plot}.}
   \item{caption.color}{Text color for caption.}
@@ -189,8 +228,8 @@ for the \emph{combined plot}.}
 (centered on y). \code{0} = baseline at y, \code{1} = ascender at y.}
   \item{caption.hjust}{Horizontal justification for caption. Default = \code{0.5}
 (centered on x). \code{0} = flush-left at x, \code{1} = flush-right.}
-  \item{caption.fontface}{The font face (\code{"plain"} (default), \code{"bold"}, \code{"italic"},
-\code{"bold.italic"}) for caption.}
+  \item{caption.fontface}{The font face (\code{"plain"} (default), \code{"bold"},
+\code{"italic"}, \code{"bold.italic"}) for caption.}
   \item{sub.text}{The label with which the \emph{combined plot} should be annotated.
 Can be a plotmath expression.}
   \item{sub.color}{Text color for annotation label (Default: \code{"black"}).}
@@ -223,16 +262,19 @@ A combined plot of comparison plot created for levels of a
 grouping variable.
 }
 \details{
-For parametric tests, Welch's ANOVA/t-test are used as a default. References:
+For parametric tests, Welch's ANOVA/\emph{t}-test are used as a default (i.e.,
+\code{var.equal = FALSE}).
+References:
 \itemize{
 \item ANOVA: Delacre, Leys, Mora, & Lakens, \emph{PsyArXiv}, 2018
-\item t-test: Delacre, Lakens, & Leys, \emph{International Review of Social Psychology}, 2017
+\item \emph{t}-test: Delacre, Lakens, & Leys,
+\emph{International Review of Social Psychology}, 2017
 }
 
 If robust tests are selected, following tests are used is .
 \itemize{
 \item ANOVA: one-way ANOVA on trimmed means (see \code{?WRS2::t1way})
-\item t-test: Yuen's test for trimmed means (see \code{?WRS2::yuen})
+\item \emph{t}-test: Yuen's test for trimmed means (see \code{?WRS2::yuen})
 }
 
 Variant of this function \code{ggwithinstats} is currently under work. You \emph{can}
@@ -251,11 +293,12 @@ ggstatsplot::grouped_ggbetweenstats(
   x = year,
   y = hwy,
   grouping.var = drv,
+  conf.level = 0.99,
   bf.message = TRUE
 )
 }
 \references{
-\url{https://cran.r-project.org/package=ggstatsplot/vignettes/ggbetweenstats.html}
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggbetweenstats.html}
 }
 \seealso{
 \code{\link{ggbetweenstats}}

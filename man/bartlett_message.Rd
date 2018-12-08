@@ -4,7 +4,7 @@
 \alias{bartlett_message}
 \title{Display homogeneity of variance test as a message}
 \usage{
-bartlett_message(data, x, y, lab = NULL, k = 3, output = "message")
+bartlett_message(data, x, y, lab = NULL, k = 2, output = "message")
 }
 \arguments{
 \item{data}{Dataframe from which variables specified are preferentially to be
@@ -17,9 +17,11 @@ taken.}
 \item{lab}{A character describing label for the variable. If \code{NULL}, variable
 name will be used.}
 
-\item{k}{Number of digits after decimal point (should be an integer) (Default: \code{k = 3}).}
+\item{k}{Number of digits after decimal point (should be an integer)
+(Default: \code{k = 2}).}
 
-\item{output}{What output is desired: \code{"message"} (default) or \code{"stats"} objects.}
+\item{output}{What output is desired: \code{"message"} (default) or \code{"stats"}
+objects.}
 }
 \value{
 A list of class \code{"htest"} containing the following components:
@@ -56,6 +58,13 @@ bartlett_message(
 \seealso{
 \code{\link{ggbetweenstats}}
 
-Other helper_messages: \code{\link{normality_message}}
+Other helper_messages: \code{\link{effsize_ci_message}},
+  \code{\link{ggcorrmat_matrix_message}},
+  \code{\link{grouped_message}},
+  \code{\link{normality_message}},
+  \code{\link{pairwise_p}}, \code{\link{palette_message}}
+}
+\author{
+Indrajeet Patil
 }
 \concept{helper_messages}

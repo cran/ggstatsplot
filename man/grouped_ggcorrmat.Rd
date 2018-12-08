@@ -5,19 +5,19 @@
 \title{Visualization of a correlalogram (or correlation matrix) for all
 levels of a grouping variable}
 \usage{
-grouped_ggcorrmat(data, cor.vars, cor.vars.names = NULL, grouping.var,
-  title.prefix = "Group", output = "plot", matrix.type = "full",
-  method = "square", corr.method = "pearson", exact = FALSE,
-  continuity = TRUE, beta = 0.1, digits = 2, sig.level = 0.05,
-  p.adjust.method = "none", hc.order = FALSE, hc.method = "complete",
-  lab = TRUE, package = "RColorBrewer", palette = "Dark2",
-  direction = 1, colors = c("#E69F00", "white", "#009E73"),
-  outline.color = "black", ggtheme = ggplot2::theme_bw(),
-  ggstatsplot.layer = TRUE, subtitle = NULL, caption = NULL,
-  caption.default = TRUE, lab.col = "black", lab.size = 5,
-  insig = "pch", pch = 4, pch.col = "black", pch.cex = 11,
-  tl.cex = 12, tl.col = "black", tl.srt = 45,
-  axis.text.x.margin.t = 0, axis.text.x.margin.r = 0,
+grouped_ggcorrmat(data, cor.vars = NULL, cor.vars.names = NULL,
+  grouping.var, title.prefix = "Group", output = "plot",
+  matrix.type = "full", method = "square", corr.method = "pearson",
+  type = NULL, exact = FALSE, continuity = TRUE, beta = 0.1,
+  digits = 2, k = NULL, sig.level = 0.05, p.adjust.method = "none",
+  hc.order = FALSE, hc.method = "complete", lab = TRUE,
+  package = "RColorBrewer", palette = "Dark2", direction = 1,
+  colors = c("#E69F00", "white", "#009E73"), outline.color = "black",
+  ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
+  subtitle = NULL, caption = NULL, caption.default = TRUE,
+  lab.col = "black", lab.size = 5, insig = "pch", pch = 4,
+  pch.col = "black", pch.cex = 11, tl.cex = 12, tl.col = "black",
+  tl.srt = 45, axis.text.x.margin.t = 0, axis.text.x.margin.r = 0,
   axis.text.x.margin.b = 0, axis.text.x.margin.l = 0,
   messages = TRUE, ...)
 }
@@ -26,7 +26,8 @@ grouped_ggcorrmat(data, cor.vars, cor.vars.names = NULL, grouping.var,
 taken.}
 
 \item{cor.vars}{List of variables for which the correlation matrix is to be
-computed and visualized.}
+computed and visualized. If \code{NULL} (default), all numeric variables from
+\code{data} will be used.}
 
 \item{cor.vars.names}{Optional list of names to be used for \code{cor.vars}. The
 names should be entered in the same order.}
@@ -44,14 +45,22 @@ intervals for unique correlation pairs; not available for robust
 correlation) or \code{"n"} (or \code{"sample.size"} for a tibble with sample sizes
 for each correlation pair).}
 
-\item{matrix.type}{Character, \code{"full"} (default), \code{"upper"} or \code{"lower"}, display
-full matrix, lower triangular or upper triangular matrix.}
+\item{matrix.type}{Character, \code{"full"} (default), \code{"upper"} or \code{"lower"},
+display full matrix, lower triangular or upper triangular matrix.}
 
 \item{method}{Character argument that decides the visualization method of
 correlation matrix to be used. Allowed values are \code{"square"} (default),
 \code{"circle"}}
 
 \item{corr.method}{A character string indicating which correlation
+coefficient is to be computed (\code{"pearson"} (default) or \code{"kendall"} or
+\code{"spearman"}). \code{"robust"} can also be entered but only if \code{output} argument
+is set to either \code{"correlations"} or \code{"p-values"}. The robust correlation
+used is percentage bend correlation (see \code{?WRS2::pball}). Abbreviations
+will also work: \code{"p"} (for parametric/Pearson's \emph{r}), \code{"np"}
+(nonparametric/Spearman's \emph{rho}), \code{"r"} (robust).}
+
+\item{type}{A character string indicating which correlation
 coefficient is to be computed (\code{"pearson"} (default) or \code{"kendall"} or
 \code{"spearman"}). \code{"robust"} can also be entered but only if \code{output} argument
 is set to either \code{"correlations"} or \code{"p-values"}. The robust correlation
@@ -70,8 +79,11 @@ Kendall's \emph{tau} and Spearman's \emph{rho} when not computed exactly (Defaul
 \item{beta}{A numeric bending constant for robust correlation coefficient
 (Default: \code{0.1}).}
 
-\item{digits}{Decides the number of decimal digits to be displayed (Default:
-\code{2}).}
+\item{digits}{Decides the number of decimal digits to be displayed
+(Default: \code{2}).}
+
+\item{k}{Decides the number of decimal digits to be displayed
+(Default: \code{2}).}
 
 \item{sig.level}{Significance level (Default: \code{0.05}). If the \emph{p}-value in
 \emph{p}-value matrix is bigger than \code{sig.level}, then the corresponding
@@ -182,12 +194,12 @@ to be displayed (Default: \code{TRUE}).}
 \emph{combined plot}.}
   \item{title.color}{Text color for title.}
   \item{title.size}{Point size of title text.}
-  \item{title.vjust}{Vertical justification for title. Default = \code{0.5} (centered
-on y). \code{0} = baseline at y, 1 = ascender at y.}
+  \item{title.vjust}{Vertical justification for title. Default = \code{0.5}
+(centered on \code{y}). \code{0} = baseline at \code{y}, \code{1} = ascender at \code{y}.}
   \item{title.hjust}{Horizontal justification for title. Default = \code{0.5}
-(centered on x). \code{0} = flush-left at x, \code{1} = flush-right.}
-  \item{title.fontface}{The font face (\code{"plain"}, \code{"bold"} (default), \code{"italic"},
-\code{"bold.italic"}) for title.}
+(centered on \code{x}). \code{0} = flush-left at x, \code{1} = flush-right.}
+  \item{title.fontface}{The font face (\code{"plain"}, \code{"bold"} (default),
+\code{"italic"}, \code{"bold.italic"}) for title.}
   \item{caption.text}{String or plotmath expression to be drawn as the caption
 for the \emph{combined plot}.}
   \item{caption.color}{Text color for caption.}
@@ -196,8 +208,8 @@ for the \emph{combined plot}.}
 (centered on y). \code{0} = baseline at y, \code{1} = ascender at y.}
   \item{caption.hjust}{Horizontal justification for caption. Default = \code{0.5}
 (centered on x). \code{0} = flush-left at x, \code{1} = flush-right.}
-  \item{caption.fontface}{The font face (\code{"plain"} (default), \code{"bold"}, \code{"italic"},
-\code{"bold.italic"}) for caption.}
+  \item{caption.fontface}{The font face (\code{"plain"} (default), \code{"bold"},
+\code{"italic"}, \code{"bold.italic"}) for caption.}
   \item{sub.text}{The label with which the \emph{combined plot} should be annotated.
 Can be a plotmath expression.}
   \item{sub.color}{Text color for annotation label (Default: \code{"black"}).}
@@ -236,6 +248,16 @@ resulting plots using \code{ggstatsplot::combine_plots}.
 }
 \examples{
 
+# for reproducibility
+set.seed(123)
+
+# for plot
+# (without specifiying needed variables; all numeric variables will be used)
+ggstatsplot::grouped_ggcorrmat(
+  data = ggplot2::msleep,
+  grouping.var = vore
+)
+
 # for getting plot
 ggstatsplot::grouped_ggcorrmat(
   data = ggplot2::msleep,
@@ -258,9 +280,7 @@ ggstatsplot::grouped_ggcorrmat(
 )
 
 # for getting confidence intervals
-# if **robust** correlation is selected, confidence intervals will not be
-# available
-# it will work for all other correlation types
+# confidence intervals are not available for **robust** correlation
 ggstatsplot::grouped_ggcorrmat(
   data = datasets::iris,
   grouping.var = Species,
@@ -271,7 +291,7 @@ ggstatsplot::grouped_ggcorrmat(
 )
 }
 \references{
-\url{https://cran.r-project.org/package=ggstatsplot/vignettes/ggcorrmat.html}
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html}
 }
 \seealso{
 \code{\link{ggcorrmat}}, \code{\link{ggscatterstats}},

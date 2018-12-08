@@ -12,20 +12,11 @@
 #' @inheritParams gghistostats
 #' @inheritDotParams combine_plots
 #'
-#' @importFrom dplyr select
-#' @importFrom dplyr group_by
-#' @importFrom dplyr summarize
-#' @importFrom dplyr n
-#' @importFrom dplyr arrange
-#' @importFrom dplyr mutate
-#' @importFrom dplyr mutate_at
-#' @importFrom dplyr mutate_if
-#' @importFrom magrittr "%<>%"
-#' @importFrom magrittr "%>%"
-#' @importFrom rlang enquo
-#' @importFrom rlang quo_name
+#' @importFrom dplyr select bind_rows summarize mutate mutate_at mutate_if
+#' @importFrom dplyr group_by n arrange
+#' @importFrom rlang !! enquo quo_name ensym
 #' @importFrom glue glue
-#' @importFrom purrr map
+#' @importFrom purrr map set_names
 #' @importFrom tidyr nest
 #'
 #' @seealso \code{\link{gghistostats}}
@@ -56,7 +47,6 @@ grouped_gghistostats <- function(data,
                                  binwidth = NULL,
                                  bar.measure = "count",
                                  xlab = NULL,
-                                 title = NULL,
                                  subtitle = NULL,
                                  caption = NULL,
                                  type = "parametric",
@@ -64,8 +54,9 @@ grouped_gghistostats <- function(data,
                                  bf.prior = 0.707,
                                  bf.message = FALSE,
                                  robust.estimator = "onestep",
+                                 conf.level = 0.95,
                                  nboot = 500,
-                                 k = 3,
+                                 k = 2,
                                  ggtheme = ggplot2::theme_bw(),
                                  ggstatsplot.layer = TRUE,
                                  fill.gradient = FALSE,
@@ -88,31 +79,37 @@ grouped_gghistostats <- function(data,
                                  messages = TRUE,
                                  ...) {
 
-  # ============================================= preparing dataframe =====================================================
+  # ======================== preparing dataframe ============================
+
+  # ensure the grouping variable works quoted or unquoted
+  grouping.var <- rlang::ensym(grouping.var)
 
   # getting the dataframe ready
-  df <- dplyr::select(
-    .data = data,
-    !!rlang::enquo(grouping.var),
-    !!rlang::enquo(x)
-  ) %>%
+  df <-
+    dplyr::select(
+      .data = data,
+      !!rlang::enquo(grouping.var),
+      !!rlang::enquo(x)
+    ) %>%
     dplyr::mutate(
       .data = .,
       title.text = !!rlang::enquo(grouping.var)
     )
 
   # maximum value for x
-  binmax <- dplyr::select(
-    .data = data,
-    !!rlang::enquo(x)
-  ) %>%
+  binmax <-
+    dplyr::select(
+      .data = data,
+      !!rlang::enquo(x)
+    ) %>%
     max(x = ., na.rm = TRUE)
 
   # minimum value for x
-  binmin <- dplyr::select(
-    .data = data,
-    !!rlang::enquo(x)
-  ) %>%
+  binmin <-
+    dplyr::select(
+      .data = data,
+      !!rlang::enquo(x)
+    ) %>%
     min(x = ., na.rm = TRUE)
 
   # number of datapoints
@@ -128,12 +125,12 @@ grouped_gghistostats <- function(data,
     dplyr::mutate_if(
       .tbl = .,
       .predicate = purrr::is_bare_character,
-      .funs = ~as.factor(.)
+      .funs = ~ as.factor(.)
     ) %>%
     dplyr::mutate_if(
       .tbl = .,
       .predicate = is.factor,
-      .funs = ~base::droplevels(.)
+      .funs = ~ base::droplevels(.)
     ) %>%
     dplyr::filter(.data = ., !is.na(!!rlang::enquo(grouping.var))) %>%
     dplyr::arrange(.data = ., !!rlang::enquo(grouping.var)) %>%
@@ -141,14 +138,15 @@ grouped_gghistostats <- function(data,
     tidyr::nest(data = .)
 
   # creating a list of plots
-  plotlist_purrr <- df %>%
+  plotlist_purrr <-
+    df %>%
     dplyr::mutate(
       .data = .,
       plots = data %>%
-        purrr::set_names(!!rlang::enquo(grouping.var)) %>%
+        purrr::set_names(x = ., nm = !!rlang::enquo(grouping.var)) %>%
         purrr::map(
           .x = .,
-          .f = ~ggstatsplot::gghistostats(
+          .f = ~ ggstatsplot::gghistostats(
             data = .,
             x = !!rlang::enquo(x),
             bar.measure = bar.measure,
@@ -161,6 +159,7 @@ grouped_gghistostats <- function(data,
             bf.prior = bf.prior,
             bf.message = bf.message,
             robust.estimator = robust.estimator,
+            conf.level = conf.level,
             nboot = nboot,
             low.color = low.color,
             high.color = high.color,

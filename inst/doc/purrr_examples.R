@@ -4,7 +4,7 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
-## ----purrr_ggbetweenstats, warning = FALSE, message = FALSE, fig.height = 10, fig.width = 7----
+## ----purrr_ggbetweenstats1, warning = FALSE, message = FALSE, fig.height = 10, fig.width = 7----
 library(ggstatsplot)
 
 # for reproducibility
@@ -21,22 +21,21 @@ year_list <- gapminder::gapminder %>%
   ) %>%
   base::split(x = ., f = .$year, drop = TRUE)
 
-# this created a list with 3 elements, one for each mpaa rating
+# this created a list with 3 elements, one for each year we want
 # you can check the structure of the file for yourself
-# str(year_list)
+str(year_list[1])
 
-# checking the length and names of each element
+# checking the length of the list and the names of each element
 length(year_list)
 names(year_list)
 
-# running function on every element of this list; note that if you want the same
-# value for a given argument across all elements of the list, you need to
-# specify it just once
+## ----purrr_ggbetweenstats2, warning = FALSE, message = FALSE, fig.height = 10, fig.width = 7----
 plot_list <- purrr::pmap(
   .l = list(
     data = year_list,
     x = "continent",
     y = "lifeExp",
+    outlier.tagging = TRUE,
     outlier.label = "country",
     outlier.label.color = list(
       "#56B4E9",
@@ -50,8 +49,14 @@ plot_list <- purrr::pmap(
       "Year: 1987",
       "Year: 2007"
     ),
-    type = list("r", "p", "np"),
+    type = list("r", "bf", "np"),
+    pairwise.comparisons = TRUE,
+    pairwise.display = list("s", "ns", "all"),
+    pairwise.annotation = list("asterisk", "asterisk", "p.value"),
+    p.adjust.method = list("hommel", "bonferroni", "BH"),
     nboot = 25,
+    conf.level = list(0.99, 0.95, 0.90),
+    mean.label.size = c(3, 4, 5),
     k = list(1, 2, 3),
     effsize.type = list(
       NULL,
@@ -73,7 +78,8 @@ plot_list <- purrr::pmap(
   ),
   .f = ggstatsplot::ggbetweenstats
 )
-  
+
+## ----purrr_ggbetweenstats3, warning = FALSE, message = FALSE, fig.height = 18, fig.width = 7----
 # combining all individual plots from the list into a single plot using combine_plots function
 ggstatsplot::combine_plots(
   plotlist = plot_list,
@@ -87,25 +93,11 @@ ggstatsplot::combine_plots(
 # for reproducibility
 set.seed(123)
 
-# let's split the dataframe and create a list by mpaa rating
-# let's use only 25% of the data
-# also let's leave out movies with NC-17 rating because there are so few of them
 mpaa_list <- ggstatsplot::movies_wide %>%
   dplyr::filter(.data = ., mpaa != "NC-17") %>%
   dplyr::sample_frac(tbl = ., size = 0.25) %>%
   base::split(x = ., f = .$mpaa, drop = TRUE)
 
-# this created a list with 3 elements, one for each mpaa rating
-# you can check the structure of the file for yourself
-# str(mpaa_list)
-
-# checking the length and names of each element
-length(mpaa_list)
-names(mpaa_list)
-
-# running function on every element of this list note that if you want the same
-# value for a given argument across all elements of the list, you need to
-# specify it just once
 plot_list <- purrr::pmap(
   .l = list(
     data = mpaa_list,
@@ -125,7 +117,7 @@ plot_list <- purrr::pmap(
        "rating > 8 & budget < 50",
        "rating > 9 & budget < 10"
      ),
-    type = list("r", "np", "p"),
+    type = list("r", "np", "bf"),
     method = list(MASS::rlm, "lm", "lm"),
     nboot = 25,
     marginal.type = list("boxplot", "density", "violin"),
@@ -206,7 +198,8 @@ plot_list <- purrr::pmap(
       ggplot2::theme_classic(),
       ggthemes::theme_fivethirtyeight(),
       ggthemes::theme_tufte()
-    )
+    ),
+    messages = FALSE
   ),
   .f = ggstatsplot::ggcorrmat
 )
@@ -351,8 +344,4 @@ ggstatsplot::combine_plots(
   ncol = 1,
   labels = c("(a)","(b)","(c)", "(d)")
 )
-
-## ----session_info-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-options(width = 200)
-devtools::session_info()
 

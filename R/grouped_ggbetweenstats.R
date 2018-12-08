@@ -14,22 +14,12 @@
 #'
 #' @import ggplot2
 #'
-#' @importFrom dplyr select
-#' @importFrom dplyr group_by
-#' @importFrom dplyr summarize
-#' @importFrom dplyr n
-#' @importFrom dplyr arrange
-#' @importFrom dplyr mutate
-#' @importFrom dplyr mutate_at
-#' @importFrom dplyr mutate_if
-#' @importFrom magrittr "%<>%"
-#' @importFrom magrittr "%>%"
-#' @importFrom rlang enquo
-#' @importFrom rlang quo_name
+#' @importFrom dplyr select bind_rows summarize mutate mutate_at mutate_if
+#' @importFrom dplyr group_by n arrange
+#' @importFrom rlang !! enquo quo_name ensym
 #' @importFrom glue glue
-#' @importFrom purrr map
+#' @importFrom purrr map set_names
 #' @importFrom tidyr nest
-#'
 #'
 #' @seealso \code{\link{ggbetweenstats}}
 #'
@@ -47,6 +37,7 @@
 #'   x = year,
 #'   y = hwy,
 #'   grouping.var = drv,
+#'   conf.level = 0.99,
 #'   bf.message = TRUE
 #' )
 #' @export
@@ -59,16 +50,24 @@ grouped_ggbetweenstats <- function(data,
                                    title.prefix = "Group",
                                    plot.type = "boxviolin",
                                    type = "parametric",
+                                   pairwise.comparisons = FALSE,
+                                   pairwise.annotation = "asterisk",
+                                   pairwise.display = "significant",
+                                   p.adjust.method = "holm",
                                    effsize.type = "unbiased",
+                                   partial = TRUE,
                                    effsize.noncentral = FALSE,
                                    bf.prior = 0.707,
                                    bf.message = FALSE,
+                                   results.subtitle = TRUE,
                                    xlab = NULL,
                                    ylab = NULL,
+                                   subtitle = NULL,
                                    caption = NULL,
                                    sample.size.label = TRUE,
-                                   k = 3,
+                                   k = 2,
                                    var.equal = FALSE,
+                                   conf.level = 0.95,
                                    nboot = 100,
                                    tr = 0.1,
                                    mean.label.size = 3,
@@ -96,30 +95,32 @@ grouped_ggbetweenstats <- function(data,
                                    direction = 1,
                                    messages = TRUE,
                                    ...) {
-  # ================== preparing dataframe ==================
+  # ======================== preparing dataframe ==========================
+  # ensure the grouping variable works quoted or unquoted
+  grouping.var <- rlang::ensym(grouping.var)
 
   if (!base::missing(outlier.label)) {
-    # getting the dataframe ready
-    df <- dplyr::select(
-      .data = data,
-      !!rlang::enquo(grouping.var),
-      !!rlang::enquo(x),
-      !!rlang::enquo(y),
-      !!rlang::enquo(outlier.label)
-    ) %>%
+    df <-
+      dplyr::select(
+        .data = data,
+        !!rlang::enquo(grouping.var),
+        !!rlang::enquo(x),
+        !!rlang::enquo(y),
+        !!rlang::enquo(outlier.label)
+      ) %>%
       dplyr::mutate(
         .data = .,
         title.text = !!rlang::enquo(grouping.var)
       ) %>%
       stats::na.omit(.)
   } else {
-    # getting the dataframe ready
-    df <- dplyr::select(
-      .data = data,
-      !!rlang::enquo(grouping.var),
-      !!rlang::enquo(x),
-      !!rlang::enquo(y)
-    ) %>%
+    df <-
+      dplyr::select(
+        .data = data,
+        !!rlang::enquo(grouping.var),
+        !!rlang::enquo(x),
+        !!rlang::enquo(y)
+      ) %>%
       dplyr::mutate(
         .data = .,
         title.text = !!rlang::enquo(grouping.var)
@@ -132,44 +133,53 @@ grouped_ggbetweenstats <- function(data,
     dplyr::mutate_if(
       .tbl = .,
       .predicate = purrr::is_bare_character,
-      .funs = ~as.factor(.)
+      .funs = ~ as.factor(.)
     ) %>%
     dplyr::mutate_if(
       .tbl = .,
       .predicate = is.factor,
-      .funs = ~base::droplevels(.)
+      .funs = ~ base::droplevels(.)
     ) %>%
     dplyr::filter(.data = ., !is.na(!!rlang::enquo(grouping.var))) %>%
     dplyr::arrange(.data = ., !!rlang::enquo(grouping.var)) %>%
     dplyr::group_by(.data = ., !!rlang::enquo(grouping.var)) %>%
     tidyr::nest(data = .)
 
+  # creating a list of plots
   if (!base::missing(outlier.label)) {
-    # creating a list of plots
-    plotlist_purrr <- df %>%
+    plotlist_purrr <-
+      df %>%
       dplyr::mutate(
         .data = .,
         plots = data %>%
-          purrr::set_names(!!rlang::enquo(grouping.var)) %>%
+          purrr::set_names(x = ., nm = !!rlang::enquo(grouping.var)) %>%
           purrr::map(
             .x = .,
-            .f = ~ggstatsplot::ggbetweenstats(
+            .f = ~ ggstatsplot::ggbetweenstats(
               data = .,
               x = !!rlang::enquo(x),
               y = !!rlang::enquo(y),
               title = glue::glue("{title.prefix}: {as.character(.$title.text)}"),
               plot.type = plot.type,
               type = type,
+              pairwise.comparisons = pairwise.comparisons,
+              pairwise.annotation = pairwise.annotation,
+              pairwise.display = pairwise.display,
+              p.adjust.method = p.adjust.method,
               effsize.type = effsize.type,
+              partial = partial,
               effsize.noncentral = effsize.noncentral,
               bf.prior = bf.prior,
               bf.message = bf.message,
+              results.subtitle = results.subtitle,
               xlab = xlab,
               ylab = ylab,
+              subtitle = subtitle,
               caption = caption,
               sample.size.label = sample.size.label,
               k = k,
               var.equal = var.equal,
+              conf.level = conf.level,
               nboot = nboot,
               tr = tr,
               mean.label.size = mean.label.size,
@@ -200,31 +210,39 @@ grouped_ggbetweenstats <- function(data,
           )
       )
   } else {
-    # creating a list of plots
-    plotlist_purrr <- df %>%
+    plotlist_purrr <-
+      df %>%
       dplyr::mutate(
         .data = .,
         plots = data %>%
-          purrr::set_names(!!rlang::enquo(grouping.var)) %>%
+          purrr::set_names(x = ., nm = !!rlang::enquo(grouping.var)) %>%
           purrr::map(
             .x = .,
-            .f = ~ggstatsplot::ggbetweenstats(
+            .f = ~ ggstatsplot::ggbetweenstats(
               data = .,
               x = !!rlang::enquo(x),
               y = !!rlang::enquo(y),
               title = glue::glue("{title.prefix}: {as.character(.$title.text)}"),
               plot.type = plot.type,
               type = type,
+              pairwise.comparisons = pairwise.comparisons,
+              pairwise.annotation = pairwise.annotation,
+              pairwise.display = pairwise.display,
+              p.adjust.method = p.adjust.method,
               effsize.type = effsize.type,
+              partial = partial,
               effsize.noncentral = effsize.noncentral,
               bf.prior = bf.prior,
               bf.message = bf.message,
+              results.subtitle = results.subtitle,
               xlab = xlab,
               ylab = ylab,
+              subtitle = subtitle,
               caption = caption,
               sample.size.label = sample.size.label,
               k = k,
               var.equal = var.equal,
+              conf.level = conf.level,
               nboot = nboot,
               tr = tr,
               mean.label.size = mean.label.size,

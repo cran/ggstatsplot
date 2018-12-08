@@ -18,22 +18,18 @@
 #' @param conf.type A vector of character strings representing the type of
 #'   intervals required. The value should be any subset of the values `"norm"`,
 #'   `"basic"`, `"perc"`, `"bca"`. For more, see `?boot::boot.ci`.
-#' @param conf.level Scalar between 0 and 1. If `NULL`, the defaults return 95%
-#'   lower and upper confidence intervals (`0.95`).
+#' @param conf.level Scalar between 0 and 1. If unspecified, the defaults return
+#'   `95%` lower and upper confidence intervals (`0.95`).
 #' @inheritDotParams boot::boot
 #'
-#' @importFrom tibble as_data_frame
+#' @importFrom tibble as_tibble
 #' @importFrom dplyr select
-#' @importFrom rlang enquo
+#' @importFrom rlang !! enquo
 #' @importFrom WRS2 t1way
-#' @importFrom boot boot
-#' @importFrom boot boot.ci
+#' @importFrom boot boot boot.ci
 #' @importFrom stats na.omit
-#' @importFrom magrittr "%<>%"
-#' @importFrom magrittr "%>%"
 #'
 #' @keywords internal
-#'
 
 t1way_ci <- function(data,
                      x,
@@ -49,8 +45,8 @@ t1way_ci <- function(data,
     x = !!rlang::enquo(x),
     y = !!rlang::enquo(y)
   ) %>%
-    stats::na.omit(.) %>%
-    tibble::as.tibble(x = .)
+    dplyr::filter(.data = ., !is.na(x), !is.na(y)) %>%
+    tibble::as_tibble(x = .)
 
   # running robust one-way anova
   fit <-
@@ -107,7 +103,7 @@ t1way_ci <- function(data,
 
   # preparing a dataframe out of the results
   results_df <-
-    tibble::as_data_frame(
+    tibble::as_tibble(
       x = cbind.data.frame(
         "xi" = bootci$t0,
         ci,
@@ -151,8 +147,153 @@ t1way_ci <- function(data,
   return(results_df)
 }
 
+#' @title Paired samples robust t-tests with confidence
+#'   interval for effect size.
+#' @name yuend_ci
+#' @description Custom function to get confidence intervals for effect size
+#'   measure for paired samples robust t-tests.
+#'
+#' @inheritParams t1way_ci
+#' @inheritDotParams boot::boot
+#'
+#' @importFrom tibble as_tibble
+#' @importFrom dplyr select
+#' @importFrom rlang !! enquo
+#' @importFrom WRS2 yuend
+#' @importFrom boot boot boot.ci
+#' @importFrom stats na.omit
+#'
+#' @keywords internal
+
+yuend_ci <- function(data,
+                     x,
+                     y,
+                     tr = 0.1,
+                     nboot = 100,
+                     conf.level = 0.95,
+                     conf.type = "norm",
+                     ...) {
+  # creating a dataframe from entered data
+  data <-
+    dplyr::select(
+      .data = data,
+      x = !!rlang::enquo(x),
+      y = !!rlang::enquo(y)
+    ) %>%
+    dplyr::filter(.data = ., !is.na(x), !is.na(y)) %>%
+    tibble::as_tibble(x = .)
+
+  # jamovi needs data to be wide format and not long format
+  data_wide <-
+    long_to_wide_converter(
+      data = data,
+      x = x,
+      y = y
+    )
+
+  # sample size
+  sample_size <- nrow(data_wide)
+
+  # running robust one-way anova
+  fit <-
+    WRS2::yuend(
+      x = data_wide[2],
+      y = data_wide[3],
+      tr = tr
+    )
+
+  # function to obtain 95% CI for xi
+  xici <- function(data, tr, indices) {
+    # allows boot to select sample
+    d <- data[indices, ]
+
+    # running the function
+    fit <-
+      WRS2::yuend(
+        x = d[2],
+        y = d[3],
+        tr = tr
+      )
+
+    # return the value of interest: effect size
+    return(fit$effsize)
+  }
+
+  # save the bootstrapped results to an object
+  bootobj <- boot::boot(
+    statistic = xici,
+    R = nboot,
+    data = data_wide,
+    tr = tr,
+    parallel = "multicore",
+    ...
+  )
+
+  # get 95% CI from the bootstrapped object
+  bootci <- boot::boot.ci(
+    boot.out = bootobj,
+    conf = conf.level,
+    type = conf.type
+  )
+
+  # extracting ci part
+  if (conf.type == "norm") {
+    ci <- bootci$normal
+  } else if (conf.type == "basic") {
+    ci <- bootci$basic
+  } else if (conf.type == "perc") {
+    ci <- bootci$perc
+  } else if (conf.type == "bca") {
+    ci <- bootci$bca
+  }
+
+  # preparing a dataframe out of the results
+  results_df <-
+    tibble::as_tibble(
+      x = cbind.data.frame(
+        "xi" = bootci$t0,
+        ci,
+        "t-value" = fit$test,
+        "df" = fit$df,
+        "p-value" = fit$p.value,
+        "nboot" = bootci$R,
+        tr,
+        n = sample_size
+      )
+    )
+
+  # selecting the columns corresponding to the confidence intervals
+  if (conf.type == "norm") {
+    results_df %<>%
+      dplyr::select(
+        .data = .,
+        xi,
+        conf.low = V2,
+        conf.high = V3,
+        `t-value`,
+        df,
+        dplyr::everything()
+      )
+  } else {
+    results_df %<>%
+      dplyr::select(
+        .data = .,
+        xi,
+        conf.low = V4,
+        conf.high = V5,
+        `t-value`,
+        df,
+        dplyr::everything()
+      )
+  }
+
+  # returning the results
+  return(results_df)
+}
+
+
 #' @title A correlation test with confidence interval for effect size.
-#' @name cor_tets_ci
+#' @name cor_test_ci
 #' @description Custom function to get confidence intervals for effect size
 #'   measure for parametric or non-parametric correlation coefficient.
 #'
@@ -162,28 +303,20 @@ t1way_ci <- function(data,
 #' @param y The response - a vector of length the number of rows of `x`.
 #' @param nboot Number of bootstrap samples for computing effect size (Default:
 #'   `100`).
-#' @param conf.type A vector of character strings representing the type of
-#'   intervals required. The value should be any subset of the values `"norm"`,
-#'   `"basic"`, `"perc"`, `"bca"`. For more, see `?boot::boot.ci`.
-#' @param conf.level Scalar between 0 and 1. If `NULL`, the defaults return 95%
-#'   lower and upper confidence intervals (`0.95`).
-#' @inheritParams stats::cor.test
 #' @inheritDotParams boot::boot
+#' @inheritParams stats::cor.test
+#' @inheritParams t1way_ci
 #'
-#' @importFrom tibble as_data_frame
+#' @importFrom tibble as_tibble
 #' @importFrom dplyr select
-#' @importFrom rlang enquo
+#' @importFrom rlang !! enquo
 #' @importFrom WRS2 t1way
-#' @importFrom boot boot
-#' @importFrom boot boot.ci
+#' @importFrom boot boot boot.ci
 #' @importFrom stats na.omit
-#' @importFrom magrittr "%<>%"
-#' @importFrom magrittr "%>%"
 #'
 #' @keywords internal
-#'
 
-cor_tets_ci <- function(data,
+cor_test_ci <- function(data,
                         x,
                         y,
                         method = "spearman",
@@ -200,13 +333,13 @@ cor_tets_ci <- function(data,
     x = !!rlang::enquo(x),
     y = !!rlang::enquo(y)
   ) %>%
-    stats::na.omit(.) %>%
-    tibble::as.tibble(x = .)
+    dplyr::filter(.data = ., !is.na(x), !is.na(y)) %>%
+    tibble::as_tibble(x = .)
 
   # running correlation and creating a tidy dataframe
   tidy_df <- broom::tidy(
     x = stats::cor.test(
-      formula = stats::as.formula(~x + y),
+      formula = stats::as.formula(~ x + y),
       data = data,
       method = method,
       exact = exact,
@@ -230,11 +363,12 @@ cor_tets_ci <- function(data,
     boot_df <-
       broom::tidy(
         stats::cor.test(
-          formula = stats::as.formula(~x + y),
+          formula = stats::as.formula(~ x + y),
           data = d,
           method = method,
           exact = exact,
           continuity = continuity,
+          alternative = alternative,
           na.action = na.omit
         )
       )
@@ -278,7 +412,7 @@ cor_tets_ci <- function(data,
 
   # preparing a dataframe out of the results
   results_df <-
-    tibble::as_data_frame(
+    tibble::as_tibble(
       x = cbind.data.frame(
         "r" = tidy_df$estimate,
         ci,
@@ -286,7 +420,7 @@ cor_tets_ci <- function(data,
         "p-value" = tidy_df$p.value,
         "nboot" = bootci$R,
         "method" = tidy_df$method,
-        "alternative" = "two.sided"
+        "alternative" = as.character(alternative)
       )
     )
 
@@ -322,12 +456,12 @@ cor_tets_ci <- function(data,
 }
 
 
-
-#' @title Chi-squared test of association with confidence interval for effect size
-#'   (Cramer's V).
+#' @title Chi-squared test of association with confidence interval for effect
+#'   size (Cramer's V).
 #' @name chisq_v_ci
 #' @description Custom function to get confidence intervals for effect size
-#'   measure for chi-squared test of association (Contingency Tables analyses, i.e.).
+#'   measure for chi-squared test of association (Contingency Tables analyses,
+#'   i.e.).
 #'
 #' @param data Dataframe from which variables specified are preferentially to be
 #'   taken.
@@ -335,26 +469,20 @@ cor_tets_ci <- function(data,
 #' @param cols the variable to use as the columns in the contingency table.
 #' @param nboot Number of bootstrap samples for computing effect size (Default:
 #'   `25`).
-#' @param conf.type A vector of character strings representing the type of
-#'   intervals required. The value should be any subset of the values `"norm"`,
-#'   `"basic"`, `"perc"`, `"bca"`. For more, see `?boot::boot.ci`.
-#' @param conf.level Scalar between 0 and 1. If `NULL`, the defaults return 95%
-#'   lower and upper confidence intervals (`0.95`).
+#' @inheritParams t1way_ci
 #' @inheritDotParams boot::boot
 #'
-#' @importFrom tibble as_data_frame
+#' @importFrom tibble as_tibble
 #' @importFrom dplyr select
-#' @importFrom rlang enquo
+#' @importFrom rlang !! enquo
 #' @importFrom jmv contTables
 #' @importFrom boot boot
 #' @importFrom boot boot.ci
 #' @importFrom stats na.omit
-#' @importFrom magrittr "%<>%"
-#' @importFrom magrittr "%>%"
 #'
 #' @keywords internal
-#'
 
+# function body
 chisq_v_ci <- function(data,
                        rows,
                        cols,
@@ -363,13 +491,14 @@ chisq_v_ci <- function(data,
                        conf.type = "norm",
                        ...) {
   # creating a dataframe from entered data
-  data <- dplyr::select(
-    .data = data,
-    rows = !!rlang::enquo(rows),
-    cols = !!rlang::enquo(cols)
-  ) %>%
-    stats::na.omit(.) %>%
-    tibble::as.tibble(x = .)
+  data <-
+    dplyr::select(
+      .data = data,
+      rows = !!rlang::enquo(rows),
+      cols = !!rlang::enquo(cols)
+    ) %>%
+    dplyr::filter(.data = ., !is.na(rows), !is.na(cols)) %>%
+    tibble::as_tibble(x = .)
 
   # results from jamovi
   jmv_df <- jmv::contTables(
@@ -431,14 +560,14 @@ chisq_v_ci <- function(data,
 
   # preparing the dataframe
   results_df <-
-    tibble::as_data_frame(
+    tibble::as_tibble(
       x = cbind.data.frame(
         # cramer' V and confidence intervals
         "Cramer's V" = as.data.frame(jmv_df$nom)$`v[cra]`[[1]],
         ci,
         # getting rest of the details from chi-square test
         as.data.frame(jmv_df$chiSq) %>%
-          tibble::as_data_frame()
+          tibble::as_tibble()
       )
     )
 
@@ -490,25 +619,17 @@ chisq_v_ci <- function(data,
 #' @param nboot Number of bootstrap samples for computing effect size (Default:
 #'   `100`).
 #' @param beta bending constant (Default: `0.1`). For more, see `?WRS2::pbcor`.
-#' @param conf.type A vector of character strings representing the type of
-#'   intervals required. The value should be any subset of the values `"norm"`,
-#'   `"basic"`, `"perc"`, `"bca"`. For more, see `?boot::boot.ci`.
-#' @param conf.level Scalar between 0 and 1. If `NULL`, the defaults return 95%
-#'   lower and upper confidence intervals (`0.95`).
+#' @inheritParams t1way_ci
 #' @inheritDotParams boot::boot
 #'
-#' @importFrom tibble as_data_frame
+#' @importFrom tibble as_tibble
 #' @importFrom dplyr select
-#' @importFrom rlang enquo
+#' @importFrom rlang !! enquo
 #' @importFrom WRS2 pbcor
-#' @importFrom boot boot
-#' @importFrom boot boot.ci
+#' @importFrom boot boot boot.ci
 #' @importFrom stats na.omit
-#' @importFrom magrittr "%<>%"
-#' @importFrom magrittr "%>%"
 #'
 #' @keywords internal
-#'
 
 robcor_ci <- function(data,
                       x,
@@ -519,13 +640,14 @@ robcor_ci <- function(data,
                       conf.type = "norm",
                       ...) {
   # creating a dataframe from entered data
-  data <- dplyr::select(
-    .data = data,
-    x = !!rlang::enquo(x),
-    y = !!rlang::enquo(y)
-  ) %>%
-    stats::na.omit(.) %>%
-    tibble::as.tibble(x = .)
+  data <-
+    dplyr::select(
+      .data = data,
+      x = !!rlang::enquo(x),
+      y = !!rlang::enquo(y)
+    ) %>%
+    dplyr::filter(.data = ., !is.na(x), !is.na(y)) %>%
+    tibble::as_tibble(x = .)
 
   # getting the p-value for the correlation coefficient
   fit <-
@@ -583,7 +705,7 @@ robcor_ci <- function(data,
 
   # preparing a dataframe out of the results
   results_df <-
-    tibble::as_data_frame(x = cbind.data.frame(
+    tibble::as_tibble(x = cbind.data.frame(
       "r" = bootci$t0,
       ci,
       "p-value" = fit$p.value,
@@ -625,131 +747,158 @@ robcor_ci <- function(data,
   return(results_df)
 }
 
-#' @title Confidence intervals for partial eta-squared and omega-squared for
-#'   linear models.
-#' @name lm_effsize_ci
-#' @author Indrajeet Patil
-#' @description This function will convert a linear model object to a dataframe
-#'   containing statistical details for all effects along with partial
-#'   eta-squared effect size and its confidence interval.
-#' @return A dataframe with results from `stats::lm()` with partial eta-squared,
-#'   omega-squared, and bootstrapped confidence interval for the same.
+#' @title Confidence interval for effect size for Kruskal-Wallis test.
+#' @name kw_eta_h_ci
+#' @description Custom function to get confidence intervals for effect size
+#'   measure for Kruskal-Wallis Rank Sum Test.
 #'
-#' @param object The linear model object (can be of class `lm`, `aov`, `anova`, or
-#'   `aovlist`).
-#' @param effsize Character describing the effect size to be displayed: `"eta"`
-#'   (default) or `"omega"`.
-#' @param partial Logical that decides if partial eta-squared or omega-squared
-#'   are returned (Default: `TRUE`). If `FALSE`, eta-squared or omega-squared
-#'   will be returned. Valid only for objects of class `lm`, `aov`, `anova`, or
-#'   `aovlist`.
-#' @param conf.level Numeric specifying Level of confidence for the confidence
-#'   interval (Default: `0.95`).
-#' @param nboot Number of bootstrap samples for confidence intervals for partial
-#'   eta-squared and omega-squared (Default: `500`).
+#' @inheritParams t1way_ci
+#' @inheritDotParams boot::boot
 #'
-#' @importFrom sjstats eta_sq
-#' @importFrom sjstats omega_sq
-#' @importFrom stats anova
+#' @importFrom tibble as_tibble
+#' @importFrom dplyr select
+#' @importFrom rlang !! enquo
+#' @importFrom PMCMRplus kruskalTest
+#' @importFrom boot boot boot.ci
 #' @importFrom stats na.omit
-#' @importFrom stats lm
-#' @importFrom tibble as_data_frame
-#' @importFrom broom tidy
 #'
 #' @keywords internal
-#'
 
-# defining the function body
-lm_effsize_ci <-
-  function(object,
-             effsize = "eta",
-             partial = TRUE,
-             conf.level = 0.95,
-             nboot = 500) {
+# function to get confidence intervals
+kw_eta_h_ci <- function(data,
+                        x,
+                        y,
+                        nboot = 100,
+                        conf.level = 0.95,
+                        conf.type = "norm",
+                        ...) {
 
-    # based on the class, get the tidy output using broom
-    if (class(object)[[1]] == "lm") {
-      aov_df <-
-        broom::tidy(stats::anova(object = object))
-    } else if (class(object)[[1]] %in% c("aov", "anova")) {
-      aov_df <- broom::tidy(x = object)
-    } else if (class(object)[[1]] == "aovlist") {
-      aov_df <- broom::tidy(x = object) %>%
-        dplyr::filter(.data = ., stratum == "Within")
-    }
+  # creating a dataframe from entered data
+  data <-
+    dplyr::select(
+      .data = data,
+      x = !!rlang::enquo(x),
+      y = !!rlang::enquo(y)
+    ) %>%
+    dplyr::filter(.data = ., !is.na(x), !is.na(y)) %>%
+    tibble::as_tibble(x = .)
 
-    # create a new column for residual degrees of freedom
-    aov_df$df2 <- aov_df$df[aov_df$term == "Residuals"]
-
-    # cleaning up the dataframe
-    aov_df %<>%
+  # custom function to get eta-squared value
+  kw_eta_h <- function(data,
+                         x,
+                         y) {
+    # creating a dataframe from entered data
+    data <-
       dplyr::select(
-        .data = .,
-        -c(base::grep(
-          pattern = "sq",
-          x = names(.)
-        ))
-      ) %>% # rename to something more meaningful and tidy
-      dplyr::rename(
-        .data = .,
-        df1 = df
-      ) %>% # remove NAs, which would remove the row containing Residuals (redundant at this point)
-      stats::na.omit(.) %>%
-      tibble::as_data_frame(x = .)
-
-    # computing the effect sizes using sjstats
-    if (effsize == "eta") {
-      # creating dataframe of partial eta-squared effect size and its CI with sjstats
-      effsize_df <- sjstats::eta_sq(
-        model = object,
-        partial = partial,
-        ci.lvl = conf.level,
-        n = nboot
-      )
-
-      if (class(object)[[1]] == "aovlist") {
-        effsize_df %<>%
-          dplyr::filter(.data = ., stratum == "Within")
-      }
-    } else if (effsize == "omega") {
-      # creating dataframe of partial omega-squared effect size and its CI with sjstats
-      effsize_df <- sjstats::omega_sq(
-        model = object,
-        partial = partial,
-        ci.lvl = conf.level,
-        n = nboot
-      )
-
-      if (class(object)[[1]] == "aovlist") {
-        effsize_df %<>%
-          dplyr::filter(.data = ., stratum == "Within")
-      }
-    }
-
-    # combining the dataframes (erge the two preceding pieces of information by the common element of Effect
-    combined_df <- dplyr::left_join(
-      x = aov_df,
-      y = effsize_df,
-      by = "term"
-    ) %>% # reordering columns
-      dplyr::select(
-        .data = .,
-        term,
-        F.value = statistic,
-        df1,
-        df2,
-        p.value,
-        dplyr::everything()
+        .data = data,
+        x = !!rlang::enquo(x),
+        y = !!rlang::enquo(y)
       ) %>%
-      tibble::as_data_frame(x = .)
+      dplyr::filter(.data = ., !is.na(x), !is.na(y)) %>%
+      tibble::as_tibble(x = .)
 
-    # in case of within-subjects design, the stratum columns will be unnecessarily added
-    if ("stratum.x" %in% names(combined_df)) {
-      combined_df %<>%
-        dplyr::select(.data = ., -c(base::grep(pattern = "stratum", x = names(.)))) %>%
-        dplyr::mutate(.data = ., stratum = "Within")
-    }
+    # running the function
+    fit <-
+      PMCMRplus::kruskalTest(
+        formula = y ~ x,
+        data = data,
+        dist = "KruskalWallis"
+      )
 
-    # returning the final dataframe
-    return(combined_df)
+    # calculating the eta-squared estimate using the H-statistic
+    # ref. http://www.tss.awf.poznan.pl/files/3_Trends_Vol21_2014__no1_20.pdf
+    effsize <-
+      (fit$statistic[[1]] - fit$parameter[[1]] + 1) /
+        (fit$parameter[[3]] - fit$parameter[[1]])
+
+    # return the value of interest: effect size
+    return(effsize[[1]])
   }
+
+  # eta-squared value
+  eta_sq_H <- kw_eta_h(
+    data = data,
+    x = x,
+    y = y
+  )
+
+  # function to obtain 95% CI for for eta-squared
+  eta_h_ci <- function(data, x, y, indices) {
+    # allows boot to select sample
+    d <- data[indices, ]
+
+    # running the function
+    fit <-
+      kw_eta_h(
+        data = d,
+        x = x,
+        y = y
+      )
+
+    # return the value of interest: effect size
+    return(fit)
+  }
+
+  # save the bootstrapped results to an object
+  bootobj <- boot::boot(
+    data = data,
+    x = x,
+    y = y,
+    statistic = eta_h_ci,
+    R = nboot,
+    parallel = "multicore",
+    ...
+  )
+
+  # get 95% CI from the bootstrapped object
+  bootci <- boot::boot.ci(
+    boot.out = bootobj,
+    conf = conf.level,
+    type = conf.type
+  )
+
+  # extracting ci part
+  if (conf.type == "norm") {
+    ci <- bootci$normal
+  } else if (conf.type == "basic") {
+    ci <- bootci$basic
+  } else if (conf.type == "perc") {
+    ci <- bootci$perc
+  } else if (conf.type == "bca") {
+    ci <- bootci$bca
+  }
+
+  # preparing a dataframe out of the results
+  results_df <-
+    tibble::as_tibble(x = cbind.data.frame(
+      "eta_sq_H" = eta_sq_H,
+      ci,
+      "nboot" = bootci$R
+    ))
+
+  # selecting the columns corresponding to the confidence intervals
+  if (conf.type == "norm") {
+    results_df %<>%
+      dplyr::select(
+        .data = .,
+        eta_sq_H,
+        conf.low = V2,
+        conf.high = V3,
+        conf,
+        nboot
+      )
+  } else {
+    results_df %<>%
+      dplyr::select(
+        .data = .,
+        eta_sq_H,
+        conf.low = V4,
+        conf.high = V5,
+        conf,
+        nboot
+      )
+  }
+
+  # returning the results
+  return(results_df)
+}
