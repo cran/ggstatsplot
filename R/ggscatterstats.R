@@ -1,24 +1,28 @@
 #' @title Scatterplot with marginal distributions
 #' @name ggscatterstats
 #' @aliases ggscatterstats
-#' @author Indrajeet Patil
+#' @author Indrajeet Patil, Chuck Powell
 #' @description Scatterplots from `ggplot2` combined with marginal
 #'   histograms/boxplots/density plots with statistical details added as a
 #'   subtitle.
 #'
-#' @param data Dataframe from which variables specified are preferentially to be
-#'   taken.
-#' @param x A vector containing the explanatory variable.
-#' @param y The response - a vector of length the number of rows of `x`.
+#' @param data Dataframe from which variables are to be taken.
+#' @param x The column in `data` containing the explanatory variable to be
+#'   plotted on the x axis. Can be entered either as
+#'   a character string (e.g., `"x"`) or as a bare expression (e.g, `x`).
+#' @param y The column in `data` containing the response (outcome) variable to
+#'   be plotted on the y axis. Can be entered either as
+#'   a character string (e.g., `"y"`) or as a bare expression (e.g, `y`).
 #' @param bf.message Logical. Decides whether to display Bayes Factor in favor
 #'   of *null* hypothesis **for parametric test** (Default: `FALSE`).
-#' @param label.var Variable to use for points labels. **Must** be entered as a
-#'   character string e.g. `"y"`.
+#' @param label.var Variable to use for points labels. Can be entered either as
+#'   a character string (e.g., `"var1"`) or as a bare expression (e.g, `var1`).
 #' @param label.expression An expression evaluating to a logical vector that
-#'   determines the subset of data points to label. **Must** be entered as a
-#'   character string e.g. `"y < 4 & z < 20"`.
-#' @param xlab Label for `x` axis variable.
-#' @param ylab Label for `y` axis variable.
+#'   determines the subset of data points to label. This argument can be entered
+#'   either as a character string (e.g., `"y < 4 & z < 20"`) or as a bare
+#'   expression (e.g., `y < 4 & z < 20`).
+#' @param xlab Label for `x` axis variable. The default is the variable name.
+#' @param ylab Label for `y` axis variable. The default is the variable name.
 #' @param line.color color for the regression line.
 #' @param line.size Size for the regression line.
 #' @param point.color,point.size,point.alpha Aesthetics specifying geom point
@@ -52,10 +56,9 @@
 #'   `results.subtitle = FALSE`.
 #' @param caption The text for the plot caption.
 #' @param k Number of decimal places expected for results.
-#' @param point.width.jitter Degree of jitter in `x` direction. Defaults to 40\%
-#'   of the resolution of the data.
-#' @param point.height.jitter Degree of jitter in `y` direction. Defaults to
-#'   40\% of the resolution of the data.
+#' @param point.width.jitter,point.height.jitter Degree of jitter in `x` and `y`
+#'   direction, respectively. Defaults to `0` (0%) of the resolution of the
+#'   data.
 #' @param axes.range.restrict Logical decides whether to restrict the axes
 #'   values ranges to min and max values of the `x` and `y` variables (Default:
 #'   `FALSE`).
@@ -63,6 +66,7 @@
 #' @inheritParams ggplot2::geom_smooth
 #' @inheritParams theme_ggstatsplot
 #' @inheritParams paletteer::paletteer_d
+#' @inheritParams ggbetweenstats
 #'
 #' @import ggplot2
 #'
@@ -109,8 +113,8 @@
 #'   x = wt,
 #'   y = mpg,
 #'   type = "np",
-#'   label.var = "car",
-#'   label.expression = "wt < 4 & mpg < 20",
+#'   label.var = car,
+#'   label.expression = wt < 4 & mpg < 20,
 #'   axes.range.restrict = TRUE,
 #'   centrality.para = "median",
 #'   xfill = NULL
@@ -135,8 +139,8 @@ ggscatterstats <- function(data,
                            point.color = "black",
                            point.size = 3,
                            point.alpha = 0.4,
-                           point.width.jitter = NULL,
-                           point.height.jitter = NULL,
+                           point.width.jitter = 0,
+                           point.height.jitter = 0,
                            line.size = 1.5,
                            line.color = "blue",
                            marginal = TRUE,
@@ -163,6 +167,7 @@ ggscatterstats <- function(data,
                            axes.range.restrict = FALSE,
                            ggtheme = ggplot2::theme_bw(),
                            ggstatsplot.layer = TRUE,
+                           ggplot.component = NULL,
                            messages = TRUE) {
 
   #---------------------- variable names --------------------------------
@@ -227,13 +232,19 @@ ggscatterstats <- function(data,
   }
 
   # creating a new dataframe for showing labels
+  label_expr_enxpr <- rlang::enexpr(label.expression)
   label_data <-
     data %>%
     {
       if ("label.expression" %in% names(param_list)) {
-        # original
-        #  dplyr::filter(.data = ., !!rlang::enquo(label.expression))
-        dplyr::filter(.data = ., !!rlang::parse_expr(label.expression))
+        # testing for whether we received bare or quoted
+        if (typeof(label_expr_enxpr) == "language") {
+          # unquoted case
+          dplyr::filter(.data = ., !!label_expr_enxpr)
+        } else {
+          # quoted case
+          dplyr::filter(.data = ., !!rlang::parse_expr(label_expr_enxpr))
+        }
       } else {
         (.)
       }
@@ -277,6 +288,11 @@ ggscatterstats <- function(data,
   }
 
   #--------------------------------- basic plot ---------------------------
+  pos <- position_jitter(
+    width = point.width.jitter,
+    height = point.height.jitter,
+    seed = 123
+  )
 
   # if user has not specified colors, then use a color palette
   if (is.null(xfill) || is.null(yfill)) {
@@ -307,10 +323,7 @@ ggscatterstats <- function(data,
       size = point.size,
       alpha = point.alpha,
       stroke = 0,
-      position = ggplot2::position_jitter(
-        width = point.width.jitter,
-        height = point.height.jitter
-      ),
+      position = pos,
       na.rm = TRUE
     ) +
     ggplot2::geom_smooth(
@@ -484,6 +497,11 @@ ggscatterstats <- function(data,
   #-------------------- adding point labels --------------------------------
 
   if (isTRUE(point.labelling)) {
+    #   If we were passed a bare variable convert to char string for ggrepel
+    if (typeof(param_list$label.var) == "symbol") {
+      label.var <- deparse(substitute(label.var)) # unquoted case
+    }
+
     # using geom_repel_label
     plot <-
       plot +
@@ -499,10 +517,17 @@ ggscatterstats <- function(data,
         point.padding = 0.5,
         segment.color = "black",
         force = 2,
-        seed = 123,
+        position = pos,
         na.rm = TRUE
       )
   }
+
+  # ---------------- adding ggplot component ---------------------------------
+
+  # if any additional modification needs to be made to the plot
+  # this is primarily useful for grouped_ variant of this function
+  plot <- plot + ggplot.component
+
   #------------------------- ggMarginal  ---------------------------------
 
   # creating the ggMarginal plot of a given marginal.type

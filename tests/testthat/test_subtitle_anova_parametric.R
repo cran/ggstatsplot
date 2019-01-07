@@ -24,13 +24,14 @@ testthat::test_that(
     results1 <-
       ggplot2::expr(
         paste(
+          NULL,
           italic("F"),
           "(",
-          5,
+          "8",
           ",",
-          "135.09275",
+          "399.03535",
           ") = ",
-          "29.36078",
+          "28.41410",
           ", ",
           italic("p"),
           " = ",
@@ -38,37 +39,22 @@ testthat::test_that(
           ", ",
           eta["p"]^2,
           " = ",
-          "0.05735",
+          "0.13123",
           ", CI"["95%"],
           " [",
-          "0.03932",
+          "0.09826",
           ", ",
-          "0.07442",
+          "0.15804",
           "]",
           ", ",
           italic("n"),
           " = ",
-          2433L
+          1579L
         )
       )
 
     # testing overall call
-    testthat::expect_identical(
-      object = using_function1,
-      expected = results1
-    )
-
-    # testing eta squared
-    testthat::expect_identical(
-      object = as.character(using_function1)[16],
-      expected = as.character(results1)[16]
-    )
-
-    # testing upper CI
-    testthat::expect_identical(
-      object = as.character(using_function1)[20],
-      expected = as.character(results1)[20]
-    )
+    testthat::expect_identical(using_function1, results1)
   }
 )
 
@@ -100,7 +86,7 @@ testthat::test_that(
           k = 3,
           effsize.type = "biased",
           partial = FALSE,
-          conf.level = 0.99,
+          conf.level = 0.95,
           messages = FALSE
         )
       )
@@ -109,9 +95,10 @@ testthat::test_that(
     results1 <-
       ggplot2::expr(
         paste(
+          NULL,
           italic("F"),
           "(",
-          3,
+          "3",
           ",",
           "16.586",
           ") = ",
@@ -124,7 +111,7 @@ testthat::test_that(
           eta^2,
           " = ",
           "0.085",
-          ", CI"["99%"],
+          ", CI"["95%"],
           " [",
           "-0.023",
           ", ",
@@ -165,9 +152,10 @@ testthat::test_that(
     results1 <-
       ggplot2::expr(
         paste(
+          NULL,
           italic("F"),
           "(",
-          3,
+          "3",
           ",",
           "11.1010",
           ") = ",
@@ -194,10 +182,7 @@ testthat::test_that(
       )
 
     # testing overall call
-    testthat::expect_identical(
-      object = using_function1,
-      expected = results1
-    )
+    testthat::expect_identical(using_function1, results1)
   }
 )
 
@@ -214,6 +199,7 @@ testthat::test_that(
         data = ggplot2::msleep,
         x = vore,
         y = sleep_rem,
+        var.equal = TRUE,
         effsize.type = "partial_eta",
         k = 4,
         nboot = 10,
@@ -224,17 +210,18 @@ testthat::test_that(
     results1 <-
       ggplot2::expr(
         paste(
+          NULL,
           italic("F"),
           "(",
-          3,
+          "3",
           ",",
-          "11.1010",
+          "52",
           ") = ",
-          "2.6325",
+          "4.1361",
           ", ",
           italic("p"),
           " = ",
-          "0.1017",
+          "0.0105",
           ", ",
           eta["p"]^2,
           " = ",
@@ -275,7 +262,7 @@ testthat::test_that(
         x = vore,
         y = sleep_rem,
         effsize.type = "biased",
-        conf.level = 0.90,
+        conf.level = 0.95,
         partial = FALSE,
         k = 4,
         nboot = 10,
@@ -302,9 +289,10 @@ testthat::test_that(
     results1 <-
       ggplot2::expr(
         paste(
+          NULL,
           italic("F"),
           "(",
-          3,
+          "3",
           ",",
           "11.1010",
           ") = ",
@@ -317,7 +305,7 @@ testthat::test_that(
           eta^2,
           " = ",
           "0.1926",
-          ", CI"["90%"],
+          ", CI"["95%"],
           " [",
           "0.0399",
           ", ",
@@ -334,9 +322,10 @@ testthat::test_that(
     results2 <-
       ggplot2::expr(
         paste(
+          NULL,
           italic("F"),
           "(",
-          3,
+          "3",
           ",",
           "11.1010",
           ") = ",
@@ -364,15 +353,9 @@ testthat::test_that(
 
     # testing overall call
     # eta
-    testthat::expect_identical(
-      object = using_function1,
-      expected = results1
-    )
+    testthat::expect_identical(using_function1, results1)
 
     # omega
-    testthat::expect_identical(
-      object = using_function2,
-      expected = results2
-    )
+    testthat::expect_identical(using_function2, results2)
   }
 )

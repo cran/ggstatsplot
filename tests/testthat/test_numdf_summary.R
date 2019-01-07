@@ -6,12 +6,14 @@ context(desc = "numdf_summary")
 testthat::test_that(
   desc = "checking numdf_summary - with NAs",
   code = {
+    testthat::skip_on_cran()
 
     # creating a dataframe with summaries
     set.seed(123)
     dat <- ggstatsplot:::numdf_summary(ggplot2::msleep)
 
     # checking values
+    testthat::expect_true(inherits(dat, what = "tbl_df"))
     testthat::expect_equal(dat$n_min[1], 0.000140, tolerance = 1e-3)
     testthat::expect_equal(dat$n_median[1], 3.50, tolerance = 1e-2)
     testthat::expect_equal(dat$n_max[1], 6654L)
@@ -24,6 +26,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "checking numdf_summary - without NAs",
   code = {
+    testthat::skip_on_cran()
 
     # creating a dataframe with summaries
     set.seed(123)

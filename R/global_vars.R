@@ -163,7 +163,19 @@ utils::globalVariables(
     "2.5 %",
     "97.5 %",
     "group",
-    "name"
+    "name",
+    "se",
+    "zvalue",
+    "isanoutlier",
+    "Cramer.V",
+    "t.value",
+    "ci.lb",
+    "ci.ub",
+    "pval",
+    "zval",
+    "statistic.z",
+    "variable",
+    "method"
   ),
   package = "ggstatsplot",
   add = FALSE

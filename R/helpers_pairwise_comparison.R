@@ -318,23 +318,45 @@ pairwise_p <- function(data,
   #
   if (type %in% c("parametric", "p")) {
     if (isTRUE(var.equal) || isTRUE(paired)) {
+      # anova model
+      aovmodel <- stats::aov(formula = y ~ x, data = data)
+      aovmodel$model$x <-
+        stringr::str_replace(
+          string = aovmodel$model$x,
+          pattern = "-",
+          replacement = "_"
+        )
+
+      # extracting and cleaning up Tukey's HSD output
+      df_tukey <- TukeyHSD(aovmodel) %>%
+        broom::tidy(x = .) %>%
+        dplyr::select(comparison, estimate, conf.low, conf.high) %>%
+        tidyr::separate(
+          data = .,
+          col = comparison,
+          into = c("group1", "group2"),
+          sep = "-"
+        ) %>%
+        dplyr::rename(.data = ., mean.difference = estimate)
+
+      # changing names of factor levels
+      df_tukey$group1 <-
+        stringr::str_replace(
+          string = df_tukey$group1,
+          pattern = "_",
+          replacement = "-"
+        )
+      df_tukey$group2 <-
+        stringr::str_replace(
+          string = df_tukey$group2,
+          pattern = "_",
+          replacement = "-"
+        )
+
+      # combining mean difference and results from pairwise t-test
       df <-
         dplyr::full_join(
-          # mean difference and its confidence intervals
-          x = stats::aov(formula = y ~ x, data = data) %>%
-            stats::TukeyHSD(x = .) %>%
-            broom::tidy(x = .) %>%
-            dplyr::select(
-              .data = .,
-              comparison, estimate, conf.low, conf.high
-            ) %>%
-            tidyr::separate(
-              data = .,
-              col = comparison,
-              into = c("group1", "group2"),
-              sep = "-"
-            ) %>%
-            dplyr::rename(.data = ., mean.difference = estimate),
+          x = df_tukey,
           y = broom::tidy(
             stats::pairwise.t.test(
               x = data$y,
@@ -516,26 +538,14 @@ pairwise_p <- function(data,
     }
 
     # extracting the robust pairwise comparisons and tidying up names
-    # depends on which version of tibble is available
-    if (as.character(utils::packageVersion("tibble")[[1]]) == "1.4.2") {
-      rob_df_tidy <-
-        rob_pairwise_df$comp %>%
-        tibble::as_tibble(x = .) %>%
-        dplyr::rename(
-          .data = .,
-          group1 = Group,
-          group2 = Group1
-        )
-    } else {
-      rob_df_tidy <-
-        suppressMessages(rob_pairwise_df$comp %>%
-          tibble::as_tibble(x = ., .name_repair = "unique")) %>%
-        dplyr::rename(
-          .data = .,
-          group1 = Group..1,
-          group2 = Group..2
-        )
-    }
+    rob_df_tidy <-
+      suppressMessages(rob_pairwise_df$comp %>%
+        tibble::as_tibble(x = ., .name_repair = "unique")) %>%
+      dplyr::rename(
+        .data = .,
+        group1 = Group..1,
+        group2 = Group..2
+      )
 
     # cleaning the raw object and getting it in the right format
     df <-
@@ -640,7 +650,7 @@ pairwise_p <- function(data,
     dplyr::select(.data = ., -label2)
 
   # return
-  return(df)
+  return(tibble::as_tibble(df))
 }
 
 

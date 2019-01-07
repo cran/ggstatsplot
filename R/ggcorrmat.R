@@ -128,7 +128,8 @@
 #'   data = ggplot2::msleep,
 #'   cor.vars = sleep_total:bodywt,
 #'   cor.vars.names = c("total sleep", "REM sleep")
-#' )
+#' ) + # further modification using `ggplot2`
+#'   ggplot2::scale_y_discrete(position = "right")
 #' 
 #' # to get the correlation matrix
 #' ggstatsplot::ggcorrmat(
@@ -264,6 +265,17 @@ ggcorrmat <- function(data,
     corr.method <- "robust"
   }
 
+  # create unique name for each method
+  if (corr.method == "pearson") {
+    corr.method.text <- "Pearson"
+  } else if (corr.method == "spearman") {
+    corr.method.text <- "Spearman"
+  } else if (corr.method == "robust") {
+    corr.method.text <- "robust (% bend)"
+  } else if (corr.method == "kendall") {
+    corr.method.text <- "Kendall"
+  }
+
   # ===================== statistics ========================================
   #
   if (corr.method %in% c("pearson", "spearman", "kendall")) {
@@ -359,12 +371,12 @@ ggcorrmat <- function(data,
             ),
             atop(
               scriptstyle(bold("correlation:")),
-              .(corr.method)
+              .(corr.method.text)
             )
           ))
       } else {
         # in case of NAs, compute minimum and maximum sample sizes of pairs
-        n_summary <- numdf_summary(df = corr_df$n)
+        n_summary <- numdf_summary(corr_df$n)
 
         legend.title.text <-
           bquote(atop(
@@ -380,7 +392,7 @@ ggcorrmat <- function(data,
             ),
             atop(
               scriptstyle(bold("correlation:")),
-              .(corr.method)
+              .(corr.method.text)
             )
           ))
       }
@@ -422,9 +434,8 @@ ggcorrmat <- function(data,
         # p value adjustment method description
         p.adjust.method.text <-
           paste(
-            " (Adjustment: ",
+            "Adjustment (p-value): ",
             p.adjust.method.description(p.adjust.method = p.adjust.method),
-            ")",
             sep = ""
           )
 
@@ -481,42 +492,25 @@ ggcorrmat <- function(data,
         )
     }
   }
+
   # =============================== output ==================================
+
+  # if p-values were adjusted, notify how they are going to be displayed
+  if (p.adjust.method != "none" && isTRUE(messages) && corr.method != "robust") {
+    ggcorrmat_matrix_message()
+  }
 
   # return the desired result
   if (output %in% c("correlations", "corr", "r")) {
-
-    # correlation matrix
-    corr.mat %<>%
-      base::as.data.frame(x = .) %>%
-      tibble::rownames_to_column(., var = "variable") %>%
-      tibble::as_tibble(x = .)
-
-    # return the tibble
-    return(corr.mat)
+    # return a tibble
+    return(matrix_to_tibble(df = corr.mat))
   } else if (output %in% c("n", "sample.size")) {
-    # sample size matrix
-    sample_size_df <- corr_df$n %>%
-      base::as.data.frame(x = .) %>%
-      tibble::rownames_to_column(., var = "variable") %>%
-      tibble::as_tibble(x = .)
-
-    return(sample_size_df)
+    # return a tibble
+    return(matrix_to_tibble(df = corr_df$n))
   } else if (output %in% c("p-values", "p.values", "p")) {
 
-    # if p-values were adjusted, notify how they are going to be displayed
-    if (p.adjust.method != "none" && isTRUE(messages)) {
-      ggcorrmat_matrix_message()
-    }
-
-    # p-value matrix
-    p.mat %<>%
-      base::as.data.frame(x = .) %>%
-      tibble::rownames_to_column(., var = "variable") %>%
-      tibble::as_tibble(x = .)
-
-    # return the final tibble
-    return(p.mat)
+    # return a tibble
+    return(matrix_to_tibble(df = p.mat))
   } else if (output == "ci") {
     if (corr.method %in% c("pearson", "spearman", "kendall")) {
       # compute confidence intervals
@@ -542,11 +536,6 @@ ggcorrmat <- function(data,
       ))
     }
   } else if (output == "plot") {
-
-    # if p-values were adjusted, notify how they are going to be displayed
-    if (p.adjust.method != "none" && isTRUE(messages)) {
-      ggcorrmat_matrix_message()
-    }
 
     # correlalogram plot
     return(plot)

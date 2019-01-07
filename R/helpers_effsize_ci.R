@@ -107,10 +107,10 @@ t1way_ci <- function(data,
       x = cbind.data.frame(
         "xi" = bootci$t0,
         ci,
-        "F-value" = fit$test,
+        "F.value" = fit$test,
         "df1" = fit$df1,
         "df2" = fit$df2,
-        "p-value" = fit$p.value,
+        "p.value" = fit$p.value,
         "nboot" = bootci$R,
         tr
       )
@@ -124,7 +124,7 @@ t1way_ci <- function(data,
         xi,
         conf.low = V2,
         conf.high = V3,
-        `F-value`,
+        F.value,
         df1,
         df2,
         dplyr::everything()
@@ -136,7 +136,7 @@ t1way_ci <- function(data,
         xi,
         conf.low = V4,
         conf.high = V5,
-        `F-value`,
+        F.value,
         df1,
         df2,
         dplyr::everything()
@@ -147,7 +147,7 @@ t1way_ci <- function(data,
   return(results_df)
 }
 
-#' @title Paired samples robust t-tests with confidence
+#' @title Paired samples robust *t*-tests with confidence
 #'   interval for effect size.
 #' @name yuend_ci
 #' @description Custom function to get confidence intervals for effect size
@@ -253,9 +253,9 @@ yuend_ci <- function(data,
       x = cbind.data.frame(
         "xi" = bootci$t0,
         ci,
-        "t-value" = fit$test,
+        "t.value" = fit$test,
         "df" = fit$df,
-        "p-value" = fit$p.value,
+        "p.value" = fit$p.value,
         "nboot" = bootci$R,
         tr,
         n = sample_size
@@ -270,7 +270,7 @@ yuend_ci <- function(data,
         xi,
         conf.low = V2,
         conf.high = V3,
-        `t-value`,
+        t.value,
         df,
         dplyr::everything()
       )
@@ -281,7 +281,7 @@ yuend_ci <- function(data,
         xi,
         conf.low = V4,
         conf.high = V5,
-        `t-value`,
+        t.value,
         df,
         dplyr::everything()
       )
@@ -417,7 +417,7 @@ cor_test_ci <- function(data,
         "r" = tidy_df$estimate,
         ci,
         "statistic" = tidy_df$statistic,
-        "p-value" = tidy_df$p.value,
+        "p.value" = tidy_df$p.value,
         "nboot" = bootci$R,
         "method" = tidy_df$method,
         "alternative" = as.character(alternative)
@@ -432,7 +432,7 @@ cor_test_ci <- function(data,
         r,
         conf.low = V2,
         conf.high = V3,
-        `p-value`,
+        p.value,
         conf,
         nboot,
         dplyr::everything()
@@ -444,7 +444,7 @@ cor_test_ci <- function(data,
         r,
         conf.low = V4,
         conf.high = V5,
-        `p-value`,
+        p.value,
         conf,
         nboot,
         dplyr::everything()
@@ -562,12 +562,9 @@ chisq_v_ci <- function(data,
   results_df <-
     tibble::as_tibble(
       x = cbind.data.frame(
-        # cramer' V and confidence intervals
-        "Cramer's V" = as.data.frame(jmv_df$nom)$`v[cra]`[[1]],
+        "Cramer.V" = as.data.frame(jmv_df$nom)$`v[cra]`[[1]],
         ci,
-        # getting rest of the details from chi-square test
-        as.data.frame(jmv_df$chiSq) %>%
-          tibble::as_tibble()
+        tibble::as_tibble(as.data.frame(jmv_df$chiSq))
       )
     )
 
@@ -578,10 +575,10 @@ chisq_v_ci <- function(data,
         .data = .,
         chi.sq = `value[chiSq]`,
         df = `df[chiSq]`,
-        `Cramer's V`,
+        Cramer.V,
         conf.low = V2,
         conf.high = V3,
-        `p-value` = `p[chiSq]`,
+        p.value = `p[chiSq]`,
         dplyr::everything()
       )
   } else {
@@ -590,10 +587,10 @@ chisq_v_ci <- function(data,
         .data = .,
         chi.sq = `value[chiSq]`,
         df = `df[chiSq]`,
-        `Cramer's V`,
+        Cramer.V,
         conf.low = V4,
         conf.high = V5,
-        `p-value` = `p[chiSq]`,
+        p.value = `p[chiSq]`,
         dplyr::everything()
       )
   }
@@ -649,7 +646,7 @@ robcor_ci <- function(data,
     dplyr::filter(.data = ., !is.na(x), !is.na(y)) %>%
     tibble::as_tibble(x = .)
 
-  # getting the p-value for the correlation coefficient
+  # getting the p.value for the correlation coefficient
   fit <-
     WRS2::pbcor(
       x = data$x,
@@ -706,9 +703,10 @@ robcor_ci <- function(data,
   # preparing a dataframe out of the results
   results_df <-
     tibble::as_tibble(x = cbind.data.frame(
-      "r" = bootci$t0,
+      "estimate" = bootci$t0,
       ci,
-      "p-value" = fit$p.value,
+      "p.value" = fit$p.value,
+      "statistic" = fit$test[[1]],
       "n" = fit$n,
       "nboot" = bootci$R,
       beta
@@ -719,27 +717,19 @@ robcor_ci <- function(data,
     results_df %<>%
       dplyr::select(
         .data = .,
-        r,
+        estimate,
         conf.low = V2,
         conf.high = V3,
-        `p-value`,
-        conf,
-        n,
-        beta,
-        nboot
+        dplyr::everything()
       )
   } else {
     results_df %<>%
       dplyr::select(
         .data = .,
-        r,
+        estimate,
         conf.low = V4,
         conf.high = V5,
-        `p-value`,
-        conf,
-        n,
-        beta,
-        nboot
+        dplyr::everything()
       )
   }
 
@@ -758,7 +748,7 @@ robcor_ci <- function(data,
 #' @importFrom tibble as_tibble
 #' @importFrom dplyr select
 #' @importFrom rlang !! enquo
-#' @importFrom PMCMRplus kruskalTest
+#' @importFrom stats kruskal.test
 #' @importFrom boot boot boot.ci
 #' @importFrom stats na.omit
 #'
@@ -797,19 +787,24 @@ kw_eta_h_ci <- function(data,
       dplyr::filter(.data = ., !is.na(x), !is.na(y)) %>%
       tibble::as_tibble(x = .)
 
+    # no. of levels (parameter; k)
+    parameter <- length(levels(as.factor(data$x)))
+
+    # no. of observations (n)
+    sample_size <- nrow(data)
+
     # running the function
     fit <-
-      PMCMRplus::kruskalTest(
+      stats::kruskal.test(
         formula = y ~ x,
-        data = data,
-        dist = "KruskalWallis"
+        data = data
       )
 
     # calculating the eta-squared estimate using the H-statistic
     # ref. http://www.tss.awf.poznan.pl/files/3_Trends_Vol21_2014__no1_20.pdf
     effsize <-
-      (fit$statistic[[1]] - fit$parameter[[1]] + 1) /
-        (fit$parameter[[3]] - fit$parameter[[1]])
+      (fit$statistic[[1]] - parameter + 1) /
+        (sample_size - parameter)
 
     # return the value of interest: effect size
     return(effsize[[1]])

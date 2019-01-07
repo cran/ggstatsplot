@@ -43,7 +43,12 @@ testthat::test_that(
 
     # checking different data layers
     testthat::expect_equal(length(pb$data), 5L)
-    testthat::expect_equal(nrow(pb$data[[1]]), 11L)
+    testthat::expect_equal(dim(pb$data[[1]]), c(11L, 17L))
+    testthat::expect_equal(dim(pb$data[[2]]), c(1L, 7L))
+    testthat::expect_equal(dim(pb$data[[3]]), c(81L, 15L))
+    testthat::expect_equal(dim(pb$data[[4]]), c(1L, 7L))
+    testthat::expect_equal(dim(pb$data[[5]]), c(81L, 15L))
+
     testthat::expect_equal(pb$data[[4]]$xintercept,
       mean(dplyr::starwars$height, na.rm = TRUE),
       tolerance = 0.001
@@ -68,10 +73,14 @@ testthat::test_that(
       pb$data[[5]]$label[[1]],
       ggplot2::expr("mean" == "174")
     )
-    testthat::expect_equal(pb$data[[1]]$y[1], 1L)
-    testthat::expect_equal(pb$data[[1]]$y[7], 32L)
-    testthat::expect_equal(pb$data[[1]]$x[1], 60L)
-    testthat::expect_equal(pb$data[[1]]$x[7], 180L)
+    testthat::expect_equal(
+      pb$data[[1]]$y,
+      c(1L, 2L, 4L, 2L, 3L, 15L, 32L, 15L, 5L, 1L, 1L)
+    )
+    testthat::expect_equal(
+      pb$data[[1]]$x,
+      c(60L, 80L, 100L, 120L, 140L, 160L, 180L, 200L, 220L, 240L, 260L)
+    )
     testthat::expect_equal(pb$data[[1]]$xmin[1], 50L)
     testthat::expect_equal(pb$data[[1]]$xmax[1], 70L)
     testthat::expect_equal(pb$data[[1]]$xmin[7], 170L)
@@ -94,7 +103,7 @@ testthat::test_that(
     testthat::expect_identical(p$labels$title, "starwars: character heights")
     testthat::expect_identical(p$labels$x, "character height")
     testthat::expect_identical(p$labels$caption, ggplot2::expr(atop(
-      NULL,
+      displaystyle(NULL),
       expr = paste(
         "In favor of null: ",
         "log"["e"],
@@ -385,11 +394,14 @@ testthat::test_that(
     # creating the plot
     set.seed(123)
     p <-
-      suppressMessages(ggstatsplot::gghistostats(
+      ggstatsplot::gghistostats(
         x = morley$Speed,
         results.subtitle = FALSE,
+        ggplot.component = ggplot2::scale_x_continuous(
+          sec.axis = ggplot2::dup_axis(name = ggplot2::element_blank())
+        ),
         messages = FALSE
-      ))
+      )
 
     # build the plot
     pb <- ggplot2::ggplot_build(p)
@@ -400,9 +412,17 @@ testthat::test_that(
       c(582.75, 1127.25),
       tolerance = 0.001
     )
+    testthat::expect_equal(pb$layout$panel_params[[1]]$x.range,
+      pb$layout$panel_params[[1]]$x.sec.range,
+      tolerance = 0.001
+    )
     testthat::expect_identical(
       pb$layout$panel_params[[1]]$x.labels,
       c("600", "700", "800", "900", "1000", "1100")
+    )
+    testthat::expect_identical(
+      pb$layout$panel_params[[1]]$x.labels,
+      pb$layout$panel_params[[1]]$x.sec.labels
     )
     testthat::expect_equal(pb$layout$panel_params[[1]]$y.range,
       c(-1.15, 24.15),

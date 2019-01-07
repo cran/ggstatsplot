@@ -8,8 +8,8 @@ ggscatterstats(data, x, y, type = "pearson", conf.level = 0.95,
   bf.prior = 0.707, bf.message = FALSE, label.var = NULL,
   label.expression = NULL, xlab = NULL, ylab = NULL, method = "lm",
   method.args = list(), formula = y ~ x, point.color = "black",
-  point.size = 3, point.alpha = 0.4, point.width.jitter = NULL,
-  point.height.jitter = NULL, line.size = 1.5, line.color = "blue",
+  point.size = 3, point.alpha = 0.4, point.width.jitter = 0,
+  point.height.jitter = 0, line.size = 1.5, line.color = "blue",
   marginal = TRUE, marginal.type = "histogram", marginal.size = 5,
   margins = c("both", "x", "y"), package = "wesanderson",
   palette = "Royal1", direction = 1, xfill = "#009E73",
@@ -18,15 +18,18 @@ ggscatterstats(data, x, y, type = "pearson", conf.level = 0.95,
   title = NULL, subtitle = NULL, caption = NULL, nboot = 100,
   beta = 0.1, k = 2, axes.range.restrict = FALSE,
   ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
-  messages = TRUE)
+  ggplot.component = NULL, messages = TRUE)
 }
 \arguments{
-\item{data}{Dataframe from which variables specified are preferentially to be
-taken.}
+\item{data}{Dataframe from which variables are to be taken.}
 
-\item{x}{A vector containing the explanatory variable.}
+\item{x}{The column in \code{data} containing the explanatory variable to be
+plotted on the x axis. Can be entered either as
+a character string (e.g., \code{"x"}) or as a bare expression (e.g, \code{x}).}
 
-\item{y}{The response - a vector of length the number of rows of \code{x}.}
+\item{y}{The column in \code{data} containing the response (outcome) variable to
+be plotted on the y axis. Can be entered either as
+a character string (e.g., \code{"y"}) or as a bare expression (e.g, \code{y}).}
 
 \item{type}{Type of association between paired samples required
 ("\code{"parametric"}: Pearson's product moment correlation coefficient" or
@@ -45,16 +48,17 @@ to use in calculating Bayes factors.}
 \item{bf.message}{Logical. Decides whether to display Bayes Factor in favor
 of \emph{null} hypothesis \strong{for parametric test} (Default: \code{FALSE}).}
 
-\item{label.var}{Variable to use for points labels. \strong{Must} be entered as a
-character string e.g. \code{"y"}.}
+\item{label.var}{Variable to use for points labels. Can be entered either as
+a character string (e.g., \code{"var1"}) or as a bare expression (e.g, \code{var1}).}
 
 \item{label.expression}{An expression evaluating to a logical vector that
-determines the subset of data points to label. \strong{Must} be entered as a
-character string e.g. \code{"y < 4 & z < 20"}.}
+determines the subset of data points to label. This argument can be entered
+either as a character string (e.g., \code{"y < 4 & z < 20"}) or as a bare
+expression (e.g., \code{y < 4 & z < 20}).}
 
-\item{xlab}{Label for \code{x} axis variable.}
+\item{xlab}{Label for \code{x} axis variable. The default is the variable name.}
 
-\item{ylab}{Label for \code{y} axis variable.}
+\item{ylab}{Label for \code{y} axis variable. The default is the variable name.}
 
 \item{method}{Smoothing method (function) to use, accepts either a character vector,
 e.g. \code{"auto"}, \code{"lm"}, \code{"glm"}, \code{"gam"}, \code{"loess"} or a function, e.g.
@@ -80,11 +84,9 @@ function defined by \code{method}.}
 \item{point.color, point.size, point.alpha}{Aesthetics specifying geom point
 (defaults: \code{point.color = "black"}, \code{point.size = 3},\code{point.alpha = 0.4}).}
 
-\item{point.width.jitter}{Degree of jitter in \code{x} direction. Defaults to 40\%
-of the resolution of the data.}
-
-\item{point.height.jitter}{Degree of jitter in \code{y} direction. Defaults to
-40\% of the resolution of the data.}
+\item{point.width.jitter, point.height.jitter}{Degree of jitter in \code{x} and \code{y}
+direction, respectively. Defaults to \code{0} (0%) of the resolution of the
+data.}
 
 \item{line.size}{Size for the regression line.}
 
@@ -157,6 +159,11 @@ extension packages are allowed (e.g., \code{ggthemes::theme_economist()},
 theme elements are to be displayed along with the selected \code{ggtheme}
 (Default: \code{TRUE}).}
 
+\item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
+by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
+of the current function. Default is \code{NULL}. The argument should be entered
+as a function.}
+
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
 }
@@ -193,8 +200,8 @@ ggstatsplot::ggscatterstats(
   x = wt,
   y = mpg,
   type = "np",
-  label.var = "car",
-  label.expression = "wt < 4 & mpg < 20",
+  label.var = car,
+  label.expression = wt < 4 & mpg < 20,
   axes.range.restrict = TRUE,
   centrality.para = "median",
   xfill = NULL
@@ -208,5 +215,5 @@ ggstatsplot::ggscatterstats(
 \code{\link{grouped_ggcorrmat}}
 }
 \author{
-Indrajeet Patil
+Indrajeet Patil, Chuck Powell
 }

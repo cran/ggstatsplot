@@ -68,6 +68,15 @@ testthat::test_that(
     testthat::expect_identical(p$labels$caption, "From ggplot2 package")
     testthat::expect_null(p$labels$x, NULL)
     testthat::expect_null(p$labels$y, NULL)
+
+    # checking layer data
+    testthat::expect_equal(length(pb$data), 2L)
+    testthat::expect_equal(dim(pb$data[[1]]), c(4L, 13L))
+    testthat::expect_equal(dim(pb$data[[2]]), c(4L, 19L))
+    testthat::expect_identical(
+      pb$data[[1]]$fill,
+      c("#E7298A", "#7570B3", "#D95F02", "#1B9E77")
+    )
   }
 )
 
@@ -85,10 +94,14 @@ testthat::test_that(
         condition = "cyl",
         bf.message = TRUE,
         perc.k = 2,
+        package = "wesanderson",
+        palette = "Royal2",
         slice.label = "counts",
         legend.title = "transmission",
         factor.levels = c("0 = automatic", "1 = manual"),
         facet.wrap.name = "cylinders",
+        simulate.p.value = TRUE,
+        B = 3000,
         messages = FALSE
       )
     )
@@ -103,6 +116,8 @@ testthat::test_that(
         data = mtcars,
         main = "am",
         condition = "cyl",
+        simulate.p.value = TRUE,
+        B = 3000,
         messages = FALSE
       )
 
@@ -158,6 +173,19 @@ testthat::test_that(
     testthat::expect_identical(
       dplyr::arrange(pb$data[[2]], group, PANEL)$label,
       dat$slice.label
+    )
+
+    # check if palette changed
+    testthat::expect_identical(
+      pb$data[[1]]$fill,
+      c(
+        "#F5CDB4",
+        "#9A8822",
+        "#F5CDB4",
+        "#9A8822",
+        "#F5CDB4",
+        "#9A8822"
+      )
     )
   }
 )

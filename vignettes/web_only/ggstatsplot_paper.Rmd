@@ -87,7 +87,10 @@ set.seed(123)
 
 # plot
 ggstatsplot::ggbetweenstats(
-  data = dplyr::sample_frac(ggstatsplot::movies_long, size = 0.5),
+  data = dplyr::filter(
+    .data = ggstatsplot::movies_long,
+    genre %in% c("Action", "Action Comedy", "Action Drama", "Comedy")
+  ),
   x = genre,
   y = rating,
   title = "Figure-1: IMDB rating by film genre",
@@ -95,7 +98,6 @@ ggstatsplot::ggbetweenstats(
   ylab = "IMDB rating (average)",
   bf.message = TRUE,
   pairwise.comparisons = TRUE,
-  pairwise.annotation = "asterisk",
   p.adjust.method = "bonferroni",
   ggtheme = hrbrthemes::theme_ipsum_tw(),
   ggstatsplot.layer = FALSE,
@@ -130,8 +132,7 @@ ggstatsplot::ggpiestats(
     italic("MPAA"), ": Motion Picture Association of America"
   )),
   bf.message = TRUE,
-  package = "ggsci",
-  palette = "default_jama",
+  palette = "Paired",
   messages = FALSE
 )
 ```
@@ -160,10 +161,12 @@ ggstatsplot::combine_plots(
   # plot 1: superposition
   ggplot2::ggplot(
     data = dplyr::filter(ggstatsplot::movies_long, genre == "Comedy" |
-                           genre == "Drama"),
-    mapping = ggplot2::aes(x = length,
-                           y = rating,
-                           color = genre)
+      genre == "Drama"),
+    mapping = ggplot2::aes(
+      x = length,
+      y = rating,
+      color = genre
+    )
   ) +
     ggplot2::geom_jitter(size = 3, alpha = 0.5) +
     ggplot2::geom_smooth(method = "lm") +
@@ -172,7 +175,7 @@ ggstatsplot::combine_plots(
   # plot 2: juxtaposition
   ggstatsplot::grouped_ggscatterstats(
     data = dplyr::filter(ggstatsplot::movies_long, genre == "Comedy" |
-                           genre == "Drama"),
+      genre == "Drama"),
     x = length,
     y = rating,
     grouping.var = genre,
@@ -272,7 +275,9 @@ structure of the data. More specifically,
     size (*n*) in the subtitle to inform the user/reader about the number of
     observations included for both the statistical analysis and the
     visualization. But, when sample sizes differ *across* tests in the same
-    function, `ggstatsplot` makes an effort to inform the user of this aspect
+    function, `ggstatsplot` makes an effort to inform the user of this aspect.
+    For example, `ggcorrmat` features several correlation test pairs and,
+    depending on variables in a given pair, the sample sizes may vary
     (Figure-4).
 
 ```{r example4, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 10, fig.cap = "**Figure-4**. `ggstatsplot` functions remove `NA`s from variables of interest and display total sample size *n*, but they can give more nuanced information about sample sizes when *n* differs across tests. For example, `ggcorrmat` will display (a) only one total sample size once when no `NA`s present, but (b) will instead show minimum, median, and maximum sample sizes across all correlation tests when `NA`s are present across correlation variables."}
@@ -288,10 +293,12 @@ msleep_no_na <-
   )
 
 # variable names vector
-var_names <- c("REM sleep",
-               "time awake",
-               "brain weight",
-               "body weight")
+var_names <- c(
+  "REM sleep",
+  "time awake",
+  "brain weight",
+  "body weight"
+)
 
 # combining two plots
 ggstatsplot::combine_plots(
@@ -341,10 +348,11 @@ Functions | Description | Parametric | Non-parametric | Robust | Bayes Factor
 
 ## Types of statistical tests supported
 
-Functions | Type | Pairwise comparison test | Effect size | 95% CI available? 
+Functions | Type | Test | Effect size | 95% CI available? 
 ----------- | ----------- | ------------------ | ------------------ | -----  
 `ggbetweenstats` | Parametric | Student's and Welch's *t*-test | Cohen's *d*, Hedge's *g* | <font color="green">$\checkmark$</font> 
 `ggbetweenstats` | Parametric | Fisher's and Welch's one-way ANOVA | $$\eta^2_p, \omega^2_p$$ | <font color="green">$\checkmark$</font> 
+`ggbetweenstats` | Non-parametric | Mann-Whitney *U*-test | *r* | <font color="green">$\checkmark$</font> 
 `ggbetweenstats` | Non-parametric | Kruskal-Wallis Rank Sum Test | $$\eta^2_H$$ | <font color="green">$\checkmark$</font> 
 `ggbetweenstats` | Robust | Yuen's test for trimmed means | $$\xi$$ | <font color="green">$\checkmark$</font> 
 `ggbetweenstats` | Robust | Heteroscedastic one-way ANOVA for trimmed means | $$\xi$$ | <font color="green">$\checkmark$</font> 
@@ -353,15 +361,15 @@ Functions | Type | Pairwise comparison test | Effect size | 95% CI available?
 `ggscatterstats`/`ggcorrmat` | Parametric | Pearson's *r* | *r* | <font color="green">$\checkmark$</font>
 `ggscatterstats`/`ggcorrmat` | Non-parametric | $$\text{Spearman's}~ \rho$$ | $$\rho$$ | <font color="green">$\checkmark$</font>
 `ggscatterstats`/`ggcorrmat` | Robust | Percentage bend correlation | *r* | <font color="green">$\checkmark$</font>
-`gghistostats` | Parametric | One-sample *t*-test | Cohen's *d* | <font color="green">$\checkmark$</font>
+`gghistostats`/`ggdotplotstats` | Parametric | One-sample *t*-test | Cohen's *d* | <font color="green">$\checkmark$</font>
 `gghistostats` | Non-parametric | One-sample Wilcoxon signed rank test | Cohen's *d* | <font color="red">$\times$</font>
-`gghistostats` | Robust | One-sample percentile bootstrap | robust estimator | <font color="green">$\checkmark$</font>
-`ggcoefstats` | Parametric | Regression models | $$\beta$$ | <font color="green">$\checkmark$</font>
+`gghistostats`/`ggdotplotstats` | Robust | One-sample percentile bootstrap | robust estimator | <font color="green">$\checkmark$</font>
+`gghistostats`/`ggdotplotstats` | Parametric | Regression models | $$\beta$$ | <font color="green">$\checkmark$</font>
 
 For the `ggbetweenstats` function, the following post-hoc tests are available
 for (adjusted) pairwise multiple comparisons:
 
-Type | Design | Equal variance assumed? |  Test | *p*-value adjustment? 
+Type | Design | Equal variance assumed? |  Pairwise comparison test | *p*-value adjustment? 
 ----------- | ----------- | --------- | ----------------------- | -----
 Parametric | between-subjects | No | Games-Howell test | <font color="green">$\checkmark$</font> 
 Parametric | between-subjects | Yes | Student's *t*-test | <font color="green">$\checkmark$</font> 
@@ -385,12 +393,13 @@ Bayes Factor | within-subjects | `NA` | <font color="red">$\times$</font> | <fon
 One of the important functions of a plot is to show the variation in the data,
 which comes in two forms:
 
-  - **Measurement noise**: In `ggstatsplot`, the actual variation in measurements
-    is shown by plotting a combination of (jittered) raw data points with a
-    boxplot laid on top (Figure-1) or a histogram (Figure-5). None of the plots,
-    where empirical distribution of the data is concerned, show the sample
-    standard deviation because they are poor at conveying information about
-    limits of the sample and presence of outliers (Cleveland, 1985, p.220).
+  - **Measurement noise**: In `ggstatsplot`, the actual variation in
+    measurements is shown by plotting a combination of (jittered) raw data
+    points with a boxplot laid on top (Figure-1) or a histogram (Figure-5). None
+    of the plots, where empirical distribution of the data is concerned, show
+    the sample standard deviation because they are poor at conveying information
+    about limits of the sample and presence of outliers (Cleveland, 1985,
+    p.220).
 
 ```{r example5, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 8, fig.cap = "**Figure-5**. Distribution of a variable shown using `gghistostats`."}
 # for reproducibility
@@ -422,12 +431,14 @@ ggstatsplot::gghistostats(
 set.seed(123)
 
 # plot
-ggstatsplot::ggcoefstats(x = lme4::lmer(
-  total.fruits ~ nutrient + rack + (nutrient |
-                               popu / gen),
-  data = lme4::Arabidopsis
-),
-p.kr = FALSE)
+ggstatsplot::ggcoefstats(
+  x = lme4::lmer(
+    total.fruits ~ nutrient + rack + (nutrient |
+      popu / gen),
+    data = lme4::Arabidopsis
+  ),
+  p.kr = FALSE
+)
 ```
 
 ## Reporting results
@@ -466,7 +477,24 @@ statistical reporting and why.
     infinitesimally small the *p*-values are and, instead, puts emphasis on the
     effect size magnitudes and their 95% CIs.
 
+# Overall consistency in API
+
+Attempt has been made to make the application program interface (API) consistent
+enough that no struggle is expected while thinking about specifying function
+calls-
+
+  - When a given function depends on variables in a dataframe, `data` argument
+    must always be specified.
+  - Often, package functions relevant for between-subjects versus
+    within-subjects design expect tidy/long versus Cartesian/wide format data,
+    respectively. `ggstatsplot` functions consistently expect tidy/long form
+    data. 
+  - All functions accept both quoted (`x = "var1"`) and unquoted (`x = var1`)
+    arguments.
+
 # Conclusion
+
+# Acknowlegdments
 
 
 

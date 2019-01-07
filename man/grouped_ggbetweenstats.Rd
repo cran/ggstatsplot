@@ -18,20 +18,22 @@ grouped_ggbetweenstats(data, x, y, grouping.var, title.prefix = "Group",
   mean.label.color = "black", notch = FALSE, notchwidth = 0.5,
   linetype = "solid", outlier.tagging = NULL, outlier.label = NULL,
   outlier.label.color = "black", outlier.color = "black",
-  outlier.coef = 1.5, mean.plotting = TRUE, mean.ci = FALSE,
-  mean.size = 5, mean.color = "darkred", point.jitter.width = NULL,
-  point.jitter.height = 0.2, point.dodge.width = 0.75,
-  ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
-  package = "RColorBrewer", palette = "Dark2", direction = 1,
+  outlier.shape = 19, outlier.coef = 1.5, mean.plotting = TRUE,
+  mean.ci = FALSE, mean.size = 5, mean.color = "darkred",
+  point.jitter.width = NULL, point.jitter.height = 0,
+  point.dodge.width = 0.75, ggtheme = ggplot2::theme_bw(),
+  ggstatsplot.layer = TRUE, package = "RColorBrewer",
+  palette = "Dark2", direction = 1, ggplot.component = NULL,
   messages = TRUE, ...)
 }
 \arguments{
-\item{data}{Dataframe from which variables specified are preferentially to be
-taken.}
+\item{data}{A dataframe from which variables specified are preferentially to
+be taken.}
 
-\item{x}{The grouping variable.}
+\item{x}{The grouping variable from the dataframe \code{data}.}
 
-\item{y}{The response - a vector of length the number of rows of \code{x}.}
+\item{y}{The response (a.k.a. outcome or dependent) variable from the
+dataframe \code{data}.}
 
 \item{grouping.var}{Grouping variable.}
 
@@ -40,7 +42,7 @@ title (name of each factor level) (Default: \code{"Group"}).}
 
 \item{plot.type}{Character describing the \emph{type} of plot. Currently supported
 plots are \code{"box"} (for pure boxplots), \code{"violin"} (for pure violin plots),
-and \code{"boxviolin"} (for a mix of box and violin plots; default).}
+and \code{"boxviolin"} (for a combination of box and violin plots; default).}
 
 \item{type}{Type of statistic expected (\code{"parametric"} or \code{"nonparametric"}
 or \code{"robust"} or \code{"bayes"}).Corresponding abbreviations are also accepted:
@@ -161,6 +163,11 @@ have been tagged (Default: \code{"black"}).}
 
 \item{outlier.color}{Default aesthetics for outliers (Default: \code{"black"}).}
 
+\item{outlier.shape}{Hiding the outliers can be achieved by setting
+outlier.shape = NA. Importantly, this does not remove the outliers,
+it only hides them, so the range calculated for the y-axis will be
+the same with outliers shown and outliers hidden.}
+
 \item{outlier.coef}{Coefficient for outlier detection using Tukey's method.
 With Tukey's method, outliers are below (1st Quartile) or above (3rd
 Quartile) \code{outlier.coef} times the Inter-Quartile Range (IQR) (Default:
@@ -204,6 +211,11 @@ palette. If a number, will index into the list of palettes of appropriate
 type. Default palette is \code{"Dark2"}.}
 
 \item{direction}{Either \code{1} or \code{-1}. If \code{-1} the palette will be reversed.}
+
+\item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
+by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
+of the current function. Default is \code{NULL}. The argument should be entered
+as a function.}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
@@ -277,7 +289,7 @@ If robust tests are selected, following tests are used is .
 \item \emph{t}-test: Yuen's test for trimmed means (see \code{?WRS2::yuen})
 }
 
-Variant of this function \code{ggwithinstats} is currently under work. You \emph{can}
+Variant of this function \code{ggwithinstats} is currently in progress. You \emph{can}
 still use this function just to prepare the \strong{plot} for exploratory data
 analysis, but the statistical details displayed in the subtitle will be
 incorrect. You can remove them by adding \code{+ ggplot2::labs(subtitle = NULL)}.
@@ -296,6 +308,23 @@ ggstatsplot::grouped_ggbetweenstats(
   conf.level = 0.99,
   bf.message = TRUE
 )
+\dontrun{
+# modifying individual plots using `ggplot.component` argument
+ggstatsplot::grouped_ggbetweenstats(
+  data = dplyr::filter(
+    ggstatsplot::movies_long,
+    genre \%in\% c("Action", "Comedy"),
+    mpaa \%in\% c("R", "PG")
+  ),
+  x = genre,
+  y = rating,
+  grouping.var = mpaa,
+  results.subtitle = FALSE,
+  ggplot.component = ggplot2::scale_y_continuous(breaks = seq(1, 9, 1)),
+  messages = FALSE
+)
+}
+
 }
 \references{
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggbetweenstats.html}

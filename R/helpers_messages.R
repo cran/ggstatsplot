@@ -44,8 +44,7 @@ normality_message <- function(x,
     lab <- "x"
   }
 
-  # for SW test of normality, sample size must be greater than 3 and less than
-  # 5000
+  # works only if sample size is greater than 3 and less than 5000
   if (length(x) > 3 && length(x) < 5000) {
 
     # test object
@@ -215,7 +214,7 @@ bartlett_message <- function(data,
 grouped_message <- function() {
   base::message(cat(
     crayon::red("Warning: "),
-    crayon::blue("Individual plots in the combined `grouped_` plots\n"),
+    crayon::blue("Individual plots in the combined `grouped_` plot\n"),
     crayon::blue("can't be further modified with `ggplot2` functions.\n"),
     sep = ""
   ))

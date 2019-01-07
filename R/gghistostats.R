@@ -106,6 +106,7 @@ gghistostats <- function(data = NULL,
                          test.value.linetype = "dashed",
                          test.line.labeller = TRUE,
                          test.k = 0,
+                         ggplot.component = NULL,
                          messages = TRUE) {
   # if data is not available then don't display any messages
   if (is.null(data)) {
@@ -119,6 +120,7 @@ gghistostats <- function(data = NULL,
   }
 
   # ================================= dataframe ==============================
+
   # preparing a dataframe out of provided inputs
   if (!is.null(data)) {
     # preparing labels from given dataframe
@@ -346,6 +348,12 @@ gghistostats <- function(data = NULL,
     plot <- plot +
       ggplot2::theme(legend.position = "none")
   }
+
+  # ---------------- adding ggplot component ---------------------------------
+
+  # if any additional modification needs to be made to the plot
+  # this is primarily useful for grouped_ variant of this function
+  plot <- plot + ggplot.component
 
   # ============================= messages =================================
   #

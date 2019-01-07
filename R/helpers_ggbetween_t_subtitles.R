@@ -63,8 +63,7 @@ subtitle_t_parametric <- function(data,
       .data = data,
       x = !!rlang::enquo(x),
       y = !!rlang::enquo(y)
-    ) %>%
-    dplyr::filter(.data = ., !is.na(x), !is.na(y))
+    )
 
   # convert the grouping variable to factor and drop unused levels
   data %<>%
@@ -75,29 +74,56 @@ subtitle_t_parametric <- function(data,
     ) %>%
     tibble::as_tibble(x = .)
 
-  # sample size
-  sample_size <- nrow(data)
+  # properly removing NAs if it's a paired design
+  if (isTRUE(paired)) {
+    data %<>%
+      long_to_wide_converter(
+        data = .,
+        x = x,
+        y = y
+      ) %>%
+      tidyr::gather(data = ., key, value, -rowid) %>%
+      dplyr::rename(.data = ., x = key, y = value)
+
+    # sample size
+    sample_size <- length(unique(data$rowid))
+
+    # removing the unnecessary `rowid` column
+    data %<>%
+      dplyr::select(.data = ., -rowid)
+  } else {
+    # remove NAs listwise for between-subjects design
+    data %<>%
+      dplyr::filter(.data = ., !is.na(x), !is.na(y))
+
+    # sample size
+    sample_size <- nrow(data)
+  }
+
+
+
+  # deciding which effect size to use (Hedge's g or Cohen's d)
+  if (effsize.type %in% c("unbiased", "g")) {
+    hedges.correction <- TRUE
+    effsize.text <- quote(italic("g"))
+  } else if (effsize.type %in% c("biased", "d")) {
+    hedges.correction <- FALSE
+    effsize.text <- quote(italic("d"))
+  }
 
   # setting up the t-test model and getting its summary
-  t_stat <-
-    stats::t.test(
+  stats_df <-
+    broom::tidy(stats::t.test(
       formula = y ~ x,
       data = data,
       paired = paired,
       alternative = "two.sided",
       var.equal = var.equal,
       na.action = na.omit
-    )
-
-  # deciding which effect size to use (Hedge's g or Cohen's d)
-  if (effsize.type %in% c("unbiased", "g")) {
-    hedges.correction <- TRUE
-  } else if (effsize.type %in% c("biased", "d")) {
-    hedges.correction <- FALSE
-  }
+    ))
 
   # effect size object
-  t_effsize <-
+  effsize_df <-
     effsize::cohen.d(
       formula = y ~ x,
       data = data,
@@ -109,84 +135,30 @@ subtitle_t_parametric <- function(data,
     )
 
   # when paired samples t-test is run df is going to be integer
-  if (isTRUE(paired)) {
-    k.df <- 0
+  # ditto for when variance is assumed to be equal
+  if (isTRUE(paired) || isTRUE(var.equal)) {
+    k.df <- 0L
   } else {
     k.df <- k
   }
 
-  # preparing the subtitle
-  if (effsize.type %in% c("unbiased", "g")) {
-    effsize.text <- quote("g")
-  } else if (effsize.type %in% c("biased", "d")) {
-    effsize.text <- quote("d")
-  }
-
   # preparing subtitle
-  subtitle <-
-    base::substitute(
-      expr =
-        paste(
-          italic("t"),
-          "(",
-          df,
-          ") = ",
-          estimate,
-          ", ",
-          italic("p"),
-          " = ",
-          pvalue,
-          ", ",
-          italic(effsize.text),
-          " = ",
-          effsize,
-          ", CI"[conf.level],
-          " [",
-          LL,
-          ", ",
-          UL,
-          "]",
-          ", ",
-          italic("n"),
-          " = ",
-          n
-        ),
-      env = base::list(
-        estimate = ggstatsplot::specify_decimal_p(
-          x = t_stat[[1]][[1]],
-          k = k,
-          p.value = FALSE
-        ),
-        df = ggstatsplot::specify_decimal_p(
-          x = t_stat[[2]][[1]],
-          k = k.df,
-          p.value = FALSE
-        ),
-        pvalue = ggstatsplot::specify_decimal_p(
-          x = t_stat[[3]],
-          k = k,
-          p.value = TRUE
-        ),
-        effsize.text = effsize.text,
-        effsize = ggstatsplot::specify_decimal_p(
-          x = t_effsize[[3]][[1]],
-          k = k,
-          p.value = FALSE
-        ),
-        conf.level = paste(conf.level * 100, "%", sep = ""),
-        LL = ggstatsplot::specify_decimal_p(
-          x = t_effsize$conf.int[[1]],
-          k = k,
-          p.value = FALSE
-        ),
-        UL = ggstatsplot::specify_decimal_p(
-          x = t_effsize$conf.int[[2]],
-          k = k,
-          p.value = FALSE
-        ),
-        n = sample_size
-      )
-    )
+  subtitle <- subtitle_template(
+    no.parameters = 1L,
+    stat.title = NULL,
+    statistic.text = quote(italic("t")),
+    statistic = stats_df$statistic[[1]],
+    parameter = stats_df$parameter[[1]],
+    p.value = stats_df$p.value[[1]],
+    effsize.text = effsize.text,
+    effsize.estimate = effsize_df[[3]][[1]],
+    effsize.LL = effsize_df$conf.int[[1]],
+    effsize.UL = effsize_df$conf.int[[2]],
+    n = sample_size,
+    conf.level = conf.level,
+    k = k,
+    k.parameter = k.df
+  )
 
   # return the subtitle
   return(subtitle)
@@ -394,226 +366,131 @@ subtitle_t_nonparametric <- subtitle_mann_nonparametric
 #' @export
 
 # function body
-subtitle_t_robust <-
-  function(data,
-             x,
-             y,
-             tr = 0.1,
-             paired = FALSE,
-             nboot = 100,
-             conf.level = 0.95,
-             conf.type = "norm",
-             k = 2,
-             messages = TRUE,
-             ...) {
+subtitle_t_robust <- function(data,
+                              x,
+                              y,
+                              tr = 0.1,
+                              paired = FALSE,
+                              nboot = 100,
+                              conf.level = 0.95,
+                              conf.type = "norm",
+                              k = 2,
+                              messages = TRUE,
+                              ...) {
 
-    # creating a dataframe
-    data <-
-      dplyr::select(
-        .data = data,
-        x = !!rlang::enquo(x),
-        y = !!rlang::enquo(y)
-      )
+  # creating a dataframe
+  data <-
+    dplyr::select(
+      .data = data,
+      x = !!rlang::enquo(x),
+      y = !!rlang::enquo(y)
+    )
 
-    # convert the grouping variable to factor and drop unused levels
-    data %<>%
-      dplyr::mutate_at(
-        .tbl = .,
-        .vars = "x",
-        .funs = ~ base::droplevels(x = base::as.factor(x = .))
-      )
+  # convert the grouping variable to factor and drop unused levels
+  data %<>%
+    dplyr::mutate_at(
+      .tbl = .,
+      .vars = "x",
+      .funs = ~ base::droplevels(x = base::as.factor(x = .))
+    )
 
-    # when paired robust t-test is run, df is going to be an integer
-    if (isTRUE(paired)) {
-      k.df <- 0
-    } else {
-      k.df <- k
-    }
-
-    # ---------------------------- between-subjects design --------------------
-
-    # running bayesian analysis
-    if (!isTRUE(paired)) {
-
-      # removing NAs
-      data %<>%
-        stats::na.omit(.)
-
-      # sample size
-      sample_size <- nrow(data)
-
-      # Yuen's test for trimmed means
-      t_robust_stat <-
-        WRS2::yuen(
-          formula = y ~ x,
-          data = data,
-          tr = tr
-        )
-
-      # computing effect sizes
-      t_robust_effsize <-
-        WRS2::yuen.effect.ci(
-          formula = y ~ x,
-          data = data,
-          tr = tr,
-          nboot = nboot,
-          alpha = 1 - conf.level
-        )
-
-      # preparing the subtitle
-      subtitle <-
-        base::substitute(
-          expr =
-            paste(
-              italic("t"),
-              "(",
-              df,
-              ") = ",
-              estimate,
-              ", ",
-              italic("p"),
-              " = ",
-              pvalue,
-              ", ",
-              italic(xi),
-              " = ",
-              effsize,
-              ", CI"[conf.level],
-              " [",
-              LL,
-              ", ",
-              UL,
-              "]",
-              ", ",
-              italic("n"),
-              " = ",
-              n
-            ),
-          env = base::list(
-            estimate = ggstatsplot::specify_decimal_p(
-              x = t_robust_stat$test[[1]],
-              k = k,
-              p.value = FALSE
-            ),
-            df = ggstatsplot::specify_decimal_p(
-              x = t_robust_stat$df[[1]],
-              k = k.df,
-              p.value = FALSE
-            ),
-            pvalue = ggstatsplot::specify_decimal_p(
-              x = t_robust_stat$p.value[[1]],
-              k = k,
-              p.value = TRUE
-            ),
-            effsize = ggstatsplot::specify_decimal_p(
-              x = t_robust_effsize$effsize[[1]],
-              k = k,
-              p.value = FALSE
-            ),
-            conf.level = paste(conf.level * 100, "%", sep = ""),
-            LL = ggstatsplot::specify_decimal_p(
-              x = t_robust_effsize$CI[[1]][[1]],
-              k = k,
-              p.value = FALSE
-            ),
-            UL = ggstatsplot::specify_decimal_p(
-              x = t_robust_effsize$CI[[2]][[1]],
-              k = k,
-              p.value = FALSE
-            ),
-            n = sample_size
-          )
-        )
-
-      # ---------------------------- within-subjects design -------------------
-    } else {
-
-      # getting dataframe of results from the custom function
-      yuend_results <-
-        yuend_ci(
-          data = data,
-          x = x,
-          y = y,
-          tr = tr,
-          nboot = nboot,
-          conf.level = conf.level,
-          conf.type = conf.type
-        )
-
-      # preparing the subtitle
-      subtitle <-
-        base::substitute(
-          expr =
-            paste(
-              italic("t"),
-              "(",
-              df,
-              ") = ",
-              estimate,
-              ", ",
-              italic("p"),
-              " = ",
-              pvalue,
-              ", ",
-              italic(xi),
-              " = ",
-              effsize,
-              ", CI"[conf.level],
-              " [",
-              LL,
-              ", ",
-              UL,
-              "]",
-              ", ",
-              italic("n"),
-              " = ",
-              n
-            ),
-          env = base::list(
-            estimate = ggstatsplot::specify_decimal_p(
-              x = yuend_results$`t-value`[[1]],
-              k = k,
-              p.value = FALSE
-            ),
-            df = ggstatsplot::specify_decimal_p(
-              x = yuend_results$df[[1]],
-              k = k.df,
-              p.value = FALSE
-            ),
-            pvalue = ggstatsplot::specify_decimal_p(
-              x = yuend_results$`p-value`[[1]],
-              k,
-              p.value = TRUE
-            ),
-            effsize = ggstatsplot::specify_decimal_p(
-              x = yuend_results$xi[[1]],
-              k = k,
-              p.value = FALSE
-            ),
-            conf.level = paste(conf.level * 100, "%", sep = ""),
-            LL = ggstatsplot::specify_decimal_p(
-              x = yuend_results$conf.low[[1]],
-              k = k,
-              p.value = FALSE
-            ),
-            UL = ggstatsplot::specify_decimal_p(
-              x = yuend_results$conf.high[[1]],
-              k = k,
-              p.value = FALSE
-            ),
-            n = yuend_results$n[[1]]
-          )
-        )
-    }
-
-    # message about effect size measure
-    if (isTRUE(messages)) {
-      effsize_ci_message(nboot = nboot, conf.level = conf.level)
-    }
-
-    # return the subtitle
-    return(subtitle)
+  # when paired robust t-test is run, df is going to be an integer
+  if (isTRUE(paired)) {
+    k.df <- 0
+  } else {
+    k.df <- k
   }
+
+  # ---------------------------- between-subjects design --------------------
+
+  # running bayesian analysis
+  if (!isTRUE(paired)) {
+
+    # removing NAs
+    data %<>%
+      stats::na.omit(.)
+
+    # sample size
+    sample_size <- nrow(data)
+
+    # Yuen's test for trimmed means
+    stats_df <-
+      WRS2::yuen(
+        formula = y ~ x,
+        data = data,
+        tr = tr
+      )
+
+    # computing effect size and its confidence interval
+    effsize_df <-
+      WRS2::yuen.effect.ci(
+        formula = y ~ x,
+        data = data,
+        tr = tr,
+        nboot = nboot,
+        alpha = 1 - conf.level
+      )
+
+    # preparing subtitle
+    subtitle <- subtitle_template(
+      no.parameters = 1L,
+      stat.title = NULL,
+      statistic.text = quote(italic("t")),
+      statistic = stats_df$test[[1]],
+      parameter = stats_df$df[[1]],
+      p.value = stats_df$p.value[[1]],
+      effsize.text = quote(italic(xi)),
+      effsize.estimate = effsize_df$effsize[[1]],
+      effsize.LL = effsize_df$CI[[1]][[1]],
+      effsize.UL = effsize_df$CI[[2]][[1]],
+      n = sample_size,
+      conf.level = conf.level,
+      k = k,
+      k.parameter = k.df
+    )
+
+    # ---------------------------- within-subjects design -------------------
+  } else {
+
+    # getting dataframe of results from the custom function
+    stats_df <-
+      yuend_ci(
+        data = data,
+        x = x,
+        y = y,
+        tr = tr,
+        nboot = nboot,
+        conf.level = conf.level,
+        conf.type = conf.type
+      )
+
+    # preparing subtitle
+    subtitle <- subtitle_template(
+      no.parameters = 1L,
+      stat.title = NULL,
+      statistic.text = quote(italic("t")),
+      statistic = stats_df$t.value[[1]],
+      parameter = stats_df$df[[1]],
+      p.value = stats_df$p.value[[1]],
+      effsize.text = quote(italic(xi)),
+      effsize.estimate = stats_df$xi[[1]],
+      effsize.LL = stats_df$conf.low[[1]],
+      effsize.UL = stats_df$conf.high[[1]],
+      n = stats_df$n[[1]],
+      conf.level = conf.level,
+      k = k,
+      k.parameter = k.df
+    )
+  }
+
+  # message about effect size measure
+  if (isTRUE(messages)) {
+    effsize_ci_message(nboot = nboot, conf.level = conf.level)
+  }
+
+  # return the subtitle
+  return(subtitle)
+}
 
 #' @title Making text subtitle for the bayesian t-test.
 #' @name subtitle_t_bayes

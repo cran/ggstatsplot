@@ -16,26 +16,27 @@ ggbetweenstats(data, x, y, plot.type = "boxviolin",
   conf.level = 0.95, nboot = 100, tr = 0.1, mean.label.size = 3,
   mean.label.fontface = "bold", mean.label.color = "black",
   notch = FALSE, notchwidth = 0.5, linetype = "solid",
-  outlier.tagging = FALSE, outlier.label = NULL,
+  outlier.tagging = FALSE, outlier.shape = 19, outlier.label = NULL,
   outlier.label.color = "black", outlier.color = "black",
   outlier.coef = 1.5, mean.plotting = TRUE, mean.ci = FALSE,
   mean.size = 5, mean.color = "darkred", point.jitter.width = NULL,
   point.jitter.height = 0.1, point.dodge.width = 0.6,
   ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
   package = "RColorBrewer", palette = "Dark2", direction = 1,
-  messages = TRUE)
+  ggplot.component = NULL, messages = TRUE)
 }
 \arguments{
-\item{data}{Dataframe from which variables specified are preferentially to be
-taken.}
+\item{data}{A dataframe from which variables specified are preferentially to
+be taken.}
 
-\item{x}{The grouping variable.}
+\item{x}{The grouping variable from the dataframe \code{data}.}
 
-\item{y}{The response - a vector of length the number of rows of \code{x}.}
+\item{y}{The response (a.k.a. outcome or dependent) variable from the
+dataframe \code{data}.}
 
 \item{plot.type}{Character describing the \emph{type} of plot. Currently supported
 plots are \code{"box"} (for pure boxplots), \code{"violin"} (for pure violin plots),
-and \code{"boxviolin"} (for a mix of box and violin plots; default).}
+and \code{"boxviolin"} (for a combination of box and violin plots; default).}
 
 \item{type}{Type of statistic expected (\code{"parametric"} or \code{"nonparametric"}
 or \code{"robust"} or \code{"bayes"}).Corresponding abbreviations are also accepted:
@@ -145,6 +146,11 @@ of line to draw box plots (Default: \code{"solid"}). Alternatively, the numbers
 \item{outlier.tagging}{Decides whether outliers should be tagged (Default:
 \code{FALSE}).}
 
+\item{outlier.shape}{Hiding the outliers can be achieved by setting
+outlier.shape = NA. Importantly, this does not remove the outliers,
+it only hides them, so the range calculated for the y-axis will be
+the same with outliers shown and outliers hidden.}
+
 \item{outlier.label}{Label to put on the outliers that have been tagged.}
 
 \item{outlier.label.color}{Color for the label to to put on the outliers that
@@ -196,6 +202,11 @@ type. Default palette is \code{"Dark2"}.}
 
 \item{direction}{Either \code{1} or \code{-1}. If \code{-1} the palette will be reversed.}
 
+\item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
+by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
+of the current function. Default is \code{NULL}. The argument should be entered
+as a function.}
+
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
 }
@@ -220,7 +231,7 @@ If robust tests are selected, following tests are used is .
 \item \emph{t}-test: Yuen's test for trimmed means (see \code{?WRS2::yuen})
 }
 
-Variant of this function \code{ggwithinstats} is currently under work. You \emph{can}
+Variant of this function \code{ggwithinstats} is currently in progress. You \emph{can}
 still use this function just to prepare the \strong{plot} for exploratory data
 analysis, but the statistical details displayed in the subtitle will be
 incorrect. You can remove them by adding \code{+ ggplot2::labs(subtitle = NULL)}.

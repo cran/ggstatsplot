@@ -1,60 +1,222 @@
 context("subtitle_ggscatterstats")
 
+# nonparametric ----------------------------------------------------------
+
 testthat::test_that(
-  desc = "subtitle_ggscatterstats works",
+  desc = "subtitle_ggscatterstats works - nonparametric",
   code = {
+
+    # ggstatsplot output
     set.seed(123)
-    using_function1 <-
-      suppressWarnings(ggstatsplot:::subtitle_ggscatterstats(
+    using_function <-
+      suppressWarnings(ggstatsplot::subtitle_ggscatterstats(
         data = movies_long,
         x = rating,
         y = length,
         type = "nonparametric",
         k = 5,
-        conf.level = .999,
+        conf.level = 0.999,
         conf.type = "perc",
         nboot = 50,
         messages = FALSE
       ))
 
-    results1 <-
+    # expected
+    expected <-
       ggplot2::expr(
         paste(
-          italic(rho)["spearman"],
+          NULL,
+          "log"["e"](italic("S")),
           "(",
-          2431,
-          ")",
-          " = ",
-          "0.43063",
-          ", CI"["99.9%"],
-          " [",
-          "0.40225",
+          "1577",
+          ") = ",
+          "19.67322",
           ", ",
-          "0.46936",
-          "], ",
           italic("p"),
           " = ",
           "< 0.001",
           ", ",
+          italic(rho)["Spearman"],
+          " = ",
+          "0.46669",
+          ", CI"["99.9%"],
+          " [",
+          "0.40415",
+          ", ",
+          "0.50080",
+          "]",
+          ", ",
           italic("n"),
           " = ",
-          2433L
+          1579L
         )
       )
 
     # testing overall call
-    testthat::expect_identical(using_function1, results1)
+    testthat::expect_identical(using_function, expected)
+  }
+)
 
-    # testing
-    testthat::expect_identical(
-      as.character(using_function1)[8],
-      as.character(results1)[8]
-    )
+# parametric --------------------------------------------------------------
 
-    # testing
-    testthat::expect_identical(
-      as.character(using_function1)[12],
-      as.character(results1)[12]
-    )
+testthat::test_that(
+  desc = "subtitle_ggscatterstats works - parametric",
+  code = {
+
+    # ggstatsplot output
+    set.seed(123)
+    using_function <-
+      suppressWarnings(ggstatsplot::subtitle_ggscatterstats(
+        data = ggplot2::msleep,
+        x = brainwt,
+        y = sleep_rem,
+        type = "parametric",
+        k = 3,
+        conf.level = 0.90,
+        conf.type = "bca",
+        nboot = 25,
+        messages = FALSE
+      ))
+
+    # expected
+    expected <-
+      ggplot2::expr(
+        paste(
+          NULL,
+          italic("t"),
+          "(",
+          "46",
+          ") = ",
+          "-1.539",
+          ", ",
+          italic("p"),
+          " = ",
+          "0.131",
+          ", ",
+          italic("r")["Pearson"],
+          " = ",
+          "-0.221",
+          ", CI"["90%"],
+          " [",
+          "-0.438",
+          ", ",
+          "0.020",
+          "]",
+          ", ",
+          italic("n"),
+          " = ",
+          48L
+        )
+      )
+
+    # testing overall call
+    testthat::expect_identical(using_function, expected)
+  }
+)
+
+# robust ----------------------------------------------------------------
+
+testthat::test_that(
+  desc = "subtitle_ggscatterstats works - robust",
+  code = {
+
+    # using function
+    set.seed(123)
+    using_function <-
+      suppressWarnings(ggstatsplot::subtitle_ggscatterstats(
+        data = ggplot2::msleep,
+        x = "brainwt",
+        y = "sleep_total",
+        type = "r",
+        k = 4,
+        conf.level = .50,
+        conf.type = "basic",
+        nboot = 25,
+        messages = FALSE
+      ))
+
+    # expected
+    expected <-
+      ggplot2::expr(
+        paste(
+          NULL,
+          italic("t"),
+          "(",
+          "54",
+          ") = ",
+          "-5.0929",
+          ", ",
+          italic("p"),
+          " = ",
+          "< 0.001",
+          ", ",
+          italic(rho)["pb"],
+          " = ",
+          "-0.5696",
+          ", CI"["50%"],
+          " [",
+          "-0.6047",
+          ", ",
+          "-0.5283",
+          "]",
+          ", ",
+          italic("n"),
+          " = ",
+          56L
+        )
+      )
+
+    # testing overall call
+    testthat::expect_identical(using_function, expected)
+  }
+)
+
+
+# bayes ----------------------------------------------------------------
+
+testthat::test_that(
+  desc = "subtitle_ggscatterstats works - bayes",
+  code = {
+
+    # using function
+    set.seed(123)
+    using_function <-
+      suppressWarnings(ggstatsplot::subtitle_ggscatterstats(
+        data = ggplot2::msleep,
+        x = "brainwt",
+        y = sleep_rem,
+        type = "bf",
+        k = 3,
+        conf.level = 0.95,
+        conf.type = "perc",
+        nboot = 25,
+        messages = FALSE
+      ))
+
+    # expected
+    expected <-
+      ggplot2::expr(
+        paste(
+          italic("r")["Pearson"],
+          "(",
+          46L,
+          ")",
+          " = ",
+          "-0.221",
+          ", log"["e"],
+          "(BF"["10"],
+          ") = ",
+          "-0.425",
+          ", Prior width = ",
+          "0.707",
+          ", ",
+          italic("n"),
+          " = ",
+          48L
+        )
+      )
+
+    # testing overall call
+    testthat::expect_identical(using_function, expected)
   }
 )

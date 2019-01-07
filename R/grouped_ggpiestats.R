@@ -4,7 +4,7 @@
 #' @description Helper function for `ggstatsplot::ggpiestats` to apply this
 #'   function across multiple levels of a given factor and combining the
 #'   resulting plots using `ggstatsplot::combine_plots`.
-#' @author Indrajeet Patil
+#' @author Indrajeet Patil, Chuck Powell
 #'
 #' @param grouping.var Grouping variable.
 #' @param title.prefix Character specifying the prefix text for the fixed plot
@@ -90,6 +90,8 @@ grouped_ggpiestats <- function(data,
                                caption = NULL,
                                conf.level = 0.95,
                                nboot = 25,
+                               simulate.p.value = FALSE,
+                               B = 2000,
                                legend.title = NULL,
                                facet.wrap.name = NULL,
                                k = 2,
@@ -103,18 +105,43 @@ grouped_ggpiestats <- function(data,
                                direction = 1,
                                messages = TRUE,
                                ...) {
-  # ======================== preparing dataframe =============================
+
+  # ======================== check user input =============================
+
+  # create a list of function call to check
+  param_list <- base::as.list(base::match.call())
+
+  # check that there is a grouping.var
+  if (!"grouping.var" %in% names(param_list)) {
+    base::stop("You must specify a grouping variable")
+  }
+
+  # check that conditioning and grouping.var are different
+  if ("condition" %in% names(param_list)) {
+    if (as.character(param_list$condition) == as.character(param_list$grouping.var)) {
+      base::message(cat(
+        crayon::red("\nError: "),
+        crayon::blue(
+          "Identical variable (",
+          crayon::yellow(param_list$condition),
+          ") was used for both grouping and conditioning, which is not allowed.\n"
+        ),
+        sep = ""
+      ))
+      base::return(base::invisible(param_list$condition))
+    }
+  }
+
 
   # ensure the grouping variable works quoted or unquoted
   grouping.var <- rlang::ensym(grouping.var)
 
-  # prearing the dataframe
+  # ======================== preparing dataframe =============================
+
+  # if condition variable *is* provided
   if (!missing(condition)) {
-
-    # if condition variable *is* provided
+    # if the data is not tabled
     if (missing(counts)) {
-
-      # if the data is not tabled
       df <-
         dplyr::select(
           .data = data,
@@ -127,7 +154,6 @@ grouped_ggpiestats <- function(data,
           title.text = !!rlang::enquo(grouping.var)
         )
     } else if (!missing(counts)) {
-
       # if data is tabled
       df <-
         dplyr::select(
@@ -143,7 +169,6 @@ grouped_ggpiestats <- function(data,
         )
     }
   } else if (missing(condition)) {
-
     # if condition variable is *not* provided
     if (base::missing(counts)) {
       df <-
@@ -157,6 +182,7 @@ grouped_ggpiestats <- function(data,
           title.text = !!rlang::enquo(grouping.var)
         )
     } else if (!missing(counts)) {
+      # if data is tabled
       df <-
         dplyr::select(
           .data = data,
@@ -171,7 +197,7 @@ grouped_ggpiestats <- function(data,
     }
   }
 
-  # creating a nested dataframe
+  # make a list of dataframes by grouping variable
   df %<>%
     dplyr::mutate_if(
       .tbl = .,
@@ -184,183 +210,87 @@ grouped_ggpiestats <- function(data,
       .funs = ~ base::droplevels(.)
     ) %>%
     dplyr::filter(.data = ., !is.na(!!rlang::enquo(grouping.var))) %>%
-    dplyr::arrange(.data = ., !!rlang::enquo(grouping.var)) %>%
-    dplyr::group_by(.data = ., !!rlang::enquo(grouping.var)) %>%
-    tidyr::nest(data = .)
+    base::split(.[[rlang::quo_text(grouping.var)]])
 
-  # creating a list of plots
-  if (!missing(condition)) {
-    if (missing(counts)) {
-      plotlist_purrr <-
-        df %>%
-        dplyr::mutate(
-          .data = .,
-          plots = data %>%
-            purrr::set_names(x = ., nm = !!rlang::enquo(grouping.var)) %>%
-            purrr::map(
-              .x = .,
-              .f = ~ ggstatsplot::ggpiestats(
-                data = .,
-                main = !!rlang::enquo(main),
-                condition = !!rlang::enquo(condition),
-                title = glue::glue("{title.prefix}: {as.character(.$title.text)}"),
-                ratio = ratio,
-                paired = paired,
-                factor.levels = factor.levels,
-                stat.title = stat.title,
-                sample.size.label = sample.size.label,
-                bf.message = bf.message,
-                sampling.plan = sampling.plan,
-                fixed.margin = fixed.margin,
-                prior.concentration = prior.concentration,
-                caption = caption,
-                conf.level = conf.level,
-                nboot = nboot,
-                legend.title = legend.title,
-                facet.wrap.name = facet.wrap.name,
-                k = k,
-                perc.k = perc.k,
-                slice.label = slice.label,
-                facet.proptest = facet.proptest,
-                ggtheme = ggtheme,
-                ggstatsplot.layer = ggstatsplot.layer,
-                package = package,
-                palette = palette,
-                direction = direction,
-                messages = messages
-              )
-            )
-        )
-    } else {
-      plotlist_purrr <-
-        df %>%
-        dplyr::mutate(
-          .data = .,
-          plots = data %>%
-            purrr::set_names(x = ., nm = !!rlang::enquo(grouping.var)) %>%
-            purrr::map(
-              .x = .,
-              .f = ~ ggstatsplot::ggpiestats(
-                data = .,
-                main = !!rlang::enquo(main),
-                condition = !!rlang::enquo(condition),
-                counts = !!rlang::enquo(counts),
-                title = glue::glue("{title.prefix}: {as.character(.$title.text)}"),
-                ratio = ratio,
-                paired = paired,
-                factor.levels = factor.levels,
-                stat.title = stat.title,
-                sample.size.label = sample.size.label,
-                bf.message = bf.message,
-                sampling.plan = sampling.plan,
-                fixed.margin = fixed.margin,
-                prior.concentration = prior.concentration,
-                caption = caption,
-                conf.level = conf.level,
-                nboot = nboot,
-                legend.title = legend.title,
-                facet.wrap.name = facet.wrap.name,
-                k = k,
-                perc.k = perc.k,
-                slice.label = slice.label,
-                facet.proptest = facet.proptest,
-                ggtheme = ggtheme,
-                ggstatsplot.layer = ggstatsplot.layer,
-                package = package,
-                palette = palette,
-                direction = direction,
-                messages = messages
-              )
-            )
-        )
-    }
-  } else if (missing(condition)) {
-    if (missing(counts)) {
-      plotlist_purrr <-
-        df %>%
-        dplyr::mutate(
-          .data = .,
-          plots = data %>%
-            purrr::set_names(x = ., nm = !!rlang::enquo(grouping.var)) %>%
-            purrr::map(
-              .x = .,
-              .f = ~ ggstatsplot::ggpiestats(
-                data = .,
-                main = !!rlang::enquo(main),
-                title = glue::glue("{title.prefix}: {as.character(.$title.text)}"),
-                ratio = ratio,
-                paired = paired,
-                factor.levels = factor.levels,
-                stat.title = stat.title,
-                bf.message = bf.message,
-                sampling.plan = sampling.plan,
-                fixed.margin = fixed.margin,
-                prior.concentration = prior.concentration,
-                caption = caption,
-                conf.level = conf.level,
-                nboot = nboot,
-                legend.title = legend.title,
-                facet.wrap.name = facet.wrap.name,
-                k = k,
-                perc.k = perc.k,
-                slice.label = slice.label,
-                facet.proptest = facet.proptest,
-                ggtheme = ggtheme,
-                ggstatsplot.layer = ggstatsplot.layer,
-                package = package,
-                palette = palette,
-                direction = direction,
-                messages = messages
-              )
-            )
-        )
-    } else if (!missing(counts)) {
-      plotlist_purrr <-
-        df %>%
-        dplyr::mutate(
-          .data = .,
-          plots = data %>%
-            purrr::set_names(x = ., nm = !!rlang::enquo(grouping.var)) %>%
-            purrr::map(
-              .x = .,
-              .f = ~ ggstatsplot::ggpiestats(
-                data = .,
-                main = !!rlang::enquo(main),
-                counts = !!rlang::enquo(counts),
-                title = glue::glue("{title.prefix}: {as.character(.$title.text)}"),
-                ratio = ratio,
-                paired = paired,
-                factor.levels = factor.levels,
-                stat.title = stat.title,
-                bf.message = bf.message,
-                sampling.plan = sampling.plan,
-                fixed.margin = fixed.margin,
-                prior.concentration = prior.concentration,
-                caption = caption,
-                conf.level = conf.level,
-                nboot = nboot,
-                legend.title = legend.title,
-                facet.wrap.name = facet.wrap.name,
-                k = k,
-                perc.k = perc.k,
-                slice.label = slice.label,
-                facet.proptest = facet.proptest,
-                ggtheme = ggtheme,
-                ggstatsplot.layer = ggstatsplot.layer,
-                package = package,
-                palette = palette,
-                direction = direction,
-                messages = messages
-              )
-            )
-        )
-    }
+  # ============== build pmap list based on conditions =====================
+
+  if (!missing(condition) && missing(counts)) {
+    flexiblelist <- list(
+      data = df,
+      main = rlang::quo_text(ensym(main)),
+      condition = rlang::quo_text(ensym(condition)),
+      title = glue::glue("{title.prefix}: {names(df)}")
+    )
   }
+
+  if (missing(condition) && missing(counts)) {
+    flexiblelist <- list(
+      data = df,
+      main = rlang::quo_text(ensym(main)),
+      title = glue::glue("{title.prefix}: {names(df)}")
+    )
+  }
+
+  if (!missing(condition) && !missing(counts)) {
+    flexiblelist <- list(
+      data = df,
+      main = rlang::quo_text(ensym(main)),
+      condition = rlang::quo_text(ensym(condition)),
+      counts = rlang::quo_text(ensym(counts)),
+      title = glue::glue("{title.prefix}: {names(df)}")
+    )
+  }
+
+  if (missing(condition) && !missing(counts)) {
+    flexiblelist <- list(
+      data = df,
+      main = rlang::quo_text(ensym(main)),
+      counts = rlang::quo_text(ensym(counts)),
+      title = glue::glue("{title.prefix}: {names(df)}")
+    )
+  }
+
+  # ==================== creating a list of plots =======================
+
+  # creating a list of plots using `pmap`
+  plotlist_purrr <-
+    purrr::pmap(
+      .l = flexiblelist,
+      .f = ggstatsplot::ggpiestats,
+      # put common parameters here
+      ratio = ratio,
+      paired = paired,
+      factor.levels = factor.levels,
+      stat.title = stat.title,
+      sample.size.label = sample.size.label,
+      bf.message = bf.message,
+      sampling.plan = sampling.plan,
+      fixed.margin = fixed.margin,
+      prior.concentration = prior.concentration,
+      caption = caption,
+      conf.level = conf.level,
+      nboot = nboot,
+      simulate.p.value = simulate.p.value,
+      B = B,
+      legend.title = legend.title,
+      facet.wrap.name = facet.wrap.name,
+      k = k,
+      perc.k = perc.k,
+      slice.label = slice.label,
+      facet.proptest = facet.proptest,
+      ggtheme = ggtheme,
+      ggstatsplot.layer = ggstatsplot.layer,
+      package = package,
+      palette = palette,
+      direction = direction,
+      messages = messages
+    )
+
 
   # combining the list of plots into a single plot
   combined_plot <-
     ggstatsplot::combine_plots(
-      plotlist = plotlist_purrr$plots,
+      plotlist = plotlist_purrr,
       ...
     )
 

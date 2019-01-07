@@ -10,8 +10,8 @@ grouped_ggscatterstats(data, x, y, type = "pearson", conf.level = 0.95,
   label.expression = NULL, grouping.var, title.prefix = "Group",
   xlab = NULL, ylab = NULL, method = "lm", method.args = list(),
   formula = y ~ x, point.color = "black", point.size = 3,
-  point.alpha = 0.4, line.size = 1.5, point.width.jitter = NULL,
-  point.height.jitter = NULL, line.color = "blue", marginal = TRUE,
+  point.alpha = 0.4, line.size = 1.5, point.width.jitter = 0,
+  point.height.jitter = 0, line.color = "blue", marginal = TRUE,
   marginal.type = "histogram", marginal.size = 5, margins = c("both",
   "x", "y"), package = "wesanderson", palette = "Royal1",
   direction = 1, xfill = "#009E73", yfill = "#D55E00", xalpha = 1,
@@ -19,15 +19,18 @@ grouped_ggscatterstats(data, x, y, type = "pearson", conf.level = 0.95,
   results.subtitle = TRUE, caption = NULL, subtitle = NULL,
   nboot = 100, beta = 0.1, k = 2, axes.range.restrict = FALSE,
   ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
-  messages = TRUE, ...)
+  ggplot.component = NULL, messages = TRUE, ...)
 }
 \arguments{
-\item{data}{Dataframe from which variables specified are preferentially to be
-taken.}
+\item{data}{Dataframe from which variables are to be taken.}
 
-\item{x}{A vector containing the explanatory variable.}
+\item{x}{The column in \code{data} containing the explanatory variable to be
+plotted on the x axis. Can be entered either as
+a character string (e.g., \code{"x"}) or as a bare expression (e.g, \code{x}).}
 
-\item{y}{The response - a vector of length the number of rows of \code{x}.}
+\item{y}{The column in \code{data} containing the response (outcome) variable to
+be plotted on the y axis. Can be entered either as
+a character string (e.g., \code{"y"}) or as a bare expression (e.g, \code{y}).}
 
 \item{type}{Type of association between paired samples required
 ("\code{"parametric"}: Pearson's product moment correlation coefficient" or
@@ -46,21 +49,23 @@ to use in calculating Bayes factors.}
 \item{bf.message}{Logical. Decides whether to display Bayes Factor in favor
 of \emph{null} hypothesis \strong{for parametric test} (Default: \code{FALSE}).}
 
-\item{label.var}{Variable to use for points labels. \strong{Must} be entered as a
-character string e.g. \code{"y"}.}
+\item{label.var}{Variable to use for points labels. Can be entered either as
+a character string (e.g., \code{"var1"}) or as a bare expression (e.g, \code{var1}).}
 
 \item{label.expression}{An expression evaluating to a logical vector that
-determines the subset of data points to label. \strong{Must} be entered as a
-character string e.g. \code{"y < 4 & z < 20"}.}
+determines the subset of data points to label. This argument can be entered
+either as a character string (e.g., \code{"y < 4 & z < 20"}) or as a bare
+expression (e.g., \code{y < 4 & z < 20}).}
 
-\item{grouping.var}{Grouping variable.}
+\item{grouping.var}{Grouping variable. Can be entered either as
+a character string (e.g., \code{"group"}) or as a bare expression (e.g, \code{group}).}
 
 \item{title.prefix}{Character specifying the prefix text for the fixed plot
 title (name of each factor level) (Default: \code{"Group"}).}
 
-\item{xlab}{Label for \code{x} axis variable.}
+\item{xlab}{Label for \code{x} axis variable. The default is the variable name.}
 
-\item{ylab}{Label for \code{y} axis variable.}
+\item{ylab}{Label for \code{y} axis variable. The default is the variable name.}
 
 \item{method}{Smoothing method (function) to use, accepts either a character vector,
 e.g. \code{"auto"}, \code{"lm"}, \code{"glm"}, \code{"gam"}, \code{"loess"} or a function, e.g.
@@ -94,11 +99,13 @@ function defined by \code{method}.}
 
 \item{line.size}{Size for the regression line.}
 
-\item{point.width.jitter}{Degree of jitter in \code{x} direction. Defaults to 40\%
-of the resolution of the data.}
+\item{point.width.jitter}{Degree of jitter in \code{x} and \code{y}
+direction, respectively. Defaults to \code{0} (0%) of the resolution of the
+data.}
 
-\item{point.height.jitter}{Degree of jitter in \code{y} direction. Defaults to
-40\% of the resolution of the data.}
+\item{point.height.jitter}{Degree of jitter in \code{x} and \code{y}
+direction, respectively. Defaults to \code{0} (0%) of the resolution of the
+data.}
 
 \item{line.color}{color for the regression line.}
 
@@ -179,6 +186,11 @@ extension packages are allowed (e.g., \code{ggthemes::theme_economist()},
 theme elements are to be displayed along with the selected \code{ggtheme}
 (Default: \code{TRUE}).}
 
+\item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
+by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
+of the current function. Default is \code{NULL}. The argument should be entered
+as a function.}
+
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
 
@@ -238,6 +250,7 @@ subtitle.
 }
 \examples{
 
+\dontrun{
 # to ensure reproducibility
 set.seed(123)
 
@@ -256,6 +269,7 @@ ggstatsplot::grouped_ggscatterstats(
 )
 
 # using labeling
+# (also show how to modify basic plot from within function call)
 ggstatsplot::grouped_ggscatterstats(
   data = dplyr::filter(ggplot2::mpg, cyl != 5),
   x = displ,
@@ -263,20 +277,21 @@ ggstatsplot::grouped_ggscatterstats(
   grouping.var = cyl,
   title.prefix = "Cylinder count",
   type = "robust",
-  label.var = "manufacturer",
-  label.expression = "hwy > 25 & displ > 2.5",
+  label.var = manufacturer,
+  label.expression = hwy > 25 & displ > 2.5,
   xfill = NULL,
+  ggplot.component = ggplot2::scale_y_continuous(sec.axis = ggplot2::dup_axis()),
   package = "yarrr",
   palette = "appletv",
   messages = FALSE
 )
 
 # labeling without expression
-\dontrun{
+
 ggstatsplot::grouped_ggscatterstats(
   data = dplyr::filter(
     .data = ggstatsplot::movies_long,
-    rating == 8,
+    rating == 7,
     genre \%in\% c("Drama", "Comedy")
   ),
   x = budget,
@@ -286,7 +301,7 @@ ggstatsplot::grouped_ggscatterstats(
   label.var = "title",
   marginal = FALSE,
   title.prefix = "Genre",
-  caption.text = "All movies have IMDB rating greater than 8."
+  caption.text = "All movies have IMDB rating equal to 7."
 )
 }
 }
@@ -298,5 +313,5 @@ ggstatsplot::grouped_ggscatterstats(
 \code{\link{grouped_ggcorrmat}}
 }
 \author{
-Indrajeet Patil
+Indrajeet Patil, Chuck Powell
 }

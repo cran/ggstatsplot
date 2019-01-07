@@ -7,7 +7,7 @@ output:
     fig_width: 6
     fig.align: 'center'
     fig.asp: 0.618
-    dpi: 100
+    dpi: 300
     toc: true
     warning: FALSE
     message: FALSE
@@ -24,8 +24,10 @@ knitr::opts_chunk$set(
 )
 ```
 
-The function `ggstatsplot::ggcoefstats` generates **dot-and-whisker plots** of
-regression models saved in tidy data frames (produced with the `broom` package).
+The function `ggstatsplot::ggcoefstats` generates **dot-and-whisker plots** for
+regression models saved in tidy data frames (produced with the `broom` package
+and its mixed-effects modeling variant `broom.mixed` package).
+
 By default, the plot displays `95%` confidence intervals for the regression
 coefficients. The function currently supports only those classes of object that
 are supported by the `broom` package. For an exhaustive list, see-
@@ -71,8 +73,8 @@ itself.
 ## omnibus ANOVA (`aov`)
 
 For this analysis, let's use the `movies_long` dataset, which provides
-information about IMDB ratings, budget, length, MPAA ratings (e.g., R-rated,
-NC-17, PG-13, etc.), and genre for a number of movies. Let's say our hypothesis
+information about IMDB ratings, budget, length, MPAA ratings (R-rated,
+PG, or PG-13), and genre for a number of movies. Let's say our hypothesis
 is that the IMDB ratings for a movie are predicted by a multiplicative effect of
 the genre and the MPAA rating it got. Let's carry out an omnibus
 ANOVA to see if this is the case.
@@ -85,9 +87,6 @@ library(ggplot2)
 # for reproducibility
 set.seed(123)
 
-# looking at the data
-dplyr::glimpse(x = ggstatsplot::movies_long)
-
 # to speed up the calculation, let's use only 10% of the data
 movies_10 <- dplyr::sample_frac(tbl = ggstatsplot::movies_long, size = 0.1)
   
@@ -98,6 +97,7 @@ ggstatsplot::ggcoefstats(
     data = movies_10
   ),
   effsize = "eta",                          # changing the effect size estimate being displayed
+  partial = FALSE,                          # just eta-squared 
   point.color = "red",                      # changing the point color
   point.size = 4,                           # changing the point size
   point.shape = 15,                         # changing the point shape
@@ -188,28 +188,30 @@ mod <- stats::lm(
 )
 
 # plotting estimates
-ggstatsplot::ggcoefstats(x = car::Anova(mod, type = "III"))
+ggstatsplot::ggcoefstats(x = car::Anova(mod, type = "III"),
+                         title = "analysis of variance (`car` package)")
 ```
 
 ## linear model (`lm`)
 
-Now that we have figured out that the movie `genre` best explains a fair deal of
-variation in how good people rate the movie to be on IMDB. Let's run a linear
-regression model to see how different types of genres compare with each other-
+Now that we have figured out that the movie's `genre` explains a fair amount of
+the variation in how people rate the movie on IMDB, let's run a linear
+regression model to see how different types of genres compare with each other
+using **Action** movies as our comparison point.
 
 ```{r lm, warning = FALSE, message = FALSE, fig.height = 8, fig.width = 8}
-# let's check all the levels for the genre variable
-levels(ggstatsplot::movies_long$genre)
-
-# to speed up the calculation, let's use only 10% of the data
-movies_10 <- dplyr::sample_frac(tbl = ggstatsplot::movies_long, size = 0.1)
-
 # plot
 ggstatsplot::ggcoefstats(
   x = stats::lm(
     formula = rating ~ genre,
-    data = movies_10
-  ),
+    data = dplyr::filter(.data = ggstatsplot::movies_long, 
+                         genre %in% c("Action", 
+                                      "Action Comedy", 
+                                      "Action Drama", 
+                                      "Comedy", 
+                                      "Drama", 
+                                      "Comedy Drama"))
+    ),
   conf.level = 0.99,                      # changing the confidence levels for confidence intervals
   sort = "ascending",                     # sorting the terms of the model based on estimate values
   label.direction = "both",               # direction in which to adjust position of labels (both x and y)
@@ -220,18 +222,14 @@ ggstatsplot::ggcoefstats(
 ) +                                    
   # further modification with the ggplot2 commands
   # note the order in which the labels are entered
-  ggplot2::scale_y_discrete(labels = c("Comedy", "Romance", "Documentary", "Animation", "Drama")) +
-  ggplot2::labs(y = "genre (comparison level: Action)") +
+  ggplot2::scale_y_discrete(labels = c("Comedy", "Action Comedy", "Action Drama", "Comedy Drama", "Drama")) +
+  ggplot2::labs(y = "Genre compared to Action movies)") +
   ggplot2::theme(axis.title.y = ggplot2::element_text(size = 14, face = "bold"))
 ```
 
-As can be seen from the regression coefficients, compared to the action movies,
-only romantic movies, animated movies, and dramas fare better with the
-audiences. Also, note that the coefficient for `"Drama"` is statistically
-significant (`*p* = 0.04`), but the confidence interval contains `0`. This is
-because we set the confidence interval to `0.99`.
+As can be seen from the regression coefficients, compared to action movies, comedies and action comedies are not rated significantly better. All three of the "drama" types (pure, action or comedy dramas) have statistical significantly higher regression coefficients.  This finding occurs even with our more conservative  `0.99` confidence interval.
 
-## linear mixed-effects model (`lmer`)
+## linear mixed-effects model (`lmer`/`lmerMod`)
 
 Now let's say we want to see how movie's budget relates to how good the movie is
 rated to be on IMDB (e.g., more money, better ratings?). But we have reasons to
@@ -243,7 +241,7 @@ don't want to use `stats::lm`. In this case, therefore, we will be running a
 linear mixed-effects model (using `lme4::lmer` and *p*-values generated using
 the `sjstats::p_values` function) with a random slope for the genre variable.
 
-```{r lmer1, warning = FALSE, message = FALSE, fig.height = 14, fig.width = 7}
+```{r lmer1, warning = FALSE, message = FALSE, fig.height = 12, fig.width = 7}
 # set up
 library(lme4)
 library(ggstatsplot)
@@ -296,6 +294,8 @@ like to see these terms, you can enter the same object you entered as `x`
 argument to `ggcoefstats` in `broom::tidy`:
 
 ```{r lmer2, warning = FALSE, message = FALSE}
+set.seed(123)
+
 # to speed up the calculation, let's use only 10% of the data
 movies_10 <- dplyr::sample_frac(tbl = ggstatsplot::movies_long, size = 0.1)
 
@@ -330,9 +330,23 @@ roblmm.mod <- robustlmm::rlmer(
 
 # plot
 ggstatsplot::ggcoefstats(x = roblmm.mod,
-                         title = "Robust Estimation of Linear Mixed-Effects Models")
+                         title = "robust estimation of linear mixed-effects model")
 ```
 
+## non-linear mixed-effects model (`nlmer`/`nlmerMod`)
+
+```{r nlmer, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 6}
+# model
+library(lme4)
+set.seed(123)
+startvec <- c(Asym = 200, xmid = 725, scal = 350)
+nm1 <- lme4::nlmer(circumference ~ SSlogis(age, Asym, xmid, scal) ~ Asym|Tree,
+             Orange, start = startvec)
+
+# plot
+ggstatsplot::ggcoefstats(x = nm1,
+                         title = "non-linear mixed-effects model")
+```
 
 ## non-linear least-squares model (`nls`)
 
@@ -356,8 +370,8 @@ ggstatsplot::ggcoefstats(
       data = movies_10,
       start = list(k = 1, c = 0)
     ),
-    title = "Non-linear relationship between budget and rating",
-    subtitle = "Source: IMDB"
+    title = "non-linear least squares regression",
+    subtitle = "Non-linear relationship between budget and rating"
   )
 ```
 
@@ -395,7 +409,7 @@ ggstatsplot::ggcoefstats(
   ),
   exponentiate = TRUE,
   ggtheme = ggthemes::theme_economist_white(),
-  title = "general linear model (glm)",
+  title = "generalized linear model (glm)",
   vline.color = "red",
   vline.linetype = "solid",
   label.segment.color = "red",
@@ -432,7 +446,7 @@ library(ggstatsplot)
       outcome = gl(n = 3, k = 1, length = 9),
       counts = c(18, 17, 15, 20, 10, 20, 25, 13, 12)
     ) %>%
-    tibble::as_data_frame(x = .)
+    tibble::as_tibble(x = .)
 )
 
 # dataframe #2
@@ -441,13 +455,13 @@ library(ggstatsplot)
   lot1 = c(118, 58, 42, 35, 27, 25, 21, 19, 18),
   lot2 = c(69, 35, 26, 21, 18, 16, 13, 12, 12)
 ) %>%
-  tibble::as_data_frame(x = .))
+  tibble::as_tibble(x = .))
 
 # dataframe #3
 x1 <- stats::rnorm(50)
 y1 <- stats::rpois(n = 50, lambda = exp(1 + x1))
 (df.3 <- data.frame(x = x1, y = y1) %>%
-    tibble::as_data_frame(x = .))
+    tibble::as_tibble(x = .))
 
 # dataframe #4
 x2 <- stats::rnorm(50)
@@ -456,7 +470,7 @@ y2 <- rbinom(n = 50,
              prob = stats::plogis(x2))
 
 (df.4 <- data.frame(x = x2, y = y2) %>%
-    tibble::as_data_frame(x = .))
+    tibble::as_tibble(x = .))
 
 # combining all plots in a single plot
 ggstatsplot::combine_plots(
@@ -527,7 +541,7 @@ ggstatsplot::combine_plots(
 )
 ```
 
-## generalized linear mixed-effects model (`glmer`)
+## generalized linear mixed-effects model (`glmer`/`glmerMod`)
 
 In the previous example, we saw how being a female and being a child was
 predictive of surviving the Titanic disaster. But in that analysis, we didn't
@@ -552,6 +566,7 @@ ggstatsplot::ggcoefstats(
       boundary.tol = 1e-7
     )
   ),
+  title = "generalized linear mixed-effects model",
   exponentiate = TRUE,
   stats.label.color = "black"
 )
@@ -585,12 +600,45 @@ mod <-
 
 # plotting the model
 ggstatsplot::ggcoefstats(x = mod,
-                         conf.method = "uniroot")
+                         conf.method = "uniroot",
+                         title = "generalized linear mixed models \nusing Template Model Builder")
+```
+
+## generalized linear mixed models using AD Model Builder (`glmmadmb`)
+
+Another option is to use `glmmadmb` package.
+
+```{r glmmadmb, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# setup
+library(glmmADMB)
+set.seed(123)
+
+# simulate values
+set.seed(101)
+d <- data.frame(f = factor(rep(LETTERS[1:10], each = 10)), x = runif(100))
+u <- rnorm(10, sd = 2)
+d$eta <- with(d, u[f] + 1 + 4 * x)
+pz <- 0.3
+zi <- rbinom(100, size = 1, prob = pz)
+d$y <- ifelse(zi, 0, rpois(100, lambda = exp(d$eta)))
+
+# fit
+zipmodel <-
+  glmmADMB::glmmadmb(
+    formula = y ~ x + (1 | f),
+    data = d,
+    family = "poisson",
+    zeroInflation = TRUE
+  )
+
+# plotting the model
+ggstatsplot::ggcoefstats(
+  x = zipmodel,
+  title = "generalized linear mixed models \nusing AD Model Builder"
+)
 ```
 
 ## cumulative link models (`clm`)
-
-**clm and clmm examples are too time-consuming; thus not evaluated in vignette**
 
 So far we have dealt either with continuous or nominal/factor responses (or
 output variables), but sometimes we will encounter **ordinal** data (e.g.,
@@ -605,7 +653,7 @@ four different vignettes, each featuring a different type of harm. The question
 we are interested in is what explains variation in participants' rating:
 information about intentionality, consequences, or their interaction?
 
-```{r clm, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6, eval = FALSE}
+```{r clm, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6}
 # for reproducibility
 set.seed(123)
 
@@ -616,11 +664,11 @@ ggstatsplot::ggcoefstats(
     link = "logit",
     data = dplyr::sample_frac(tbl = ggstatsplot::intent_morality, size = 0.10),
     control = ordinal::clm.control(maxIter = 50,
-                                   convergence = "silent"),
+                                   convergence = "silent")
   ),
   stats.label.color = "black",
-  title = "Cumulative Link Model (clm)",
-  subtitle = "(Using `ordinal` package)",
+  title = "cumulative link model (clm)",
+  subtitle = "(using `ordinal` package)",
   caption.summary = FALSE                            # suppress model diagnostics
 ) +
   ggplot2::labs(x = "logit regression coefficient",
@@ -639,7 +687,7 @@ different types of harm)? For this, we can use ordinal mixed-effects regression
 model (with random effects for type of harm) to see how intent and outcome
 contribute towards variation in moral judgment ratings-
 
-```{r clmm1, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6, eval = FALSE}
+```{r clmm1, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6}
 # for reproducibility
 set.seed(123)
 
@@ -656,8 +704,8 @@ ggstatsplot::ggcoefstats(
       innerCtrl = "noWarn"
     )
   ),
-  title = "Cumulative Link Mixed Model (clmm)",
-    subtitle = "(Using `ordinal` package)"
+  title = "cumulative link mixed model (clmm)",
+    subtitle = "(using `ordinal` package)"
 ) +
   ggplot2::labs(x = "coefficient from ordinal mixed-effects regression",
                 y = "fixed effects")
@@ -694,6 +742,95 @@ ggstatsplot::ggcoefstats(
                 y = "threshold parameters")
 ```
 
+## ordered logistic or probit regression (`polr`)
+
+```{r polr, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 8}
+# polr model
+set.seed(123)
+library(MASS)
+polr.mod <- MASS::polr(formula = Sat ~ Infl + Type + Cont, 
+                       weights = Freq, 
+                       data = housing)
+
+# plot
+ggstatsplot::ggcoefstats(x = polr.mod, 
+                         coefficient.type = "both",
+                         title = "ordered logistic or probit regression",
+                         subtitle = "using `MASS` package")
+```
+
+## multinomial logistic regression models (`multinom`)
+
+```{r multinom, warning = FALSE, message = FALSE, fig.height = 8, fig.width = 6}
+# model
+set.seed(123)
+library(nnet)
+library(MASS)
+utils::example(topic = birthwt, echo = FALSE)
+bwt.mu <- nnet::multinom(formula = low ~ ., data = bwt)
+
+# plot
+ggstatsplot::ggcoefstats(x = bwt.mu,
+                         title = "multinomial logistic regression models",
+                         package = "ggthemes",
+                         palette = "tableau_cyclic")
+```
+
+## proportional odds and related models (`svyolr`)
+
+```{r svyolr, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 8}
+# setup
+set.seed(123)
+library(survey)
+data(api)
+
+# preparing data
+dclus1 <- survey::svydesign(
+  id =  ~ dnum,
+  weights =  ~ pw,
+  data = apiclus1,
+  fpc =  ~ fpc
+)
+dclus1 <-
+  update(dclus1, mealcat = cut(meals, c(0, 25, 50, 75, 100)))
+
+# model
+m <- survey::svyolr(formula = mealcat ~ avg.ed + mobility + stype,
+                    design = dclus1)
+
+# plot
+ggstatsplot::ggcoefstats(x = m,
+                         title = "proportional odds and related models")
+```
+
+## survey-weighted generalised linear models (`svyglm`)
+
+```{r svyglm, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# data
+library(survey)
+set.seed(123)
+data(api)
+dstrat <-
+  survey::svydesign(
+    id =  ~ 1,
+    strata =  ~ stype,
+    weights =  ~ pw,
+    data = apistrat,
+    fpc =  ~ fpc
+  )
+
+# model
+mod <- survey::svyglm(
+  formula = sch.wide ~ ell + meals + mobility,
+  design = dstrat,
+  family = quasibinomial()
+)
+
+# plot
+ggstatsplot::ggcoefstats(x = mod,
+                         title = "survey-weighted generalised linear model")
+```
+
 ## repeated measures ANOVA (`aovlist`)
 
 Let's now consider an example of a repeated measures design where we want to run
@@ -727,9 +864,9 @@ ggstatsplot::ggcoefstats(
   ggstatsplot.layer = FALSE,
   stats.label.color = c("#0072B2", "#D55E00", "darkgreen"),
   title = "Variation in measurements for Iris species",
-  subtitle = "Source: Iris data set (by Fisher or Anderson)"
+  subtitle = "Source: Iris data set (by Fisher or Anderson)",
+  caption = "Results from 2 by 2 RM ANOVA"
 ) + 
-  ggplot2::labs(caption = "Results from 2 by 2 RM ANOVA") + 
   ggplot2::theme(plot.subtitle = ggplot2::element_text(size = 11, face = "plain"))
 ```
 
@@ -740,9 +877,8 @@ in measurement is accounted for by the interaction between these two factors.
 
 ## robust regression (`lmRob`, `glmRob`)
 
-The robust regression models, as implemented in robust package are also
-supported. But since no 95% CI are available in this case, only the dots for
-estimates will be shown.
+The robust regression models, as implemented in the `robust` package are also
+supported. 
 
 ```{r robust, warning = FALSE, message = FALSE, fig.height = 12, fig.width = 8}
 ggstatsplot::combine_plots(
@@ -771,13 +907,13 @@ ggstatsplot::combine_plots(
   ),
   # arguments relevant for `combine_plots` function
   labels = c("(a)", "(b)"),
-  title.text = "Robust variants of lm and glm",
+  title.text = "Robust variants of lmRob and glmRob",
   nrow = 2,
   ncol = 1
 )
 ```
 
-## Fit A Linear Model With Multiple Group Fixed Effects (`felm`)
+## fit a linear model with multiple group fixed effects (`felm`)
 
 Models of class `felm` from `lfe` package are also supported. This method is
 used to fit linear models with multiple group fixed effects, similarly to `lm`.
@@ -785,7 +921,7 @@ It uses the Method of Alternating projections to sweep out multiple group
 effects from the normal equations before estimating the remaining coefficients
 with OLS.
 
-```{r felm, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6}
+```{r felm, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
 library(lfe)
 
 # create covariates
@@ -808,8 +944,204 @@ y <- x + 0.5 * x2 + id.eff[id] + firm.eff[firm] + u
 est <- lfe::felm(formula = y ~ x + x2 | id + firm)
 
 # plot
-ggstatsplot::ggcoefstats(x = est)
+ggstatsplot::ggcoefstats(x = est,
+                         title = "linear model with multiple group fixed effects")
+```
 
+## linear models for panel data (`plm`)
+
+```{r plm, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# data
+set.seed(123)
+library(plm)
+data("Produc", package = "plm")
+
+# model
+plm.mod <- plm(log(gsp) ~ log(pcap) + log(pc) + log(emp) + unemp,
+          data = Produc, index = c("state","year"))
+
+# plot
+ggstatsplot::ggcoefstats(x = plm.mod,
+                         title = "linear models for panel data")
+```
+
+## Cox proportional hazards regression model (`coxph`)
+
+Fitted proportional hazards regression model - as implemented in the `survival`
+package - can also be displayed in a dot-whisker plot.
+
+```{r coxph, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 4}
+# for reproducibility
+set.seed(123)
+library(survival)
+
+# create the simplest test data set
+test1 <- list(
+  time = c(4, 3, 1, 1, 2, 2, 3),
+  status = c(1, 1, 1, 0, 1, 1, 0),
+  x = c(0, 2, 1, 1, 1, 0, 0),
+  sex = c(0, 0, 0, 0, 1, 1, 1)
+)
+
+# fit a stratified model
+mod <- survival::coxph(formula = Surv(time, status) ~ x + strata(sex), 
+                       data = test1)
+
+# plot
+ggstatsplot::ggcoefstats(x = mod, 
+                         exponentiate = TRUE,
+                         title = "Cox proportional hazards regression model")
+```
+
+## autoregressive integrated moving average (`Arima`)
+
+```{r arima, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# for reproducibility
+set.seed(123)
+
+# model
+fit <- stats::arima(x = lh, order = c(1, 0, 0))
+
+# plot
+ggstatsplot::ggcoefstats(x = fit,
+                         title = "autoregressive integrated moving average")
+```
+## high performance linear model (`speedlm`)
+
+```{r speedlm, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# model
+set.seed(123)
+mod <-
+  speedglm::speedlm(formula = mpg ~ wt + qsec,
+                    data = mtcars,
+                    fitted = TRUE)
+
+# plot
+ggstatsplot::ggcoefstats(x = mod, 
+                         title = "high performance linear model",
+                         exclude.intercept = FALSE)
+```
+
+## bounded memory linear regression (`biglm`)
+
+```{r biglm, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 4}
+# model
+set.seed(123)
+bfit <- biglm::biglm(formula = scale(mpg) ~ scale(wt) + scale(disp), 
+                     data = mtcars)
+
+# plot
+ggstatsplot::ggcoefstats(x = bfit, 
+                         title = "bounded memory linear regression",
+                         exclude.intercept = FALSE)
+```
+
+## parametric survival regression model (`survreg`)
+
+```{r survreg, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# setup
+set.seed(123)
+library(survival)
+
+# model
+mod <- survival::survreg(
+  formula = Surv(futime, fustat) ~ ecog.ps + rx,
+  data = ovarian,
+  dist = "logistic"
+)
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = mod,
+  exclude.intercept = FALSE,
+  ggtheme = hrbrthemes::theme_ipsum_rc(),
+  package = "ggsci",
+  palette = "legacy_tron",
+  title = "parametric survival regression model"
+)
+```
+
+## Aalen's additive regression model for censored data (`aareg`)
+
+```{r aareg, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# model
+library(survival)
+set.seed(123)
+afit <- survival::aareg(
+  formula = Surv(time, status) ~ age + sex + ph.ecog,
+  data = lung,
+  dfbeta = TRUE
+)
+
+# plot
+ggstatsplot::ggcoefstats(x = afit, 
+                         title = "Aalen's additive regression model", 
+                         subtitle = "(for censored data)",
+                         k = 3)
+```
+
+## relative risk regression model for case-cohort studies (`cch`)
+
+
+```{r cch, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6}
+
+# setup
+set.seed(123)
+library(survival)
+
+# examples come from cch documentation
+subcoh <- nwtco$in.subcohort
+selccoh <- with(nwtco, rel == 1 | subcoh == 1)
+ccoh.data <- nwtco[selccoh, ]
+ccoh.data$subcohort <- subcoh[selccoh]
+
+## central-lab histology
+ccoh.data$histol <- factor(ccoh.data$histol, labels = c("FH", "UH"))
+
+## tumour stage
+ccoh.data$stage <-
+  factor(ccoh.data$stage, labels = c("I", "II", "III" , "IV"))
+ccoh.data$age <- ccoh.data$age / 12 # Age in years
+
+# model
+fit.ccP <-
+  survival::cch(
+    formula = Surv(edrel, rel) ~ stage + histol + age,
+    data = ccoh.data,
+    subcoh = ~ subcohort,
+    id = ~ seqno,
+    cohort.size = 4028
+  )
+
+# plot
+ggstatsplot::ggcoefstats(x = fit.ccP, 
+                         title = "relative risk regression model", 
+                         subtitle = "(for case-cohort studies)",
+                         conf.level = 0.99)
+```
+
+## ridge regression (`ridgelm`)
+
+For ridge regression, neither statistic values nor confidence intervals for
+estimates are available, so only estimates will be displayed.
+
+```{r ridgelm, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# setup
+set.seed(123)
+library(MASS)
+
+# model
+names(longley)[1] <- "y"
+mod <- MASS::lm.ridge(formula = y ~ ., data = longley)
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = mod,
+  title = "ridge regression",
+  point.color = "red",
+  point.shape = 6,
+  point.size = 5
+)
 ```
 
 ## linear model using generalized least squares (`gls`)
@@ -830,6 +1162,307 @@ We have already seen an example of `MASS::rlm()` in the `README` document:
 We have already seen an example of quantile regression (`quantreg::rq()`) in the
 `README` document:
 <https://github.com/IndrajeetPatil/ggstatsplot/blob/master/README.md>
+
+## nonlinear quantile regression estimates (`nlrq`)
+
+```{r nlrq, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+library(quantreg)
+
+# preparing data
+Dat <- NULL
+Dat$x <- rep(1:25, 20)
+set.seed(123)
+Dat$y <- stats::SSlogis(Dat$x, 10, 12, 2) * rnorm(500, 1, 0.1)
+
+# then fit the median using nlrq
+Dat.nlrq <-
+  quantreg::nlrq(
+    formula = y ~ SSlogis(x, Asym, mid, scal),
+    data = Dat,
+    tau = 0.5,
+    trace = FALSE
+  )
+
+# plot
+ggstatsplot::ggcoefstats(x = Dat.nlrq,
+                         title = "non-linear quantile regression")
+```
+
+## instrumental-variable regression (`ivreg`)
+
+```{r ivreg, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# setup
+suppressPackageStartupMessages(library(AER))
+set.seed(123)
+data("CigarettesSW", package = "AER")
+
+# model
+ivr <- AER::ivreg(
+  formula = log(packs) ~ income | population,
+  data = CigarettesSW,
+  subset = year == "1995"
+)
+
+# plot
+ggstatsplot::ggcoefstats(x = ivr,
+                         title = "instrumental-variable regression")
+```
+
+## causal mediation analysis (`mediate`)
+
+```{r mediate, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# setup
+set.seed(123)
+library(mediation)
+data(jobs)
+
+# base models
+b <-
+  stats::lm(formula = job_seek ~ treat + econ_hard + sex + age, data = jobs)
+c <-
+  stats::lm(formula = depress2 ~ treat + job_seek + econ_hard + sex + age,
+            data = jobs)
+
+# mediation model
+mod <-
+  mediation::mediate(
+    model.m = b,
+    model.y = c,
+    sims = 50,
+    treat = "treat",
+    mediator = "job_seek"
+  )
+
+# plot
+ggstatsplot::ggcoefstats(x = mod,
+                         title = "causal mediation analysis")
+```
+
+## Model II regression (`lmodel2`)
+
+```{r lmodel2, warning = FALSE, message = FALSE, fig.height = 8, fig.width = 6}
+# setup
+set.seed(123)
+library(lmodel2)
+data(mod2ex2)
+
+# model
+Ex2.res <-
+  lmodel2::lmodel2(
+    formula = Prey ~ Predators,
+    data = mod2ex2,
+    range.y = "relative",
+    range.x = "relative",
+    nperm = 99
+  )
+
+# plot
+ggstatsplot::ggcoefstats(x = Ex2.res,
+                         exclude.intercept = FALSE,
+                         title = "Model II regression")
+```
+
+
+## generalized method of moment estimation (`gmm`)
+
+```{r gmm, warning = FALSE, message = FALSE, fig.height = 8, fig.width = 6}
+# setup
+set.seed(123)
+library(gmm)
+
+# examples come from the "gmm" package
+## CAPM test with GMM
+data(Finance)
+r <- Finance[1:300, 1:10]
+rm <- Finance[1:300, "rm"]
+rf <- Finance[1:300, "rf"]
+
+z <- as.matrix(r - rf)
+t <- nrow(z)
+zm <- rm - rf
+h <- matrix(zm, t, 1)
+res <- gmm::gmm(z ~ zm, x = h)
+
+# plot
+ggstatsplot::ggcoefstats(x = res, 
+                         package = "palettetown",
+                         palette = "victreebel",
+                         title = "generalized method of moment estimation")
+```
+
+## exponential-family random graph models (`ergm`)
+
+```{r ergm, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# load the Florentine marriage network data
+set.seed(123)
+suppressPackageStartupMessages(library(ergm))
+data(florentine)
+
+# fit a model where the propensity to form ties between
+# families depends on the absolute difference in wealth
+gest <- ergm(flomarriage ~ edges + absdiff("wealth"))
+
+# plot
+ggstatsplot::ggcoefstats(x = gest,
+                         conf.level = 0.99,
+                         title = "exponential-family random graph models")
+```
+
+
+## TERGM by bootstrapped pseudolikelihood or MCMC MLE (`btergm`)
+
+```{r btergm, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 6}
+# setup
+library(network)
+library(btergm)
+set.seed(123)
+
+networks <- list()
+for (i in 1:10) { # create 10 random networks with 10 actors
+  mat <- matrix(rbinom(100, 1, .25), nrow = 10, ncol = 10)
+  diag(mat) <- 0 # loops are excluded
+  nw <- network(mat) # create network object
+  networks[[i]] <- nw # add network to the list
+}
+
+covariates <- list()
+for (i in 1:10) { # create 10 matrices as covariate
+  mat <- matrix(rnorm(100), nrow = 10, ncol = 10)
+  covariates[[i]] <- mat # add matrix to the list
+}
+
+# model
+fit <- btergm::btergm(networks ~ edges + istar(2) +
+  edgecov(covariates), R = 100)
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = fit,
+  title = "Terms used in Exponential Family Random Graph Models",
+  subtitle = "by bootstrapped pseudolikelihood or MCMC MLE"
+)
+```
+
+## generalized autoregressive conditional heteroscedastic (`garch`)
+
+```{r garch, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# setup
+set.seed(123)
+library(tseries)
+data(EuStockMarkets)
+dax <- diff(log(EuStockMarkets))[,"DAX"]
+dax.garch <- tseries::garch(x = dax, trace = FALSE)
+
+# plot
+ggstatsplot::ggcoefstats(x = dax.garch,
+                         title = "generalized autoregressive \nconditional heteroscedastic (GARCH)")
+```
+
+## maximum-likelihood fitting of univariate distributions (`fitdistr`)
+
+```{r fitdistr, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6}
+# model
+set.seed(123)
+library(MASS)
+x <- rnorm(100, 5, 2)
+fit <- MASS::fitdistr(x, dnorm, list(mean = 3, sd = 1))
+
+# plot
+ggstatsplot::ggcoefstats(x = fit,
+                         title = "maximum-likelihood fitting of \nunivariate distributions",
+                         ggtheme = ggthemes::theme_pander())
+```
+
+## maximum likelihood estimation (`mle2`)
+
+```{r mle2, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 4}
+# setup
+set.seed(123)
+library(bbmle)
+
+# data
+x <- 0:10
+y <- c(26, 17, 13, 12, 20, 5, 9, 8, 5, 4, 8)
+d <- data.frame(x, y)
+
+# custom function
+LL <- function(ymax = 15, xhalf = 6) {
+  -sum(stats::dpois(y, lambda = ymax / (1 + x / xhalf), log = TRUE))
+}
+
+# use default parameters of LL
+fit <- bbmle::mle2(LL, fixed = list(xhalf = 6))
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = fit,
+  title = "maximum likelihood estimation",
+  ggtheme = ggthemes::theme_excel_new()
+)
+```
+
+## Cochrane-Orcutt estimation (`orcutt`)
+
+```{r orcutt, eval = FALSE, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 4}
+# model
+library(orcutt)
+set.seed(123)
+reg <- stats::lm(formula = mpg ~ wt + qsec + disp, data = mtcars)
+co <- orcutt::cochrane.orcutt(reg)
+
+# plot
+ggstatsplot::ggcoefstats(x = co, 
+                         title = "Cochrane-Orcutt estimation")
+```
+
+## confusion matrix (`confusionMatrix`)
+
+```{r confusionMatrix, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6}
+# setup
+library(caret)
+set.seed(123)
+
+# setting up confusion matrix
+two_class_sample1 <- as.factor(sample(letters[1:2], 100, TRUE))
+two_class_sample2 <- as.factor(sample(letters[1:2], 100, TRUE))
+
+two_class_cm <- caret::confusionMatrix(
+  two_class_sample1,
+  two_class_sample2
+)
+
+# plot
+ggstatsplot::ggcoefstats(x = two_class_cm,
+                         by.class = TRUE,
+                         title = "confusion matrix")
+```
+
+## multivariate generalised linear mixed models (`MCMCglmm`)
+
+```{r MCMCglmm, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6}
+# setup
+set.seed(123)
+library(MCMCglmm)
+
+# model
+mm0 <- MCMCglmm::MCMCglmm(
+  fixed = scale(Reaction) ~ scale(Days),
+  random = ~Subject, data = sleepstudy,
+  nitt = 4000,
+  pr = TRUE,
+  verbose = FALSE
+)
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = mm0,
+  title = "multivariate generalised linear mixed model",
+  conf.method = "HPDinterval",
+  exclude.intercept = FALSE,
+  rhat = TRUE,
+  robust = TRUE
+)
+```
 
 ## dataframes (`tbl_df`, `tbl`, `data.frame`)
 
@@ -894,8 +1527,9 @@ extension `broom.mixed`) package:
 <https://broom.tidyverse.org/articles/available-methods.html>
 
 Note that not **all** models supported by `broom` will be supported by
-`ggcoefstats`. In particular, classes of objects for which there is no estimates
-present (e.g., `kmeans`, `optim`, etc.) are not supported.
+`ggcoefstats`. In particular, classes of objects for which there is no column
+for `estimate`s present (e.g., `kmeans`, `optim`, `muhaz`, `survdiff`, `zoo`,
+etc.) are not supported.
 
 # Suggestions
 

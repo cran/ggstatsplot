@@ -1,11 +1,12 @@
 # context ------------------------------------------------------------
-context(desc = "helpers_ggbetweenstats")
+context(desc = "mean_labeller")
 
 # mean labelling works -------------------------------------------------------
 
 testthat::test_that(
   desc = "mean_labeller works",
   code = {
+    testthat::skip_on_cran()
 
     # ----------------------- data without NAs ------------------------------
 

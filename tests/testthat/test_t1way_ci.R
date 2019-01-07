@@ -3,6 +3,8 @@ context("t1way_ci")
 testthat::test_that(
   desc = "t1way_ci works",
   code = {
+    testthat::skip_on_cran()
+
     # make a bogus dataframe to test against
     # some plausible numbers, a negative value and an NA
     bogusdata <- structure(list(
@@ -56,7 +58,7 @@ testthat::test_that(
     testthat::expect_equal(df1$xi, 0.08635324, tolerance = .00002)
     testthat::expect_equal(df1$conf.low, -0.1674259, tolerance = .00002)
     testthat::expect_equal(df1$conf.high, 0.2684582, tolerance = .00002)
-    testthat::expect_equal(df1$`F-value`, 0.3718993, tolerance = .00002)
-    testthat::expect_equal(df1$`p-value`, 0.5435346, tolerance = .00002)
+    testthat::expect_equal(df1$F.value, 0.3718993, tolerance = .00002)
+    testthat::expect_equal(df1$p.value, 0.5435346, tolerance = .00002)
   }
 )

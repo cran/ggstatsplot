@@ -101,31 +101,75 @@ ggcoefstats_label_maker <- function(x,
                                     partial = TRUE) {
 
   # dataframe objects
-  df.mods <- c("tbl_df", "tbl", "data.frame", "grouped_df")
+  df.mods <- c(
+    "data.frame",
+    "grouped_df",
+    "tbl",
+    "tbl_df"
+  )
 
   # models for which statistic is t-value
   t.mods <-
     c(
+      "biglm",
+      "cch",
+      "coeftest",
+      "felm",
+      "gamlss",
+      "garch",
       "gls",
-      "lmerMod",
+      "gmm",
+      "ivreg",
       "lm",
-      "nls",
+      "lm.beta",
+      "lmerMod",
       "lmRob",
-      "rq",
+      "multinom",
+      "nlmerMod",
+      "nlrq",
+      "nls",
+      "orcutt",
+      "plm",
+      "polr",
       "rlm",
       "rlmerMod",
-      "felm"
+      "rq",
+      "speedlm",
+      "svyglm",
+      "svyolr"
     )
 
   # models for which statistic is z-value
-  z.mods <- c("clm", "clmm", "glmmTMB")
+  z.mods <-
+    c(
+      "aareg",
+      "clm",
+      "clmm",
+      "coxph",
+      "ergm",
+      "glmmadmb",
+      "glmmTMB",
+      "mle2",
+      "survreg"
+    )
 
   # models for which statistic is F-value
-  f.mods <- c("aov", "aovlist", "anova")
+  f.mods <- c(
+    "aov",
+    "aovlist",
+    "anova",
+    "Gam",
+    "gam",
+    "manova"
+  )
 
   # models for which there is no clear t-or z-statistic
   # which statistic to use will be decided based on the family used
-  g.mods <- c("glm", "glmerMod", "glmRob")
+  g.mods <- c(
+    "glm",
+    "glmerMod",
+    "glmRob"
+  )
 
   # ================================ dataframe ================================
   if (class(x)[[1]] %in% df.mods) {
@@ -281,12 +325,12 @@ tfz_labeller <- function(tidy_df,
     dplyr::mutate_at(
       .tbl = .,
       .vars = "statistic",
-      .funs = ~ ggstatsplot::specify_decimal_p(x = ., k = k)
+      .funs = ~ specify_decimal_p(x = ., k = k)
     ) %>%
     signif_column(data = ., p = p.value) %>%
     purrrlyr::by_row(
       .d = .,
-      ..f = ~ ggstatsplot::specify_decimal_p(
+      ..f = ~ specify_decimal_p(
         x = .$p.value,
         k = k,
         p.value = TRUE
@@ -323,10 +367,10 @@ tfz_labeller <- function(tidy_df,
           .d = .,
           ..f = ~ paste(
             "list(~italic(beta)==",
-            ggstatsplot::specify_decimal_p(x = .$estimate, k = k),
+            specify_decimal_p(x = .$estimate, k = k),
             ", ~italic(t)",
             "(",
-            ggstatsplot::specify_decimal_p(x = .$df.residual, k = 0),
+            specify_decimal_p(x = .$df.residual, k = 0L),
             ")==",
             .$statistic,
             ", ~italic(p)",
@@ -345,7 +389,7 @@ tfz_labeller <- function(tidy_df,
           .d = .,
           ..f = ~ paste(
             "list(~italic(beta)==",
-            ggstatsplot::specify_decimal_p(x = .$estimate, k = k),
+            specify_decimal_p(x = .$estimate, k = k),
             ", ~italic(t)",
             "==",
             .$statistic,
@@ -367,7 +411,7 @@ tfz_labeller <- function(tidy_df,
         .d = .,
         ..f = ~ paste(
           "list(~italic(beta)==",
-          ggstatsplot::specify_decimal_p(x = .$estimate, k = k),
+          specify_decimal_p(x = .$estimate, k = k),
           ", ~italic(z)==",
           .$statistic,
           ", ~italic(p)",
@@ -400,7 +444,7 @@ tfz_labeller <- function(tidy_df,
               ", ~italic(p)",
               .$p.value.formatted2,
               ", ~italic(eta)[p]^2==",
-              ggstatsplot::specify_decimal_p(x = .$estimate, k = k),
+              specify_decimal_p(x = .$estimate, k = k),
               ")",
               sep = ""
             ),
@@ -423,7 +467,7 @@ tfz_labeller <- function(tidy_df,
               ", ~italic(p)",
               .$p.value.formatted2,
               ", ~italic(eta)^2==",
-              ggstatsplot::specify_decimal_p(x = .$estimate, k = k),
+              specify_decimal_p(x = .$estimate, k = k),
               ")",
               sep = ""
             ),
@@ -448,7 +492,7 @@ tfz_labeller <- function(tidy_df,
               ", ~italic(p)",
               .$p.value.formatted2,
               ", ~italic(omega)[p]^2==",
-              ggstatsplot::specify_decimal_p(x = .$estimate, k = k),
+              specify_decimal_p(x = .$estimate, k = k),
               ")",
               sep = ""
             ),
@@ -471,7 +515,7 @@ tfz_labeller <- function(tidy_df,
               ", ~italic(p)",
               .$p.value.formatted2,
               ", ~italic(omega)^2==",
-              ggstatsplot::specify_decimal_p(x = .$estimate, k = k),
+              specify_decimal_p(x = .$estimate, k = k),
               ")",
               sep = ""
             ),
@@ -483,6 +527,168 @@ tfz_labeller <- function(tidy_df,
     }
   }
 
+  # convert to tibble
+  tidy_df %<>% tibble::as_tibble(.)
+
   # return the final dataframe
   return(tidy_df)
+}
+
+#' @title Prepare subtitle with meta-analysis results
+#' @description Making text subtitle for meta-analysis via linear (mixed-effects)
+#'   models as implemented in the `metafor` package.
+#' @name subtitle_meta_ggcoefstats
+#' @author Indrajeet Patil
+#'
+#' @param data A dataframe. It **must** contain columns named `estimate`
+#'   (corresponding estimates of coefficients or other quantities of interest)
+#'   and `std.error` (the standard error of the regression term).
+#' @param output  Character describing the desired output. If `"subtitle"`, a
+#'   formatted subtitle will be returned. The other option is to return `"tidy"`
+#'   data frame with coefficients.
+#' @inheritParams ggbetweenstats
+#' @param ... Additional arguments (ignored).
+#'
+#' @importFrom metafor rma
+#'
+#' @examples
+#' # set up
+#' set.seed(123)
+#' library(ggstatsplot)
+#' library(gapminder)
+#' 
+#' # saving results from regression
+#' df_results <- purrr::pmap(
+#'   .l = list(
+#'     data = list(gapminder::gapminder),
+#'     formula = list(scale(lifeExp) ~ scale(gdpPercap)),
+#'     grouping.vars = alist(continent),
+#'     output = list("tidy", "glance")
+#'   ),
+#'   .f = groupedstats::grouped_lm
+#' ) %>%
+#'   dplyr::full_join(x = .[[1]], y = .[[2]], by = "continent") %>%
+#'   dplyr::filter(.data = ., term != "(Intercept)")
+#' 
+#' # making subtitle
+#' ggstatsplot::subtitle_meta_ggcoefstats(
+#'   data = df_results,
+#'   k = 3,
+#'   messages = FALSE
+#' )
+#' 
+#' # getting tidy data frame with coefficients
+#' ggstatsplot::subtitle_meta_ggcoefstats(
+#'   data = df_results,
+#'   messages = FALSE,
+#'   output = "tidy"
+#' )
+#' @export
+
+# function body
+subtitle_meta_ggcoefstats <- function(data,
+                                      k = 2,
+                                      messages = TRUE,
+                                      output = "subtitle",
+                                      ...) {
+
+  # check if the two columns needed are present
+  if (sum(c("estimate", "std.error") %in% names(data)) != 2) {
+    # inform the user that skipping labels for the same reason
+    base::stop(base::message(cat(
+      crayon::red("Error"),
+      crayon::blue(": The dataframe **must** contain the following two columns:\n"),
+      crayon::blue("`estimate` and `std.error`."),
+      sep = ""
+    )),
+    call. = FALSE
+    )
+  }
+
+  # object from meta-analysis
+  meta_res <- metafor::rma(
+    yi = estimate,
+    sei = std.error,
+    measure = "GEN",
+    intercept = TRUE,
+    data = data,
+    vtype = "LS",
+    method = "REML",
+    weighted = TRUE,
+    test = "z",
+    level = 95,
+    digits = 4,
+    ...
+  )
+
+  # print the results
+  if (isTRUE(messages)) {
+    print(summary(meta_res))
+  }
+
+  # create a dataframe with coeffcients
+  df_coef <- coef(summary(meta_res)) %>%
+    tibble::as_tibble(x = .) %>%
+    dplyr::rename(
+      .data = .,
+      std.error = se,
+      z.value = zval,
+      p.value = pval,
+      conf.low = ci.lb,
+      conf.high = ci.ub
+    ) %>%
+    dplyr::mutate(.data = ., term = "summary effect") %>%
+    dplyr::select(
+      .data = .,
+      term,
+      estimate,
+      conf.low,
+      conf.high,
+      dplyr::everything()
+    )
+
+  # preparing the subtitle
+  subtitle <-
+    base::substitute(
+      expr =
+        paste(
+          "Meta-analytic effect: ",
+          beta,
+          " = ",
+          estimate,
+          ", CI"["95%"],
+          " [",
+          LL,
+          ", ",
+          UL,
+          "]",
+          ", ",
+          italic("z"),
+          " = ",
+          zvalue,
+          ", ",
+          "se = ",
+          se,
+          ", ",
+          italic("p"),
+          " = ",
+          pvalue
+        ),
+      env = base::list(
+        estimate = specify_decimal_p(x = df_coef$estimate, k = k),
+        LL = specify_decimal_p(x = df_coef$conf.low, k = k),
+        UL = specify_decimal_p(x = df_coef$conf.high, k = k),
+        zvalue = specify_decimal_p(x = df_coef$z.value, k = k),
+        se = specify_decimal_p(x = df_coef$std.error, k = k),
+        pvalue = specify_decimal_p(x = df_coef$p.value, k = k, p.value = TRUE)
+      )
+    )
+
+  if (output == "subtitle") {
+    # return the subtitle
+    return(subtitle)
+  } else if (output == "tidy") {
+    # tidy data frame with coefficients
+    return(df_coef)
+  }
 }

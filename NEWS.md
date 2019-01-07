@@ -1,3 +1,52 @@
+# ggstatsplot 0.0.8
+
+NEW FEATURES
+
+  - `ggcoefstats` gains `meta.analytic.effect` that can be used to carry out
+    meta-analysis on regression estimates. This especially useful when a
+    dataframe with regression estimates and standard error is available from
+    prior analyses. The `subtitle` is prepared with the new function
+    `subtitle_meta_ggcoefstats` which is also exported.
+  - `ggbetweenstats`, `ggscatterstats`, `gghistostats`, and `ggdotplotstats`
+    (and their `grouped_` variants) all gain a new `ggplot.component` argument.
+    This argument will primarily be helpful to change the individual plots in a
+    `grouped_` plot.
+  - `ggcoefstats` can support following new regression model objects: `polr`,
+    `survreg`, `cch`, `Arima`, `biglm`, `glmmTMB`, `coxph`, `ridgelm`, `aareg`,
+    `plm`, `nlrq`, `ivreg`, `ergm`, `btergm`, `garch`, `gmm`, `lmodel2`,
+    `svyolr`, `confusionMatrix`, `multinom`, `nlmerMod`, `svyglm`, `MCMCglmm`,
+    `lm.beta`, `speedlm`, `fitdistr`, `mle2`, `orcutt`, `glmmadmb`.
+
+BUG FIXES
+
+  - `ggcoefstats` didn't work when `statistic` argument was set to `NULL`. This
+    was not expected behavior. This has been fixed. Now, if `statistic` is not
+    specified, only the dot-and-whiskers will be shown without any labels.
+  - `subtitle_t_parametric` was producing incorrect sample size information when
+    `paired = TRUE` and the data contained `NA`s. This has been fixed.
+
+MAJOR CHANGES
+
+  - `ggscatterstats` and its `grouped_` variant accept both character and bare
+    exressions as input to arguments `label.var` and `labe.expression` (#110).
+  - To be consistent with rest of the functions in the package, both Pearson's
+    *r*, Spearman's *rho*, and robust percentage bend correlations also display
+    information about statistic associated with these tests.
+  - `ggscatterstats`, by default, showed jittered data points (because it relied
+    on `position_jitter` defaults). This could be visually inaccurate and,
+    therefore, `ggscatterstats` now displays points without any jitter. The user
+    can introduce jitter if they wish to using `point.width.jitter` and
+    `point.height.jitter` arguments. For similar reasons, for `ggbetweenstats`
+    and its `grouped_` variant, `point.jitter.height` default has been changed
+    from `0.1` to `0` (no vertical jitter, i.e.).
+
+MINOR CHANGES
+
+  - Confidence interval for Kendall's *W* is now computed using
+    `stats::kruskal.test`. As a result, `PMCMRplus` removed from dependencies.
+  - `ggcoefstats` gains a `caption` argument. If `caption.summary` is set to
+    `TRUE`, the specified caption will be added on top of the `caption.summary`.
+  
 # ggstatsplot 0.0.7
 
 BUG FIXES
@@ -35,7 +84,7 @@ MAJOR CHANGES
     (parametric, nonparametric, and robust variants). It gains a new dependency
     `ggsignif`.
   - `ggbetweenstats` now supports eta-squared and omega-squared effect sizes for
-    anova models. TThis function gains a new argument `partial`. 
+    anova models. This function gains a new argument `partial`. 
   - Following functions are now reexported from the `groupedstats` package to
     avoid repeating the same code in two packages: `specify_decimal_p`,
     `signif_column`, `lm_effsize_ci`, and `set_cwd`. Therefore, `groupedstats`
@@ -43,11 +92,11 @@ MAJOR CHANGES
   - `gghistostats` can now show both counts and proportions information on the
     same plot when `bar.measure` argument is set to `"mix"`.
   - `ggcoefstats` works with tidy dataframes.
-  - The helper function `untable` has been depcreated in light of
+  - The helper function `untable` has been deprecated in light of
     `tidyr::uncount`, which does exactly what `untable` was doing. The author
     wasn't aware of this function when `untable` was written.
-  - Vignette with `purrr` examples removed from `CRAN` to reduce the size of the
-    package. It is now available on the package website:
+  - All vignettes have been removed from `CRAN` to reduce the size of the
+    package. They are now available on the package website:
     <https://indrajeetpatil.github.io/ggstatsplot/articles/>.
   - `subtitle_t_robust` function can now handle dependent samples and
     gains `paired` argument.
@@ -81,7 +130,7 @@ MINOR CHANGES
     also gains two new arguments to do this: `results.subtitle` and `subtitle`.
   - New dataset added: `iris_long`.
   - More tests added and the code coverage has now jumped to over 75%.
-  - To avoid code repitition, there is a now a function that produces a generic
+  - To avoid code repetition, there is a now a function that produces a generic
     message any time confidence intervals for effect size estimate are computed
     using bootstrapping.
 
@@ -112,7 +161,7 @@ MAJOR CHANGES
 
 BREAKING CHANGES
 
-  - `legend.title.margin` function has been depcrecated since `ggplot2 3.0.0`
+  - `legend.title.margin` function has been deprecated since `ggplot2 3.0.0`
     has improved on the margin issues from previous versions. All functions that
     wrapped around this function now lose the relevant arguments
     (`legend.title.margin`, `t.margin`, `b.margin`).
@@ -124,7 +173,7 @@ BREAKING CHANGES
     arguments were relevant only for `robust` tests anyway.
   - `ggocorrmat` argument `type` has been changed to `matrix.type` because for
     all other functions `type` argument specifies the type of the test, while
-    for this function it specified the display of the virsualization matrix.
+    for this function it specified the display of the visualization matrix.
     This will make the syntax more consistent across functions.
   - `ggscatterstats` gains new arguments to specify aesthetics for geom point
     (`point.color`, `point.size`, `point.alpha`). To be consistent with this
@@ -257,7 +306,7 @@ MAJOR CHANGES
   - To be internally consistent, all functions in `ggstatsplot` use the spelling
     `color`, rather than `colour` in some functions, while `color` in others.
   - Removed the redundant argument `binwidth.adjust` from `gghistostats`
-    function. This argument was relevant for the first avatar of this fucntion,
+    function. This argument was relevant for the first avatar of this function,
     but is no longer playing any role.
   - To be internally consistent, the argument `lab_col` and `lab_size` in
     `ggcorrmat` have been changed to `lab.col` and `lab.size`, respectively.
@@ -303,7 +352,7 @@ MAJOR CHANGES
     density information was redundant. The `density.plot` argument has also been
     deprecated.
   - `ggscatterstats` argument `intercept` has now been changed to
-    `centrality.para`. This was due to possible confusion about interpreation of
+    `centrality.para`. This was due to possible confusion about interpretation of
     these lines; they show central tendency measures and not intercept for the
     linear model. Thus the change.
   - The default for `effsize.type = "biased"` effect size for `ggbetweenstats`

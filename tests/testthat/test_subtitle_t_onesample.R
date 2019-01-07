@@ -25,11 +25,12 @@ testthat::test_that(
     results1 <-
       ggplot2::expr(
         paste(
+          NULL,
           italic("t"),
           "(",
-          2432,
+          "1578",
           ") = ",
-          "-28.74823",
+          "-23.04633",
           ", ",
           italic("p"),
           " = ",
@@ -37,17 +38,17 @@ testthat::test_that(
           ", ",
           italic("d"),
           " = ",
-          "-0.58283",
+          "-0.57998",
           ", CI"["95%"],
           " [",
-          "-0.62575",
+          "-0.63321",
           ", ",
-          "-0.53980",
+          "-0.52659",
           "]",
           ", ",
           italic("n"),
           " = ",
-          2433L
+          1579L
         )
       )
 
@@ -153,8 +154,6 @@ testthat::test_that(
   }
 )
 
-
-
 # bayes factor -----------------------------------------------------------
 
 testthat::test_that(
@@ -204,8 +203,6 @@ testthat::test_that(
     testthat::expect_identical(using_function1, results1)
   }
 )
-
-
 
 # message checks ---------------------------------------------------------
 

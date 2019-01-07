@@ -7,13 +7,14 @@
 #'   the plot as a subtitle.
 #' @author Indrajeet Patil
 #'
-#' @param data Dataframe from which variables specified are preferentially to be
-#'   taken.
-#' @param x The grouping variable.
-#' @param y The response - a vector of length the number of rows of `x`.
+#' @param data A dataframe from which variables specified are preferentially to
+#'   be taken.
+#' @param x The grouping variable from the dataframe `data`.
+#' @param y The response (a.k.a. outcome or dependent) variable from the
+#'   dataframe `data`.
 #' @param plot.type Character describing the *type* of plot. Currently supported
 #'   plots are `"box"` (for pure boxplots), `"violin"` (for pure violin plots),
-#'   and `"boxviolin"` (for a mix of box and violin plots; default).
+#'   and `"boxviolin"` (for a combination of box and violin plots; default).
 #' @param xlab Label for `x` axis variable.
 #' @param ylab Label for `y` axis variable.
 #' @param type Type of statistic expected (`"parametric"` or `"nonparametric"`
@@ -68,6 +69,10 @@
 #' @param outlier.tagging Decides whether outliers should be tagged (Default:
 #'   `FALSE`).
 #' @param outlier.label Label to put on the outliers that have been tagged.
+#' @param outlier.shape Hiding the outliers can be achieved by setting
+#'   outlier.shape = NA. Importantly, this does not remove the outliers,
+#'   it only hides them, so the range calculated for the y-axis will be
+#'   the same with outliers shown and outliers hidden.
 #' @param outlier.label.color Color for the label to to put on the outliers that
 #'   have been tagged (Default: `"black"`).
 #' @param outlier.coef Coefficient for outlier detection using Tukey's method.
@@ -91,6 +96,10 @@
 #'   direction. Defaults to `0.1`.
 #' @param point.dodge.width Numeric specifying the amount to dodge in the `x`
 #'   direction. Defaults to `0.60`.
+#' @param ggplot.component A `ggplot` component to be added to the plot prepared
+#'   by `ggstatsplot`. This argument is primarily helpful for `grouped_` variant
+#'   of the current function. Default is `NULL`. The argument should be entered
+#'   as a function.
 #' @inheritParams paletteer::scale_color_paletteer_d
 #' @inheritParams theme_ggstatsplot
 #' @inheritParams subtitle_anova_parametric
@@ -133,7 +142,7 @@
 #'  \item *t*-test: Yuen's test for trimmed means (see `?WRS2::yuen`)
 #'  }
 #'
-#' Variant of this function `ggwithinstats` is currently under work. You *can*
+#' Variant of this function `ggwithinstats` is currently in progress. You *can*
 #' still use this function just to prepare the **plot** for exploratory data
 #' analysis, but the statistical details displayed in the subtitle will be
 #' incorrect. You can remove them by adding `+ ggplot2::labs(subtitle = NULL)`.
@@ -211,6 +220,7 @@ ggbetweenstats <- function(data,
                            notchwidth = 0.5,
                            linetype = "solid",
                            outlier.tagging = FALSE,
+                           outlier.shape = 19,
                            outlier.label = NULL,
                            outlier.label.color = "black",
                            outlier.color = "black",
@@ -227,6 +237,7 @@ ggbetweenstats <- function(data,
                            package = "RColorBrewer",
                            palette = "Dark2",
                            direction = 1,
+                           ggplot.component = NULL,
                            messages = TRUE) {
 
   # no pairwise comparisons are available for bayesian t-tests
@@ -300,6 +311,22 @@ ggbetweenstats <- function(data,
     min_length = length(unique(levels(data$x)))[[1]]
   )
 
+  # add a logical column indicating whether a point is or is not an outlier
+  data %<>%
+    dplyr::group_by(.data = ., x) %>%
+    dplyr::mutate(
+      .data = .,
+      isanoutlier = base::ifelse(
+        test = check_outlier(
+          var = y,
+          coef = outlier.coef
+        ),
+        yes = TRUE,
+        no = FALSE
+      )
+    ) %>%
+    dplyr::ungroup(x = .)
+
   # -------------------------------- plot -----------------------------------
 
   # create the basic plot
@@ -308,7 +335,9 @@ ggbetweenstats <- function(data,
       data = data,
       mapping = ggplot2::aes(x = x, y = y)
     ) +
+    # add all points which are not outliers
     ggplot2::geom_point(
+      data = data %>% dplyr::filter(.data = ., !isanoutlier),
       position = ggplot2::position_jitterdodge(
         jitter.width = point.jitter.width,
         dodge.width = point.dodge.width,
@@ -320,6 +349,39 @@ ggbetweenstats <- function(data,
       na.rm = TRUE,
       ggplot2::aes(color = factor(x))
     )
+
+  # decide how to plot outliers if it's desired
+  if (isFALSE(outlier.tagging)) {
+    plot <- plot +
+      # add all outliers in using same method
+      ggplot2::geom_point(
+        data = data %>% dplyr::filter(.data = ., isanoutlier),
+        position = ggplot2::position_jitterdodge(
+          jitter.width = point.jitter.width,
+          dodge.width = point.dodge.width,
+          jitter.height = point.jitter.height
+        ),
+        alpha = 0.4,
+        size = 3,
+        stroke = 0,
+        na.rm = TRUE,
+        ggplot2::aes(color = factor(x))
+      )
+  } else {
+    if (plot.type == "violin") {
+      plot <- plot +
+        # add all outliers in
+        ggplot2::geom_point(
+          data = data %>% dplyr::filter(.data = ., isanoutlier),
+          size = 3,
+          stroke = 0,
+          alpha = 0.7,
+          na.rm = TRUE,
+          color = outlier.color,
+          shape = outlier.shape
+        )
+    }
+  }
 
   # single component for creating geom_violin
   ggbetweenstats_geom_violin <-
@@ -334,17 +396,6 @@ ggbetweenstats <- function(data,
     # adding a boxplot
     if (isTRUE(outlier.tagging)) {
       plot <- plot +
-        ggplot2::geom_boxplot(
-          notch = notch,
-          notchwidth = notchwidth,
-          linetype = linetype,
-          width = 0.3,
-          alpha = 0.2,
-          fill = "white",
-          position = ggplot2::position_dodge(width = NULL),
-          na.rm = TRUE,
-          outlier.color = outlier.color
-        ) +
         ggplot2::stat_boxplot(
           notch = notch,
           notchwidth = notchwidth,
@@ -353,9 +404,10 @@ ggbetweenstats <- function(data,
           width = 0.3,
           alpha = 0.2,
           fill = "white",
-          outlier.shape = 16,
+          outlier.shape = outlier.shape,
           outlier.size = 3,
           outlier.alpha = 0.7,
+          outlier.color = outlier.color,
           coef = outlier.coef,
           na.rm = TRUE
         )
@@ -368,6 +420,7 @@ ggbetweenstats <- function(data,
           width = 0.3,
           alpha = 0.2,
           fill = "white",
+          outlier.shape = NA,
           position = ggplot2::position_dodge(width = NULL),
           na.rm = TRUE
         )
@@ -469,17 +522,21 @@ ggbetweenstats <- function(data,
       dplyr::mutate(
         .data = .,
         outlier = base::ifelse(
-          test = check_outlier(
-            var = y,
-            coef = outlier.coef
-          ),
+          test = isanoutlier,
           yes = outlier.label,
           no = NA
         )
       ) %>%
       dplyr::ungroup(x = .) %>%
-      stats::na.omit(.) %>%
+      dplyr::filter(.data = ., isanoutlier) %>%
       dplyr::select(.data = ., -outlier)
+
+    # if there is no value for outlier.label
+    data_outlier_label$outlier.label <-
+      stringr::str_replace_na(
+        string = data_outlier_label$outlier.label,
+        replacement = "NA"
+      )
 
     # applying the labels to tagged outliers with ggrepel
     plot <-
@@ -703,6 +760,12 @@ ggbetweenstats <- function(data,
       palette = !!palette,
       direction = direction
     )
+
+  # ---------------- adding ggplot component ---------------------------------
+
+  # if any additional modification needs to be made to the plot
+  # this is primarily useful for grouped_ variant of this function
+  plot <- plot + ggplot.component
 
   # --------------------- messages ------------------------------------------
 
