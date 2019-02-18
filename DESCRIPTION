@@ -1,59 +1,57 @@
 Type: Package
 Package: ggstatsplot
 Title: 'ggplot2' Based Plots with Statistical Details
-Version: 0.0.8
-Authors@R: c(
-  person(
-  given = "Indrajeet", 
-  family = "Patil", 
-  email = "patilindrajeet.science@gmail.com", 
-  role = c("aut", "cre"), 
-  comment = c(ORCID = "0000-0003-1995-6531")),
-  person(
-  given = "Chuck", 
-  family = "Powell", 
-  email = "ibecav@gmail.com", 
-  role = "ctb", 
-  comment = c(ORCID = "0000-0002-3606-2188")))
+Version: 0.0.9
+Authors@R: 
+    c(person(given = "Indrajeet",
+             family = "Patil",
+             role = c("cre", "aut", "ctb"),
+             email = "patilindrajeet.science@gmail.com",
+             comment = c(ORCID = "0000-0003-1995-6531")),
+      person(given = "Chuck",
+             family = "Powell",
+             role = c("aut", "ctb"),
+             email = "ibecav@gmail.com",
+             comment = c(ORCID = "0000-0002-3606-2188")))
 Maintainer: Indrajeet Patil <patilindrajeet.science@gmail.com>
-Description: Extension of 'ggplot2', 'ggstatsplot' creates graphics with details 
-  from statistical tests included in the plots themselves. It is targeted primarily at 
-  behavioral sciences community to provide a one-line code to generate information-rich plots for 
-  statistical analysis. of continuous (violin plots, scatterplots, histograms) or 
-  categorical (pie charts) data. Currently, it supports only the most common types 
-  of statistical tests: parametric, nonparametric, robust, and bayesian 
-  versions of t-test/anova, correlation analyses, contingency table analysis, 
-  and regression analyses.
+Description: Extension of 'ggplot2', 'ggstatsplot' creates
+    graphics with details from statistical tests included in the plots
+    themselves. It is targeted primarily at behavioral sciences community
+    to provide a one-line code to generate information-rich plots for
+    statistical analysis. of continuous (violin plots, scatterplots,
+    histograms) or categorical (pie and bar charts) data. Currently, it
+    supports only the most common types of statistical tests: parametric,
+    nonparametric, robust, and bayesian versions of t-test/anova,
+    correlation analyses, contingency table analysis, and regression
+    analyses.
 License: GPL-3 | file LICENSE
 URL: https://indrajeetpatil.github.io/ggstatsplot/,
         https://github.com/IndrajeetPatil/ggstatsplot
 BugReports: https://github.com/IndrajeetPatil/ggstatsplot/issues
 Depends: R (>= 3.5.0)
 Imports: BayesFactor (>= 0.9.12-4.2), boot (>= 1.3-20), broom (>=
-        0.5.1), broom.mixed (>= 0.2.3), coin (>= 1.2-2), cowplot (>=
-        0.9.3), crayon (>= 1.3.4), dplyr (>= 0.7.8), effsize (>=
-        0.7.4), exact2x2 (>= 1.6.3), ggcorrplot (>= 0.1.2), ggExtra (>=
-        0.8), ggplot2 (>= 3.1.0), ggrepel (>= 0.8.0), ggsignif (>=
-        0.4.0) , glue (>= 1.3.0), grid, groupedstats (>= 0.0.4), jmv
-        (>= 0.9.6), magrittr (>= 1.5), metafor (>= 2.0-0), paletteer
-        (>= 0.1.0), psych (>= 1.8.10), purrr (>= 0.2.5), purrrlyr (>=
-        0.0.3), rlang (>= 0.3.0.1), scales (>= 1.0.0), sjstats (>=
-        0.17.2), stats, tibble (>= 2.0.0), tidyr (>= 0.8.2), WRS2 (>=
-        0.10-0)
-Suggests: devtools, ggthemes (>= 4.0.0), gmm, gapminder (>= 0.3.0),
-        glmmTMB (>= 0.2.2.0), hrbrthemes (>= 0.5.0.1), knitr, lme4 (>=
-        1.1-19), lmodel2, MASS, ordinal (>= 2018.8-25), plyr (>=
-        1.8.4), quantreg (>= 5.38), robust (>= 0.4-18), readr (>=
-        1.3.0), rmarkdown, spelling (>= 2.0), stringr (>= 1.3.1),
-        survival, testthat, vdiffr
+        0.5.1), broom.mixed (>= 0.2.3), cowplot (>= 0.9.4), crayon (>=
+        1.3.4), dplyr (>= 0.8.0), ellipsis (>= 0.0.2), exact2x2 (>=
+        1.6.3), ggcorrplot (>= 0.1.2), ggExtra (>= 0.8), ggplot2 (>=
+        3.1.0), ggrepel (>= 0.8.0), ggsignif (>= 0.4.0), glue (>=
+        1.3.0), grid, groupedstats (>= 0.0.5), jmv (>= 0.9.6), magrittr
+        (>= 1.5), metafor (>= 2.0-0), methods, paletteer (>= 0.2.1),
+        psych (>= 1.8.12), purrr (>= 0.3.0), purrrlyr (>= 0.0.4), rlang
+        (>= 0.3.1), scales (>= 1.0.0), sjstats (>= 0.17.3), stats,
+        tibble (>= 2.0.1), tidyr (>= 0.8.2), WRS2 (>= 0.10-0)
+Suggests: glmmTMB (>= 0.2.3), gmm (>= 1.6-2), knitr, lme4 (>= 1.1-20),
+        MASS, MCMCglmm (>= 2.28), ordinal (>= 2018.8-25), quantreg (>=
+        5.38), readr (>= 1.3.0), rmarkdown, robust (>= 0.4-18),
+        spelling (>= 2.0), stringr (>= 1.3.1), survival, testthat
+VignetteBuilder: knitr
 Encoding: UTF-8
+Language: en-US
 LazyData: true
 RoxygenNote: 6.1.1
-VignetteBuilder: knitr
-Language: en-US
 NeedsCompilation: no
-Packaged: 2019-01-07 09:30:07 UTC; inp099
-Author: Indrajeet Patil [aut, cre] (<https://orcid.org/0000-0003-1995-6531>),
-  Chuck Powell [ctb] (<https://orcid.org/0000-0002-3606-2188>)
+Packaged: 2019-02-18 02:11:34 UTC; inp099
+Author: Indrajeet Patil [cre, aut, ctb]
+    (<https://orcid.org/0000-0003-1995-6531>),
+  Chuck Powell [aut, ctb] (<https://orcid.org/0000-0002-3606-2188>)
 Repository: CRAN
-Date/Publication: 2019-01-07 16:40:36 UTC
+Date/Publication: 2019-02-18 09:00:03 UTC

@@ -3,8 +3,6 @@
 #' @name subtitle_t_onesample
 #' @author Indrajeet Patil
 #'
-#' @param data Dataframe from which variables specified are preferentially to be
-#'   taken. This argument is optional.
 #' @param x A numeric variable.
 #' @param test.value A number specifying the value of the null hypothesis
 #'   (Default: `0`).
@@ -13,6 +11,7 @@
 #'   `?WRS2::onesampb`.
 #' @param nboot Number of bootstrap samples for robust one-sample location test
 #'   (Default: `100`).
+#' @param ... Additional arguments.
 #' @inheritParams ggbetweenstats
 #'
 #' @importFrom dplyr select bind_rows summarize mutate mutate_at mutate_if
@@ -23,21 +22,24 @@
 #' @importFrom crayon green blue yellow red
 #' @importFrom psych cohen.d.ci
 #' @importFrom groupedstats specify_decimal_p
+#' @importFrom ellipsis check_dots_used
 #'
 #' @seealso \code{\link{gghistostats}}
 #'
 #' @examples
-#' 
+#'
 #' # for reproducibility
 #' set.seed(123)
-#' 
-#' subtitle_t_onesample(
-#'   x = iris$Sepal.Length,
+#'
+#' ggstatsplot::subtitle_t_onesample(
+#'   data = iris,
+#'   x = Sepal.Length,
+#'   test.value = 5,
 #'   type = "r"
 #' )
 #' @export
 
-subtitle_t_onesample <- function(data = NULL,
+subtitle_t_onesample <- function(data,
                                  x,
                                  type = "parametric",
                                  test.value = 0,
@@ -46,27 +48,17 @@ subtitle_t_onesample <- function(data = NULL,
                                  conf.level = 0.95,
                                  nboot = 100,
                                  k = 2,
-                                 messages = TRUE) {
+                                 messages = TRUE,
+                                 ...) {
 
-  # ====================== dataframe ==========================================
+  # check the dots
+  ellipsis::check_dots_used()
+
+  # ====================== dataframe ========================================
 
   # preparing a dataframe out of provided inputs
-  if (!is.null(data)) {
-    # if dataframe is provided
-    data <-
-      dplyr::select(
-        .data = data,
-        x = !!rlang::enquo(x)
-      )
-  } else {
-    # if vectors are provided
-    data <-
-      base::cbind.data.frame(x = x)
-  }
-
-  # convert to a tibble
-  data %<>%
-    stats::na.omit(.) %>%
+  data <- dplyr::select(.data = data, x = !!rlang::enquo(x)) %>%
+    tidyr::drop_na(data = .) %>%
     tibble::as_tibble(x = .)
 
   # sample size
@@ -134,48 +126,41 @@ subtitle_t_onesample <- function(data = NULL,
 
     # ========================== non-parametric ==============================
   } else if (stats.type == "nonparametric") {
-    # preparing the subtitle
-    subtitle <-
-      base::substitute(
-        expr =
-          paste(
-            italic("U"),
-            " = ",
-            estimate,
-            ", ",
-            italic("p"),
-            " = ",
-            pvalue,
-            ", ",
-            italic("d"),
-            " = ",
-            effsize,
-            ", ",
-            italic("n"),
-            " = ",
-            n
-          ),
-        env = base::list(
-          estimate = stats_df$`stat[wilc]`,
-          pvalue = ggstatsplot::specify_decimal_p(
-            x = stats_df$`p[wilc]`,
-            k,
-            p.value = TRUE
-          ),
-          effsize = ggstatsplot::specify_decimal_p(
-            x = stats_df$`es[wilc]`,
-            k = k,
-            p.value = FALSE
-          ),
-          n = sample_size
-        )
-      )
+    # setting up the Mann-Whitney U-test and getting its summary
+    stats_df <-
+      broom::tidy(stats::wilcox.test(
+        x = data$x,
+        alternative = "two.sided",
+        na.action = na.omit,
+        mu = test.value,
+        exact = FALSE,
+        correct = TRUE,
+        conf.int = TRUE,
+        conf.level = conf.level
+      ))
 
+    # preparing subtitle
+    subtitle <- subtitle_template(
+      no.parameters = 0L,
+      parameter = NULL,
+      parameter2 = NULL,
+      stat.title = NULL,
+      statistic.text = quote("log"["e"](italic("V"))),
+      statistic = log(stats_df$statistic[[1]]),
+      p.value = stats_df$p.value[[1]],
+      effsize.text = quote(Delta["HLS"]),
+      effsize.estimate = stats_df$estimate[[1]],
+      effsize.LL = stats_df$conf.low[[1]],
+      effsize.UL = stats_df$conf.high[[1]],
+      n = sample_size,
+      conf.level = conf.level,
+      k = k
+    )
     # ======================= robust =========================================
   } else if (stats.type == "robust") {
 
     # running one-sample percentile bootstrap
-    rob_os <- WRS2::onesampb(
+    stats_df <- WRS2::onesampb(
       x = data$x,
       est = robust.estimator,
       nboot = nboot,
@@ -186,13 +171,9 @@ subtitle_t_onesample <- function(data = NULL,
     if (isTRUE(messages)) {
       base::message(cat(
         crayon::green("Note: "),
-        crayon::blue(
-          "95% CI for robust location measure",
-          crayon::yellow(robust.estimator),
-          "computed with",
-          crayon::yellow(nboot),
-          "bootstrap samples.\n"
-        ),
+        crayon::blue("95% CI for robust location measure computed with "),
+        crayon::yellow(nboot),
+        crayon::blue(" bootstrap samples.\n"),
         sep = ""
       ))
     }
@@ -212,21 +193,17 @@ subtitle_t_onesample <- function(data = NULL,
           "], ",
           italic("p"),
           " = ",
-          pvalue,
+          p.value,
           ", ",
           italic("n"),
           " = ",
           n
         ),
       env = base::list(
-        estimate = ggstatsplot::specify_decimal_p(x = rob_os$estimate[[1]], k),
-        LL = ggstatsplot::specify_decimal_p(x = rob_os$ci[[1]], k),
-        UL = ggstatsplot::specify_decimal_p(x = rob_os$ci[[2]], k),
-        pvalue = ggstatsplot::specify_decimal_p(
-          x = rob_os$p.value[[1]],
-          k,
-          p.value = TRUE
-        ),
+        estimate = specify_decimal_p(x = stats_df$estimate[[1]], k = k),
+        LL = specify_decimal_p(x = stats_df$ci[[1]], k = k),
+        UL = specify_decimal_p(x = stats_df$ci[[2]], k = k),
+        p.value = specify_decimal_p(x = stats_df$p.value[[1]], k = k, p.value = TRUE),
         n = sample_size
       )
     )
@@ -245,7 +222,9 @@ subtitle_t_onesample <- function(data = NULL,
           "(BF"["10"],
           ") = ",
           bf,
-          ", Prior width = ",
+          ", ",
+          italic("r")["Cauchy"],
+          " = ",
           bf_prior,
           ", ",
           italic("d"),
@@ -258,30 +237,11 @@ subtitle_t_onesample <- function(data = NULL,
         ),
       env = base::list(
         df = stats_df$`df[stud]`,
-        estimate = ggstatsplot::specify_decimal_p(
-          x = stats_df$`stat[stud]`,
-          k = k,
-          p.value = FALSE
-        ),
-        bf = ggstatsplot::specify_decimal_p(
-          x = log(
-            x = stats_df$`stat[bf]`,
-            base = exp(1)
-          ),
-          k = k,
-          p.value = FALSE
-        ),
-        bf_prior = ggstatsplot::specify_decimal_p(
-          x = bf.prior,
-          k = k,
-          p.value = FALSE
-        ),
-        effsize = ggstatsplot::specify_decimal_p(
-          x = stats_df$`es[stud]`,
-          k = k,
-          p.value = FALSE
-        ),
-        n = nrow(x = data)
+        estimate = specify_decimal_p(x = stats_df$`stat[stud]`, k = k),
+        bf = specify_decimal_p(x = log(stats_df$`stat[bf]`), k = k),
+        bf_prior = specify_decimal_p(x = bf.prior, k = k),
+        effsize = specify_decimal_p(x = stats_df$`es[stud]`, k = k),
+        n = sample_size
       )
     )
   }

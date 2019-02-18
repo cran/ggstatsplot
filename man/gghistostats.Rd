@@ -18,11 +18,13 @@ gghistostats(data = NULL, x, binwidth = NULL, bar.measure = "count",
   centrality.k = 2, test.value.line = FALSE,
   test.value.color = "black", test.value.size = 1,
   test.value.linetype = "dashed", test.line.labeller = TRUE,
-  test.k = 0, ggplot.component = NULL, messages = TRUE)
+  test.k = 0, normal.curve = FALSE, normal.curve.color = "black",
+  normal.curve.linetype = "solid", normal.curve.size = 1,
+  ggplot.component = NULL, messages = TRUE)
 }
 \arguments{
-\item{data}{Dataframe from which variables specified are preferentially to be
-taken. This argument is optional.}
+\item{data}{A dataframe (or a tibble) from which variables specified are to
+be taken. A matrix or tables will \strong{not} be accepted.}
 
 \item{x}{A numeric variable.}
 
@@ -39,7 +41,8 @@ integrate to 1, or "\code{proportion}", which shows relative frequencies of
 observations in each bin, or "\code{mix}", which shows \emph{both} count and
 proportion in the same plot.}
 
-\item{xlab}{Label for \code{x} axis variable.}
+\item{xlab}{Labels for \code{x} and \code{y} axis variables. If \code{NULL} (default),
+variable names for \code{x} and \code{y} will be used.}
 
 \item{title}{The text for the plot title.}
 
@@ -66,8 +69,8 @@ favor of the \emph{null} hypothesis \strong{for parametric test} (Default: \code
 (\code{"onestep"} (Default), \code{"mom"}, or \code{"median"}). For more, see
 \code{?WRS2::onesampb}.}
 
-\item{conf.level}{A scalar value between 0 and 1. If unspecified, the
-default is to return \code{95\%} lower and upper confidence intervals (\code{0.95}).}
+\item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
+\code{95\%} lower and upper confidence intervals (\code{0.95}).}
 
 \item{nboot}{Number of bootstrap samples for robust one-sample location test
 (Default: \code{100}).}
@@ -77,8 +80,8 @@ default is to return \code{95\%} lower and upper confidence intervals (\code{0.9
 
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
 \code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
-extension packages are allowed (e.g., \code{ggthemes::theme_economist()},
-\code{hrbrthemes::theme_ipsum_ps()}, \code{ggthemes::theme_fivethirtyeight()}, etc.).}
+extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
+\code{hrbrthemes::theme_ipsum_ps()}, etc.).}
 
 \item{ggstatsplot.layer}{Logical that decides whether \code{theme_ggstatsplot}
 theme elements are to be displayed along with the selected \code{ggtheme}
@@ -136,10 +139,19 @@ be displayed for \strong{test.value} line (Default: \code{TRUE}).}
 \item{test.k}{Integer denoting the number of decimal places expected for
 \code{test.value} label. (Default: \code{0} ).}
 
+\item{normal.curve}{Logical decides whether to super-impose a normal curve
+using \code{stats::dnorm(mean(x), sd(x))}. Default is \code{FALSE}.}
+
+\item{normal.curve.color, normal.curve.linetype, normal.curve.size}{If
+\code{normal.curve = TRUE}, then these arguments can be used to modify color
+(Default: \code{"black"}), size (default: \code{1.0}), linetype (default: \code{"solid"}).}
+
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
 by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
 of the current function. Default is \code{NULL}. The argument should be entered
-as a function.}
+as a function. If the given function has an argument \code{axes.range.restrict}
+and if it has been set to \code{TRUE}, the added ggplot component \emph{might} not
+work as expected.}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
@@ -151,7 +163,7 @@ in the plot as a subtitle.
 \examples{
 
 # most basic function call with the defaults
-# this is the only function where data argument can be `NULL`.
+# this is the **only** function where data argument can be `NULL`
 ggstatsplot::gghistostats(
   x = ToothGrowth$len,
   xlab = "Tooth length",
@@ -160,7 +172,7 @@ ggstatsplot::gghistostats(
 
 # a detailed function call
 ggstatsplot::gghistostats(
-  data = datasets::iris,
+  data = iris,
   x = Sepal.Length,
   bar.measure = "mix",
   type = "p",

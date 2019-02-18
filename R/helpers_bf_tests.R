@@ -1,50 +1,29 @@
-#' @title Convenience function to extract bayes factors and details about
-#'   posterior (mean, median, HDI, etc.) from `BayesFactor` model object.
+#' @title Convenience function to extract bayes factors from `BayesFactor` model
+#'   object.
 #' @name bf_extractor
 #'
 #' @param bf.object An object from `BayesFactor` package test results.
-#' @param posterior If `TRUE`, the dataframe will contain mean, median, standard
-#'   deviation, and standard error for the posterior.
-#' @param iterations The number of iterations to sample for computing posterior
-#'   (default: `1000`).
-#' @param cred.int A scalar between 0 and 1, indicating the mass within the
-#'   credible interval that is to be estimated (default: `0.95`).
+#' @param ... Currently ignored.
 #'
-#' @importFrom BayesFactor extractBF posterior
-#' @importFrom sjstats hdi
+#' @importFrom BayesFactor extractBF
 #' @importFrom groupedstats grouped_summary
 #' @importFrom tibble as_tibble tribble enframe
 #' @importFrom dplyr rename select mutate everything bind_cols
 #'
 #' @examples
-#' 
 #' # getting only bayes factors
-#' ggstatsplot::bf_extractor(BayesFactor::anovaBF(Sepal.Length ~ Species,
-#'   data = iris,
-#'   progress = FALSE
-#' ))
-#' \dontrun{
-#' # show all columns in a tibble
-#' options(tibble.width = Inf)
-#' 
-#' # getting bayes factors and posteriors
 #' ggstatsplot::bf_extractor(
-#'   BayesFactor::correlationBF(
-#'     x = iris$Sepal.Length,
-#'     y = iris$Sepal.Width
-#'   ),
-#'   posterior = TRUE,
-#'   iterations = 1000,
-#'   cred.int = 0.95
+#'   BayesFactor::anovaBF(Sepal.Length ~ Species,
+#'     data = iris,
+#'     progress = FALSE
+#'   )
 #' )
-#' }
 #' @export
 
 # function body
 bf_extractor <- function(bf.object,
-                         posterior = FALSE,
-                         iterations = 1000,
-                         cred.int = 0.95) {
+                         ...) {
+  ellipsis::check_dots_used()
 
   # preparing the dataframe
   bf_df <-
@@ -75,50 +54,6 @@ bf_extractor <- function(bf.object,
       dplyr::everything()
     )
 
-  if (isTRUE(posterior)) {
-
-    # a vector posterior samples
-    posterior_samples <-
-      as.vector(suppressMessages(
-        BayesFactor::posterior(
-          model = bf.object,
-          iterations = iterations,
-          progress = FALSE
-        )
-      ))
-
-    # dataframe with posteriors
-    posterior_df <-
-      posterior_samples %>%
-      tibble::enframe(x = .) %>%
-      dplyr::select(.data = ., -name) %>%
-      dplyr::mutate(.data = ., group = "1") %>%
-      groupedstats::grouped_summary(
-        data = .,
-        grouping.vars = group,
-        measures = value
-      ) %>%
-      dplyr::select(
-        .data = .,
-        posterior.mean = mean,
-        posterior.median = median,
-        posterior.sd = sd,
-        posterior.std.error = std.error
-      )
-
-    # computing HDI for posteriors
-    hdi_df <- sjstats::hdi(x = posterior_samples, prob = cred.int)
-
-    # creating a dataframe out of it
-    hdi_df <- tibble::tribble(
-      ~HDI.low, ~HDI.high, ~cred.int,
-      hdi_df[1], hdi_df[2], cred.int
-    )
-
-    # combined dataframe with bayes factors and posterior
-    bf_df <- dplyr::bind_cols(bf_df, posterior_df, hdi_df)
-  }
-
   # return the dataframe with bayes factors
   return(bf_df)
 }
@@ -135,9 +70,9 @@ bf_extractor <- function(bf.object,
 #' @inheritParams ggbetweenstats
 #'
 #' @examples
-#' 
+#'
 #' set.seed(123)
-#' 
+#'
 #' # dataframe containing results
 #' bf_results <-
 #'   bf_extractor(BayesFactor::correlationBF(
@@ -145,7 +80,7 @@ bf_extractor <- function(bf.object,
 #'     y = iris$Petal.Length
 #'   )) %>%
 #'   dplyr::mutate(.data = ., bf.prior = 0.707)
-#' 
+#'
 #' # creating caption
 #' ggstatsplot::bf_caption_maker(
 #'   bf.df = bf_results,
@@ -170,22 +105,16 @@ bf_caption_maker <- function(bf.df,
             "(BF"["01"],
             ") = ",
             bf,
-            ", Prior width = ",
+            ", ",
+            italic("r")["Cauchy"],
+            " = ",
             bf_prior
           )
       ),
       env = base::list(
         top.text = caption,
-        bf = ggstatsplot::specify_decimal_p(
-          x = bf.df$log_e_bf01[[1]],
-          k = k,
-          p.value = FALSE
-        ),
-        bf_prior = ggstatsplot::specify_decimal_p(
-          x = bf.df$bf.prior[[1]],
-          k = k,
-          p.value = FALSE
-        )
+        bf = specify_decimal_p(x = bf.df$log_e_bf01[[1]], k = k),
+        bf_prior = specify_decimal_p(x = bf.df$bf.prior[[1]], k = k)
       )
     )
 
@@ -195,9 +124,9 @@ bf_caption_maker <- function(bf.df,
 
 #' @title Bayesian correlation test.
 #' @name bf_corr_test
-#' @aliases bf_corr_test
 #' @author Indrajeet Patil
 #'
+#' @inheritParams BayesFactor::correlationBF
 #' @inheritParams ggscatterstats
 #' @param bf.prior A number between 0.5 and 2 (default `0.707`), the prior width
 #'   to use in calculating Bayes factors.
@@ -211,10 +140,10 @@ bf_caption_maker <- function(bf.df,
 #' \code{\link{bf_two_sample_ttest}}
 #'
 #' @examples
-#' 
+#'
 #' # for reproducibility
 #' set.seed(123)
-#' 
+#'
 #' # to get caption (default)
 #' bf_corr_test(
 #'   data = anscombe,
@@ -222,7 +151,7 @@ bf_caption_maker <- function(bf.df,
 #'   y = y4,
 #'   bf.prior = 1
 #' )
-#' 
+#'
 #' # to see results
 #' bf_corr_test(
 #'   data = anscombe,
@@ -240,7 +169,8 @@ bf_corr_test <- function(data,
                          bf.prior = 0.707,
                          caption = NULL,
                          output = "caption",
-                         k = 2) {
+                         k = 2,
+                         ...) {
 
   # ============================ data preparation ==========================
 
@@ -251,19 +181,22 @@ bf_corr_test <- function(data,
       x = !!rlang::enquo(x),
       y = !!rlang::enquo(y)
     ) %>%
-    dplyr::filter(.data = ., !is.na(x), !is.na(y)) %>%
+    tidyr::drop_na(data = .) %>%
     tibble::as_tibble(.)
 
   # ========================= subtitle preparation ==========================
 
   # extracting results from bayesian test and creating a dataframe
   bf_results <-
-    bf_extractor(bf.object = BayesFactor::correlationBF(
-      x = data$x,
-      y = data$y,
-      nullInterval = NULL,
-      rscale = bf.prior
-    )) %>% # adding prior width column
+    bf_extractor(
+      BayesFactor::correlationBF(
+        x = data$x,
+        y = data$y,
+        nullInterval = NULL,
+        rscale = bf.prior,
+        ...
+      )
+    ) %>% # adding prior width column
     dplyr::mutate(.data = ., bf.prior = bf.prior)
 
   # prepare the bayes factor message
@@ -287,9 +220,9 @@ bf_corr_test <- function(data,
 
 #' @title Bayesian contingency table analysis.
 #' @name bf_contingency_tab
-#' @aliases bf_contingency_tab
 #' @author Indrajeet Patil
 #'
+#' @inheritParams BayesFactor::contingencyTableBF
 #' @inheritParams subtitle_contingency_tab
 #' @inheritParams bf_corr_test
 #' @param sampling.plan Character describing the sampling plan. Possible options
@@ -309,10 +242,10 @@ bf_corr_test <- function(data,
 #' \code{\link{bf_two_sample_ttest}}
 #'
 #' @examples
-#' 
+#'
 #' # for reproducibility
 #' set.seed(123)
-#' 
+#'
 #' # to get caption (default)
 #' bf_contingency_tab(
 #'   data = mtcars,
@@ -320,7 +253,7 @@ bf_corr_test <- function(data,
 #'   condition = cyl,
 #'   fixed.margin = "cols"
 #' )
-#' 
+#'
 #' # to see results
 #' bf_contingency_tab(
 #'   data = mtcars,
@@ -341,7 +274,8 @@ bf_contingency_tab <- function(data,
                                prior.concentration = 1,
                                caption = NULL,
                                output = "caption",
-                               k = 2) {
+                               k = 2,
+                               ...) {
 
   # ============================ data preparation ==========================
 
@@ -352,27 +286,12 @@ bf_contingency_tab <- function(data,
       x = !!rlang::enquo(main),
       y = !!rlang::enquo(condition)
     ) %>%
-    dplyr::filter(.data = ., !is.na(x), !is.na(y)) %>%
+    tidyr::drop_na(data = .) %>%
+    dplyr::mutate(
+      .data = .,
+      x = droplevels(as.factor(x)), y = droplevels(as.factor(y))
+    ) %>%
     tibble::as_tibble(.)
-
-  # main and condition need to be a factor for this analysis
-  # also drop the unused levels of the factors
-
-  # main
-  data %<>%
-    dplyr::mutate_at(
-      .tbl = .,
-      .vars = "x",
-      .funs = ~ base::droplevels(x = base::as.factor(x = .))
-    )
-
-  # condition
-  data %<>%
-    dplyr::mutate_at(
-      .tbl = .,
-      .vars = "y",
-      .funs = ~ base::droplevels(x = base::as.factor(x = .))
-    )
 
   # ========================= subtitle preparation ==========================
 
@@ -388,12 +307,15 @@ bf_contingency_tab <- function(data,
 
   # extracting results from bayesian test and creating a dataframe
   bf_results <-
-    bf_extractor(bf.object = BayesFactor::contingencyTableBF(
-      x = table(data$x, data$y),
-      sampleType = sampling.plan,
-      fixedMargin = fixed.margin,
-      priorConcentration = prior.concentration
-    )) %>%
+    bf_extractor(
+      BayesFactor::contingencyTableBF(
+        x = table(data$x, data$y),
+        sampleType = sampling.plan,
+        fixedMargin = fixed.margin,
+        priorConcentration = prior.concentration,
+        ...
+      )
+    ) %>%
     dplyr::mutate(
       .data = .,
       sampling.plan = sampling_plan_text,
@@ -423,17 +345,9 @@ bf_contingency_tab <- function(data,
       ),
       env = base::list(
         top.text = caption,
-        bf = ggstatsplot::specify_decimal_p(
-          x = bf_results$log_e_bf01[[1]],
-          k = k,
-          p.value = FALSE
-        ),
+        bf = specify_decimal_p(x = bf_results$log_e_bf01[[1]], k = k),
         sampling.plan = sampling_plan_text,
-        a = ggstatsplot::specify_decimal_p(
-          x = bf_results$prior.concentration[[1]],
-          k = k,
-          p.value = FALSE
-        )
+        a = specify_decimal_p(x = bf_results$prior.concentration[[1]], k = k)
       )
     )
 
@@ -450,23 +364,22 @@ bf_contingency_tab <- function(data,
 
 #' @title Bayesian two-samples *t*-test.
 #' @name bf_two_sample_ttest
-#' @aliases bf_two_sample_ttest
 #' @author Indrajeet Patil
 #'
 #' @importFrom BayesFactor ttestBF extractBF
 #'
+#' @inheritParams BayesFactor::ttestBF
 #' @inheritParams ggbetweenstats
 #' @inheritParams bf_corr_test
-#' @inheritParams BayesFactor::ttestBF
 #'
 #' @seealso \code{\link{bf_contingency_tab}}, \code{\link{bf_corr_test}},
 #' \code{\link{bf_oneway_anova}}
 #'
 #' @examples
-#' 
+#'
 #' # for reproducibility
 #' set.seed(123)
-#' 
+#'
 #' # to get caption (default)
 #' bf_two_sample_ttest(
 #'   data = mtcars,
@@ -475,7 +388,7 @@ bf_contingency_tab <- function(data,
 #'   paired = FALSE,
 #'   bf.prior = 0.880
 #' )
-#' 
+#'
 #' # to see results
 #' bf_two_sample_ttest(
 #'   data = mtcars,
@@ -484,7 +397,7 @@ bf_contingency_tab <- function(data,
 #'   paired = FALSE,
 #'   output = "results"
 #' )
-#' 
+#'
 #' # for paired sample test
 #' bf_two_sample_ttest(
 #'   data = dplyr::filter(
@@ -507,7 +420,8 @@ bf_two_sample_ttest <- function(data,
                                 bf.prior = 0.707,
                                 caption = NULL,
                                 output = "caption",
-                                k = 2) {
+                                k = 2,
+                                ...) {
 
   # ============================ data preparation ==========================
 
@@ -517,15 +431,9 @@ bf_two_sample_ttest <- function(data,
       .data = data,
       x = !!rlang::enquo(x),
       y = !!rlang::enquo(y)
-    )
-
-  # convert the grouping variable to factor and drop unused levels
-  data %<>%
-    dplyr::mutate_at(
-      .tbl = .,
-      .vars = "x",
-      .funs = ~ base::droplevels(x = base::as.factor(x = .))
-    )
+    ) %>%
+    dplyr::mutate(.data = ., x = droplevels(as.factor(x))) %>%
+    tibble::as_tibble(.)
 
   # -------------------------- between-subjects design -------------------
 
@@ -543,7 +451,8 @@ bf_two_sample_ttest <- function(data,
         data = as.data.frame(data),
         rscale = bf.prior,
         paired = FALSE,
-        progress = FALSE
+        progress = FALSE,
+        ...
       )
   } else if (isTRUE(paired)) {
     # the data needs to be in wide format
@@ -564,14 +473,13 @@ bf_two_sample_ttest <- function(data,
         y = data_wide$col2,
         rscale = bf.prior,
         paired = TRUE,
-        progress = FALSE
+        progress = FALSE,
+        ...
       )
   }
 
   # extracting the bayes factors
-  bf_results <- bf_extractor(
-    bf.object = bf_object
-  ) %>%
+  bf_results <- bf_extractor(bf.object = bf_object) %>%
     dplyr::mutate(.data = ., bf.prior = bf.prior)
 
   # prepare the bayes factor message
@@ -594,19 +502,20 @@ bf_two_sample_ttest <- function(data,
 
 #' @title Bayesian one-way analysis of variance.
 #' @name bf_oneway_anova
-#' @aliases bf_oneway_anova
 #' @author Indrajeet Patil
 #'
 #' @importFrom BayesFactor anovaBF extractBF
 #'
+#' @inheritParams BayesFactor::anovaBF
 #' @inheritParams ggbetweenstats
 #' @inheritParams bf_corr_test
+#' @param ... Additional arguments.
 #'
 #' @seealso \code{\link{bf_contingency_tab}}, \code{\link{bf_corr_test}},
 #' \code{\link{bf_two_sample_ttest}}
 #'
 #' @examples
-#' 
+#'
 #' # to get caption (default)
 #' bf_oneway_anova(
 #'   data = iris,
@@ -614,7 +523,7 @@ bf_two_sample_ttest <- function(data,
 #'   y = Sepal.Length,
 #'   bf.prior = 0.8
 #' )
-#' 
+#'
 #' # to get results dataframe
 #' bf_oneway_anova(
 #'   data = iris,
@@ -632,7 +541,8 @@ bf_oneway_anova <- function(data,
                             bf.prior = 0.707,
                             caption = NULL,
                             output = "caption",
-                            k = 2) {
+                            k = 2,
+                            ...) {
 
   # ============================ data preparation ==========================
 
@@ -643,24 +553,23 @@ bf_oneway_anova <- function(data,
       x = !!rlang::enquo(x),
       y = !!rlang::enquo(y)
     ) %>%
-    stats::na.omit(.) %>%
-    dplyr::mutate_at(
-      .tbl = .,
-      .vars = "x",
-      .funs = ~ base::droplevels(x = base::as.factor(x = .))
-    ) %>%
+    tidyr::drop_na(data = .) %>%
+    dplyr::mutate(.data = ., x = droplevels(as.factor(x))) %>%
     tibble::as_tibble(.)
 
   # ========================= subtitle preparation ==========================
 
   # extracting results from bayesian test and creating a dataframe
   bf_results <-
-    bf_extractor(bf.object = BayesFactor::anovaBF(
-      formula = y ~ x,
-      data = as.data.frame(data),
-      rscaleFixed = bf.prior,
-      progress = FALSE
-    )) %>%
+    bf_extractor(
+      BayesFactor::anovaBF(
+        formula = y ~ x,
+        data = as.data.frame(data),
+        rscaleFixed = bf.prior,
+        progress = FALSE,
+        ...
+      )
+    ) %>%
     dplyr::mutate(.data = ., bf.prior = bf.prior)
 
   # prepare the bayes factor message
@@ -683,9 +592,9 @@ bf_oneway_anova <- function(data,
 
 #' @title Bayesian one-sample *t*-test.
 #' @name bf_one_sample_ttest
-#' @aliases bf_one_sample_ttest
 #' @author Indrajeet Patil
 #'
+#' @inheritParams BayesFactor::ttestBF
 #' @inheritParams gghistostats
 #' @inheritParams bf_corr_test
 #'
@@ -695,7 +604,7 @@ bf_oneway_anova <- function(data,
 #' \code{\link{bf_two_sample_ttest}}
 #'
 #' @examples
-#' 
+#'
 #' # to get caption (default)
 #' bf_one_sample_ttest(
 #'   data = iris,
@@ -704,7 +613,7 @@ bf_oneway_anova <- function(data,
 #'   bf.prior = 0.8,
 #'   output = "caption", k = 2
 #' )
-#' 
+#'
 #' # to get results dataframe
 #' bf_one_sample_ttest(
 #'   data = iris,
@@ -722,7 +631,8 @@ bf_one_sample_ttest <- function(data = NULL,
                                 bf.prior = 0.707,
                                 caption = NULL,
                                 output = "caption",
-                                k = 2) {
+                                k = 2,
+                                ...) {
 
   # ================================= dataframe =============================
 
@@ -748,12 +658,15 @@ bf_one_sample_ttest <- function(data = NULL,
 
   # extracting results from bayesian test and creating a dataframe
   bf_results <-
-    bf_extractor(bf.object = BayesFactor::ttestBF(
-      x = data$x,
-      rscale = bf.prior,
-      mu = test.value,
-      nullInterval = NULL
-    )) %>%
+    bf_extractor(
+      BayesFactor::ttestBF(
+        x = data$x,
+        rscale = bf.prior,
+        mu = test.value,
+        nullInterval = NULL,
+        ...
+      )
+    ) %>%
     dplyr::mutate(.data = ., bf.prior = bf.prior)
 
   # prepare the bayes factor message

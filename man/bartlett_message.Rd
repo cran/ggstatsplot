@@ -4,11 +4,12 @@
 \alias{bartlett_message}
 \title{Display homogeneity of variance test as a message}
 \usage{
-bartlett_message(data, x, y, lab = NULL, k = 2, output = "message")
+bartlett_message(data, x, y, lab = NULL, k = 2, output = "message",
+  ...)
 }
 \arguments{
-\item{data}{A dataframe from which variables specified are preferentially to
-be taken.}
+\item{data}{A dataframe (or a tibble) from which variables specified are to
+be taken. A matrix or tables will \strong{not} be accepted.}
 
 \item{x}{The grouping variable from the dataframe \code{data}.}
 
@@ -21,8 +22,10 @@ name will be used.}
 \item{k}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2}).}
 
-\item{output}{What output is desired: \code{"message"} (default) or \code{"stats"}
-objects.}
+\item{output}{What output is desired: \code{"message"} (default) or \code{"stats"} (or
+\code{"tidy"}) objects.}
+
+\item{...}{Additional arguments (ignored).}
 }
 \value{
 A list of class \code{"htest"} containing the following components:
@@ -41,7 +44,7 @@ default linear model.
 \examples{
 
 # getting message
-bartlett_message(
+ggstatsplot::bartlett_message(
   data = iris,
   x = Species,
   y = Sepal.Length,
@@ -49,11 +52,11 @@ bartlett_message(
 )
 
 # getting results from the test
-bartlett_message(
+ggstatsplot::bartlett_message(
   data = mtcars,
   x = am,
   y = wt,
-  output = "stats"
+  output = "tidy"
 )
 }
 \seealso{

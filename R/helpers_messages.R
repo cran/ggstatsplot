@@ -1,16 +1,16 @@
 #' @title Display normality test result as a message.
 #' @name normality_message
-#' @aliases normality_message
+#' @description A note to the user about the validity of assumptions for the
+#'   default linear model.
 #' @author Indrajeet Patil
 #'
 #' @param x A numeric vector.
 #' @param lab A character describing label for the variable. If `NULL`, a
 #'   generic `"x"` label will be used.
-#' @param k Number of decimal places expected for results (Default: `2`).
-#' @param output What output is desired: `"message"` (default) or `"stats"`
-#'   objects.
-#' @description A note to the user about the validity of assumptions for the
-#'   default linear model.
+#' @param output What output is desired: `"message"` (default) or `"stats"` (or
+#'   `"tidy"`) objects.
+#' @param ... Additional arguments (ignored).
+#' @inheritParams ggbetweenstats
 #'
 #' @importFrom stats shapiro.test
 #' @importFrom crayon green blue yellow red
@@ -22,14 +22,18 @@
 #' @seealso \code{\link{ggbetweenstats}}
 #'
 #' @examples
-#' 
+#'
 #' # message
-#' normality_message(x = datasets::anscombe$x1)
-#' 
-#' # statistical test object
 #' normality_message(
-#'   x = datasets::anscombe$x2,
-#'   output = "stats"
+#'   x = anscombe$x1,
+#'   lab = "x1",
+#'   k = 3
+#' )
+#'
+#' # statistical test object
+#' ggstatsplot::normality_message(
+#'   x = anscombe$x2,
+#'   output = "tidy"
 #' )
 #' @export
 
@@ -37,7 +41,9 @@
 normality_message <- function(x,
                               lab = NULL,
                               k = 2,
-                              output = "message") {
+                              output = "message",
+                              ...) {
+  ellipsis::check_dots_used()
 
   # if label is not provided, use generic "x" variable
   if (is.null(lab)) {
@@ -62,39 +68,29 @@ normality_message <- function(x,
           ": p-value = "
         ),
         crayon::yellow(
-          ggstatsplot::specify_decimal_p(
-            x = sw_norm$p.value[[1]],
-            k = k,
-            p.value = TRUE
-          )
+          specify_decimal_p(x = sw_norm$p.value[[1]], k = k, p.value = TRUE)
         ),
         "\n",
         sep = ""
       ))
-    } else if (output == "stats") {
-
-      # other return the tidy output
+    } else if (output %in% c("stats", "tidy")) {
       return(broom::tidy(sw_norm))
     }
   }
 }
 
-
 #' @title Display homogeneity of variance test as a message
 #' @name bartlett_message
-#' @aliases bartlett_message
-#' @author Indrajeet Patil
-#'
-#' @inheritParams ggbetweenstats
-#' @param lab A character describing label for the variable. If `NULL`, variable
-#'   name will be used.
-#' @param output What output is desired: `"message"` (default) or `"stats"`
-#'   objects.
-#'
 #' @description A note to the user about the validity of assumptions for the
 #'   default linear model.
+#' @author Indrajeet Patil
 #'
-#' @importFrom rlang enquo quo_name !!
+#' @param lab A character describing label for the variable. If `NULL`, variable
+#'   name will be used.
+#' @inheritParams ggbetweenstats
+#' @inheritParams normality_message
+#'
+#' @importFrom rlang enquo quo_name !! as_name ensym := new_formula
 #' @importFrom stats bartlett.test
 #' @importFrom crayon green blue yellow red
 #'
@@ -105,21 +101,21 @@ normality_message <- function(x,
 #' @family helper_messages
 #'
 #' @examples
-#' 
+#'
 #' # getting message
-#' bartlett_message(
+#' ggstatsplot::bartlett_message(
 #'   data = iris,
 #'   x = Species,
 #'   y = Sepal.Length,
 #'   lab = "Iris Species"
 #' )
-#' 
+#'
 #' # getting results from the test
-#' bartlett_message(
+#' ggstatsplot::bartlett_message(
 #'   data = mtcars,
 #'   x = am,
 #'   y = wt,
-#'   output = "stats"
+#'   output = "tidy"
 #' )
 #' @export
 
@@ -129,46 +125,18 @@ bartlett_message <- function(data,
                              y,
                              lab = NULL,
                              k = 2,
-                             output = "message") {
-
-  #--------------------------- variable names ---------------------------------
-
-  # preparing a dataframe with variable names
-  lab.df <- colnames(x = dplyr::select(
-    .data = data,
-    !!rlang::enquo(x),
-    !!rlang::enquo(y)
-  ))
+                             output = "message",
+                             ...) {
+  ellipsis::check_dots_used()
 
   # if `lab` is not provided, use the variable `x` name
   if (is.null(lab)) {
-    lab <- lab.df[1]
+    lab <- rlang::as_name(rlang::ensym(x))
   }
-
-  #-------------------------- data -------------------------------------------
-
-  # creating a dataframe
-  data <-
-    dplyr::select(
-      .data = data,
-      x = !!rlang::enquo(x),
-      y = !!rlang::enquo(y)
-    )
-
-  # convert the grouping variable to factor and drop unused levels
-  data %<>%
-    stats::na.omit(.) %>%
-    dplyr::mutate_at(
-      .tbl = .,
-      .vars = "x",
-      .funs = ~ base::droplevels(x = base::as.factor(x = .))
-    )
-
-  #------------------------------ bartlett's test ----------------------------
 
   # running the test
   bartlett <- stats::bartlett.test(
-    formula = y ~ x,
+    formula = rlang::new_formula(rlang::ensym(y), rlang::ensym(x)),
     data = data,
     na.action = na.omit
   )
@@ -184,16 +152,12 @@ bartlett_message <- function(data,
         ": p-value = "
       ),
       crayon::yellow(
-        ggstatsplot::specify_decimal_p(
-          x = bartlett$p.value[[1]],
-          k,
-          p.value = TRUE
-        )
+        specify_decimal_p(x = bartlett$p.value[[1]], k = k, p.value = TRUE)
       ),
       "\n",
       sep = ""
     ))
-  } else if (output == "stats") {
+  } else if (output %in% c("stats", "tidy")) {
     return(broom::tidy(bartlett))
   }
 }
@@ -245,7 +209,7 @@ grouped_message <- function() {
 #'   min_length = 20
 #' )
 #' }
-#' 
+#'
 #' @keywords internal
 
 # function body
@@ -318,6 +282,37 @@ effsize_ci_message <- function(nboot = 100, conf.level = 0.95) {
       crayon::yellow(nboot),
       "bootstrap samples.\n"
     ),
+    sep = ""
+  ))
+}
+
+
+#' @title Message about results from a single-sample proportion test.
+#' @name proptest_message
+#' @author Indrajeet Patil
+#'
+#' @param main,condition Character specifying names of variables used for
+#'   contingency table analyses.
+#'
+#' @examples
+#' \dontrun{
+#' ggstatsplot:::proptest_message(main = "am", condition = "cyl")
+#' }
+#'
+#' @keywords internal
+
+# function body
+proptest_message <- function(main, condition) {
+  # tell the user what these results are
+  base::message(cat(
+    crayon::green("Note: "),
+    crayon::blue("Results from one-sample proportion tests for each\n"),
+    crayon::blue("      level of the variable "),
+    crayon::yellow(condition),
+    crayon::blue(" testing for equal\n"),
+    crayon::blue("      proportions of the variable "),
+    crayon::yellow(main),
+    crayon::blue(".\n"),
     sep = ""
   ))
 }

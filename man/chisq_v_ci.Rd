@@ -3,21 +3,21 @@
 \name{chisq_v_ci}
 \alias{chisq_v_ci}
 \title{Chi-squared test of association with confidence interval for effect
-size (Cramer's V).}
+size (Cramer's \emph{V}).}
 \usage{
-chisq_v_ci(data, rows, cols, nboot = 25, conf.level = 0.95,
+chisq_v_ci(data, rows, cols, nboot = 100, conf.level = 0.95,
   conf.type = "norm", ...)
 }
 \arguments{
-\item{data}{Dataframe from which variables specified are preferentially to be
-taken.}
+\item{data}{A dataframe (or a tibble) from which variables specified are to
+be taken. A matrix or tables will \strong{not} be accepted.}
 
 \item{rows}{The variable to use as the rows in the contingency table.}
 
 \item{cols}{the variable to use as the columns in the contingency table.}
 
 \item{nboot}{Number of bootstrap samples for computing effect size (Default:
-\code{25}).}
+\code{100}).}
 
 \item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
 \code{95\%} lower and upper confidence intervals (\code{0.95}).}
@@ -158,5 +158,18 @@ intervals required. The value should be any subset of the values \code{"norm"},
 Custom function to get confidence intervals for effect size
 measure for chi-squared test of association (Contingency Tables analyses,
 i.e.).
+}
+\examples{
+\dontrun{
+ggstatsplot:::chisq_v_ci(
+  data = ggstatsplot::Titanic_full,
+  rows = Sex,
+  cols = Survived,
+  nboot = 12,
+  conf.level = 0.90,
+  conf.type = "norm"
+)
+}
+
 }
 \keyword{internal}

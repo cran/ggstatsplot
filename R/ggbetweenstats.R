@@ -7,16 +7,11 @@
 #'   the plot as a subtitle.
 #' @author Indrajeet Patil
 #'
-#' @param data A dataframe from which variables specified are preferentially to
-#'   be taken.
-#' @param x The grouping variable from the dataframe `data`.
-#' @param y The response (a.k.a. outcome or dependent) variable from the
-#'   dataframe `data`.
 #' @param plot.type Character describing the *type* of plot. Currently supported
 #'   plots are `"box"` (for pure boxplots), `"violin"` (for pure violin plots),
 #'   and `"boxviolin"` (for a combination of box and violin plots; default).
-#' @param xlab Label for `x` axis variable.
-#' @param ylab Label for `y` axis variable.
+#' @param xlab,ylab Labels for `x` and `y` axis variables. If `NULL` (default),
+#'   variable names for `x` and `y` will be used.
 #' @param type Type of statistic expected (`"parametric"` or `"nonparametric"`
 #'   or `"robust"` or `"bayes"`).Corresponding abbreviations are also accepted:
 #'   `"p"` (for parametric), `"np"` (nonparametric), `"r"` (robust), or
@@ -99,23 +94,27 @@
 #' @param ggplot.component A `ggplot` component to be added to the plot prepared
 #'   by `ggstatsplot`. This argument is primarily helpful for `grouped_` variant
 #'   of the current function. Default is `NULL`. The argument should be entered
-#'   as a function.
+#'   as a function. If the given function has an argument `axes.range.restrict`
+#'   and if it has been set to `TRUE`, the added ggplot component *might* not
+#'   work as expected.
+#' @param axes.range.restrict Logical that decides whether to restrict the axes
+#'   values ranges to `min` and `max` values of the axes variables (Default:
+#'   `FALSE`), only relevant for functions where axes variables are of numeric
+#'   type.
 #' @inheritParams paletteer::scale_color_paletteer_d
 #' @inheritParams theme_ggstatsplot
+#' @inheritParams t1way_ci
 #' @inheritParams subtitle_anova_parametric
 #' @inheritParams subtitle_t_parametric
-#' @inheritParams t1way_ci
 #'
 #' @import ggplot2
 #'
 #' @importFrom dplyr select group_by arrange mutate mutate_at mutate_if
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom WRS2 t1way yuen yuen.effect.ci
-#' @importFrom effsize cohen.d
 #' @importFrom sjstats eta_sq omega_sq
 #' @importFrom stats na.omit t.test oneway.test
-#' @importFrom coin wilcox_test statistic
-#' @importFrom rlang enquo quo_name !!
+#' @importFrom rlang enquo quo_name as_name !!
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom crayon blue green red yellow
 #' @importFrom paletteer scale_color_paletteer_d scale_fill_paletteer_d
@@ -151,10 +150,10 @@
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggbetweenstats.html}
 #'
 #' @examples
-#' 
+#'
 #' # to get reproducible results from bootstrapping
 #' set.seed(123)
-#' 
+#'
 #' # simple function call with the defaults
 #' ggstatsplot::ggbetweenstats(
 #'   data = mtcars,
@@ -164,7 +163,7 @@
 #'   caption = "Transmission (0 = automatic, 1 = manual)",
 #'   bf.message = TRUE
 #' )
-#' 
+#' \dontrun{
 #' # more detailed function call
 #' ggstatsplot::ggbetweenstats(
 #'   data = datasets::morley,
@@ -180,10 +179,11 @@
 #'   outlier.tagging = TRUE,
 #'   outlier.label = Run,
 #'   nboot = 10,
-#'   ggtheme = ggthemes::theme_few(),
+#'   ggtheme = ggplot2::theme_grey(),
 #'   ggstatsplot.layer = FALSE,
 #'   bf.message = TRUE
 #' )
+#' }
 #' @export
 
 # defining the function
@@ -198,7 +198,7 @@ ggbetweenstats <- function(data,
                            p.adjust.method = "holm",
                            effsize.type = "unbiased",
                            partial = TRUE,
-                           effsize.noncentral = FALSE,
+                           effsize.noncentral = TRUE,
                            bf.prior = 0.707,
                            bf.message = FALSE,
                            results.subtitle = TRUE,
@@ -213,6 +213,7 @@ ggbetweenstats <- function(data,
                            conf.level = 0.95,
                            nboot = 100,
                            tr = 0.1,
+                           axes.range.restrict = FALSE,
                            mean.label.size = 3,
                            mean.label.fontface = "bold",
                            mean.label.color = "black",
@@ -230,7 +231,7 @@ ggbetweenstats <- function(data,
                            mean.size = 5,
                            mean.color = "darkred",
                            point.jitter.width = NULL,
-                           point.jitter.height = 0.1,
+                           point.jitter.height = 0,
                            point.dodge.width = 0.60,
                            ggtheme = ggplot2::theme_bw(),
                            ggstatsplot.layer = TRUE,
@@ -248,61 +249,35 @@ ggbetweenstats <- function(data,
 
   # ------------------------------ variable names ----------------------------
 
-  # preparing a dataframe with variable names
-  lab.df <- colnames(x = dplyr::select(
-    .data = data,
-    !!rlang::enquo(x),
-    !!rlang::enquo(y)
-  ))
-
   # if `xlab` is not provided, use the variable `x` name
   if (is.null(xlab)) {
-    xlab <- lab.df[1]
+    xlab <- rlang::as_name(rlang::ensym(x))
   }
 
   # if `ylab` is not provided, use the variable `y` name
   if (is.null(ylab)) {
-    ylab <- lab.df[2]
+    ylab <- rlang::as_name(rlang::ensym(y))
   }
 
   # --------------------------------- data -----------------------------------
 
-  # if outlier label is provided then include it in the dataframe
-  if (base::missing(outlier.label)) {
-
-    # if outlier label is not provided then only include the two arguments
-    # provided
-    data <-
-      dplyr::select(
-        .data = data,
-        x = !!rlang::enquo(x),
-        y = !!rlang::enquo(y)
-      ) %>%
-      dplyr::mutate(
-        .data = .,
-        outlier.label = y
-      )
-  } else {
-
-    # if outlier label is provided then include it to make a dataframe
-    data <-
-      dplyr::select(
-        .data = data,
-        x = !!rlang::enquo(x),
-        y = !!rlang::enquo(y),
-        outlier.label = !!rlang::quo_name(rlang::enquo(outlier.label))
-      )
-  }
-
-  # convert the grouping variable to factor and drop unused levels
-  data %<>%
-    dplyr::filter(.data = ., !is.na(x), !is.na(y)) %>%
-    dplyr::mutate_at(
-      .tbl = .,
-      .vars = "x",
-      .funs = ~ base::droplevels(x = base::as.factor(x = .))
+  # creating a dataframe
+  data <-
+    dplyr::select(
+      .data = data,
+      x = !!rlang::enquo(x),
+      y = !!rlang::enquo(y),
+      outlier.label = !!rlang::enquo(outlier.label)
     ) %>%
+    tidyr::drop_na(data = .) %>%
+    dplyr::mutate(.data = ., x = droplevels(as.factor(x))) %>%
     tibble::as_tibble(x = .)
+
+  # if outlier.label column is not present, just use the values from `y` column
+  if (!"outlier.label" %in% names(data)) {
+    data %<>%
+      dplyr::mutate(.data = ., outlier.label = y)
+  }
 
   # if no. of factor levels is greater than the default palette color count
   palette_message(
@@ -475,38 +450,43 @@ ggbetweenstats <- function(data,
             y = y,
             bf.prior = bf.prior,
             caption = caption,
-            output = "caption"
+            output = "caption",
+            k = k
           )
       }
     }
 
     # extracting the subtitle using the switch function
-    subtitle <-
-      ggbetweenstats_switch(
-        # switch based on
-        type = type,
-        test = test,
-        # arguments relevant for subtitle helper functions
-        data = data,
-        x = x,
-        y = y,
-        paired = FALSE,
-        effsize.type = effsize.type,
-        partial = partial,
-        effsize.noncentral = effsize.noncentral,
-        var.equal = var.equal,
-        bf.prior = bf.prior,
-        tr = tr,
-        nboot = nboot,
-        conf.level = conf.level,
-        k = k,
-        messages = messages
-      )
+    if (isTRUE(results.subtitle)) {
+      subtitle <-
+        ggbetweenstats_switch(
+          # switch based on
+          type = type,
+          test = test,
+          # arguments relevant for subtitle helper functions
+          data = data,
+          x = x,
+          y = y,
+          paired = FALSE,
+          effsize.type = effsize.type,
+          partial = partial,
+          effsize.noncentral = effsize.noncentral,
+          var.equal = var.equal,
+          bf.prior = bf.prior,
+          tr = tr,
+          nboot = nboot,
+          conf.level = conf.level,
+          k = k,
+          messages = messages
+        )
+    }
 
     # if bayes factor message needs to be displayed
     if (type %in% c("parametric", "p") && isTRUE(bf.message)) {
       caption <- bf.caption.text
     }
+  } else {
+    test <- "none"
   }
 
   # ---------------------------- outlier tagging -----------------------------
@@ -733,7 +713,7 @@ ggbetweenstats <- function(data,
       title = title,
       subtitle = subtitle,
       caption = caption,
-      color = lab.df[1]
+      color = xlab
     ) +
     ggstatsplot::theme_mprl(
       ggtheme = ggtheme,
@@ -742,7 +722,7 @@ ggbetweenstats <- function(data,
     ggplot2::theme(legend.position = "none")
 
   # don't do scale restriction in case of post hoc comparisons
-  if (!isTRUE(pairwise.comparisons)) {
+  if (isTRUE(axes.range.restrict) && !isTRUE(pairwise.comparisons)) {
     plot <- plot +
       ggplot2::coord_cartesian(ylim = c(min(data$y), max(data$y))) +
       ggplot2::scale_y_continuous(limits = c(min(data$y), max(data$y)))
@@ -774,7 +754,7 @@ ggbetweenstats <- function(data,
     # display normality test result as a message
     normality_message(
       x = data$y,
-      lab = lab.df[2],
+      lab = ylab,
       k = k,
       output = "message"
     )
@@ -784,7 +764,7 @@ ggbetweenstats <- function(data,
       data = data,
       x = x,
       y = y,
-      lab = lab.df[1],
+      lab = xlab,
       k = k,
       output = "message"
     )

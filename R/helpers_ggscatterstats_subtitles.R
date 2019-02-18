@@ -9,26 +9,24 @@
 #'   Corresponding abbreviations are also accepted: `"p"` (for
 #'   parametric/pearson's), `"np"` (nonparametric/spearman), `"r"` (robust),
 #'   `"bf"` (for bayes factor), resp.
-#' @param messages Decides whether messages references, notes, and warnings are
-#'   to be displayed (Default: `TRUE`).
 #' @inheritParams robcor_ci
 #' @inheritParams cor_test_ci
 #' @inheritParams bf_corr_test
-#' @inheritParams subtitle_t_parametric
+#' @inheritParams subtitle_anova_parametric
 #'
 #' @importFrom dplyr select
 #' @importFrom rlang !! enquo
 #' @importFrom stats cor.test
 #'
 #' @examples
-#' 
+#'
 #' # without changing defaults
 #' subtitle_ggscatterstats(
 #'   data = ggplot2::midwest,
 #'   x = area,
 #'   y = percblack
 #' )
-#' 
+#'
 #' # changing defaults
 #' subtitle_ggscatterstats(
 #'   data = ggplot2::midwest,
@@ -52,7 +50,9 @@ subtitle_ggscatterstats <- function(data,
                                     conf.level = 0.95,
                                     conf.type = "norm",
                                     messages = TRUE,
-                                    k = 2) {
+                                    k = 2,
+                                    ...) {
+  ellipsis::check_dots_used()
 
   #------------------------ dataframe -------------------------------------
 
@@ -139,11 +139,11 @@ subtitle_ggscatterstats <- function(data,
 
     # preparing subtitle
     subtitle <- subtitle_template(
-      no.parameters = 1L,
+      no.parameters = 0L,
       stat.title = NULL,
       statistic.text = quote("log"["e"](italic("S"))),
-      statistic = log(x = stats_df$statistic[[1]], base = exp(1)),
-      parameter = (sample_size - 2L),
+      statistic = log(stats_df$statistic[[1]]),
+      parameter = NULL,
       p.value = stats_df$p.value[[1]],
       effsize.text = quote(italic(rho)["Spearman"]),
       effsize.estimate = stats_df$estimate,
@@ -220,7 +220,9 @@ subtitle_ggscatterstats <- function(data,
             "(BF"["10"],
             ") = ",
             bf,
-            ", Prior width = ",
+            ", ",
+            italic("r")["Cauchy"],
+            " = ",
             bf_prior,
             ", ",
             italic("n"),

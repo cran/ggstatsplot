@@ -6,8 +6,8 @@
 #'
 #' @param ggtheme A function, `ggplot2` theme name. Default value is
 #'   `ggplot2::theme_bw()`. Any of the `ggplot2` themes, or themes from
-#'   extension packages are allowed (e.g., `ggthemes::theme_economist()`,
-#'   `hrbrthemes::theme_ipsum_ps()`, `ggthemes::theme_fivethirtyeight()`, etc.).
+#'   extension packages are allowed (e.g., `ggthemes::theme_fivethirtyeight()`,
+#'   `hrbrthemes::theme_ipsum_ps()`, etc.).
 #' @param ggstatsplot.layer Logical that decides whether `theme_ggstatsplot`
 #'   theme elements are to be displayed along with the selected `ggtheme`
 #'   (Default: `TRUE`).
@@ -22,8 +22,11 @@
 #'
 #' @export
 
+# function body
 theme_ggstatsplot <- function(ggtheme = ggplot2::theme_bw(),
                               ggstatsplot.layer = TRUE) {
+
+  # if ggstatsplot-specific layer is to be added on top of the default theme
   if (isTRUE(ggstatsplot.layer)) {
     ggtheme +
       ggplot2::theme(

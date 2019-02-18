@@ -6,23 +6,18 @@
 #'   histograms/boxplots/density plots with statistical details added as a
 #'   subtitle.
 #'
-#' @param data Dataframe from which variables are to be taken.
 #' @param x The column in `data` containing the explanatory variable to be
 #'   plotted on the x axis. Can be entered either as
 #'   a character string (e.g., `"x"`) or as a bare expression (e.g, `x`).
 #' @param y The column in `data` containing the response (outcome) variable to
 #'   be plotted on the y axis. Can be entered either as
 #'   a character string (e.g., `"y"`) or as a bare expression (e.g, `y`).
-#' @param bf.message Logical. Decides whether to display Bayes Factor in favor
-#'   of *null* hypothesis **for parametric test** (Default: `FALSE`).
 #' @param label.var Variable to use for points labels. Can be entered either as
 #'   a character string (e.g., `"var1"`) or as a bare expression (e.g, `var1`).
 #' @param label.expression An expression evaluating to a logical vector that
 #'   determines the subset of data points to label. This argument can be entered
 #'   either as a character string (e.g., `"y < 4 & z < 20"`) or as a bare
 #'   expression (e.g., `y < 4 & z < 20`).
-#' @param xlab Label for `x` axis variable. The default is the variable name.
-#' @param ylab Label for `y` axis variable. The default is the variable name.
 #' @param line.color color for the regression line.
 #' @param line.size Size for the regression line.
 #' @param point.color,point.size,point.alpha Aesthetics specifying geom point
@@ -45,23 +40,12 @@
 #'   default is `1` for both axes.
 #' @param xsize,ysize Size for the marginal distribution boundaries (Default:
 #'   `0.7`).
-#' @param results.subtitle Decides whether the results of statistical tests are
-#'   to be displayed as a subtitle (Default: `TRUE`). If set to `FALSE`, only
-#'   the plot will be returned.
 #' @param centrality.para Decides *which* measure of central tendency (`"mean"`
 #'   or `"median"`) is to be displayed as vertical (for `x`) and horizontal (for
 #'   `y`) lines.
-#' @param title The text for the plot title.
-#' @param subtitle The text for the plot subtitle. Will work only if
-#'   `results.subtitle = FALSE`.
-#' @param caption The text for the plot caption.
-#' @param k Number of decimal places expected for results.
 #' @param point.width.jitter,point.height.jitter Degree of jitter in `x` and `y`
 #'   direction, respectively. Defaults to `0` (0%) of the resolution of the
 #'   data.
-#' @param axes.range.restrict Logical decides whether to restrict the axes
-#'   values ranges to min and max values of the `x` and `y` variables (Default:
-#'   `FALSE`).
 #' @inheritParams subtitle_ggscatterstats
 #' @inheritParams ggplot2::geom_smooth
 #' @inheritParams theme_ggstatsplot
@@ -72,7 +56,7 @@
 #'
 #' @importFrom dplyr select group_by summarize n arrange if_else desc
 #' @importFrom dplyr mutate mutate_at mutate_if
-#' @importFrom rlang !! enquo quo_name parse_expr
+#' @importFrom rlang !! enquo quo_name parse_expr ensym as_name enexpr
 #' @importFrom ggExtra ggMarginal
 #' @importFrom stats cor.test
 #' @importFrom stats na.omit
@@ -98,15 +82,15 @@
 #' }
 #'
 #' @examples
-#' 
+#'
 #' # to get reproducible results from bootstrapping
 #' set.seed(123)
-#' 
+#'
 #' # creating dataframe
 #' mtcars_new <- mtcars %>%
 #'   tibble::rownames_to_column(., var = "car") %>%
 #'   tibble::as_tibble(x = .)
-#' 
+#'
 #' # simple function call with the defaults
 #' ggstatsplot::ggscatterstats(
 #'   data = mtcars_new,
@@ -172,21 +156,14 @@ ggscatterstats <- function(data,
 
   #---------------------- variable names --------------------------------
 
-  # preparing a dataframe with variable names
-  lab.df <- colnames(dplyr::select(
-    .data = data,
-    !!rlang::enquo(x),
-    !!rlang::enquo(y)
-  ))
-
   # if `xlab` is not provided, use the variable `x` name
   if (is.null(xlab)) {
-    xlab <- lab.df[1]
+    xlab <- rlang::as_name(rlang::ensym(x))
   }
 
   # if `ylab` is not provided, use the variable `y` name
   if (is.null(ylab)) {
-    ylab <- lab.df[2]
+    ylab <- rlang::as_name(rlang::ensym(y))
   }
 
   #----------------------- dataframe --------------------------------------
@@ -389,41 +366,31 @@ ggscatterstats <- function(data,
         color = yfill,
         size = 1.0,
         na.rm = TRUE
-      ) +
-      # label for vertical line
-      ggplot2::geom_label(
-        mapping = ggplot2::aes(
-          label = list(bquote(
-            "mean" == .(ggstatsplot::specify_decimal_p(
-              x = x_mean, k = 2
-            ))
-          )),
-          x = x_mean,
-          y = y_label_pos * (1 + 0.25)
-        ),
-        alpha = 0.5,
-        show.legend = FALSE,
-        parse = TRUE,
-        color = xfill,
-        na.rm = TRUE
-      ) +
-      # label for horizontal line
-      ggplot2::geom_label(
-        mapping = ggplot2::aes(
-          label = list(bquote(
-            "mean" == .(ggstatsplot::specify_decimal_p(
-              x = y_mean, k = 2
-            ))
-          )),
-          x = x_label_pos * (1 + 0.25),
-          y = y_mean
-        ),
-        alpha = 0.5,
-        show.legend = FALSE,
-        parse = TRUE,
-        color = yfill,
-        na.rm = TRUE
       )
+
+    # label for vertical line
+    plot <- line_labeller(
+      plot = plot,
+      x = x_mean,
+      y = y_label_pos,
+      k = 2,
+      color = xfill,
+      label.text = "mean",
+      line.direction = "vline",
+      jitter = 0.25
+    )
+
+    # label for horizontal line
+    plot <- line_labeller(
+      plot = plot,
+      x = x_label_pos,
+      y = y_mean,
+      k = 2,
+      line.direction = "hline",
+      color = yfill,
+      label.text = "mean",
+      jitter = 0.25
+    )
   } else if (centrality.para == "median") {
     plot <-
       plot +
@@ -442,41 +409,31 @@ ggscatterstats <- function(data,
         color = yfill,
         size = 1.0,
         na.rm = TRUE
-      ) +
-      # label for vertical line
-      ggplot2::geom_label(
-        mapping = ggplot2::aes(
-          label = list(bquote(
-            "median" == .(ggstatsplot::specify_decimal_p(
-              x = x_median, k = 2
-            ))
-          )),
-          x = x_median,
-          y = y_label_pos * (1 + 0.25)
-        ),
-        alpha = 0.5,
-        show.legend = FALSE,
-        parse = TRUE,
-        color = xfill,
-        na.rm = TRUE
-      ) +
-      # label for horizontal line
-      ggplot2::geom_label(
-        mapping = ggplot2::aes(
-          label = list(bquote(
-            "median" == .(ggstatsplot::specify_decimal_p(
-              x = y_median, k = 2
-            ))
-          )),
-          x = x_label_pos * (1 + 0.25),
-          y = y_median
-        ),
-        alpha = 0.5,
-        show.legend = FALSE,
-        parse = TRUE,
-        color = yfill,
-        na.rm = TRUE
       )
+
+    # label for vertical line
+    plot <- line_labeller(
+      plot = plot,
+      x = x_median,
+      y = y_label_pos,
+      k = 2,
+      color = xfill,
+      label.text = "median",
+      line.direction = "vline",
+      jitter = 0.25
+    )
+
+    # label for horizontal line
+    plot <- line_labeller(
+      plot = plot,
+      x = x_label_pos,
+      y = y_median,
+      k = 2,
+      line.direction = "hline",
+      color = yfill,
+      label.text = "median",
+      jitter = 0.25
+    )
   }
 
   #---------------------- range restriction -------------------------------

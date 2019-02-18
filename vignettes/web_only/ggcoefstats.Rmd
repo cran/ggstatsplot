@@ -592,8 +592,7 @@ set.seed(123)
 # model
 mod <-
   glmmTMB::glmmTMB(
-    formula = Reaction ~ Days + (Days |
-                                   Subject),
+    formula = Reaction ~ Days + (Days | Subject),
     data = sleepstudy,
     family = glmmTMB::truncated_poisson()
   )
@@ -767,13 +766,13 @@ set.seed(123)
 library(nnet)
 library(MASS)
 utils::example(topic = birthwt, echo = FALSE)
-bwt.mu <- nnet::multinom(formula = low ~ ., data = bwt)
+bwt.mu <- nnet::multinom(formula = low ~ ., data = bwt, trace = FALSE)
 
 # plot
 ggstatsplot::ggcoefstats(x = bwt.mu,
                          title = "multinomial logistic regression models",
-                         package = "ggthemes",
-                         palette = "tableau_cyclic")
+                         package = "ggsci",
+                         palette = "default_ucscgb")
 ```
 
 ## proportional odds and related models (`svyolr`)
@@ -803,7 +802,7 @@ ggstatsplot::ggcoefstats(x = m,
                          title = "proportional odds and related models")
 ```
 
-## survey-weighted generalised linear models (`svyglm`)
+## survey-weighted generalized linear models (`svyglm`)
 
 ```{r svyglm, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
 # data
@@ -828,7 +827,7 @@ mod <- survey::svyglm(
 
 # plot
 ggstatsplot::ggcoefstats(x = mod,
-                         title = "survey-weighted generalised linear model")
+                         title = "survey-weighted generalized linear model")
 ```
 
 ## repeated measures ANOVA (`aovlist`)
@@ -880,7 +879,7 @@ in measurement is accounted for by the interaction between these two factors.
 The robust regression models, as implemented in the `robust` package are also
 supported. 
 
-```{r robust, warning = FALSE, message = FALSE, fig.height = 12, fig.width = 8}
+```{r robust, eval = FALSE, warning = FALSE, message = FALSE, fig.height = 12, fig.width = 8}
 ggstatsplot::combine_plots(
   # plot 1: glmRob
   ggstatsplot::ggcoefstats(
@@ -908,8 +907,7 @@ ggstatsplot::combine_plots(
   # arguments relevant for `combine_plots` function
   labels = c("(a)", "(b)"),
   title.text = "Robust variants of lmRob and glmRob",
-  nrow = 2,
-  ncol = 1
+  nrow = 2
 )
 ```
 
@@ -1144,24 +1142,118 @@ ggstatsplot::ggcoefstats(
 )
 ```
 
+## generalized additive models with integrated smoothness estimation (`gam`)
+
+These model outputs contains both parametric and smooth terms. `ggcoefstats`
+only displays parametric terms.
+
+```{r gam_mgcv, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# setup
+set.seed(123)
+library(mgcv)
+
+# model
+g <- mgcv::gam(
+  formula = mpg ~ s(hp) + am + qsec,
+  family = stats::quasi(),
+  data = mtcars
+)
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = g,
+  title = "generalized additive models \nwith integrated smoothness estimation",
+  subtitle = "using `mgcv` package"
+)
+```
+
+## generalized additive model (`Gam`)
+
+```{r Gam, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# setup
+set.seed(123)
+library(gam)
+
+# model
+g <- gam::gam(formula = mpg ~ s(hp, 4) + am + qsec, 
+              data = mtcars)
+
+# plot
+ggstatsplot::ggcoefstats(x = g, 
+                         title = "generalized additive model",
+                         subtite = "(using `gam` package)")
+```
+
 ## linear model using generalized least squares (`gls`)
 
 The `nlme` package provides a function to fit a linear model using generalized
 least squares. The errors are allowed to be correlated and/or have unequal
-variances. We have already seen an example in the `README` document:
-<https://github.com/IndrajeetPatil/ggstatsplot/blob/master/README.md>
+variances. 
+
+```{r gls, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# for reproducibility
+set.seed(123)
+library(nlme)
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = nlme::gls(
+    model = follicles ~ sin(2 * pi * Time) + cos(2 * pi * Time),
+    data = Ovary,
+    correlation = corAR1(form = ~ 1 | Mare)
+  ),
+  point.color = "red",
+  stats.label.color = "black",
+  ggtheme = hrbrthemes::theme_ipsum_ps(),
+  ggstatsplot.layer = FALSE,
+  exclude.intercept = FALSE,
+  title = "generalized least squares model"
+)
+```
 
 ## robust regression using an M estimator (`rlm`)
 
-We have already seen an example of `MASS::rlm()` in the `README` document:
-<https://github.com/IndrajeetPatil/ggstatsplot/blob/master/README.md>
+```{r rlm, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# for reproducibility
+set.seed(123)
 
+# plot
+ggstatsplot::ggcoefstats(
+  x = MASS::rlm(formula = mpg ~ am * cyl,
+                data = mtcars),
+  point.color = "red",                
+  point.shape = 15,
+  vline.color = "#CC79A7",
+  vline.linetype = "dotdash",
+  stats.label.size = 3.5,
+  stats.label.color = c("#0072B2", "#D55E00", "darkgreen"),
+  title = "robust regression using an M estimator",
+  ggtheme = ggthemes::theme_stata(),
+  ggstatsplot.layer = FALSE
+)
+```
 
 ## quantile regression (`rq`)
 
-We have already seen an example of quantile regression (`quantreg::rq()`) in the
-`README` document:
-<https://github.com/IndrajeetPatil/ggstatsplot/blob/master/README.md>
+```{r rq, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# for reproducibility
+set.seed(123)
+library(quantreg)
+
+# loading dataframe needed for the analyses below
+data(stackloss)
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = quantreg::rq(
+    formula = stack.loss ~ stack.x,
+    data = stackloss,
+    method = "br"
+  ),
+  se.type = "iid",
+  title = "quantile regression"
+)
+```
 
 ## nonlinear quantile regression estimates (`nlrq`)
 
@@ -1218,7 +1310,8 @@ data(jobs)
 
 # base models
 b <-
-  stats::lm(formula = job_seek ~ treat + econ_hard + sex + age, data = jobs)
+  stats::lm(formula = job_seek ~ treat + econ_hard + sex + age, 
+            data = jobs)
 c <-
   stats::lm(formula = depress2 ~ treat + job_seek + econ_hard + sex + age,
             data = jobs)
@@ -1262,10 +1355,30 @@ ggstatsplot::ggcoefstats(x = Ex2.res,
                          title = "Model II regression")
 ```
 
+## generalized additive models for location scale and shape (`gamlss`)
+
+```{r gamlss, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# setup
+set.seed(123)
+library(gamlss)
+
+# model
+g <- gamlss::gamlss(
+  formula = y ~ pb(x),
+  sigma.fo = ~ pb(x),
+  family = BCT,
+  data = abdom,
+  method = mixed(1, 20)
+)
+
+# plot
+ggstatsplot::ggcoefstats(x = g, 
+                         title = "generalized additive models \nfor location scale and shape")
+```
 
 ## generalized method of moment estimation (`gmm`)
 
-```{r gmm, warning = FALSE, message = FALSE, fig.height = 8, fig.width = 6}
+```{r gmm, warning = FALSE, message = FALSE, fig.height = 8, fig.width = 5}
 # setup
 set.seed(123)
 library(gmm)
@@ -1288,6 +1401,47 @@ ggstatsplot::ggcoefstats(x = res,
                          package = "palettetown",
                          palette = "victreebel",
                          title = "generalized method of moment estimation")
+```
+
+## joint model to time-to-event data and multivariate longitudinal data (`mjoint`)
+
+```{r mjoint, warning = FALSE, message = FALSE, fig.height = 8, fig.width = 8}
+# setup
+set.seed(123)
+library(joineRML)
+data(heart.valve)
+
+# data
+hvd <- heart.valve[!is.na(heart.valve$log.grad) &
+  !is.na(heart.valve$log.lvmi) &
+  heart.valve$num <= 50, ]
+
+# model
+fit <- joineRML::mjoint(
+  formLongFixed = list(
+    "grad" = log.grad ~ time + sex + hs,
+    "lvmi" = log.lvmi ~ time + sex
+  ),
+  formLongRandom = list(
+    "grad" = ~ 1 | num,
+    "lvmi" = ~ time | num
+  ),
+  formSurv = Surv(fuyrs, status) ~ age,
+  data = hvd,
+  inits = list("gamma" = c(0.11, 1.51, 0.80)),
+  timeVar = "time"
+)
+
+# extract the survival fixed effects and plot them
+ggstatsplot::ggcoefstats(
+  x = fit,
+  conf.level = 0.99,
+  exclude.intercept = FALSE,
+  component = "longitudinal",
+  package = "yarrr",
+  palette = "basel",
+  title = "joint model to time-to-event data \nand multivariate longitudinal data"
+)
 ```
 
 ## exponential-family random graph models (`ergm`)
@@ -1437,7 +1591,50 @@ ggstatsplot::ggcoefstats(x = two_class_cm,
                          title = "confusion matrix")
 ```
 
-## multivariate generalised linear mixed models (`MCMCglmm`)
+## Bayesian generalized (non-)linear multivariate multilevel models (`brmsfit`)
+
+```{r brmsfit, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# setup
+set.seed(123)
+library(brms)
+
+# prior
+bprior1 <- prior(student_t(5, 0, 10), class = b) +
+  prior(cauchy(0, 2), class = sd)
+
+# model
+fit1 <- brms::brm(
+  formula = count ~ log_Age_c + log_Base4_c * Trt + (1 | patient),
+  data = epilepsy,
+  family = poisson(),
+  prior = bprior1,
+  silent = TRUE
+)
+
+# plot
+ggstatsplot::ggcoefstats(x = fit1,
+                         exclude.intercept = FALSE,
+                         conf.method = "HPDinterval",
+                         title = "Bayesian generalized (non-)linear \nmultivariate multilevel models",
+                         subtitle = "using `brms` package")
+```
+
+## Bayesian regression models via Stan (`stanreg`)
+
+```{r rstan, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# set up
+set.seed(123)
+library(rstanarm)
+
+# model
+fit <- rstanarm::stan_glm(formula = mpg ~ wt + am, data = mtcars, chains = 1)
+
+# plot
+ggstatsplot::ggcoefstats(x = fit, 
+                         title = "Bayesian generalized linear models via Stan")
+```
+
+## multivariate generalized linear mixed models (`MCMCglmm`)
 
 ```{r MCMCglmm, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6}
 # setup
@@ -1447,7 +1644,8 @@ library(MCMCglmm)
 # model
 mm0 <- MCMCglmm::MCMCglmm(
   fixed = scale(Reaction) ~ scale(Days),
-  random = ~Subject, data = sleepstudy,
+  random = ~Subject, 
+  data = sleepstudy,
   nitt = 4000,
   pr = TRUE,
   verbose = FALSE
@@ -1456,10 +1654,29 @@ mm0 <- MCMCglmm::MCMCglmm(
 # plot
 ggstatsplot::ggcoefstats(
   x = mm0,
-  title = "multivariate generalised linear mixed model",
+  title = "multivariate generalized linear mixed model",
   conf.method = "HPDinterval",
   exclude.intercept = FALSE,
-  rhat = TRUE,
+  robust = TRUE
+)
+```
+
+## Markov Chain Monte Carlo objects (`mcmc`)
+
+```{r mcmc, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# loading the data
+set.seed(123)
+library(coda)
+data(line)
+
+# select first chain
+x1 <- line[[1]]
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = x1,
+  conf.int = TRUE,
+  title = "Markov Chain Monte Carlo objects",
   robust = TRUE
 )
 ```
@@ -1518,12 +1735,62 @@ ggstatsplot::ggcoefstats(
 )
 ```
 
+## meta-analysis
+
+In case the estimates you are displaying come from multiple studies, you can
+also use this function to carry out random-effects meta-analysis (as implemented
+in the [metafor](http://www.metafor-project.org/doku.php) package; see
+`metafor::rma()`).
+
+The dataframe you enter **must** contain at the minimum the following three
+columns- `term`, `estimate`, `std.error`.
+
+```{r meta1, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6}
+# let's make up a dataframe (with minimum amount of details)
+df_min <- tibble::tribble(
+  ~term, ~estimate, ~std.error,
+  "study1", 0.0665, -0.778,
+  "study2", 0.542, -0.280,
+  "study3", 0.045, 0.030, 
+  "study4", 0.500, -0.708,
+  "study5", 0.032, -0.280,
+  "study6", 0.085, 0.030
+)
+
+# plot
+ggstatsplot::ggcoefstats(x = df_min,
+                         meta.analytic.effect = TRUE, 
+                         point.color = "red")
+```
+
+Or you can also provide a dataframe containing all the other relevant
+information for making labels with statistical information.
+
+```{r meta2, warning = FALSE, message = FALSE, fig.height = 7, fig.width = 6}
+# let's make up a dataframe (with all available details)
+df_full <- tibble::tribble(
+  ~term, ~statistic, ~estimate, ~std.error, ~p.value, ~df.residual,
+  "study1", 0.158, 0.0665, -0.778, 0.875, 5L,
+  "study2", 1.33, 0.542, -0.280, 0.191, 10L,
+  "study3", 1.24, 0.045, 0.030, 0.001, 12L,
+  "study4", 0.156, 0.500, -0.708, 0.885, 8L,
+  "study5", 0.33, 0.032, -0.280, 0.101, 2L,
+  "study6", 1.04, 0.085, 0.030, 0.001, 3L
+)
+
+# plot
+ggstatsplot::ggcoefstats(x = df_full,
+                         meta.analytic.effect = TRUE, 
+                         statistic = "t",
+                         package = "LaCroixColoR",
+                         palette = "paired")
+```
+
 ## And much more...
 
-This vignette was supposed to give just a taste for only *some* of the
-regression models supported by `ggcoefstats`. The full list of supported models
-will keep expanding as additional tidiers are added to the `broom` (and its
-extension `broom.mixed`) package:
+This vignette was supposed to give a comprehensive account of regression models
+supported by `ggcoefstats`. The list of supported models will keep expanding as
+additional tidiers are added to the `broom` and `broom.mixed` package:
 <https://broom.tidyverse.org/articles/available-methods.html>
 
 Note that not **all** models supported by `broom` will be supported by

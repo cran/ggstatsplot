@@ -1,11 +1,12 @@
-# context ------------------------------------------------------------
 context(desc = "gghistostats")
 
-# checking plot and parametric stats ---------------------------------------------
+# checking plot and parametric stats --------------------------------------
 
 testthat::test_that(
   desc = "checking gghistostats plot and parametric stats - data with NAs",
   code = {
+    testthat::skip_on_cran()
+
     # creating the plot
     set.seed(123)
     p <-
@@ -110,7 +111,9 @@ testthat::test_that(
         "(BF"["01"],
         ") = ",
         "-13.55",
-        ", Prior width = ",
+        ", ",
+        italic("r")["Cauchy"],
+        " = ",
         "0.90"
       )
     )))
@@ -122,6 +125,8 @@ testthat::test_that(
 testthat::test_that(
   desc = "checking gghistostats and non-parametric stats - data without NAs",
   code = {
+    testthat::skip_on_cran()
+
     # creating the plot
     set.seed(123)
     p <-
@@ -146,7 +151,8 @@ testthat::test_that(
     set.seed(123)
     p_subtitle <-
       ggstatsplot::subtitle_t_onesample(
-        x = ggplot2::mpg$cty,
+        data = ggplot2::mpg,
+        x = cty,
         type = "np",
         test.value = 20,
         k = 3,
@@ -218,7 +224,7 @@ testthat::test_that(
     )
     testthat::expect_identical(
       pb$layout$panel_params[[1]]$y.sec.labels,
-      c("0.0%", "10.0%", "20.0%", "30.0%", "40.0%")
+      c("0%", "10%", "20%", "30%", "40%")
     )
     testthat::expect_identical(
       pb$layout$panel_params[[1]]$y.arrange,
@@ -245,6 +251,8 @@ testthat::test_that(
 testthat::test_that(
   desc = "checking robust stats and proportions",
   code = {
+    testthat::skip_on_cran()
+
     # creating the plot
     set.seed(123)
     p <-
@@ -267,7 +275,8 @@ testthat::test_that(
     set.seed(123)
     p_subtitle <-
       ggstatsplot::subtitle_t_onesample(
-        x = mtcars$wt,
+        data = mtcars,
+        x = wt,
         test.value = 2.5,
         type = "r",
         messages = FALSE
@@ -317,7 +326,7 @@ testthat::test_that(
     )
     testthat::expect_identical(
       pb$layout$panel_params[[1]]$y.labels,
-      c("0.0%", "10.0%", "20.0%")
+      c("0%", "10%", "20%")
     )
   }
 )
@@ -327,6 +336,8 @@ testthat::test_that(
 testthat::test_that(
   desc = "checking bayes stats and density",
   code = {
+    testthat::skip_on_cran()
+
     # creating the plot
     set.seed(123)
     p <-
@@ -348,7 +359,8 @@ testthat::test_that(
     set.seed(123)
     p_subtitle <-
       ggstatsplot::subtitle_t_onesample(
-        x = morley$Speed,
+        data = morley,
+        x = Speed,
         test.value = 2.5,
         type = "bf",
         messages = FALSE
@@ -386,11 +398,112 @@ testthat::test_that(
   }
 )
 
-# checking with default binwidth -----------------------------------
+# checking if normal curve works -------------------------------------
 
 testthat::test_that(
   desc = "checking with default binwidth",
   code = {
+    testthat::skip_on_cran()
+
+    # creating a subset of the dataset
+    set.seed(123)
+    dat1 <- dplyr::sample_frac(tbl = ggplot2::txhousing, size = 0.05)
+    dat2 <- ggplot2::msleep
+
+    # plot-1
+    p1 <- ggstatsplot::gghistostats(
+      data = dat1,
+      x = sales,
+      results.subtitle = FALSE,
+      normal.curve = TRUE,
+      bar.measure = "count",
+      messages = FALSE
+    )
+
+    # plot-2
+    p2 <- ggstatsplot::gghistostats(
+      data = dat1,
+      x = sales,
+      results.subtitle = FALSE,
+      normal.curve = TRUE,
+      binwidth = 100,
+      bar.measure = "proportion",
+      messages = FALSE
+    )
+
+    # plot-3
+    p3 <- ggstatsplot::gghistostats(
+      data = dat2,
+      x = brainwt,
+      results.subtitle = FALSE,
+      normal.curve = TRUE,
+      normal.curve.color = "red",
+      normal.curve.size = 0.8,
+      bar.measure = "mix",
+      messages = FALSE
+    )
+
+    # plot-4
+    p4 <- ggstatsplot::gghistostats(
+      data = dat2,
+      x = brainwt,
+      results.subtitle = FALSE,
+      normal.curve = TRUE,
+      bar.measure = "density",
+      binwidth = 0.05,
+      normal.curve.linetype = "dashed",
+      messages = FALSE
+    )
+
+    # plot-5
+    p5 <- ggstatsplot::gghistostats(
+      data = dat2,
+      x = brainwt,
+      results.subtitle = FALSE,
+      normal.curve = FALSE,
+      messages = FALSE
+    )
+
+    # build plots
+    pb1 <- ggplot2::ggplot_build(p1)
+    pb2 <- ggplot2::ggplot_build(p2)
+    pb3 <- ggplot2::ggplot_build(p3)
+    pb4 <- ggplot2::ggplot_build(p4)
+    pb5 <- ggplot2::ggplot_build(p5)
+
+    # check data layers
+    testthat::expect_equal(length(pb1$data), 4L)
+    testthat::expect_equal(length(pb2$data), 4L)
+    testthat::expect_equal(length(pb3$data), 4L)
+    testthat::expect_equal(length(pb4$data), 4L)
+    testthat::expect_equal(length(pb5$data), 3L)
+
+    # check aesthetic of the respective layer
+    testthat::expect_equal(dim(pb1$data[[2]]), c(101L, 8L))
+    testthat::expect_identical(unique(pb1$data[[2]]$colour), "black")
+    testthat::expect_identical(unique(pb1$data[[2]]$linetype), "solid")
+    testthat::expect_equal(unique(pb1$data[[2]]$size), 1L)
+    testthat::expect_identical(unique(pb3$data[[2]]$colour), "red")
+    testthat::expect_equal(unique(pb3$data[[2]]$size), 0.8)
+    testthat::expect_identical(unique(pb4$data[[2]]$linetype), "dashed")
+
+    # even if binwidth changes mean of the distribution shouldn't change
+    testthat::expect_identical(mean(pb1$data[[2]]$x), mean(pb2$data[[2]]$x))
+    testthat::expect_identical(mean(pb3$data[[2]]$x), mean(pb4$data[[2]]$x))
+    testthat::expect_equal(mean(pb1$data[[2]]$y), 13.71123, tolerance = 0.001)
+    testthat::expect_equal(mean(pb2$data[[2]]$y), 0.01005975, tolerance = 0.001)
+    testthat::expect_equal(mean(pb3$data[[2]]$y), 4.627659, tolerance = 0.001)
+    testthat::expect_equal(mean(pb4$data[[2]]$y), 0.1082654, tolerance = 0.001)
+  }
+)
+
+# checking with default binwidth -------------------------------------
+
+testthat::test_that(
+  desc = "checking with default binwidth",
+  code = {
+    testthat::skip_on_cran()
+
     # creating the plot
     set.seed(123)
     p <-

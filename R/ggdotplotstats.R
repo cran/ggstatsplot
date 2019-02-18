@@ -16,7 +16,7 @@
 #' @examples
 #' # for reproducibility
 #' set.seed(123)
-#' 
+#'
 #' # plot
 #' ggdotplotstats(
 #'   data = ggplot2::mpg,
@@ -75,23 +75,17 @@ ggdotplotstats <- function(data,
                            test.k = 0,
                            ggplot.component = NULL,
                            messages = TRUE) {
-  # ------------------------------ variable names ----------------------------
 
-  # preparing a dataframe with variable names
-  lab.df <- colnames(x = dplyr::select(
-    .data = data,
-    !!rlang::enquo(x),
-    !!rlang::enquo(y)
-  ))
+  # ------------------------------ variable names ----------------------------
 
   # if `xlab` is not provided, use the variable `x` name
   if (is.null(xlab)) {
-    xlab <- lab.df[1]
+    xlab <- rlang::as_name(rlang::ensym(x))
   }
 
   # if `ylab` is not provided, use the variable `y` name
   if (is.null(ylab)) {
-    ylab <- lab.df[2]
+    ylab <- rlang::as_name(rlang::ensym(y))
   }
 
   # --------------------------- data preparation ----------------------------
@@ -103,27 +97,21 @@ ggdotplotstats <- function(data,
       x = !!rlang::enquo(x),
       y = !!rlang::enquo(y)
     ) %>%
-    dplyr::filter(.data = ., !is.na(x), !is.na(y)) %>%
+    tidyr::drop_na(data = .) %>%
     dplyr::mutate(.data = ., y = droplevels(as.factor(y))) %>%
-    tibble::as_tibble(x = .)
-
-  # if the data hasn't already been summarized, do so
-  data %<>%
     dplyr::group_by(.data = ., y) %>%
     dplyr::summarise(.data = ., x = mean(x, na.rm = TRUE)) %>%
-    dplyr::ungroup(x = .)
+    dplyr::ungroup(x = .) %>%
+    tibble::as_tibble(x = .)
 
   # rank ordering the data
   data %<>%
     dplyr::arrange(.data = ., x) %>%
-    dplyr::mutate(
-      .data = .,
-      y = factor(x = y, levels = .$y)
-    ) %>%
+    dplyr::mutate(.data = ., y = factor(y, levels = .$y)) %>%
     dplyr::mutate(
       .data = .,
       percent_rank = (trunc(rank(x)) / length(x)) * 100,
-      rank = 1:nrow(.)
+      rank = 1:NROW(.)
     )
 
   # ================ stats labels ==========================================
@@ -262,7 +250,7 @@ ggdotplotstats <- function(data,
   if (isTRUE(messages)) {
     normality_message(
       x = data$x,
-      lab = lab.df[1],
+      lab = xlab,
       k = k,
       output = "message"
     )

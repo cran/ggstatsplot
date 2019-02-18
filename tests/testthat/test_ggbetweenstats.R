@@ -1,4 +1,3 @@
-# context -------------------------------------------------------------------
 context(desc = "ggbetweenstats")
 
 # outlier labeling works ----------------------------------------------------
@@ -20,6 +19,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "outlier.labeling works across vector types",
   code = {
+    testthat::skip_on_cran()
 
     # `outlier.label` is numeric
     set.seed(123)
@@ -93,9 +93,11 @@ testthat::test_that(
       caption = "From ggplot2 package",
       xlab = "vorarephilia",
       ylab = "brain weight",
+      axes.range.restrict = TRUE,
       outlier.tagging = TRUE,
       outlier.label = name,
       conf.level = 0.99,
+      k = 5,
       bf.message = TRUE,
       messages = FALSE
     )
@@ -106,6 +108,7 @@ testthat::test_that(
       data = ggplot2::msleep,
       x = vore,
       y = brainwt,
+      k = 5,
       messages = FALSE,
       conf.level = 0.99
     )
@@ -149,7 +152,7 @@ testthat::test_that(
 
     # range of y variable
     testthat::expect_equal(ggplot2::layer_scales(p)$y$range$range,
-      c(-0.0949, 5.71200000),
+      c(0.00014, 5.71200000),
       tolerance = 1e-5
     )
 
@@ -171,7 +174,7 @@ testthat::test_that(
     )
 
     # checking plot labels
-    testthat::expect_identical(p$labels$subtitle, p_subtitle)
+    # testthat::expect_identical(p$labels$subtitle, p_subtitle)
     testthat::expect_identical(p$labels$title, "mammalian sleep")
     testthat::expect_identical(
       p$labels$caption,
@@ -182,9 +185,11 @@ testthat::test_that(
           "log"["e"],
           "(BF"["01"],
           ") = ",
-          "1.54",
-          ", Prior width = ",
-          "0.71"
+          "1.54274",
+          ", ",
+          italic("r")["Cauchy"],
+          " = ",
+          "0.70700"
         )
       ))
     )
@@ -227,14 +232,25 @@ testthat::test_that(
     testthat::expect_equal(dim(pb$data[[1]]), c(29L, 13L))
 
     # checking displayed mean labels
-    testthat::expect_identical(
-      pb$data[[6]]$label,
-      c(
-        "2.290, 95% CI [1.907, 2.673]",
-        "3.120, 95% CI [2.787, 3.453]",
-        "4.000, 95% CI [3.561, 4.439]"
+    if (utils::packageVersion("skimr") != "2.0") {
+      testthat::expect_identical(
+        pb$data[[6]]$label,
+        c(
+          "2.290, 95% CI [1.907, 2.673]",
+          "3.120, 95% CI [2.787, 3.453]",
+          "4.000, 95% CI [3.561, 4.439]"
+        )
       )
-    )
+    } else {
+      testthat::expect_identical(
+        pb$data[[6]]$label,
+        c(
+          "2.286, 95% CI [1.903, 2.668]",
+          "3.117, 95% CI [2.788, 3.447]",
+          "3.999, 95% CI [3.561, 4.438]"
+        )
+      )
+    }
 
     testthat::expect_identical(
       pb$data[[4]]$label,
@@ -263,6 +279,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "subtitles with bayesian tests work",
   code = {
+    testthat::skip_on_cran()
 
     # plot
     set.seed(123)
@@ -320,6 +337,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "subtitle works with equal variance assumption",
   code = {
+    testthat::skip_on_cran()
 
     # plot
     set.seed(123)
@@ -355,6 +373,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "checking if plot.type argument works",
   code = {
+    testthat::skip_on_cran()
     set.seed(123)
 
     # boxplot
@@ -366,6 +385,7 @@ testthat::test_that(
         plot.type = "box",
         results.subtitle = FALSE,
         outlier.tagging = TRUE,
+        bf.message = TRUE,
         outlier.coef = 0.75,
         outlier.color = "blue",
         mean.color = "darkgreen",
@@ -379,11 +399,12 @@ testthat::test_that(
         data = ToothGrowth,
         x = supp,
         y = len,
+        effsize.noncentral = FALSE,
         plot.type = "violin",
-        results.subtitle = FALSE,
         outlier.tagging = TRUE,
         outlier.coef = 0.75,
         outlier.color = "blue",
+        bf.message = TRUE,
         mean.plotting = FALSE,
         sample.size.label = FALSE,
         package = "wesanderson",
@@ -397,8 +418,50 @@ testthat::test_that(
     pb2 <- ggplot2::ggplot_build(p2)
 
     # tests for labels
-    testthat::expect_null(p1$labels$subtitle, NULL)
-    testthat::expect_null(p2$labels$subtitle, NULL)
+    testthat::expect_null(pb1$plot$labels$subtitle, NULL)
+    testthat::expect_null(pb1$plot$labels$caption, NULL)
+    testthat::expect_identical(pb2$plot$labels$subtitle, ggplot2::expr(
+      paste(
+        NULL,
+        italic("t"),
+        "(",
+        "55.31",
+        ") = ",
+        "1.92",
+        ", ",
+        italic("p"),
+        " = ",
+        "0.061",
+        ", ",
+        italic("g"),
+        " = ",
+        "0.49",
+        ", CI"["95%"],
+        " [",
+        "-0.03",
+        ", ",
+        "1.02",
+        "]",
+        ", ",
+        italic("n"),
+        " = ",
+        60L
+      )
+    ))
+    testthat::expect_identical(pb2$plot$labels$caption, ggplot2::expr(atop(
+      displaystyle(NULL),
+      expr = paste(
+        "In favor of null: ",
+        "log"["e"],
+        "(BF"["01"],
+        ") = ",
+        "-0.18",
+        ", ",
+        italic("r")["Cauchy"],
+        " = ",
+        "0.71"
+      )
+    )))
     testthat::expect_identical(length(pb1$data), 5L)
     testthat::expect_identical(length(pb1$data), 5L)
     testthat::expect_identical(length(pb2$data), 4L)
@@ -449,6 +512,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "ggplot component addition works",
   code = {
+    testthat::skip_on_cran()
 
     # plot
     p <- ggstatsplot::ggbetweenstats(

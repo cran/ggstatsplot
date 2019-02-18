@@ -8,7 +8,7 @@ testthat::test_that(
 
     # ggstatsplot output
     set.seed(123)
-    using_function1 <-
+    using_function <-
       suppressWarnings(
         ggstatsplot::subtitle_t_onesample(
           data = movies_long,
@@ -22,7 +22,7 @@ testthat::test_that(
 
     # expected output
     set.seed(123)
-    results1 <-
+    results <-
       ggplot2::expr(
         paste(
           NULL,
@@ -53,7 +53,7 @@ testthat::test_that(
       )
 
     # testing overall call
-    testthat::expect_identical(using_function1, results1)
+    testthat::expect_identical(using_function, results)
   }
 )
 
@@ -65,7 +65,7 @@ testthat::test_that(
 
     # ggstatsplot output
     set.seed(123)
-    using_function1 <-
+    using_function <-
       suppressWarnings(
         ggstatsplot::subtitle_t_onesample(
           data = ToothGrowth,
@@ -79,20 +79,27 @@ testthat::test_that(
 
     # expected output
     set.seed(123)
-    results1 <-
+    results <-
       ggplot2::expr(
         paste(
-          italic("U"),
+          NULL,
+          "log"["e"](italic("V")),
           " = ",
-          753.5,
+          "6.6247",
           ", ",
           italic("p"),
           " = ",
           "0.3227",
           ", ",
-          italic("d"),
+          Delta["HLS"],
           " = ",
-          "-0.1551",
+          "18.8499",
+          ", CI"["95%"],
+          " [",
+          "16.6500",
+          ", ",
+          "21.0500",
+          "]",
           ", ",
           italic("n"),
           " = ",
@@ -101,7 +108,7 @@ testthat::test_that(
       )
 
     # testing overall call
-    testthat::expect_identical(using_function1, results1)
+    testthat::expect_identical(using_function, results)
   }
 )
 
@@ -114,20 +121,21 @@ testthat::test_that(
 
     # ggstatsplot output
     set.seed(123)
-    using_function1 <-
+    using_function <-
       suppressWarnings(
         ggstatsplot::subtitle_t_onesample(
-          x = anscombe$x1,
+          data = anscombe,
+          x = x1,
           test.value = 8,
           type = "r",
           k = 4,
-          messages = FALSE
+          messages = TRUE
         )
       )
 
     # expected output
     set.seed(123)
-    results1 <-
+    results <-
       ggplot2::expr(
         paste(
           italic("M")[robust],
@@ -150,7 +158,7 @@ testthat::test_that(
       )
 
     # testing overall call
-    testthat::expect_identical(using_function1, results1)
+    testthat::expect_identical(using_function, results)
   }
 )
 
@@ -162,10 +170,11 @@ testthat::test_that(
 
     # ggstatsplot output
     set.seed(123)
-    using_function1 <-
+    using_function <-
       suppressWarnings(
         ggstatsplot::subtitle_t_onesample(
-          x = anscombe$x2,
+          data = anscombe,
+          x = x2,
           test.value = 8,
           type = "bf",
           messages = FALSE
@@ -174,7 +183,7 @@ testthat::test_that(
 
     # expected output
     set.seed(123)
-    results1 <-
+    results <-
       ggplot2::expr(
         paste(
           italic("t"),
@@ -186,7 +195,9 @@ testthat::test_that(
           "(BF"["10"],
           ") = ",
           "-0.80",
-          ", Prior width = ",
+          ", ",
+          italic("r")["Cauchy"],
+          " = ",
           "0.71",
           ", ",
           italic("d"),
@@ -200,60 +211,6 @@ testthat::test_that(
       )
 
     # testing overall call
-    testthat::expect_identical(using_function1, results1)
-  }
-)
-
-# message checks ---------------------------------------------------------
-
-testthat::test_that(
-  desc = "subtitle_t_onesample works",
-  code = {
-
-    # message
-    set.seed(123)
-    p_message1 <- capture.output(
-      ggstatsplot::subtitle_t_onesample(
-        x = ToothGrowth$len,
-        nboot = 10,
-        type = "r",
-        robust.estimator = "median"
-      )
-    )
-
-    p_message2 <- capture.output(
-      ggstatsplot::subtitle_t_onesample(
-        x = ToothGrowth$len,
-        nboot = 25,
-        type = "r",
-        robust.estimator = "mom"
-      )
-    )
-
-    p_message3 <- capture.output(
-      ggstatsplot::subtitle_t_onesample(
-        x = ToothGrowth$len,
-        conf.level = 0.95,
-        nboot = 20,
-        type = "r",
-        robust.estimator = "onestep"
-      )
-    )
-
-    # checking captured messages
-    testthat::expect_match(p_message1[1],
-      "median computed with 10",
-      fixed = TRUE
-    )
-
-    testthat::expect_match(p_message2[1],
-      "mom computed with 25",
-      fixed = TRUE
-    )
-
-    testthat::expect_match(p_message3[1],
-      "onestep computed with 20",
-      fixed = TRUE
-    )
+    testthat::expect_identical(using_function, results)
   }
 )

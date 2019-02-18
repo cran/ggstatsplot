@@ -1,14 +1,15 @@
 #' @title Violin plots for group or condition comparisons in between-subjects
 #'   designs repeated across all levels of a grouping variable.
 #' @name grouped_ggbetweenstats
-#' @aliases grouped_ggbetweenstats
 #' @description A combined plot of comparison plot created for levels of a
 #'   grouping variable.
-#' @author Indrajeet Patil
+#' @author Indrajeet Patil, Chuck Powell
 #'
-#' @param grouping.var Grouping variable.
-#' @param title.prefix Character specifying the prefix text for the fixed plot
-#'   title (name of each factor level) (Default: `"Group"`).
+#' @param grouping.var A single grouping variable (can be entered either as a
+#'   bare name `x` or as a string `"x"`).
+#' @param title.prefix Character string specifying the prefix text for the fixed
+#'   plot title (name of each factor level) (Default: `NULL`). If `NULL`, the
+#'   variable name entered for `grouping.var` will be used.
 #' @inheritParams ggbetweenstats
 #' @inheritDotParams combine_plots
 #'
@@ -18,8 +19,7 @@
 #' @importFrom dplyr group_by n arrange
 #' @importFrom rlang !! enquo quo_name ensym
 #' @importFrom glue glue
-#' @importFrom purrr map set_names
-#' @importFrom tidyr nest
+#' @importFrom purrr pmap
 #'
 #' @seealso \code{\link{ggbetweenstats}}
 #'
@@ -64,7 +64,7 @@ grouped_ggbetweenstats <- function(data,
                                    x,
                                    y,
                                    grouping.var,
-                                   title.prefix = "Group",
+                                   title.prefix = NULL,
                                    plot.type = "boxviolin",
                                    type = "parametric",
                                    pairwise.comparisons = FALSE,
@@ -73,7 +73,7 @@ grouped_ggbetweenstats <- function(data,
                                    p.adjust.method = "holm",
                                    effsize.type = "unbiased",
                                    partial = TRUE,
-                                   effsize.noncentral = FALSE,
+                                   effsize.noncentral = TRUE,
                                    bf.prior = 0.707,
                                    bf.message = FALSE,
                                    results.subtitle = TRUE,
@@ -87,13 +87,14 @@ grouped_ggbetweenstats <- function(data,
                                    conf.level = 0.95,
                                    nboot = 100,
                                    tr = 0.1,
+                                   axes.range.restrict = FALSE,
                                    mean.label.size = 3,
                                    mean.label.fontface = "bold",
                                    mean.label.color = "black",
                                    notch = FALSE,
                                    notchwidth = 0.5,
                                    linetype = "solid",
-                                   outlier.tagging = NULL,
+                                   outlier.tagging = FALSE,
                                    outlier.label = NULL,
                                    outlier.label.color = "black",
                                    outlier.color = "black",
@@ -105,7 +106,7 @@ grouped_ggbetweenstats <- function(data,
                                    mean.color = "darkred",
                                    point.jitter.width = NULL,
                                    point.jitter.height = 0,
-                                   point.dodge.width = 0.75,
+                                   point.dodge.width = 0.60,
                                    ggtheme = ggplot2::theme_bw(),
                                    ggstatsplot.layer = TRUE,
                                    package = "RColorBrewer",
@@ -142,66 +143,35 @@ grouped_ggbetweenstats <- function(data,
   # ensure the grouping variable works quoted or unquoted
   grouping.var <- rlang::ensym(grouping.var)
 
-  # ======================== preparing dataframe ==========================
-
-  # prepare dataframe based on outlier tagging requirements
-  if (!base::missing(outlier.label) &&
-    "outlier.tagging" %in% names(param_list)) {
-    df <-
-      dplyr::select(
-        .data = data,
-        !!rlang::enquo(grouping.var),
-        !!rlang::enquo(x),
-        !!rlang::enquo(y),
-        !!rlang::enquo(outlier.label)
-      ) %>%
-      dplyr::mutate(
-        .data = .,
-        title.text = !!rlang::enquo(grouping.var)
-      ) %>%
-      dplyr::filter(
-        .data = .,
-        !is.na(!!rlang::enquo(x)),
-        !is.na(!!rlang::enquo(y)),
-        !is.na(!!rlang::enquo(grouping.var))
-      )
-  } else {
-    df <-
-      dplyr::select(
-        .data = data,
-        !!rlang::enquo(grouping.var),
-        !!rlang::enquo(x),
-        !!rlang::enquo(y)
-      ) %>%
-      dplyr::mutate(
-        .data = .,
-        title.text = !!rlang::enquo(grouping.var)
-      ) %>%
-      stats::na.omit(.)
+  # if `title.prefix` is not provided, use the variable `grouping.var` name
+  if (is.null(title.prefix)) {
+    title.prefix <- rlang::as_name(grouping.var)
   }
 
-  # make a list of dataframes by grouping variable
+  # ======================== preparing dataframe ==========================
+
+  # creating a dataframe
+  df <-
+    dplyr::select(
+      .data = data,
+      !!rlang::enquo(x),
+      !!rlang::enquo(y),
+      !!rlang::enquo(grouping.var),
+      !!rlang::enquo(outlier.label)
+    ) %>%
+    tidyr::drop_na(data = .)
+
+  # creating a list for grouped analysis
   df %<>%
-    dplyr::mutate_if(
-      .tbl = .,
-      .predicate = purrr::is_bare_character,
-      .funs = ~ as.factor(.)
-    ) %>%
-    dplyr::mutate_if(
-      .tbl = .,
-      .predicate = is.factor,
-      .funs = ~ base::droplevels(.)
-    ) %>%
-    dplyr::filter(.data = ., !is.na(!!rlang::enquo(grouping.var))) %>%
-    base::split(.[[rlang::quo_text(grouping.var)]])
+    grouped_list(data = ., grouping.var = !!rlang::enquo(grouping.var))
 
   # ============== build pmap list based on conditions =====================
 
   if (!"outlier.tagging" %in% names(param_list) || isFALSE(outlier.tagging)) {
     flexiblelist <- list(
       data = df,
-      x = rlang::quo_text(ensym(x)),
-      y = rlang::quo_text(ensym(y)),
+      x = rlang::quo_text(rlang::ensym(x)),
+      y = rlang::quo_text(rlang::ensym(y)),
       title = glue::glue("{title.prefix}: {names(df)}")
     )
   }
@@ -209,8 +179,8 @@ grouped_ggbetweenstats <- function(data,
   if (isTRUE(outlier.tagging) && !"outlier.label" %in% names(param_list)) {
     flexiblelist <- list(
       data = df,
-      x = rlang::quo_text(ensym(x)),
-      y = rlang::quo_text(ensym(y)),
+      x = rlang::quo_text(rlang::ensym(x)),
+      y = rlang::quo_text(rlang::ensym(y)),
       outlier.tagging = TRUE,
       title = glue::glue("{title.prefix}: {names(df)}")
     )
@@ -219,9 +189,9 @@ grouped_ggbetweenstats <- function(data,
   if (isTRUE(outlier.tagging) && "outlier.label" %in% names(param_list)) {
     flexiblelist <- list(
       data = df,
-      x = rlang::quo_text(ensym(x)),
-      y = rlang::quo_text(ensym(y)),
-      outlier.label = rlang::quo_text(ensym(outlier.label)),
+      x = rlang::quo_text(rlang::ensym(x)),
+      y = rlang::quo_text(rlang::ensym(y)),
+      outlier.label = rlang::quo_text(rlang::ensym(outlier.label)),
       outlier.tagging = TRUE,
       title = glue::glue("{title.prefix}: {names(df)}")
     )
@@ -256,6 +226,7 @@ grouped_ggbetweenstats <- function(data,
       conf.level = conf.level,
       nboot = nboot,
       tr = tr,
+      axes.range.restrict = axes.range.restrict,
       mean.label.size = mean.label.size,
       mean.label.fontface = mean.label.fontface,
       mean.label.color = mean.label.color,

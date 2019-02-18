@@ -1,3 +1,65 @@
+# ggstatsplot 0.0.8.9000
+
+BREAKING CHANGES
+
+  - `subtitle_t_parametric` no longer has `data` as the optional argument. This
+    was done to be consistent with other subtitle helper functions.
+
+NEW FEATURES
+
+  - New function `ggbarstats` (and its `grouped_` variant) introduced for making
+    bar charts (thanks to #78).
+  - `ggcoefstats` also displays a caption with model summary when meta-analysis
+    is required.
+  - `gghistostats` and its `grouped_` variant has a new argument `normal.curve`
+    to superpose a normal distribution curve on top of the histogram (#138).
+  - `ggcoefstats` can support following new regression model objects: `brmsfit`,
+    `gam`, `Gam`, `gamlss`, `mcmc`, `mjoint`, `stanreg`.
+  - New function to convert plots which are not of `gg`/`ggplot` class to
+    convert into `ggplot` objects.
+  - Instead of using `effsize` to compute Cohen's *d* and Hedge's *g*,
+    `ggstatsplot` now relies on a new (#159) internal function
+    `effect_t_parametric` to compute them. This removes `effsize` from
+    dependencies.
+  - To be consistent with other functions in this package, both `ggbarstats` and
+    `ggpiestats` gain `results.subtitle` which can be set to `FALSE` if
+    statistical analysis is not required, in which case `subtitle` argument can
+    be used to provide alternative subtitle.
+
+MAJOR CHANGES
+   
+  - `ggbetweenstats` now defaults to using noncentral-*t* distribution for
+    computing Cohen's *d* and Hedge's *g*. To get variants with central-t
+    distribution, use `effsize.noncentral = FALSE`.
+   
+MINOR CHANGES
+
+  - All `grouped_` functions had argument `title.prefix` that defaulted to
+    `"Group"`. It now instead defaults to `NULL`, in which case the prefix will
+    variable name for `grouping.var` argument.
+  - To accommodate non-parametric tests, `subtitle_template` function can now
+    work with `parameter = NULL`.
+  - For `ggbetweenstats`, details contained in the subtitle for non-parametric
+    test are modified. It now uses Spearman's *rho*-based effect size estimates.
+    This removes `coin` from dependencies.
+  - `ggbetweenstats` and its `grouped_` variant gain a new argument
+    `axes.range.restrict` (which defaults to `FALSE`). This restricts `y`-axes
+    limits to minimum and maximum of `y` variable. This is what these functions
+    were doing by default in the past versions, which created issues for
+    additional ggplot components using the `ggplot.component` argument.
+  - All bayes factor related subtitle and captions replace `prior.width` with
+    `r_{Cauchy}`.
+  - `ggcoefstats` passes dots (`...`) to `augment` method from `broom`.
+
+BUG FIXES
+
+  - The helper function `bf_extractor` no longer provides option to extract
+    information about posterior distribution because these details were
+    incorrect. The `posterior = TRUE` details were not used anywhere in the
+    package so nothing about the results changes.
+  - `ggcorrmat` didn't output pair names when `output == "ci"` was used. This is
+    fixed.
+
 # ggstatsplot 0.0.8
 
 NEW FEATURES

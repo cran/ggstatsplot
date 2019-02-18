@@ -6,7 +6,7 @@
 #'   a plotgrid along with a combination of title, caption, and annotation label
 #' @return Combined plot with title and/or caption and/or annotation label
 #'
-#' @param ... Additional arguments used in the function `cowplot::plot_grid()`.
+#' @inheritDotParams cowplot::plot_grid
 #' @param title.text String or plotmath expression to be drawn as title for the
 #'   *combined plot*.
 #' @param title.color Text color for title.
@@ -62,7 +62,7 @@
 #' @examples
 #' # loading the necessary libraries
 #' library(ggplot2)
-#' 
+#'
 #' # preparing the first plot
 #' p1 <-
 #'   ggplot2::ggplot(
@@ -71,7 +71,7 @@
 #'   ) +
 #'   geom_point() +
 #'   labs(title = "setosa")
-#' 
+#'
 #' # preparing the second plot
 #' p2 <-
 #'   ggplot2::ggplot(
@@ -80,7 +80,7 @@
 #'   ) +
 #'   geom_point() +
 #'   labs(title = "versicolor")
-#' 
+#'
 #' # combining the plot with a title and a caption
 #' combine_plots(
 #'   p1,

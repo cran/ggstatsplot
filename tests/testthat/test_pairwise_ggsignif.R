@@ -1,4 +1,3 @@
-# context -------------------------------------------------------------------
 context(desc = "pairwise_p with ggsignif")
 
 # significant display works -------------------------------------------------
@@ -6,6 +5,7 @@ context(desc = "pairwise_p with ggsignif")
 testthat::test_that(
   desc = "check comparison significant displays - adjusted",
   code = {
+    testthat::skip_on_cran()
 
     # creating the plot
     set.seed(123)
@@ -46,6 +46,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "check non-significant comparison displays - no adjustment",
   code = {
+    testthat::skip_on_cran()
 
     # creating the plot
     set.seed(123)
@@ -239,6 +240,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "check robust test display - adjusted",
   code = {
+    testthat::skip_on_cran()
 
     # creating the plot
     set.seed(123)
@@ -317,6 +319,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "check student's t test display - adjusted",
   code = {
+    testthat::skip_on_cran()
 
     # creating the plot
     set.seed(123)

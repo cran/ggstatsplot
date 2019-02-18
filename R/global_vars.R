@@ -175,7 +175,13 @@ utils::globalVariables(
     "zval",
     "statistic.z",
     "variable",
-    "method"
+    "method",
+    "N",
+    "compare_list",
+    "I2",
+    "Q",
+    "tau",
+    "tau2"
   ),
   package = "ggstatsplot",
   add = FALSE

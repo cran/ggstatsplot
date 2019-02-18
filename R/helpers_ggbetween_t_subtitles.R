@@ -1,39 +1,57 @@
 #' @title Making text subtitle for the t-test (between-/within-subjects
 #'   designs).
 #' @name subtitle_t_parametric
-#' @author Indrajeet Patil
+#' @author Indrajeet Patil, Chuck Powell
 #'
 #' @param effsize.noncentral Logical indicating whether to use non-central
 #'   *t*-distributions for computing the confidence interval for Cohen's *d*
-#'   or Hedge's *g* (Default: `FALSE`).
-#' @param conf.level A scalar value between 0 and 1. If unspecified, the
-#'    default is to return `95%` lower and upper confidence intervals (`0.95`).
-#' @param k Number of digits after decimal point (should be an integer)
-#'   (Default: `k = 2`).
-#' @param ... Additional arguments (ignored).
+#'   or Hedge's *g* (Default: `TRUE`).
 #' @inheritParams subtitle_anova_parametric
 #' @inheritParams stats::t.test
 #'
 #' @importFrom dplyr select mutate_at
 #' @importFrom rlang !! enquo
-#' @importFrom stats t.test na.omit
-#' @importFrom effsize cohen.d
+#' @importFrom stats t.test na.omit qt pt uniroot
+#'
+#' @seealso subtitle_t_parametric
+#'
+#' @details Cohen's *d* is calculated in the traditional fashion as the
+#'   difference between means or mean minus *mu* divided by the estimated
+#'   standardized deviation.  By default Hedge's correction is applied
+#'   (*N*-3)/(*N*-2.25) to produce *g*. For independent samples *t*-test, there
+#'   are two possibilities implemented. If the *t*-test did not make a
+#'   homogeneity of variance assumption, (the Welch test), the variance term
+#'   will mirror the Welch test, otherwise a pooled and weighted estimate is
+#'   used. If a paired samples *t*-test was requested, then effect size desired is
+#'   based on the standard deviation of the differences.
+#'
+#'   The computation of the confidence intervals defaults to a use of
+#'   non-central Student-*t* distributions (`effsize.noncentral = TRUE`);
+#'   otherwise a central distribution is used.
+#'
+#'   When computing confidence intervals the variance of the effect size *d* or *g* is
+#'   computed using the conversion formula reported in Cooper et al. (2009)
+#'
+#'   - `((n1+n2)/(n1*n2) + .5*d^2/df) * ((n1+n2)/df)` (independent samples)
+#'
+#'   - `sqrt(((1 / n) + (d^2 / n)) * 2 * (1 - r))`  (paired case)
+#'
 #'
 #' @examples
-#' 
+#'
 #' # creating a smaller dataset
 #' msleep_short <- dplyr::filter(
 #'   .data = ggplot2::msleep,
 #'   vore %in% c("carni", "herbi")
 #' )
-#' 
+#'
 #' # with defaults
 #' subtitle_t_parametric(
 #'   data = msleep_short,
 #'   x = vore,
 #'   y = sleep_rem
 #' )
-#' 
+#'
 #' # changing defaults
 #' subtitle_t_parametric(
 #'   data = msleep_short,
@@ -51,11 +69,12 @@ subtitle_t_parametric <- function(data,
                                   y,
                                   paired = FALSE,
                                   effsize.type = "g",
-                                  effsize.noncentral = FALSE,
+                                  effsize.noncentral = TRUE,
                                   conf.level = 0.95,
                                   var.equal = FALSE,
                                   k = 2,
                                   ...) {
+
 
   # creating a dataframe
   data <-
@@ -63,19 +82,13 @@ subtitle_t_parametric <- function(data,
       .data = data,
       x = !!rlang::enquo(x),
       y = !!rlang::enquo(y)
-    )
-
-  # convert the grouping variable to factor and drop unused levels
-  data %<>%
-    dplyr::mutate_at(
-      .tbl = .,
-      .vars = "x",
-      .funs = ~ base::droplevels(x = base::as.factor(x = .))
     ) %>%
+    dplyr::mutate_if(.tbl = ., .predicate = is.character, .funs = as.factor) %>%
+    dplyr::mutate_if(.tbl = ., .predicate = is.factor, .funs = droplevels) %>%
     tibble::as_tibble(x = .)
 
   # properly removing NAs if it's a paired design
-  if (isTRUE(paired)) {
+  if (isTRUE(paired) && is.factor(data$x)) {
     data %<>%
       long_to_wide_converter(
         data = .,
@@ -83,7 +96,8 @@ subtitle_t_parametric <- function(data,
         y = y
       ) %>%
       tidyr::gather(data = ., key, value, -rowid) %>%
-      dplyr::rename(.data = ., x = key, y = value)
+      dplyr::rename(.data = ., x = key, y = value) %>%
+      dplyr::mutate(x = factor(x))
 
     # sample size
     sample_size <- length(unique(data$rowid))
@@ -100,8 +114,6 @@ subtitle_t_parametric <- function(data,
     sample_size <- nrow(data)
   }
 
-
-
   # deciding which effect size to use (Hedge's g or Cohen's d)
   if (effsize.type %in% c("unbiased", "g")) {
     hedges.correction <- TRUE
@@ -112,26 +124,30 @@ subtitle_t_parametric <- function(data,
   }
 
   # setting up the t-test model and getting its summary
+
+  tobject <- stats::t.test(
+    formula = y ~ x,
+    data = data,
+    paired = paired,
+    alternative = "two.sided",
+    var.equal = var.equal,
+    na.action = na.omit
+  )
+
   stats_df <-
-    broom::tidy(stats::t.test(
-      formula = y ~ x,
-      data = data,
-      paired = paired,
-      alternative = "two.sided",
-      var.equal = var.equal,
-      na.action = na.omit
-    ))
+    broom::tidy(tobject)
 
   # effect size object
   effsize_df <-
-    effsize::cohen.d(
+    effsize_t_parametric(
       formula = y ~ x,
       data = data,
       paired = paired,
       hedges.correction = hedges.correction,
-      na.rm = TRUE,
       conf.level = conf.level,
-      noncentral = effsize.noncentral
+      noncentral = effsize.noncentral,
+      var.equal = var.equal,
+      tobject = tobject
     )
 
   # when paired samples t-test is run df is going to be integer
@@ -151,9 +167,9 @@ subtitle_t_parametric <- function(data,
     parameter = stats_df$parameter[[1]],
     p.value = stats_df$p.value[[1]],
     effsize.text = effsize.text,
-    effsize.estimate = effsize_df[[3]][[1]],
-    effsize.LL = effsize_df$conf.int[[1]],
-    effsize.UL = effsize_df$conf.int[[2]],
+    effsize.estimate = effsize_df$estimate,
+    effsize.LL = effsize_df$conf.low,
+    effsize.UL = effsize_df$conf.high,
     n = sample_size,
     conf.level = conf.level,
     k = k,
@@ -165,19 +181,33 @@ subtitle_t_parametric <- function(data,
 }
 
 
-#' @title Making text subtitle for the Mann-Whitney U-test
-#'   (between-/within-subjects designs).
-#' @author Indrajeet Patil
+#' @title Making text subtitle for the Mann-Whitney *U*-test
+#'   (between-subjects designs).
+#' @author Indrajeet Patil, Chuck Powell
+#' @details Two-sample Wilcoxon test, also known as Mann-Whitney test, is
+#'   carried out. The effect size estimate for this test is Spearman's *rho*
+#'   as the ranks of the `y` variable related to the factor `x`.
 #'
-#' @param messages Decides whether messages references, notes, and warnings are
-#'   to be displayed (Default: `TRUE`).
-#' @param ... Additional arguments (ignored).
+#' @inheritParams subtitle_anova_parametric
 #' @inheritParams subtitle_t_parametric
 #'
 #' @importFrom dplyr select
 #' @importFrom rlang !! enquo
 #' @importFrom stats wilcox.test
-#' @importFrom coin wilcox_test
+#' @importFrom psych corr.test
+#'
+#' @details For the two independent samples case, the Mann Whitney *U*-test
+#'   is calculated and *W* is reported from *stats::wilcox.test*. For the
+#'   paired samples case the Wilcoxon signed rank test is run and *V* is
+#'   reported.
+#'
+#'   Since there is no single commonly accepted method for reporting effect size
+#'   for these tests we are computing and reporting Spearman's *rho* a.k.a. *r*
+#'   along with the confidence intervals associated with the estimate.
+#'
+#'   We have selected *Spearman's rho* which should be nearly identical to rank
+#'   bi-serial and Somer's *d* for the case of x as two factors (including) as a
+#'   pre/post measure and with *y* treated as ranks rather than raw scores.
 #'
 #' @examples
 #' subtitle_mann_nonparametric(
@@ -188,39 +218,53 @@ subtitle_t_parametric <- function(data,
 #' @export
 
 # function body
-subtitle_mann_nonparametric <-
-  function(data,
-             x,
-             y,
-             paired = FALSE,
-             k = 2,
-             messages = TRUE,
-             ...) {
+subtitle_mann_nonparametric <- function(data,
+                                        x,
+                                        y,
+                                        paired = FALSE,
+                                        k = 2,
+                                        conf.level = 0.95,
+                                        messages = TRUE,
+                                        ...) {
 
-    # creating a dataframe
-    data <-
-      dplyr::select(
-        .data = data,
-        x = !!rlang::enquo(x),
-        y = !!rlang::enquo(y)
-      ) %>%
-      dplyr::filter(.data = ., !is.na(x), !is.na(y))
+  # creating a dataframe
+  data <-
+    dplyr::select(
+      .data = data,
+      x = !!rlang::enquo(x),
+      y = !!rlang::enquo(y)
+    ) %>%
+    tidyr::drop_na(data = .)
 
-    # convert the grouping variable to factor and drop unused levels
-    data %<>%
-      dplyr::mutate_at(
-        .tbl = .,
-        .vars = "x",
-        .funs = ~ base::droplevels(x = base::as.factor(x = .))
-      ) %>%
-      tibble::as_tibble(x = .)
+  if (!is.numeric(data$y)) {
+    stop("y variable must be numeric")
+  }
 
+  if (is.numeric(data$x)) {
+    # setting up the test and getting its summary
+    stats_df <-
+      broom::tidy(stats::wilcox.test(
+        x = data$x,
+        y = data$y,
+        paired = paired,
+        alternative = "two.sided",
+        na.action = na.omit,
+        exact = FALSE,
+        correct = TRUE,
+        conf.int = TRUE,
+        conf.level = conf.level
+      ))
     # sample size
     sample_size <- nrow(data)
+  } else {
+    data <-
+      data %>%
+      dplyr::mutate(.data = ., x = droplevels(as.factor(x))) %>%
+      tibble::as_tibble(x = .)
 
-    # setting up the Mann-Whitney U-test and getting its summary
-    mann_stat <-
-      stats::wilcox.test(
+    # setting up the test and getting its summary
+    stats_df <-
+      broom::tidy(stats::wilcox.test(
         formula = y ~ x,
         data = data,
         paired = paired,
@@ -229,87 +273,56 @@ subtitle_mann_nonparametric <-
         exact = FALSE,
         correct = TRUE,
         conf.int = TRUE,
-        conf.level = 0.95
-      )
-
-    # computing Z score
-    z_stat <-
-      coin::wilcox_test(
-        formula = y ~ x,
-        data = data,
-        distribution = "asymptotic",
-        alternative = "two.sided",
-        conf.int = TRUE,
-        conf.level = 0.95
-      )
-
-    # displaying message about which test was run
-    if (isTRUE(messages)) {
-      base::message(cat(
-        crayon::green("Note: "),
-        crayon::blue(
-          "Two-sample Wilcoxon test, also known as Mann-Whitney test, was run.\n"
-        ),
-        sep = ""
+        conf.level = conf.level
       ))
+    # sample size
+    if (!isTRUE(paired)) {
+      sample_size <- nrow(data)
+    } else {
+      sample_size <- .5 * nrow(data)
     }
-
-    # mann_stat input represents the U-test summary derived from `stats`
-    # library, while Z is from Exact `Wilcoxon-Pratt Signed-Rank Test` from
-    # `coin` library
-    # effect size is computed as `r = z/sqrt(n)`
-    subtitle <-
-      base::substitute(
-        expr =
-          paste(
-            italic(U),
-            " = ",
-            estimate,
-            ", ",
-            italic(Z),
-            " = ",
-            z_value,
-            ", ",
-            italic(" p"),
-            " = ",
-            pvalue,
-            ", ",
-            italic("r"),
-            " = ",
-            r,
-            ", ",
-            italic("n"),
-            " = ",
-            n
-          ),
-        env = base::list(
-          estimate = ggstatsplot::specify_decimal_p(
-            x = mann_stat$statistic[[1]],
-            k = k,
-            p.value = FALSE
-          ),
-          z_value = ggstatsplot::specify_decimal_p(
-            x = coin::statistic(z_stat)[[1]],
-            k = k,
-            p.value = FALSE
-          ),
-          pvalue = ggstatsplot::specify_decimal_p(
-            x = mann_stat$p.value[[1]],
-            k = k,
-            p.value = TRUE
-          ),
-          r = ggstatsplot::specify_decimal_p(
-            x = (coin::statistic(z_stat)[[1]] / sqrt(length(data$y))),
-            k = k,
-            p.value = FALSE
-          ),
-          n = sample_size
-        )
-      )
-
-    # return the subtitle
-    return(subtitle)
   }
+
+  if (is.factor(data$x)) {
+    data$x <- as.integer(data$x)
+  }
+
+  # preparing effect size and ci's
+  effsize_list <- psych::corr.test(
+    x = data$x,
+    y = data$y,
+    ci = TRUE,
+    method = "spearman",
+    alpha = 1 - conf.level
+  )
+
+  if (isTRUE(paired)) {
+    statistic.text <- quote("log"["e"](italic("V")))
+  } else {
+    statistic.text <- quote("log"["e"](italic("W")))
+  }
+
+  # preparing subtitle
+  subtitle <- subtitle_template(
+    no.parameters = 0L,
+    parameter = NULL,
+    parameter2 = NULL,
+    stat.title = NULL,
+    statistic.text = statistic.text,
+    statistic = log(stats_df$statistic[[1]]),
+    p.value = stats_df$p.value[[1]],
+    effsize.text = quote(italic(r)["Spearman"]),
+    effsize.estimate = effsize_list$r,
+    effsize.LL = effsize_list$ci$lower,
+    effsize.UL = effsize_list$ci$upper,
+    n = sample_size,
+    conf.level = conf.level,
+    k = k
+  )
+
+  # return the subtitle
+  return(subtitle)
+}
 
 #' @rdname subtitle_mann_nonparametric
 #' @aliases subtitle_mann_nonparametric
@@ -322,25 +335,23 @@ subtitle_t_nonparametric <- subtitle_mann_nonparametric
 #' @name subtitle_t_robust
 #' @author Indrajeet Patil
 #'
-#' @param messages Decides whether messages references, notes, and warnings are
-#'   to be displayed (Default: `TRUE`).
-#' @param ... Additional arguments (ignored).
 #' @inheritParams subtitle_t_parametric
 #' @inheritParams yuend_ci
+#' @inheritParams subtitle_anova_parametric
 #'
 #' @importFrom dplyr select
 #' @importFrom rlang !! enquo
 #' @importFrom WRS2 yuen yuen.effect.ci
 #'
 #' @examples
-#' 
+#'
 #' # with defaults
 #' subtitle_t_robust(
 #'   data = sleep,
 #'   x = group,
 #'   y = extra
 #' )
-#' 
+#'
 #' # changing defaults
 #' subtitle_t_robust(
 #'   data = ToothGrowth,
@@ -350,7 +361,7 @@ subtitle_t_nonparametric <- subtitle_mann_nonparametric
 #'   k = 1,
 #'   tr = 0.2
 #' )
-#' 
+#'
 #' # within-subjects design
 #' ggstatsplot::subtitle_t_robust(
 #'   data = dplyr::filter(
@@ -378,23 +389,17 @@ subtitle_t_robust <- function(data,
                               messages = TRUE,
                               ...) {
 
+
   # creating a dataframe
   data <-
     dplyr::select(
       .data = data,
       x = !!rlang::enquo(x),
       y = !!rlang::enquo(y)
-    )
+    ) %>%
+    dplyr::mutate(.data = ., x = droplevels(as.factor(x)))
 
-  # convert the grouping variable to factor and drop unused levels
-  data %<>%
-    dplyr::mutate_at(
-      .tbl = .,
-      .vars = "x",
-      .funs = ~ base::droplevels(x = base::as.factor(x = .))
-    )
-
-  # when paired robust t-test is run, df is going to be an integer
+  # when paired robust t-test is run, `df` is going to be an integer
   if (isTRUE(paired)) {
     k.df <- 0
   } else {
@@ -498,26 +503,26 @@ subtitle_t_robust <- function(data,
 #'
 #' @param bf.prior A number between 0.5 and 2 (default `0.707`), the prior width
 #'   to use in calculating Bayes factors.
-#' @param ... Additional arguments (ignored).
 #' @inheritParams subtitle_t_parametric
+#' @inheritParams subtitle_anova_parametric
 #'
 #' @importFrom jmv ttestIS ttestPS
 #'
 #' @examples
 #' # for reproducibility
 #' set.seed(123)
-#' 
+#'
 #' # between-subjects design
-#' 
+#'
 #' subtitle_t_bayes(
 #'   data = mtcars,
 #'   x = am,
 #'   y = wt,
 #'   paired = FALSE
 #' )
-#' 
+#'
 #' # within-subjects design
-#' 
+#'
 #' subtitle_t_bayes(
 #'   data = dplyr::filter(
 #'     ggstatsplot::intent_morality,
@@ -539,21 +544,15 @@ subtitle_t_bayes <- function(data,
                              k = 2,
                              ...) {
 
+
   # creating a dataframe
   data <-
     dplyr::select(
       .data = data,
       x = !!rlang::enquo(x),
       y = !!rlang::enquo(y)
-    )
-
-  # convert the grouping variable to factor and drop unused levels
-  data %<>%
-    dplyr::mutate_at(
-      .tbl = .,
-      .vars = "x",
-      .funs = ~ base::droplevels(x = base::as.factor(x = .))
-    )
+    ) %>%
+    dplyr::mutate(.data = ., x = droplevels(as.factor(x)))
 
   # -------------------------- between-subjects design ------------------------
 
@@ -624,7 +623,9 @@ subtitle_t_bayes <- function(data,
           "(BF"["10"],
           ") = ",
           bf,
-          ", Prior width = ",
+          ", ",
+          italic("r")["Cauchy"],
+          " = ",
           bf_prior,
           ", ",
           italic("d"),
@@ -637,11 +638,11 @@ subtitle_t_bayes <- function(data,
         ),
       env = base::list(
         df = as.data.frame(jmv_results$ttest)$`df[stud]`,
-        estimate = ggstatsplot::specify_decimal_p(
+        estimate = specify_decimal_p(
           x = as.data.frame(jmv_results$ttest)$`stat[stud]`,
           k = k
         ),
-        bf = ggstatsplot::specify_decimal_p(
+        bf = specify_decimal_p(
           x = log(
             x = as.data.frame(jmv_results$ttest)$`stat[bf]`,
             base = exp(1)
@@ -649,12 +650,12 @@ subtitle_t_bayes <- function(data,
           k = 1,
           p.value = FALSE
         ),
-        bf_prior = ggstatsplot::specify_decimal_p(
+        bf_prior = specify_decimal_p(
           x = bf.prior,
           k = 3,
           p.value = FALSE
         ),
-        effsize = ggstatsplot::specify_decimal_p(
+        effsize = specify_decimal_p(
           x = as.data.frame(jmv_results$ttest)$`es[stud]`,
           k = k,
           p.value = FALSE
@@ -665,4 +666,297 @@ subtitle_t_bayes <- function(data,
 
   # return the message
   return(subtitle)
+}
+
+
+#' @title Calculating Cohen's *d* or Hedge's *g* (for between-/within- or one
+#'   sample designs).
+#' @name effsize_t_parametric
+#' @author Chuck Powell
+#'
+#' @param formula This function only accepts the variables in `formula` format
+#'   e.g. `sleep_rem ~ vore` or `~ vore`.
+#' @param mu If conducting a single sample test against a mean (Default: `0`).
+#' @param hedges.correction Logical indicating whether to apply Hedges
+#'   correction, Hedge's *g* (Default: `TRUE`).
+#' @param noncentral Logical indicating whether to use non-central
+#'   *t*-distributions for computing the confidence intervals (Default: `TRUE`).
+#' @param tobject Object with the *t*-test specification.
+#' @inheritParams ggbetweenstats
+#' @inheritParams subtitle_t_parametric
+#'
+#' @importFrom stats t.test na.omit cor qt pt uniroot
+#' @importFrom tibble tibble
+#' @importFrom methods is
+#'
+#' @details
+#' This function is a rewrite of functionality provided in `lsr::cohensD` and
+#' `effsize::cohen.d`.
+#'
+#' References-
+#' \itemize{
+#' \item Cooper, Harris, Hedges, Larry V., Valentine, Jeffrey C., The Handbook
+#' of Research Synthesis and Meta-Analysis, 2009. \item Cumming, G., Finch, S.,
+#' A Primer On The Understanding, Use, And Calculation Of Confidence Intervals
+#' That Are Based On Central And Noncentral Distributions, Educational and
+#' Psychological Measurement, Vol. 61 No. 4, August 2001 532-574. \item Cohen,
+#' J. (1988). Statistical power analysis for the behavioral sciences (2nd ed.)
+#' Hillsdale, NJ: Lawrence Erlbaum Associates. \item David C. Howell (2010).
+#' Confidence Intervals on Effect Size, retrieved from
+#' (\url{https://www.uvm.edu/~dhowell/methods7/Supplements/Confidence\%20Intervals\%20on\%20Effect\%20Size.pdf}).
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' #---------------- two-sample test ------------------------------------
+#'
+#' # creating a smaller dataset
+#' msleep_short <- dplyr::filter(
+#'   .data = ggplot2::msleep,
+#'   vore %in% c("carni", "herbi")
+#' )
+#'
+#' # with defaults
+#' ggstatsplot::effsize_t_parametric(
+#'   formula = sleep_rem ~ vore,
+#'   data = msleep_short,
+#' )
+#'
+#' # changing defaults
+#' ggstatsplot::effsize_t_parametric(
+#'   formula = sleep_rem ~ vore,
+#'   data = msleep_short,
+#'   mu = 1, # ignored in this case
+#'   paired = FALSE,
+#'   hedges.correction = TRUE,
+#'   conf.level = .99,
+#'   noncentral = FALSE
+#' )
+#'
+#' #---------------- one-sample test ------------------------------------
+#'
+#' ggstatsplot::effsize_t_parametric(
+#'   formula = ~sleep_rem,
+#'   data = msleep_short,
+#'   mu = 2,
+#'   hedges.correction = TRUE,
+#'   conf.level = .90,
+#'   noncentral = TRUE
+#' )
+#' }
+#' @keywords internal
+
+# function body
+effsize_t_parametric <- function(formula = NULL,
+                                 data = NULL,
+                                 mu = 0,
+                                 paired = FALSE,
+                                 hedges.correction = TRUE,
+                                 conf.level = NULL,
+                                 var.equal = NULL,
+                                 noncentral = TRUE,
+                                 tobject = NULL,
+                                 ...) {
+
+  # -------------- input checking -------------------
+
+  if (!is(formula, "formula") | !is(data, "data.frame")) {
+    stop("arguments must include a formula and a data frame")
+  }
+  if (length(formula) == 2 & length(all.vars(formula)) > 1) {
+    stop("Your formula has too many items on the rhs")
+  }
+  if (length(formula) == 3 & length(all.vars(formula)) > 2) {
+    stop("Your formula has too many variables")
+  }
+
+  # -------------- single sample compare to mu -------------------
+
+  if (length(formula) == 2 & length(all.vars(formula)) == 1) {
+    method <- "Cohen's d"
+    x <- eval(formula[[2]], data)
+    x <- x[!is.na(x)]
+    n <- length(x)
+    sd.est <- sd(x)
+    df <- length(x) - 1
+    mean.diff <- mean(x) - mu
+    d <- mean.diff / sd.est
+    Sigmad <- sqrt((n / (n / 2)^2) + (d^2 / (2 * n)))
+    Z <- -stats::qt((1 - conf.level) / 2, df)
+    lower.ci <- c(d - Z * Sigmad)
+    upper.ci <- c(d + Z * Sigmad)
+    tvalue <- tobject$statistic
+    dfvalue <- tobject$parameter
+    civalue <- conf.level
+    twosamples <- FALSE
+    paired <- NA_character_
+  }
+
+  # ---------------two independent samples by factor -------------------
+
+  # two samples by factor
+  if (length(formula) == 3 & !isTRUE(paired)) {
+    # getting `x` and `y` in required format
+    outcome <- eval(formula[[2]], data)
+    group <- eval(formula[[3]], data)
+    group <- factor(group)
+
+    #  checking that there are just two levels
+    if (nlevels(group) != 2L) {
+      stop("grouping factor must have exactly 2 levels")
+    }
+
+    # test relevant variables
+    x <- split(outcome, group)
+    y <- x[[2]]
+    x <- x[[1]]
+    x <- x[!is.na(x)]
+    y <- y[!is.na(y)]
+    sq.devs <- (c(x - mean(x), y - mean(y)))^2
+    n <- length(sq.devs)
+    n1 <- length(x)
+    n2 <- length(y)
+    if (isTRUE(var.equal)) {
+      sd.est <- sqrt(sum(sq.devs) / (n - 2))
+    } else {
+      sd.est <- sqrt((var(x) + var(y)) / 2)
+    }
+    mean.diff <- mean(x) - mean(y)
+    df <- tobject$parameter
+    d <- mean.diff / sd.est
+    Sigmad <- sqrt((n1 + n2) / (n1 * n2) + 0.5 * d^2 / (n1 + n2))
+    Z <- -stats::qt((1 - conf.level) / 2, df)
+    lower.ci <- c(d - Z * Sigmad)
+    upper.ci <- c(d + Z * Sigmad)
+    method <- "Cohen's d"
+    tvalue <- tobject$statistic
+    dfvalue <- tobject$parameter
+    civalue <- conf.level
+    twosamples <- TRUE
+  }
+
+  # -------------- two paired samples in matching columns -------------------
+
+  # if the data is in tidy format
+  if (length(formula) == 3 & isTRUE(paired)) {
+    if (is.factor(eval(formula[[3]], data)) ||
+      is.character(eval(formula[[3]], data))) {
+      # getting `x` and `y` in required format
+      outcome <- eval(formula[[2]], data)
+      group <- eval(formula[[3]], data)
+      group <- droplevels(as.factor(group))
+
+      #  checking that there are just two levels
+      if (nlevels(group) != 2L) {
+        stop("grouping factor must have exactly 2 levels")
+      }
+      x <- split(outcome, group)
+      y <- x[[2]]
+      x <- x[[1]]
+    } else {
+      x <- eval(formula[[2]], data)
+      y <- eval(formula[[3]], data)
+      ind <- !is.na(x) & !is.na(y)
+      x <- x[ind]
+      y <- y[ind]
+    }
+
+    # checking if sample sizes are the same across paired samples
+    if (length(x) != length(y)) {
+      stop("paired samples requires samples of the same size")
+    }
+
+    # test relevant variables
+    n <- length(x)
+    df <- n - 1
+    r <- cor(x, y)
+    sd.est <- sd(x - y)
+    mean.diff <- mean(y) - mean(x)
+    d <- mean.diff / sd.est
+    Sigmad <- sqrt(((1 / n) + (d^2 / n)) * 2 * (1 - r)) # paired
+    Z <- -qt((1 - conf.level) / 2, df)
+    lower.ci <- c(d - Z * Sigmad)
+    upper.ci <- c(d + Z * Sigmad)
+    method <- "Cohen's d"
+    diffscores <- as.vector(y - x)
+    tvalue <- tobject$statistic
+    dfvalue <- tobject$parameter
+    civalue <- conf.level
+    twosamples <- FALSE
+  }
+
+  # -------------- apply hedges correction -------------------
+
+  if (hedges.correction == TRUE) {
+    method <- "Hedges's g"
+    d <- d * (n - 3) / (n - 2.25)
+  }
+
+  # -------------- calculate NCP intervals -------------------
+
+  if (isTRUE(noncentral)) {
+    st <- max(0.1, tvalue)
+    end1 <- tvalue
+    while (stats::pt(q = tvalue, df = dfvalue, ncp = end1) > (1 - civalue) / 2) {
+      end1 <- end1 + st
+    }
+    ncp1 <- uniroot(
+      function(x)
+        (1 - civalue) / 2 - stats::pt(
+          q = tvalue,
+          df = dfvalue,
+          ncp = x
+        ),
+      c(2 * tvalue - end1, end1)
+    )$root
+    end2 <- tvalue
+    while (stats::pt(q = tvalue, df = dfvalue, ncp = end2) < (1 + civalue) / 2) {
+      end2 <- end2 - st
+    }
+    ncp2 <- uniroot(
+      function(x)
+        (1 + civalue) / 2 - stats::pt(
+          q = tvalue,
+          df = dfvalue,
+          ncp = x
+        ),
+      c(end2, 2 * tvalue - end2)
+    )$root
+
+    if (isTRUE(twosamples)) {
+      ncp.upper.ci <- ncp1 * sqrt(1 / n1 + 1 / n2)
+      ncp.lower.ci <- ncp2 * sqrt(1 / n1 + 1 / n2)
+    } else {
+      ncp.upper.ci <- ncp1 / sqrt(dfvalue)
+      ncp.lower.ci <- ncp2 / sqrt(dfvalue)
+    }
+  }
+
+  # -------------- return results desired ------------------
+
+  if (isTRUE(noncentral)) {
+    return(tibble::tibble(
+      method = method,
+      estimate = d,
+      conf.low = ncp.lower.ci,
+      conf.high = ncp.upper.ci,
+      conf.level = conf.level,
+      alternative = "two.sided",
+      paired = paired,
+      noncentral = noncentral,
+      var.equal = TRUE
+    ))
+  } else {
+    return(tibble::tibble(
+      method = method,
+      estimate = d,
+      conf.low = lower.ci,
+      conf.high = upper.ci,
+      conf.level = conf.level,
+      alternative = "two.sided",
+      paired = paired,
+      noncentral = noncentral,
+      var.equal = TRUE
+    ))
+  }
 }

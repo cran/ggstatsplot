@@ -8,12 +8,13 @@ kw_eta_h_ci(data, x, y, nboot = 100, conf.level = 0.95,
   conf.type = "norm", ...)
 }
 \arguments{
-\item{data}{Dataframe from which variables specified are preferentially to be
-taken.}
+\item{data}{A dataframe (or a tibble) from which variables specified are to
+be taken. A matrix or tables will \strong{not} be accepted.}
 
-\item{x}{The grouping variable.}
+\item{x}{The grouping variable from the dataframe \code{data}.}
 
-\item{y}{The response - a vector of length the number of rows of \code{x}.}
+\item{y}{The response (a.k.a. outcome or dependent) variable from the
+dataframe \code{data}.}
 
 \item{nboot}{Number of bootstrap samples for computing effect size (Default:
 \code{100}).}
@@ -156,5 +157,18 @@ intervals required. The value should be any subset of the values \code{"norm"},
 \description{
 Custom function to get confidence intervals for effect size
 measure for Kruskal-Wallis Rank Sum Test.
+}
+\examples{
+\dontrun{
+ggstatsplot:::kw_eta_h_ci(
+  data = ggplot2::msleep,
+  x = vore,
+  y = sleep_rem,
+  nboot = 100,
+  conf.level = 0.90,
+  conf.type = "basic"
+)
+}
+
 }
 \keyword{internal}

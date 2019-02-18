@@ -25,10 +25,13 @@
 #' @param subtitle The text for the plot subtitle. The input to this argument
 #'   will be ignored if `meta.analytic.effect` is set to `TRUE`.
 #' @param conf.method Character describing method for computing confidence
-#'   intervals (for more, see `lme4::confint.merMod`). This argument is valid
-#'   only for the `merMod` class model objects (`lmer`, `glmer`, `nlmer`, etc.).
-#'   For MCMC model objects (Stan, JAGS, etc.), the allowed options are
-#'   `"quantile"` or `"HPDinterval"`.
+#'   intervals (for more, see `?lme4::confint.merMod` and
+#'   `?broom.mixed::tidy.brmsfit`). This argument has different defaults
+#'   depending on the model object. For the `merMod` class model objects
+#'   (`lmer`, `glmer`, `nlmer`, etc.), the default is `"Wald"` (other options
+#'   are: `"profile"`, `"boot"`). For MCMC or brms fit model objects (Stan,
+#'   JAGS, etc.), the default is `"quantile"`, while the only other options is
+#'   `"HPDinterval"`.
 #' @param p.kr Logical, if `TRUE`, the computation of *p*-values for `lmer` is
 #'   based on conditional F-tests with Kenward-Roger approximation for the df.
 #'   For details, see `?sjstats::p_value`.
@@ -141,14 +144,15 @@
 #'   entire plot area. Defaults to `c(NA, NA)`.
 #' @param label.direction Character (`"both"`, `"x"`, or `"y"`) -- direction in
 #'   which to adjust position of labels (Default: `"y"`).
+#' @param ... Additional arguments to tidying method.
 #' @inheritParams broom.mixed::tidy.merMod
 #' @inheritParams broom::tidy.clm
 #' @inheritParams broom::tidy.polr
+#' @inheritParams broom::tidy.mjoint
 #' @inheritParams theme_ggstatsplot
 #' @inheritParams paletteer::paletteer_d
 #' @inheritParams subtitle_meta_ggcoefstats
 #' @inheritParams ggbetweenstats
-#' @param ... Additional arguments to tidying method.
 #'
 #' @import ggplot2
 #'
@@ -170,26 +174,26 @@
 #' @examples
 #' # for reproducibility
 #' set.seed(123)
-#' 
+#'
 #' # -------------- with model object --------------------------------------
-#' 
+#'
 #' # model object
 #' mod <- lm(formula = mpg ~ cyl * am, data = mtcars)
-#' 
+#'
 #' # to get a plot
 #' ggstatsplot::ggcoefstats(x = mod, output = "plot")
-#' 
+#'
 #' # to get a tidy dataframe
 #' ggstatsplot::ggcoefstats(x = mod, output = "tidy")
-#' 
+#'
 #' # to get a glance summary
 #' ggstatsplot::ggcoefstats(x = mod, output = "glance")
-#' 
+#'
 #' # to get augmented dataframe
 #' ggstatsplot::ggcoefstats(x = mod, output = "augment")
-#' 
+#'
 #' # -------------- with custom dataframe -----------------------------------
-#' 
+#'
 #' # creating a dataframe
 #' df <-
 #'   structure(
@@ -255,12 +259,42 @@
 #'       "tbl", "data.frame"
 #'     )
 #'   )
-#' 
+#'
 #' # plotting the dataframe
 #' ggstatsplot::ggcoefstats(
 #'   x = df,
 #'   statistic = "t",
 #'   meta.analytic.effect = TRUE
+#' )
+#'
+#' # -------------- getting model summary ------------------------------
+#'
+#' # model
+#' library(lme4)
+#' lmm1 <- lme4::lmer(
+#'   formula = Reaction ~ Days + (Days | Subject),
+#'   data = sleepstudy
+#' )
+#'
+#' # dataframe with model summary
+#' ggstatsplot::ggcoefstats(x = lmm1, output = "glance")
+#'
+#' # -------------- getting augmented dataframe ------------------------------
+#'
+#' # setup
+#' set.seed(123)
+#' library(survival)
+#'
+#' # fit
+#' cfit <-
+#'   survival::coxph(formula = Surv(time, status) ~ age + sex, data = lung)
+#'
+#' # augmented dataframe
+#' ggstatsplot::ggcoefstats(
+#'   x = cfit,
+#'   data = lung,
+#'   output = "augment",
+#'   type.predict = "risk"
 #' )
 #' @export
 
@@ -271,6 +305,7 @@ ggcoefstats <- function(x,
                         scales = NULL,
                         conf.method = "Wald",
                         conf.type = "Wald",
+                        component = "survival",
                         quick = FALSE,
                         p.kr = TRUE,
                         p.adjust.method = "none",
@@ -369,6 +404,7 @@ ggcoefstats <- function(x,
   # models which are currently not supported
   unsupported.mods <-
     c(
+      "acf",
       "AUC",
       "cv.glmnet",
       "density",
@@ -383,9 +419,14 @@ ggcoefstats <- function(x,
       "Kendall",
       "kmeans",
       "list",
+      "map",
+      "Mclust",
       "mts",
       "muhaz",
       "optim",
+      "poLCA",
+      "power.htest",
+      "prcomp",
       "spec",
       "survdiff",
       "survexp",
@@ -403,30 +444,36 @@ ggcoefstats <- function(x,
       "coeftest",
       "confusionMatrix",
       "manova",
+      "mcmc",
       "MCMCglmm",
       "mediate",
       "mle2",
       "rlmerMod",
+      "stanfit",
       "svyglm",
       "TukeyHSD"
     )
 
-  # models for which the diagnostics is not available (AIC, BIC, LL)
+  # models for which the full diagnostics is not available (AIC, BIC, LL)
   nodiagnostics.mods <-
     c(
       "aareg",
       "biglm",
+      "brmsfit",
       "cch",
       "felm",
+      "gam",
       "glmRob",
       "gmm",
       "ivreg",
+      "lavaan",
       "lmodel2",
       "lmRob",
       "multinom",
       "orcutt",
       "plm",
       "ridgelm",
+      "stanreg",
       "svyolr"
     )
 
@@ -441,13 +488,21 @@ ggcoefstats <- function(x,
 
   # =================== types of models =====================================
 
+  # bayesian models (default `conf.method` won't work for these)
+  bayes.mods <- c(
+    "brmsfit",
+    "mcmc",
+    "MCMCglmm",
+    "rjags",
+    "stanreg"
+  )
+
   # models for which statistic is F-value
   f.mods <- c(
     "aov",
     "aovlist",
     "anova",
     "Gam",
-    "gam",
     "manova"
   )
 
@@ -547,6 +602,13 @@ ggcoefstats <- function(x,
 
     # =========================== broom.mixed tidiers =======================
   } else if (class(x)[[1]] %in% mixed.mods) {
+
+    # changing conf.method to something suitable for Bayesian models
+    if (class(x)[[1]] %in% bayes.mods && conf.method == "Wald") {
+      conf.method <- "quantile"
+    }
+
+    # getting tidy output using `broom.mixed`
     tidy_df <-
       broom.mixed::tidy(
         x = x,
@@ -602,6 +664,8 @@ ggcoefstats <- function(x,
         by_class = by.class,
         quick = quick,
         conf.type = conf.type,
+        component = component,
+        parametric = TRUE,
         ...
       )
   }
@@ -638,27 +702,14 @@ ggcoefstats <- function(x,
 
   # =================== check for duplicate terms ============================
 
-  # for `gmm` class objects, there are going to be duplicate terms
+  # for some class of objects, there are going to be duplicate terms
   # create a new column by collapsing orignal `variable` and `term` columns
-  if (class(x)[[1]] == "gmm") {
+  if (class(x)[[1]] %in% c("gmm", "lmodel2", "gamlss")) {
     tidy_df %<>%
       tidyr::unite(
         data = .,
         col = "term",
-        variable:term,
-        remove = TRUE,
-        sep = "_"
-      )
-  }
-
-  # for `lmodel2` class objects, there are going to be duplicate terms
-  # create a new column by collapsing orignal `model` and `term` columns
-  if (class(x)[[1]] == "lmodel2") {
-    tidy_df %<>%
-      tidyr::unite(
-        data = .,
-        col = "term",
-        method:term,
+        dplyr::matches("term|variable|parameter|method"),
         remove = TRUE,
         sep = "_"
       )
@@ -673,15 +724,14 @@ ggcoefstats <- function(x,
 
   # halt if there are repeated terms
   if (dim(term_df)[1] != 0L) {
-    base::stop(base::message(cat(
+    base::message(cat(
       crayon::red("Error: "),
       crayon::blue(
         "All elements in the column `term` should be unique."
       ),
       sep = ""
-    )),
-    call. = FALSE
-    )
+    ))
+    base::return(base::invisible(dim(term_df)[1]))
   }
 
   # =================== p-value computation ==================================
@@ -863,11 +913,23 @@ ggcoefstats <- function(x,
   # =================== meta-analytic subtitle ================================
 
   if (isTRUE(meta.analytic.effect)) {
+    # result
     subtitle <-
       subtitle_meta_ggcoefstats(
         data = tidy_df,
         k = k,
-        messages = messages
+        messages = messages,
+        output = "subtitle"
+      )
+
+    # model summary
+    caption.meta <-
+      subtitle_meta_ggcoefstats(
+        data = tidy_df,
+        k = k,
+        caption = caption,
+        messages = FALSE,
+        output = "caption"
       )
   }
 
@@ -875,29 +937,35 @@ ggcoefstats <- function(x,
 
   # caption containing model diagnostics
   if (isTRUE(caption.summary)) {
-    if (!class(x)[[1]] %in% c(noglance.mods, nodiagnostics.mods, df.mods)) {
-      if (!is.na(glance_df$AIC[[1]])) {
-        # preparing caption with model diagnostics
-        caption <-
-          substitute(
-            atop(displaystyle(top.text),
-              expr =
-                paste(
-                  "AIC = ",
-                  AIC,
-                  ", BIC = ",
-                  BIC,
-                  ", log-likelihood = ",
-                  LL
-                )
-            ),
-            env = list(
-              top.text = caption,
-              AIC = specify_decimal_p(x = glance_df$AIC[[1]], k = k.caption.summary),
-              BIC = specify_decimal_p(x = glance_df$BIC[[1]], k = k.caption.summary),
-              LL = specify_decimal_p(x = glance_df$logLik[[1]], k = k.caption.summary)
+    if (class(x)[[1]] %in% df.mods) {
+      if (isTRUE(meta.analytic.effect)) {
+        caption <- caption.meta
+      }
+    } else {
+      if (!class(x)[[1]] %in% c(noglance.mods, nodiagnostics.mods)) {
+        if (!is.na(glance_df$AIC[[1]])) {
+          # preparing caption with model diagnostics
+          caption <-
+            substitute(
+              atop(displaystyle(top.text),
+                expr =
+                  paste(
+                    "AIC = ",
+                    AIC,
+                    ", BIC = ",
+                    BIC,
+                    ", log-likelihood = ",
+                    LL
+                  )
+              ),
+              env = list(
+                top.text = caption,
+                AIC = specify_decimal_p(x = glance_df$AIC[[1]], k = k.caption.summary),
+                BIC = specify_decimal_p(x = glance_df$BIC[[1]], k = k.caption.summary),
+                LL = specify_decimal_p(x = glance_df$logLik[[1]], k = k.caption.summary)
+              )
             )
-          )
+        }
       }
     }
   }
@@ -1091,11 +1159,11 @@ ggcoefstats <- function(x,
     # return the augmented dataframe
     if (class(x)[[1]] %in% mixed.mods) {
       # for mixed-effects models
-      return(broom.mixed::augment(x = x) %>%
+      return(broom.mixed::augment(x = x, ...) %>%
         tibble::as_tibble(x = .))
     } else {
       # everything else
-      return(broom::augment(x = x) %>%
+      return(broom::augment(x = x, ...) %>%
         tibble::as_tibble(x = .))
     }
   }

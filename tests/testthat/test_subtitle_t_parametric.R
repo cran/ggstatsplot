@@ -107,12 +107,12 @@ testthat::test_that(
           ", ",
           italic("g"),
           " = ",
-          "-0.924",
+          "-0.863",
           ", CI"["90%"],
           " [",
-          "-1.075",
+          "-1.015",
           ", ",
-          "-0.773",
+          "-0.714",
           "]",
           ", ",
           italic("n"),
@@ -164,12 +164,12 @@ testthat::test_that(
         ", ",
         italic("g"),
         " = ",
-        "2.8355",
+        "-2.8282",
         ", CI"["50%"],
         " [",
-        "2.7251",
+        "2.7224",
         ", ",
-        "2.9459",
+        "2.9710",
         "]",
         ", ",
         italic("n"),
@@ -195,7 +195,7 @@ testthat::test_that(
 
     # preparing long format dataframe
     bugs_long <-
-      tibble::as.tibble(x = bugs) %>%
+      tibble::as_tibble(x = bugs) %>%
       dplyr::select(.data = ., HDLF, HDHF) %>%
       tidyr::gather(data = ., "key", "value", convert = TRUE)
 
@@ -228,7 +228,7 @@ testthat::test_that(
         ", ",
         italic("d"),
         " = ",
-        "0.381",
+        "-0.381",
         ", CI"["95%"],
         " [",
         "0.167",

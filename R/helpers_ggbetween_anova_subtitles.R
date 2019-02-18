@@ -2,20 +2,17 @@
 #' @name subtitle_anova_parametric
 #' @author Indrajeet Patil
 #'
-#' @param data Dataframe from which variables specified are preferentially to be
-#'   taken.
-#' @param x The grouping variable.
-#' @param y The response - a vector of length the number of rows of `x`.
-#' @param nboot Number of bootstrap samples for computing effect size (Default:
-#'   `100`).
+#' @inheritParams t1way_ci
 #' @param effsize.type Type of effect size needed for *parametric* tests. The
 #'   argument can be `"biased"` (`"d"` for Cohen's *d* for **t-test**;
 #'   `"partial_eta"` for partial eta-squared for **anova**) or `"unbiased"`
 #'   (`"g"` Hedge's *g* for **t-test**; `"partial_omega"` for partial
 #'   omega-squared for **anova**)).
+#' @param k Number of digits after decimal point (should be an integer)
+#'   (Default: `k = 2`).
 #' @param messages Decides whether messages references, notes, and warnings are
 #'   to be displayed (Default: `TRUE`).
-#' @param ... Additional arguments (ignored).
+#' @param ... Additional arguments.
 #' @inheritParams stats::oneway.test
 #' @inheritParams subtitle_t_parametric
 #' @inheritParams lm_effsize_standardizer
@@ -33,7 +30,7 @@
 #'   y = sleep_rem,
 #'   k = 3
 #' )
-#' 
+#'
 #' # modifying the defaults
 #' subtitle_anova_parametric(
 #'   data = ggplot2::msleep,
@@ -58,6 +55,7 @@ subtitle_anova_parametric <- function(data,
                                       k = 2,
                                       messages = TRUE,
                                       ...) {
+
   # creating a dataframe
   data <-
     dplyr::select(
@@ -65,16 +63,9 @@ subtitle_anova_parametric <- function(data,
       x = !!rlang::enquo(x),
       y = !!rlang::enquo(y)
     ) %>%
-    dplyr::filter(.data = ., !is.na(x), !is.na(y)) %>%
+    tidyr::drop_na(data = .) %>%
+    dplyr::mutate(.data = ., x = droplevels(as.factor(x))) %>%
     tibble::as_tibble(x = .)
-
-  # convert the grouping variable to factor and drop unused levels
-  data %<>%
-    dplyr::mutate_at(
-      .tbl = .,
-      .vars = "x",
-      .funs = ~ base::droplevels(x = base::as.factor(x = .))
-    )
 
   # sample size
   sample_size <- nrow(data)
@@ -193,6 +184,7 @@ subtitle_kw_nonparametric <-
              conf.type = "norm",
              ...) {
 
+
     # creating a dataframe
     data <-
       dplyr::select(
@@ -200,16 +192,9 @@ subtitle_kw_nonparametric <-
         x = !!rlang::enquo(x),
         y = !!rlang::enquo(y)
       ) %>%
-      dplyr::filter(.data = ., !is.na(x), !is.na(y)) %>%
+      tidyr::drop_na(data = .) %>%
+      dplyr::mutate(.data = ., x = droplevels(as.factor(x))) %>%
       tibble::as_tibble(x = .)
-
-    # convert the grouping variable to factor and drop unused levels
-    data %<>%
-      dplyr::mutate_at(
-        .tbl = .,
-        .vars = "x",
-        .funs = ~ base::droplevels(x = base::as.factor(x = .))
-      )
 
     # sample size
     sample_size <- nrow(data)
@@ -241,7 +226,7 @@ subtitle_kw_nonparametric <-
     # preparing subtitle
     subtitle <- subtitle_template(
       no.parameters = 1L,
-      stat.title = "Kruskal-Wallis: ",
+      stat.title = NULL,
       statistic.text = quote(italic(chi)^2),
       statistic = stats_df$statistic[[1]],
       parameter = stats_df$parameter[[1]],
@@ -278,12 +263,12 @@ subtitle_kw_nonparametric <-
 #' library(ggstatsplot)
 #' library(jmv)
 #' data("bugs", package = "jmv")
-#' 
+#'
 #' # converting to long format
 #' data_bugs <- bugs %>%
 #'   tibble::as_tibble(.) %>%
 #'   tidyr::gather(., key, value, LDLF:HDHF)
-#' 
+#'
 #' # creating the subtitle
 #' ggstatsplot::subtitle_friedman_nonparametric(
 #'   data = data_bugs,
@@ -301,21 +286,15 @@ subtitle_friedman_nonparametric <- function(data,
                                             k = 2,
                                             ...) {
 
+
   # creating a dataframe
   data <-
     dplyr::select(
       .data = data,
       x = !!rlang::enquo(x),
       y = !!rlang::enquo(y)
-    )
-
-  # convert the grouping variable to factor and drop unused levels
-  data %<>%
-    dplyr::mutate_at(
-      .tbl = .,
-      .vars = "x",
-      .funs = ~ base::droplevels(x = base::as.factor(x = .))
     ) %>%
+    dplyr::mutate(.data = ., x = droplevels(as.factor(x))) %>%
     tibble::as_tibble(x = .)
 
   # converting to long format and then getting it back in wide so that the
@@ -362,7 +341,7 @@ subtitle_friedman_nonparametric <- function(data,
           " = ",
           pvalue,
           ", ",
-          italic("W")["kendall"],
+          italic("W")["Kendall"],
           " = ",
           kendall_w,
           ", ",
@@ -371,18 +350,18 @@ subtitle_friedman_nonparametric <- function(data,
           n
         ),
       env = base::list(
-        estimate = ggstatsplot::specify_decimal_p(
+        estimate = specify_decimal_p(
           x = friedman_stat$statistic[[1]],
           k = k,
           p.value = FALSE
         ),
         df = friedman_stat$parameter[[1]],
-        pvalue = ggstatsplot::specify_decimal_p(
+        pvalue = specify_decimal_p(
           x = friedman_stat$p.value[[1]],
           k,
           p.value = TRUE
         ),
-        kendall_w = ggstatsplot::specify_decimal_p(
+        kendall_w = specify_decimal_p(
           x = kendall_w[[1]],
           k,
           p.value = FALSE
@@ -400,22 +379,19 @@ subtitle_friedman_nonparametric <- function(data,
 #' @name subtitle_anova_robust
 #' @author Indrajeet Patil
 #'
-#' @param messages Decides whether messages references, notes, and warnings are
-#'   to be displayed (Default: `TRUE`).
-#' @param ... Additional arguments (ignored).
 #' @inheritParams t1way_ci
-#' @inheritParams subtitle_t_parametric
+#' @inheritParams subtitle_anova_parametric
 #'
 #' @importFrom dplyr select
 #' @importFrom rlang !! enquo
 #'
 #' @examples
-#' 
+#'
 #' # examples not executed due to time constraints
 #' \dontrun{
 #' # for reproducibility
 #' set.seed(123)
-#' 
+#'
 #' # going with the defaults
 #' subtitle_anova_robust(
 #'   data = ggplot2::midwest,
@@ -423,7 +399,7 @@ subtitle_friedman_nonparametric <- function(data,
 #'   y = percbelowpoverty,
 #'   nboot = 10
 #' )
-#' 
+#'
 #' # changing defaults
 #' subtitle_anova_robust(
 #'   data = ggplot2::midwest,
@@ -447,6 +423,7 @@ subtitle_anova_robust <- function(data,
                                   k = 2,
                                   ...) {
 
+
   # creating a dataframe
   data <-
     dplyr::select(
@@ -454,15 +431,9 @@ subtitle_anova_robust <- function(data,
       x = !!rlang::enquo(x),
       y = !!rlang::enquo(y)
     ) %>%
-    dplyr::filter(.data = ., !is.na(x), !is.na(y))
-
-  # convert the grouping variable to factor and drop unused levels
-  data %<>%
-    dplyr::mutate_at(
-      .tbl = .,
-      .vars = "x",
-      .funs = ~ base::droplevels(x = base::as.factor(x = .))
-    )
+    dplyr::filter(.data = ., !is.na(x), !is.na(y)) %>%
+    dplyr::mutate(.data = ., x = droplevels(as.factor(x))) %>%
+    tibble::as_tibble(x = .)
 
   # sample size
   sample_size <- nrow(data)
@@ -532,7 +503,7 @@ subtitle_anova_robust <- function(data,
 #'   k = 2,
 #'   bf.prior = 0.8
 #' )
-#' 
+#'
 #' # modifying the defaults
 #' subtitle_anova_bayes(
 #'   data = ggplot2::msleep,
@@ -556,6 +527,7 @@ subtitle_anova_bayes <- function(data,
                                  k = 2,
                                  ...) {
 
+
   # creating a dataframe
   data <-
     dplyr::select(
@@ -563,15 +535,9 @@ subtitle_anova_bayes <- function(data,
       x = !!rlang::enquo(x),
       y = !!rlang::enquo(y)
     ) %>%
-    dplyr::filter(.data = ., !is.na(x), !is.na(y))
-
-  # convert the grouping variable to factor and drop unused levels
-  data %<>%
-    dplyr::mutate_at(
-      .tbl = .,
-      .vars = "x",
-      .funs = ~ base::droplevels(x = base::as.factor(x = .))
-    )
+    dplyr::filter(.data = ., !is.na(x), !is.na(y)) %>%
+    dplyr::mutate(.data = ., x = droplevels(as.factor(x))) %>%
+    tibble::as_tibble(x = .)
 
   # sample size
   sample_size <- nrow(data)
@@ -656,7 +622,9 @@ subtitle_anova_bayes <- function(data,
           "(BF"["10"],
           ") = ",
           bf,
-          ", Prior width = ",
+          ", ",
+          italic("r")["Cauchy"],
+          " = ",
           bf_prior,
           ", ",
           italic("n"),
@@ -665,32 +633,12 @@ subtitle_anova_bayes <- function(data,
         ),
       env = base::list(
         effsize.text = effsize.text,
-        estimate = ggstatsplot::specify_decimal_p(
-          x = stats_df$statistic[[1]],
-          k = k,
-          p.value = FALSE
-        ),
+        estimate = specify_decimal_p(x = stats_df$statistic[[1]], k = k),
         df1 = stats_df$parameter[[1]],
-        df2 = ggstatsplot::specify_decimal_p(
-          x = stats_df$parameter[[2]],
-          k = k.df,
-          p.value = FALSE
-        ),
-        effsize = ggstatsplot::specify_decimal_p(
-          x = effsize_df$estimate[[1]],
-          k = k,
-          p.value = FALSE
-        ),
-        bf = ggstatsplot::specify_decimal_p(
-          x = bf_results$log_e_bf10[[1]],
-          k = 1,
-          p.value = FALSE
-        ),
-        bf_prior = ggstatsplot::specify_decimal_p(
-          x = bf_results$bf.prior[[1]],
-          k = 3,
-          p.value = FALSE
-        ),
+        df2 = specify_decimal_p(x = stats_df$parameter[[2]], k = k.df),
+        effsize = specify_decimal_p(x = effsize_df$estimate[[1]], k = k),
+        bf = specify_decimal_p(x = bf_results$log_e_bf10[[1]], k = 1),
+        bf_prior = specify_decimal_p(x = bf_results$bf.prior[[1]], k = 3),
         n = sample_size
       )
     )

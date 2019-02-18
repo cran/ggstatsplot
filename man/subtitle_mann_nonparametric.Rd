@@ -3,22 +3,23 @@
 \name{subtitle_mann_nonparametric}
 \alias{subtitle_mann_nonparametric}
 \alias{subtitle_t_nonparametric}
-\title{Making text subtitle for the Mann-Whitney U-test
-(between-/within-subjects designs).}
+\title{Making text subtitle for the Mann-Whitney \emph{U}-test
+(between-subjects designs).}
 \usage{
 subtitle_mann_nonparametric(data, x, y, paired = FALSE, k = 2,
-  messages = TRUE, ...)
+  conf.level = 0.95, messages = TRUE, ...)
 
 subtitle_t_nonparametric(data, x, y, paired = FALSE, k = 2,
-  messages = TRUE, ...)
+  conf.level = 0.95, messages = TRUE, ...)
 }
 \arguments{
-\item{data}{Dataframe from which variables specified are preferentially to be
-taken.}
+\item{data}{A dataframe (or a tibble) from which variables specified are to
+be taken. A matrix or tables will \strong{not} be accepted.}
 
-\item{x}{The grouping variable.}
+\item{x}{The grouping variable from the dataframe \code{data}.}
 
-\item{y}{The response - a vector of length the number of rows of \code{x}.}
+\item{y}{The response (a.k.a. outcome or dependent) variable from the
+dataframe \code{data}.}
 
 \item{paired}{a logical indicating whether you want a paired
     t-test.}
@@ -26,14 +27,35 @@ taken.}
 \item{k}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2}).}
 
+\item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
+\code{95\%} lower and upper confidence intervals (\code{0.95}).}
+
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
 
-\item{...}{Additional arguments (ignored).}
+\item{...}{Additional arguments.}
 }
 \description{
-Making text subtitle for the Mann-Whitney U-test
-(between-/within-subjects designs).
+Making text subtitle for the Mann-Whitney \emph{U}-test
+(between-subjects designs).
+}
+\details{
+Two-sample Wilcoxon test, also known as Mann-Whitney test, is
+carried out. The effect size estimate for this test is Spearman's \emph{rho}
+as the ranks of the \code{y} variable related to the factor \code{x}.
+
+For the two independent samples case, the Mann Whitney \emph{U}-test
+is calculated and \emph{W} is reported from \emph{stats::wilcox.test}. For the
+paired samples case the Wilcoxon signed rank test is run and \emph{V} is
+reported.
+
+Since there is no single commonly accepted method for reporting effect size
+for these tests we are computing and reporting Spearman's \emph{rho} a.k.a. \emph{r}
+along with the confidence intervals associated with the estimate.
+
+We have selected \emph{Spearman's rho} which should be nearly identical to rank
+bi-serial and Somer's \emph{d} for the case of x as two factors (including) as a
+pre/post measure and with \emph{y} treated as ranks rather than raw scores.
 }
 \examples{
 subtitle_mann_nonparametric(
@@ -43,5 +65,5 @@ subtitle_mann_nonparametric(
 )
 }
 \author{
-Indrajeet Patil
+Indrajeet Patil, Chuck Powell
 }

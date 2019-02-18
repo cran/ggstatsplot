@@ -16,6 +16,7 @@ testthat::test_that(
       legend.title = "vorarephilia",
       caption = "From ggplot2 package",
       perc.k = 2,
+      nboot = 25,
       slice.label = "both",
       messages = FALSE
     )
@@ -31,7 +32,7 @@ testthat::test_that(
     p_subtitle <-
       ggstatsplot::subtitle_onesample_proptest(
         data = ggplot2::msleep,
-        main = vore
+        main = "vore"
       )
 
     # checking dimensions of data
@@ -85,6 +86,8 @@ testthat::test_that(
 testthat::test_that(
   desc = "checking labels with contingency tab",
   code = {
+    testthat::skip_on_cran()
+
     # creating the plot
     set.seed(123)
     p <- suppressWarnings(
@@ -94,6 +97,7 @@ testthat::test_that(
         condition = "cyl",
         bf.message = TRUE,
         perc.k = 2,
+        nboot = 25,
         package = "wesanderson",
         palette = "Royal2",
         slice.label = "counts",
@@ -106,8 +110,23 @@ testthat::test_that(
       )
     )
 
+    # dropped level dataset
+    mtcars_small <- dplyr::filter(.data = mtcars, am == "0")
+
+    # plot
+    p1 <-
+      ggstatsplot::ggpiestats(
+        data = mtcars_small,
+        main = cyl,
+        condition = am,
+        nboot = 25,
+        facet.wrap.name = "transmission",
+        messages = FALSE
+      )
+
     # build plot
     pb <- ggplot2::ggplot_build(p)
+    pb1 <- ggplot2::ggplot_build(p1)
 
     # subtitle used
     set.seed(123)
@@ -117,6 +136,7 @@ testthat::test_that(
         main = "am",
         condition = "cyl",
         simulate.p.value = TRUE,
+        nboot = 25,
         B = 3000,
         messages = FALSE
       )
@@ -129,16 +149,29 @@ testthat::test_that(
 
     # testing everything is okay with data
     testthat::expect_equal(data_dims, c(6L, 5L))
-    testthat::expect_equal(dat$perc,
+    testthat::expect_equal(
+      dat$perc,
       c(72.73, 42.86, 14.29, 27.27, 57.14, 85.71),
       tolerance = 1e-3
+    )
+    testthat::expect_equal(p1$data$perc,
+      c(63.15789, 21.05263, 15.78947),
+      tolerance = 0.001
+    )
+    testthat::expect_equal(p1$data$counts, c(12L, 4L, 3L))
+    testthat::expect_identical(levels(p1$data$main), c("8", "6", "4"))
+    testthat::expect_identical(levels(p1$data$condition), c("0"))
+    testthat::expect_identical(
+      colnames(p1$data),
+      c("condition", "main", "counts", "perc", "slice.label")
     )
 
     # checking plot labels
     testthat::expect_identical(p$labels$subtitle, p_subtitle)
     testthat::expect_identical(pb$plot$plot_env$facet.wrap.name, "cylinders")
-    testthat::expect_identical(pb$plot$plot_env$legend.labels[1], "0 = automatic")
-    testthat::expect_identical(pb$plot$plot_env$legend.labels[2], "1 = manual")
+    testthat::expect_identical(
+      pb$plot$plot_env$legend.labels, c("0 = automatic", "1 = manual")
+    )
     testthat::expect_identical(pb$plot$labels$caption, ggplot2::expr(atop(
       displaystyle(NULL),
       expr = paste(
@@ -159,6 +192,11 @@ testthat::test_that(
     testthat::expect_null(p$labels$y, NULL)
     testthat::expect_null(pb$plot$plot_env$stat.title, NULL)
     testthat::expect_identical(pb$plot$guides$fill$title[1], "transmission")
+    testthat::expect_null(pb1$plot$labels$subtitle, NULL)
+    testthat::expect_identical(
+      pb1$layout$facet_params$plot_env$facet.wrap.name,
+      "transmission"
+    )
 
     # checking labels
     testthat::expect_identical(
@@ -187,6 +225,12 @@ testthat::test_that(
         "#9A8822"
       )
     )
+
+    # test layout
+    df_layout <- tibble::as_tibble(pb$layout$layout)
+    testthat::expect_equal(dim(df_layout), c(3L, 6L))
+    testthat::expect_identical(class(df_layout$condition), "factor")
+    testthat::expect_identical(levels(df_layout$condition), c("4", "6", "8"))
   }
 )
 
@@ -195,13 +239,16 @@ testthat::test_that(
 testthat::test_that(
   desc = "checking labels with counts",
   code = {
+    testthat::skip_on_cran()
+
     # plot
     set.seed(123)
     p <- ggstatsplot::ggpiestats(
       data = as.data.frame(Titanic),
       main = Sex,
       condition = Survived,
-      counts = Freq,
+      nboot = 25,
+      counts = "Freq",
       perc.k = 2,
       conf.level = 0.95,
       messages = TRUE
@@ -214,6 +261,7 @@ testthat::test_that(
       main = Sex,
       condition = Survived,
       counts = Freq,
+      nboot = 25,
       conf.level = 0.95,
       messages = FALSE
     )
@@ -248,6 +296,8 @@ testthat::test_that(
 testthat::test_that(
   desc = "checking labels with contingency tab (paired)",
   code = {
+    testthat::skip_on_cran()
+
     # data
     set.seed(123)
     survey.data <- data.frame(
@@ -264,6 +314,7 @@ testthat::test_that(
       main = `1st survey`,
       condition = `2nd survey`,
       counts = Counts,
+      nboot = 25,
       paired = TRUE,
       conf.level = 0.90,
       messages = FALSE
@@ -291,6 +342,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "checking if functions work without enough data",
   code = {
+    testthat::skip_on_cran()
     set.seed(123)
 
     # creating a dataframe

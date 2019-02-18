@@ -7,7 +7,7 @@ variable}
 \usage{
 grouped_ggscatterstats(data, x, y, type = "pearson", conf.level = 0.95,
   bf.prior = 0.707, bf.message = FALSE, label.var = NULL,
-  label.expression = NULL, grouping.var, title.prefix = "Group",
+  label.expression = NULL, grouping.var, title.prefix = NULL,
   xlab = NULL, ylab = NULL, method = "lm", method.args = list(),
   formula = y ~ x, point.color = "black", point.size = 3,
   point.alpha = 0.4, line.size = 1.5, point.width.jitter = 0,
@@ -22,7 +22,8 @@ grouped_ggscatterstats(data, x, y, type = "pearson", conf.level = 0.95,
   ggplot.component = NULL, messages = TRUE, ...)
 }
 \arguments{
-\item{data}{Dataframe from which variables are to be taken.}
+\item{data}{A dataframe (or a tibble) from which variables specified are to
+be taken. A matrix or tables will \strong{not} be accepted.}
 
 \item{x}{The column in \code{data} containing the explanatory variable to be
 plotted on the x axis. Can be entered either as
@@ -46,8 +47,8 @@ parametric/pearson's), \code{"np"} (nonparametric/spearman), \code{"r"} (robust)
 \item{bf.prior}{A number between 0.5 and 2 (default \code{0.707}), the prior width
 to use in calculating Bayes factors.}
 
-\item{bf.message}{Logical. Decides whether to display Bayes Factor in favor
-of \emph{null} hypothesis \strong{for parametric test} (Default: \code{FALSE}).}
+\item{bf.message}{Logical that decides whether to display Bayes Factor in
+favor of the \emph{null} hypothesis \strong{for parametric test} (Default: \code{FALSE}).}
 
 \item{label.var}{Variable to use for points labels. Can be entered either as
 a character string (e.g., \code{"var1"}) or as a bare expression (e.g, \code{var1}).}
@@ -57,15 +58,18 @@ determines the subset of data points to label. This argument can be entered
 either as a character string (e.g., \code{"y < 4 & z < 20"}) or as a bare
 expression (e.g., \code{y < 4 & z < 20}).}
 
-\item{grouping.var}{Grouping variable. Can be entered either as
-a character string (e.g., \code{"group"}) or as a bare expression (e.g, \code{group}).}
+\item{grouping.var}{A single grouping variable (can be entered either as a
+bare name \code{x} or as a string \code{"x"}).}
 
-\item{title.prefix}{Character specifying the prefix text for the fixed plot
-title (name of each factor level) (Default: \code{"Group"}).}
+\item{title.prefix}{Character string specifying the prefix text for the fixed
+plot title (name of each factor level) (Default: \code{NULL}). If \code{NULL}, the
+variable name entered for \code{grouping.var} will be used.}
 
-\item{xlab}{Label for \code{x} axis variable. The default is the variable name.}
+\item{xlab}{Labels for \code{x} and \code{y} axis variables. If \code{NULL} (default),
+variable names for \code{x} and \code{y} will be used.}
 
-\item{ylab}{Label for \code{y} axis variable. The default is the variable name.}
+\item{ylab}{Labels for \code{x} and \code{y} axis variables. If \code{NULL} (default),
+variable names for \code{x} and \code{y} will be used.}
 
 \item{method}{Smoothing method (function) to use, accepts either a character vector,
 e.g. \code{"auto"}, \code{"lm"}, \code{"glm"}, \code{"gam"}, \code{"loess"} or a function, e.g.
@@ -171,16 +175,18 @@ the plot will be returned.}
 
 \item{beta}{bending constant (Default: \code{0.1}). For more, see \code{?WRS2::pbcor}.}
 
-\item{k}{Number of decimal places expected for results.}
+\item{k}{Number of digits after decimal point (should be an integer)
+(Default: \code{k = 2}).}
 
-\item{axes.range.restrict}{Logical decides whether to restrict the axes
-values ranges to min and max values of the \code{x} and \code{y} variables (Default:
-\code{FALSE}).}
+\item{axes.range.restrict}{Logical that decides whether to restrict the axes
+values ranges to \code{min} and \code{max} values of the axes variables (Default:
+\code{FALSE}), only relevant for functions where axes variables are of numeric
+type.}
 
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
 \code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
-extension packages are allowed (e.g., \code{ggthemes::theme_economist()},
-\code{hrbrthemes::theme_ipsum_ps()}, \code{ggthemes::theme_fivethirtyeight()}, etc.).}
+extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
+\code{hrbrthemes::theme_ipsum_ps()}, etc.).}
 
 \item{ggstatsplot.layer}{Logical that decides whether \code{theme_ggstatsplot}
 theme elements are to be displayed along with the selected \code{ggtheme}
@@ -189,7 +195,9 @@ theme elements are to be displayed along with the selected \code{ggtheme}
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
 by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
 of the current function. Default is \code{NULL}. The argument should be entered
-as a function.}
+as a function. If the given function has an argument \code{axes.range.restrict}
+and if it has been set to \code{TRUE}, the added ggplot component \emph{might} not
+work as expected.}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}

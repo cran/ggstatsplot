@@ -6,10 +6,8 @@
 #'   resulting plots using `ggstatsplot::combine_plots`.
 #' @author Indrajeet Patil, Chuck Powell
 #'
-#' @param grouping.var Grouping variable.
-#' @param title.prefix Character specifying the prefix text for the fixed plot
-#'   title (name of each factor level) (Default: `"Group"`).
 #' @inheritParams ggpiestats
+#' @inheritParams grouped_ggbetweenstats
 #' @inheritDotParams combine_plots
 #'
 #' @importFrom dplyr select bind_rows summarize mutate mutate_at mutate_if
@@ -26,34 +24,34 @@
 #' @inherit ggpiestats return return
 #'
 #' @examples
-#' 
+#'
 #' # grouped one-sample proportion tests
 #' ggstatsplot::grouped_ggpiestats(
 #'   data = mtcars,
 #'   grouping.var = am,
 #'   main = cyl
 #' )
-#' 
+#'
 #' # without condition and with count data
 #' library(jmv)
-#' 
+#'
 #' ggstatsplot::grouped_ggpiestats(
 #'   data = as.data.frame(HairEyeColor),
 #'   main = Hair,
 #'   counts = Freq,
 #'   grouping.var = Sex
 #' )
-#' 
+#'
 #' # the following will take slightly more amount of time
 #' \dontrun{
 #' # for reproducibility
 #' set.seed(123)
-#' 
+#'
 #' # let's create a smaller dataframe
 #' diamonds_short <- ggplot2::diamonds %>%
 #'   dplyr::filter(.data = ., cut %in% c("Fair", "Very Good", "Ideal")) %>%
 #'   dplyr::sample_frac(tbl = ., size = 0.10)
-#' 
+#'
 #' # plot
 #' ggstatsplot::grouped_ggpiestats(
 #'   data = diamonds_short,
@@ -77,19 +75,25 @@ grouped_ggpiestats <- function(data,
                                condition = NULL,
                                counts = NULL,
                                grouping.var,
-                               title.prefix = "Group",
+                               title.prefix = NULL,
                                ratio = NULL,
                                paired = FALSE,
+                               results.subtitle = TRUE,
                                factor.levels = NULL,
                                stat.title = NULL,
                                sample.size.label = TRUE,
+                               label.separator = "\n",
+                               label.text.size = 4,
+                               label.fill.color = "white",
+                               label.fill.alpha = 1,
                                bf.message = FALSE,
                                sampling.plan = "indepMulti",
                                fixed.margin = "rows",
                                prior.concentration = 1,
+                               subtitle = NULL,
                                caption = NULL,
                                conf.level = 0.95,
-                               nboot = 25,
+                               nboot = 100,
                                simulate.p.value = FALSE,
                                B = 2000,
                                legend.title = NULL,
@@ -103,6 +107,7 @@ grouped_ggpiestats <- function(data,
                                package = "RColorBrewer",
                                palette = "Dark2",
                                direction = 1,
+                               ggplot.component = NULL,
                                messages = TRUE,
                                ...) {
 
@@ -132,85 +137,30 @@ grouped_ggpiestats <- function(data,
     }
   }
 
-
   # ensure the grouping variable works quoted or unquoted
   grouping.var <- rlang::ensym(grouping.var)
 
-  # ======================== preparing dataframe =============================
-
-  # if condition variable *is* provided
-  if (!missing(condition)) {
-    # if the data is not tabled
-    if (missing(counts)) {
-      df <-
-        dplyr::select(
-          .data = data,
-          !!rlang::enquo(grouping.var),
-          !!rlang::enquo(main),
-          !!rlang::enquo(condition)
-        ) %>%
-        dplyr::mutate(
-          .data = .,
-          title.text = !!rlang::enquo(grouping.var)
-        )
-    } else if (!missing(counts)) {
-      # if data is tabled
-      df <-
-        dplyr::select(
-          .data = data,
-          !!rlang::enquo(grouping.var),
-          !!rlang::enquo(main),
-          !!rlang::enquo(condition),
-          !!rlang::enquo(counts)
-        ) %>%
-        dplyr::mutate(
-          .data = .,
-          title.text = !!rlang::enquo(grouping.var)
-        )
-    }
-  } else if (missing(condition)) {
-    # if condition variable is *not* provided
-    if (base::missing(counts)) {
-      df <-
-        dplyr::select(
-          .data = data,
-          !!rlang::enquo(grouping.var),
-          !!rlang::enquo(main)
-        ) %>%
-        dplyr::mutate(
-          .data = .,
-          title.text = !!rlang::enquo(grouping.var)
-        )
-    } else if (!missing(counts)) {
-      # if data is tabled
-      df <-
-        dplyr::select(
-          .data = data,
-          !!rlang::enquo(grouping.var),
-          !!rlang::enquo(main),
-          !!rlang::enquo(counts)
-        ) %>%
-        dplyr::mutate(
-          .data = .,
-          title.text = !!rlang::enquo(grouping.var)
-        )
-    }
+  # if `title.prefix` is not provided, use the variable `grouping.var` name
+  if (is.null(title.prefix)) {
+    title.prefix <- rlang::as_name(grouping.var)
   }
 
-  # make a list of dataframes by grouping variable
+  # ======================== preparing dataframe =============================
+
+  # creating a dataframe
+  df <-
+    dplyr::select(
+      .data = data,
+      !!rlang::enquo(grouping.var),
+      !!rlang::enquo(main),
+      !!rlang::enquo(condition),
+      !!rlang::enquo(counts)
+    ) %>%
+    tidyr::drop_na(data = .)
+
+  # creating a list for grouped analysis
   df %<>%
-    dplyr::mutate_if(
-      .tbl = .,
-      .predicate = purrr::is_bare_character,
-      .funs = ~ as.factor(.)
-    ) %>%
-    dplyr::mutate_if(
-      .tbl = .,
-      .predicate = is.factor,
-      .funs = ~ base::droplevels(.)
-    ) %>%
-    dplyr::filter(.data = ., !is.na(!!rlang::enquo(grouping.var))) %>%
-    base::split(.[[rlang::quo_text(grouping.var)]])
+    grouped_list(data = ., grouping.var = !!rlang::enquo(grouping.var))
 
   # ============== build pmap list based on conditions =====================
 
@@ -260,13 +210,19 @@ grouped_ggpiestats <- function(data,
       # put common parameters here
       ratio = ratio,
       paired = paired,
+      results.subtitle = results.subtitle,
       factor.levels = factor.levels,
       stat.title = stat.title,
       sample.size.label = sample.size.label,
+      label.separator = label.separator,
+      label.text.size = label.text.size,
+      label.fill.color = label.fill.color,
+      label.fill.alpha = label.fill.alpha,
       bf.message = bf.message,
       sampling.plan = sampling.plan,
       fixed.margin = fixed.margin,
       prior.concentration = prior.concentration,
+      subtitle = subtitle,
       caption = caption,
       conf.level = conf.level,
       nboot = nboot,
@@ -283,6 +239,7 @@ grouped_ggpiestats <- function(data,
       package = package,
       palette = palette,
       direction = direction,
+      ggplot.component = ggplot.component,
       messages = messages
     )
 

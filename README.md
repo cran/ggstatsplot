@@ -3,14 +3,14 @@
 
 # ggstatsplot: `ggplot2` Based Plots with Statistical Details
 
-| Package                                                                                                                                              | Status                                                                                                                                                                                       | Usage                                                                                                                                             | GitHub                                                                                                                                                          | References                                                                                                                                                      |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [![CRAN\_Release\_Badge](http://www.r-pkg.org/badges/version-ago/ggstatsplot)](https://CRAN.R-project.org/package=ggstatsplot)                       | [![Travis Build Status](https://travis-ci.org/IndrajeetPatil/ggstatsplot.svg?branch=master)](https://travis-ci.org/IndrajeetPatil/ggstatsplot)                                               | [![Daily downloads badge](https://cranlogs.r-pkg.org/badges/last-day/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot)     | [![GitHub version](https://img.shields.io/badge/GitHub-0.0.8.9000-orange.svg?style=flat-square)](https://github.com/IndrajeetPatil/ggstatsplot/)                | [![Website](https://img.shields.io/badge/website-ggstatsplot-orange.svg?colorB=E91E63)](https://indrajeetpatil.github.io/ggstatsplot/)                          |
-| [![CRAN Checks](https://cranchecks.info/badges/summary/ggstatsplot)](https://cran.r-project.org/web/checks/check_results_ggstatsplot.html)           | [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/IndrajeetPatil/ggstatsplot?branch=master&svg=true)](https://ci.appveyor.com/project/IndrajeetPatil/ggstatsplot) | [![Weekly downloads badge](https://cranlogs.r-pkg.org/badges/last-week/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot)   | [![Github Pending PRs](http://githubbadges.herokuapp.com/IndrajeetPatil/ggstatsplot/pulls.svg?style=flat)](https://github.com/IndrajeetPatil/ggstatsplot/pulls) | [![Rdoc](https://www.rdocumentation.org/badges/version/ggstatsplot)](https://www.rdocumentation.org/packages/ggstatsplot)                                       |
-| [![minimal R version](https://img.shields.io/badge/R%3E%3D-3.5.0-6666ff.svg)](https://cran.r-project.org/)                                           | [![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/)                                                                               | [![Monthly downloads badge](https://cranlogs.r-pkg.org/badges/last-month/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot) | [![Github Issues](http://githubbadges.herokuapp.com/IndrajeetPatil/ggstatsplot/issues.svg)](https://github.com/IndrajeetPatil/ggstatsplot/issues)               | [![vignettes](https://img.shields.io/badge/vignettes-0.0.8-orange.svg?colorB=FF5722)](https://cran.r-project.org/web/packages/ggstatsplot/vignettes/)           |
-| [![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/)                                       | [![Coverage Status](https://coveralls.io/repos/github/IndrajeetPatil/ggstatsplot/badge.svg?branch=master)](https://coveralls.io/github/IndrajeetPatil/ggstatsplot?branch=master)             | [![Total downloads badge](https://cranlogs.r-pkg.org/badges/grand-total/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot)  | [![Github Stars](https://img.shields.io/github/stars/IndrajeetPatil/ggstatsplot.svg?style=social&label=Github)](https://github.com/IndrajeetPatil/ggstatsplot)  | [![DOI](https://zenodo.org/badge/116717490.svg)](https://zenodo.org/badge/latestdoi/116717490)                                                                  |
-| [![Licence](https://img.shields.io/badge/licence-GPL--3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)                                     | [![Codecov test coverage](https://codecov.io/gh/IndrajeetPatil/ggstatsplot/branch/master/graph/badge.svg)](https://codecov.io/gh/IndrajeetPatil/ggstatsplot?branch=master)                   | [![HitCount](http://hits.dwyl.io/IndrajeetPatil/ggstatsplot.svg)](http://hits.dwyl.io/IndrajeetPatil/ggstatsplot)                                 | [![Last-changedate](https://img.shields.io/badge/last%20change-2019--01--07-yellowgreen.svg)](/commits/master)                                                  | [![author](https://img.shields.io/badge/Author-I._Patil-purple.svg?colorB=9C27B0)](https://sites.google.com/site/indrajeetspatilmorality/)                      |
-| [![Dependency Status](https://dependencyci.com/github/IndrajeetPatil/ggstatsplot/badge)](https://dependencyci.com/github/IndrajeetPatil/ggstatsplot) | [![Covrpage Summary](https://img.shields.io/badge/covrpage-Last_Build_2018_12_06-brightgreen.svg)](https://github.com/IndrajeetPatil/ggstatsplot/blob/master/tests/README.md)                | [![saythanks](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/IndrajeetPatil)                                    | [![Project Status](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)                                                      | [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/IndrajeetPatil/ggstatsplot/issues) |
+| Package                                                                                                                                                         | Status                                                                                                                                                                                       | Usage                                                                                                                                             | GitHub                                                                                                                                                          | References                                                                                                                                                      |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [![CRAN\_Release\_Badge](http://www.r-pkg.org/badges/version-ago/ggstatsplot)](https://CRAN.R-project.org/package=ggstatsplot)                                  | [![Travis Build Status](https://travis-ci.org/IndrajeetPatil/ggstatsplot.svg?branch=master)](https://travis-ci.org/IndrajeetPatil/ggstatsplot)                                               | [![Daily downloads badge](https://cranlogs.r-pkg.org/badges/last-day/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot)     | [![GitHub version](https://img.shields.io/badge/GitHub-0.0.9.9000-orange.svg?style=flat-square)](https://github.com/IndrajeetPatil/ggstatsplot/)                | [![Website](https://img.shields.io/badge/website-ggstatsplot-orange.svg?colorB=E91E63)](https://indrajeetpatil.github.io/ggstatsplot/)                          |
+| [![CRAN Checks](https://cranchecks.info/badges/summary/ggstatsplot)](https://cran.r-project.org/web/checks/check_results_ggstatsplot.html)                      | [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/IndrajeetPatil/ggstatsplot?branch=master&svg=true)](https://ci.appveyor.com/project/IndrajeetPatil/ggstatsplot) | [![Weekly downloads badge](https://cranlogs.r-pkg.org/badges/last-week/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot)   | [![Github Pending PRs](http://githubbadges.herokuapp.com/IndrajeetPatil/ggstatsplot/pulls.svg?style=flat)](https://github.com/IndrajeetPatil/ggstatsplot/pulls) | [![Rdoc](https://www.rdocumentation.org/badges/version/ggstatsplot)](https://www.rdocumentation.org/packages/ggstatsplot)                                       |
+| [![minimal R version](https://img.shields.io/badge/R%3E%3D-3.5.0-6666ff.svg)](https://cran.r-project.org/)                                                      | [![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/)                                                                               | [![Monthly downloads badge](https://cranlogs.r-pkg.org/badges/last-month/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot) | [![Github Issues](http://githubbadges.herokuapp.com/IndrajeetPatil/ggstatsplot/issues.svg)](https://github.com/IndrajeetPatil/ggstatsplot/issues)               | [![vignettes](https://img.shields.io/badge/vignettes-0.0.9-orange.svg?colorB=FF5722)](https://cran.r-project.org/web/packages/ggstatsplot/vignettes/)           |
+| [![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/IndrajeetPatil/ggstatsplot.svg)](https://github.com/IndrajeetPatil/ggstatsplot) | [![Coverage Status](https://coveralls.io/repos/github/IndrajeetPatil/ggstatsplot/badge.svg?branch=master)](https://coveralls.io/github/IndrajeetPatil/ggstatsplot?branch=master)             | [![Total downloads badge](https://cranlogs.r-pkg.org/badges/grand-total/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot)  | [![Github Stars](https://img.shields.io/github/stars/IndrajeetPatil/ggstatsplot.svg?style=social&label=Github)](https://github.com/IndrajeetPatil/ggstatsplot)  | [![DOI](https://zenodo.org/badge/116717490.svg)](https://zenodo.org/badge/latestdoi/116717490)                                                                  |
+| [![Licence](https://img.shields.io/badge/licence-GPL--3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)                                                | [![Codecov test coverage](https://codecov.io/gh/IndrajeetPatil/ggstatsplot/branch/master/graph/badge.svg)](https://codecov.io/gh/IndrajeetPatil/ggstatsplot?branch=master)                   | [![HitCount](http://hits.dwyl.io/IndrajeetPatil/ggstatsplot.svg)](http://hits.dwyl.io/IndrajeetPatil/ggstatsplot)                                 | [![Last-changedate](https://img.shields.io/badge/last%20change-2019--02--17-yellowgreen.svg)](/commits/master)                                                  | [![GitHub last commit](https://img.shields.io/github/last-commit/IndrajeetPatil/ggstatsplot.svg)](https://github.com/IndrajeetPatil/ggstatsplot/commits/master) |
+| [![Dependency Status](https://dependencyci.com/github/IndrajeetPatil/ggstatsplot/badge)](https://dependencyci.com/github/IndrajeetPatil/ggstatsplot)            | [![Covrpage Summary](https://img.shields.io/badge/covrpage-Last_Build_2019_01_31-yellowgreen.svg)](https://github.com/IndrajeetPatil/ggstatsplot/blob/master/tests/README.md)                | [![saythanks](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/IndrajeetPatil)                                    | [![Project Status](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)                                                      | [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/IndrajeetPatil/ggstatsplot/issues) |
 
 # Overview
 
@@ -36,7 +36,7 @@ It, therefore, produces a limited kinds of plots for the supported
 analyses:
 
   - **violin plots** (for comparisons *between* groups or conditions),
-  - **pie charts** (for categorical data),
+  - **pie charts** and **bar charts** (for categorical data),
   - **scatterplots** (for correlations between two variables),
   - **correlation matrices** (for correlations between multiple
     variables),
@@ -51,9 +51,51 @@ the same analysis for any grouping variable.
 Future versions will include other types of statistical analyses and
 plots as well.
 
+# Statistical reporting
+
+For all statistical tests reported in the plots, the default template
+abides by the [APA](https://my.ilstu.edu/~jhkahn/apastats.html) gold
+standard for statistical reporting. For example, here are results from
+Yuen’s test for trimmed means (robust *t*-test):
+
+<img src="man/figures/stats_reporting_format.png" align="center" />
+
+# Summary of supported statistical analyses
+
+The table below summarizes all the different types of analyses currently
+supported in this
+package-
+
+| Functions                        | Description                               | Parametric                     | Non-parametric                 | Robust                         | Bayes Factor                   |
+| -------------------------------- | ----------------------------------------- | ------------------------------ | ------------------------------ | ------------------------------ | ------------------------------ |
+| `ggbetweenstats`                 | Between group/condition comparisons       | <font color="green">Yes</font> | <font color="green">Yes</font> | <font color="green">Yes</font> | <font color="green">Yes</font> |
+| `gghistostats`, `ggdotplotstats` | Distribution of a numeric variable        | <font color="green">Yes</font> | <font color="green">Yes</font> | <font color="green">Yes</font> | <font color="green">Yes</font> |
+| `ggcorrmat`                      | Correlation matrix                        | <font color="green">Yes</font> | <font color="green">Yes</font> | <font color="green">Yes</font> | <font color="red">No</font>    |
+| `ggscatterstats`                 | Correlation between two variables         | <font color="green">Yes</font> | <font color="green">Yes</font> | <font color="green">Yes</font> | <font color="green">Yes</font> |
+| `ggpiestats`, `ggbarstats`       | Association between categorical variables | <font color="green">Yes</font> | <font color="red">No</font>    | <font color="red">No</font>    | <font color="green">Yes</font> |
+| `ggpiestats`                     | Proportion test                           | <font color="red">No</font>    | <font color="red">No</font>    | <font color="red">No</font>    | <font color="red">No</font>    |
+| `ggcoefstats`                    | Regression model coefficients             | <font color="green">Yes</font> | <font color="red">No</font>    | <font color="green">Yes</font> | <font color="green">Yes</font> |
+
+# Effect sizes and confidence intervals available
+
+`ggstatsplot` provides a wide range of effect sizes and their confidence
+intervals.
+
+| Test                          | Parametric                     | Non-parametric                 | Robust                         | Bayes                       |
+| ----------------------------- | ------------------------------ | ------------------------------ | ------------------------------ | --------------------------- |
+| one-sample *t*-test           | <font color="green">Yes</font> | <font color="green">Yes</font> | <font color="green">Yes</font> | <font color="red">No</font> |
+| two-sample *t*-test (between) | <font color="green">Yes</font> | <font color="green">Yes</font> | <font color="green">Yes</font> | <font color="red">No</font> |
+| two-sample *t*-test (within)  | <font color="green">Yes</font> | <font color="green">Yes</font> | <font color="green">Yes</font> | <font color="red">No</font> |
+| One-way ANOVA (between)       | <font color="green">Yes</font> | <font color="green">Yes</font> | <font color="green">Yes</font> | <font color="red">No</font> |
+| One-way ANOVA (within)        | <font color="green">Yes</font> | <font color="red">No</font>    | <font color="red">No</font>    | <font color="red">No</font> |
+| correlations                  | <font color="green">Yes</font> | <font color="green">Yes</font> | <font color="green">Yes</font> | <font color="red">No</font> |
+| contingency table             | <font color="green">Yes</font> | `NA`                           | `NA`                           | <font color="red">No</font> |
+| goodness of fit               | <font color="green">Yes</font> | `NA`                           | `NA`                           | <font color="red">No</font> |
+| regression                    | <font color="green">Yes</font> | <font color="green">Yes</font> | <font color="green">Yes</font> | <font color="red">No</font> |
+
 # Installation
 
-To get the latest, stable CRAN release (`0.0.8`):
+To get the latest, stable CRAN release (`0.0.9`):
 
 ``` r
 utils::install.packages(pkgs = "ggstatsplot")
@@ -64,7 +106,7 @@ libraries installed (specifically, `libx11`, `mesa` and Mesa OpenGL
 Utility library - `glu`) for the dependency package `rgl` to work.
 
 You can get the **development** version of the package from GitHub
-(`0.0.8.9000`). To see what new changes (and bug fixes) have been made
+(`0.0.9.9000`). To see what new changes (and bug fixes) have been made
 to the package since the last release on `CRAN`, you can check the
 detailed log of changes here:
 <https://indrajeetpatil.github.io/ggstatsplot/news/index.html>
@@ -78,7 +120,7 @@ utils::install.packages(pkgs = "devtools")
 # downloading the package from GitHub
 devtools::install_github(
   repo = "IndrajeetPatil/ggstatsplot", # package path on GitHub
-  dependencies = FALSE,                # assumes that you already have all packages installed needed for this package to work
+  dependencies = FALSE,                # assumes you have already installed needed packages
   quick = TRUE                         # skips docs, demos, and vignettes
 )                        
 ```
@@ -114,7 +156,7 @@ context, run the following code in your `R` console:
 utils::citation(package = "ggstatsplot")
 ```
 
-There is currently a publication in preparation corresponding this
+There is currently a publication in preparation corresponding to this
 package and the citation will be updated once it’s published.
 
 # Documentation and Examples
@@ -140,20 +182,8 @@ Another handy tool to see arguments to any of the functions is `args`.
 For example-
 
 ``` r
-args(name = ggstatsplot::ggscatterstats)
-#> function (data, x, y, type = "pearson", conf.level = 0.95, bf.prior = 0.707, 
-#>     bf.message = FALSE, label.var = NULL, label.expression = NULL, 
-#>     xlab = NULL, ylab = NULL, method = "lm", method.args = list(), 
-#>     formula = y ~ x, point.color = "black", point.size = 3, point.alpha = 0.4, 
-#>     point.width.jitter = 0, point.height.jitter = 0, line.size = 1.5, 
-#>     line.color = "blue", marginal = TRUE, marginal.type = "histogram", 
-#>     marginal.size = 5, margins = c("both", "x", "y"), package = "wesanderson", 
-#>     palette = "Royal1", direction = 1, xfill = "#009E73", yfill = "#D55E00", 
-#>     xalpha = 1, yalpha = 1, xsize = 0.7, ysize = 0.7, centrality.para = NULL, 
-#>     results.subtitle = TRUE, title = NULL, subtitle = NULL, caption = NULL, 
-#>     nboot = 100, beta = 0.1, k = 2, axes.range.restrict = FALSE, 
-#>     ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE, 
-#>     ggplot.component = NULL, messages = TRUE) 
+args(name = ggstatsplot::specify_decimal_p)
+#> function (x, k = 3, p.value = FALSE) 
 #> NULL
 ```
 
@@ -161,50 +191,17 @@ In case you want to look at the function body for any of the functions,
 just type the name of the function without the parentheses:
 
 ``` r
-ggstatsplot::theme_ggstatsplot
-#> function(ggtheme = ggplot2::theme_bw(),
-#>                               ggstatsplot.layer = TRUE) {
-#>   if (isTRUE(ggstatsplot.layer)) {
-#>     ggtheme +
-#>       ggplot2::theme(
-#>         axis.title.x = ggplot2::element_text(size = 11, face = "bold"),
-#>         strip.text.x = ggplot2::element_text(size = 11, face = "bold"),
-#>         strip.text.y = ggplot2::element_text(size = 11, face = "bold"),
-#>         strip.text = ggplot2::element_text(size = 11, face = "bold"),
-#>         axis.title.y = ggplot2::element_text(size = 11, face = "bold"),
-#>         axis.text.x = ggplot2::element_text(size = 11, face = "bold"),
-#>         axis.text.y = ggplot2::element_text(size = 11, face = "bold"),
-#>         axis.line = ggplot2::element_line(),
-#>         legend.text = ggplot2::element_text(size = 11),
-#>         legend.title = ggplot2::element_text(size = 11, face = "bold"),
-#>         legend.title.align = 0.5,
-#>         legend.text.align = 0.5,
-#>         legend.key.height = grid::unit(x = 1, units = "line"),
-#>         legend.key.width = grid::unit(x = 1, units = "line"),
-#>         plot.margin = grid::unit(x = c(1, 1, 1, 1), units = "lines"),
-#>         panel.border = ggplot2::element_rect(
-#>           color = "black",
-#>           fill = NA,
-#>           size = 1
-#>         ),
-#>         plot.title = ggplot2::element_text(
-#>           color = "black",
-#>           size = 13,
-#>           face = "bold",
-#>           hjust = 0.5
-#>         ),
-#>         plot.subtitle = ggplot2::element_text(
-#>           color = "black",
-#>           size = 11,
-#>           face = "plain",
-#>           hjust = 0.5
-#>         )
-#>       )
-#>   } else {
-#>     ggtheme
-#>   }
+# function to convert class of any object to `ggplot` class
+ggstatsplot::ggplot_converter
+#> function(plot) {
+#>   # convert the saved plot
+#>   p <- cowplot::ggdraw() +
+#>     cowplot::draw_grob(grid::grobTree(plot))
+#> 
+#>   # returning the converted plot
+#>   return(p)
 #> }
-#> <bytecode: 0x000000002be7e9c0>
+#> <bytecode: 0x000000002c390360>
 #> <environment: namespace:ggstatsplot>
 ```
 
@@ -349,9 +346,6 @@ variable:
 # for reproducibility
 set.seed(123)
 
-# let's exclude animation and documentary genres since there are not many
-# datapoints for these genres
-
 # plot
 ggstatsplot::grouped_ggbetweenstats(
   data = dplyr::filter(.data = ggstatsplot::movies_long,
@@ -364,6 +358,9 @@ ggstatsplot::grouped_ggbetweenstats(
   p.adjust.method = "bonferroni",   # method for adjusting p-values for multiple comparisons
   bf.message = TRUE,                # display Bayes Factor in favor of the null hypothesis
   conf.level = 0.99,                # changing confidence level to 99%
+  ggplot.component = list(          # adding new components to `ggstatsplot` default
+    ggplot2::scale_y_continuous(sec.axis = ggplot2::dup_axis())
+    ),
   k = 3,
   title.prefix = "Movie genre",
   caption = substitute(paste(italic("Source"), 
@@ -372,12 +369,27 @@ ggstatsplot::grouped_ggbetweenstats(
   package = "ggsci",
   messages = FALSE,
   nrow = 2,
-  ncol = 2,
   title.text = "Differences in movie length by mpaa ratings for different genres"
 )
 ```
 
 <img src="man/figures/README-ggbetweenstats3-1.png" width="100%" />
+
+Here is a summary of pairwise comparison tests supported in
+*ggbetweenstats*-
+
+| Type           | Design  | Equal variance? | Test                               | *p*-value adjustment?          |
+| -------------- | ------- | --------------- | ---------------------------------- | ------------------------------ |
+| Parametric     | between | No              | Games-Howell test                  | <font color="green">Yes</font> |
+| Parametric     | between | Yes             | Student’s *t*-test                 | <font color="green">Yes</font> |
+| Parametric     | within  | `NA`            | Student’s *t*-test                 | <font color="green">Yes</font> |
+| Non-parametric | between | No              | Dwass-Steel-Crichtlow-Fligner test | <font color="green">Yes</font> |
+| Non-parametric | within  | No              | Durbin-Conover test                | <font color="green">Yes</font> |
+| Robust         | between | No              | Yuen’s trimmed means test          | <font color="green">Yes</font> |
+| Robust         | within  | `NA`            | Yuen’s trimmed means test          | <font color="green">Yes</font> |
+| Bayes Factor   | between | No              | <font color="red">No</font>        | <font color="red">No</font>    |
+| Bayes Factor   | between | Yes             | <font color="red">No</font>        | <font color="red">No</font>    |
+| Bayes Factor   | within  | `NA`            | <font color="red">No</font>        | <font color="red">No</font>    |
 
 For more, see the `ggbetweenstats` vignette:
 <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggbetweenstats.html>
@@ -412,8 +424,9 @@ ggstatsplot::ggbetweenstats(
   data = ggstatsplot::iris_long,
   x = attribute,
   y = value,
-  results.subtitle = FALSE,       # turn off the default subtitle
-  subtitle =  custom_subtitle,    # add the custom subtitle prepared using helper function
+  title = "repeated measures design",
+  results.subtitle = FALSE,           # turn off the default subtitle
+  subtitle =  custom_subtitle,        # add the custom subtitle prepared using helper function
   messages = FALSE
 ) 
 ```
@@ -490,19 +503,24 @@ set.seed(123)
 
 # plot
 ggstatsplot::grouped_ggscatterstats(
-  data = dplyr::filter(.data = ggstatsplot::movies_long, 
-                       genre %in% c("Action", "Action Comedy", "Action Drama", "Comedy")),
-  x = rating, 
+  data = dplyr::filter(
+    .data = ggstatsplot::movies_long,
+    genre %in% c("Action", "Action Comedy", "Action Drama", "Comedy")
+  ),
+  x = rating,
   y = length,
-  bf.message = TRUE,               # display bayes factor message
+  bf.message = TRUE,      # display bayes factor message
   conf.level = 0.99,
-  k = 3,                           # no. of decimal places in the results
-  xfill = "#E69F00", 
+  k = 3,                  # no. of decimal places in the results
+  xfill = "#E69F00",
   yfill = "#8b3058",
   xlab = "IMDB rating",
-  grouping.var = genre,            # grouping variable
+  grouping.var = genre,   # grouping variable
   title.prefix = "Movie genre",
   ggtheme = ggplot2::theme_grey(),
+  ggplot.component = list(
+    ggplot2::scale_x_continuous(breaks = seq(2, 9, 1), limits = (c(2, 9)))
+  ),
   messages = FALSE,
   nrow = 2,
   ncol = 2,
@@ -599,7 +617,9 @@ ggstatsplot::ggpiestats(
   package = "wesanderson",
   palette = "Royal1"
 )
-#> Note: Results from faceted one-sample proportion tests:
+#> Note: Results from one-sample proportion tests for each
+#>       level of the variable 2nd survey testing for equal
+#>       proportions of the variable 1st survey.
 #> # A tibble: 2 x 7
 #>   condition  Approve Disapprove `Chi-squared`    df `p-value` significance
 #>   <fct>      <chr>   <chr>              <dbl> <dbl>     <dbl> <chr>       
@@ -623,9 +643,10 @@ ggstatsplot::grouped_ggpiestats(
   main = mpaa,
   grouping.var = genre,            # grouping variable
   title.prefix = "Movie genre",    # prefix for the facetted title
+  label.text.size = 3,             # text size for slice labels
   slice.label = "both",            # show both counts and percentage data
   perc.k = 1,                      # no. of decimal places for percentages  
-  palette = "BrightPastel",
+  palette = "brightPastel",
   package = "quickpalette",
   messages = FALSE,
   nrow = 2,
@@ -640,6 +661,74 @@ For more, including information about the variant of this function
 `grouped_ggpiestats`, see the `ggpiestats` vignette:
 <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html>
 
+## `ggbarstats`
+
+In case you are not a fan of pie charts (for very good reasons), you can
+alternatively use `ggbarstats` function-
+
+``` r
+# for reproducibility
+set.seed(123)
+
+# plot
+ggstatsplot::ggbarstats(
+  data = ggstatsplot::movies_long,
+  main = mpaa,
+  condition = genre,
+  bf.message = TRUE,
+  sampling.plan = "jointMulti",
+  title = "MPAA Ratings by Genre",
+  xlab = "movie genre",
+  perc.k = 1,
+  x.axis.orientation = "slant",
+  ggtheme = hrbrthemes::theme_modern_rc(),
+  ggstatsplot.layer = FALSE,
+  ggplot.component = ggplot2::theme(axis.text.x = ggplot2::element_text(face = "italic")),
+  palette = "Set2",
+  messages = FALSE
+)
+```
+
+<img src="man/figures/README-ggbarstats1-1.png" width="100%" />
+
+And, needless to say, there is also a `grouped_` variant of this
+function-
+
+``` r
+# setup
+library(ggstatsplot)
+set.seed(123)
+
+# let's create a smaller dataframe
+diamonds_short <- ggplot2::diamonds %>%
+  dplyr::filter(.data = ., cut %in% c("Very Good", "Ideal")) %>%
+  dplyr::filter(.data = ., clarity %in% c("SI1", "SI2", "VS1", "VS2", "VVS1")) %>%
+  dplyr::sample_frac(tbl = ., size = 0.05)
+
+# plot
+ggstatsplot::grouped_ggbarstats(
+  data = diamonds_short,
+  main = color,
+  condition = clarity,
+  grouping.var = cut,
+  bf.message = TRUE,
+  sampling.plan = "poisson",
+  title.prefix = "Quality",
+  data.label = "both",
+  label.text.size = 3,
+  perc.k = 1,
+  package = "palettetown",
+  palette = "charizard",
+  ggtheme = ggthemes::theme_tufte(base_size = 12),
+  ggstatsplot.layer = FALSE,
+  messages = FALSE,
+  title.text = "Diamond quality and color combination",
+  nrow = 2
+)
+```
+
+<img src="man/figures/README-ggbarstats2-1.png" width="100%" />
+
 ## `gghistostats`
 
 In case you would like to see the distribution of one variable and check
@@ -652,7 +741,7 @@ The `type` (of test) argument also accepts the following abbreviations:
 
 ``` r
 ggstatsplot::gghistostats(
-  data = ToothGrowth,             # dataframe from which variable is to be taken
+  data = ToothGrowth,                       # dataframe from which variable is to be taken
   x = len,                                  # numeric variable whose distribution is of interest
   title = "Distribution of Sepal.Length",   # title for the plot
   fill.gradient = TRUE,                     # use color gradient
@@ -710,14 +799,21 @@ set.seed(123)
 
 # plot
 ggstatsplot::grouped_gghistostats(
-  data = dplyr::filter(.data = ggstatsplot::movies_long, 
-                       genre %in% c("Action", "Action Comedy", "Action Drama", "Comedy")),
+  data = dplyr::filter(
+    .data = ggstatsplot::movies_long,
+    genre %in% c("Action", "Action Comedy", "Action Drama", "Comedy")
+  ),
   x = budget,
   xlab = "Movies budget (in million US$)",
-  type = "robust",                 # use robust location measure   
-  grouping.var = genre,            # grouping variable
+  type = "robust",                        # use robust location measure
+  grouping.var = genre,                   # grouping variable
+  normal.curve = TRUE,                    # superimpose a normal distribution curve
+  normal.curve.color = "red",
   title.prefix = "Movie genre",
   ggtheme = ggthemes::theme_tufte(),
+  ggplot.component = list(                # modify the defaults from `ggstatsplot` for each plot
+    ggplot2::scale_x_continuous(breaks = seq(0, 200, 50), limits = (c(0, 200)))
+  ),
   messages = FALSE,
   nrow = 2,
   title.text = "Movies budgets for different genres"
@@ -892,23 +988,23 @@ ggstatsplot::ggcorrmat(
 #> the upper triangle: p-values adjusted for multiple comparisons
 #> the lower triangle: unadjusted p-values.
 #> # A tibble: 15 x 7
-#>    pair        r      lower      upper         p lower.adj upper.adj
-#>    <chr>   <dbl>      <dbl>      <dbl>     <dbl>     <dbl>     <dbl>
-#>  1 1      0.5922  0.4000     0.7345    4.981e- 7   0.3027    0.7817 
-#>  2 2     -0.3481 -0.6214     0.0006818 5.090e- 2  -0.6789    0.1002 
-#>  3 3     -1      -1         -1         0.         -1        -1      
-#>  4 4     -0.4293 -0.6220    -0.1875    9.621e- 4  -0.6858   -0.07796
-#>  5 5     -0.3851 -0.5547    -0.1847    3.247e- 4  -0.6050   -0.1106 
-#>  6 6     -0.2066 -0.5180     0.1531    2.566e- 1  -0.5180    0.1531 
-#>  7 7     -0.5922 -0.7345    -0.4000    4.981e- 7  -0.7832   -0.2990 
-#>  8 8     -0.2636 -0.5096     0.02217   7.022e- 2  -0.5400    0.06404
-#>  9 9     -0.3163 -0.5262    -0.07004   1.302e- 2  -0.5662   -0.01317
-#> 10 10     0.3481 -0.0006818  0.6214    5.090e- 2  -0.1145    0.6867 
-#> 11 11     0.7125  0.4739     0.8536    1.001e- 5   0.3239    0.8954 
-#> 12 12     0.6545  0.3962     0.8168    4.834e- 5   0.2459    0.8656 
-#> 13 13     0.4293  0.1875     0.6220    9.621e- 4   0.08322   0.6829 
-#> 14 14     0.3851  0.1847     0.5547    3.247e- 4   0.1049    0.6087 
-#> 15 15     0.8378  0.7373     0.9020    8.181e-16   0.6716    0.9238
+#>    pair                 r     lower     upper         p lower.adj upper.adj
+#>    <chr>            <dbl>     <dbl>     <dbl>     <dbl>     <dbl>     <dbl>
+#>  1 sleep_total-s~  0.5922  4.000e-1  7.345e-1 4.981e- 7   0.3027    0.7817 
+#>  2 sleep_total-s~ -0.3481 -6.214e-1  6.818e-4 5.090e- 2  -0.6789    0.1002 
+#>  3 sleep_total-a~ -1      -1.000e+0 -1.000e+0 0.         -1        -1      
+#>  4 sleep_total-b~ -0.4293 -6.220e-1 -1.875e-1 9.621e- 4  -0.6858   -0.07796
+#>  5 sleep_total-b~ -0.3851 -5.547e-1 -1.847e-1 3.247e- 4  -0.6050   -0.1106 
+#>  6 sleep_rem-sle~ -0.2066 -5.180e-1  1.531e-1 2.566e- 1  -0.5180    0.1531 
+#>  7 sleep_rem-awa~ -0.5922 -7.345e-1 -4.000e-1 4.981e- 7  -0.7832   -0.2990 
+#>  8 sleep_rem-bra~ -0.2636 -5.096e-1  2.217e-2 7.022e- 2  -0.5400    0.06404
+#>  9 sleep_rem-bod~ -0.3163 -5.262e-1 -7.004e-2 1.302e- 2  -0.5662   -0.01317
+#> 10 sleep_cycle-a~  0.3481 -6.818e-4  6.214e-1 5.090e- 2  -0.1145    0.6867 
+#> 11 sleep_cycle-b~  0.7125  4.739e-1  8.536e-1 1.001e- 5   0.3239    0.8954 
+#> 12 sleep_cycle-b~  0.6545  3.962e-1  8.168e-1 4.834e- 5   0.2459    0.8656 
+#> 13 awake-brainwt   0.4293  1.875e-1  6.220e-1 9.621e- 4   0.08322   0.6829 
+#> 14 awake-bodywt    0.3851  1.847e-1  5.547e-1 3.247e- 4   0.1049    0.6087 
+#> 15 brainwt-bodywt  0.8378  7.373e-1  9.020e-1 8.181e-16   0.6716    0.9238
 
 # getting the sample sizes for all pairs
 ggstatsplot::ggcorrmat(
@@ -972,7 +1068,7 @@ ggstatsplot::ggcoefstats(x = stats::lm(formula = mpg ~ am * cyl,
 
 <img src="man/figures/README-ggcoefstats1-1.png" width="80%" />
 
-The basic can be further modified to one’s liking with additional
+The basic plot can be further modified to one’s liking with additional
 arguments (also, let’s use a robust linear model instead of a simple
 linear model now):
 
@@ -992,7 +1088,7 @@ ggstatsplot::ggcoefstats(
   stats.label.color = c("#0072B2", "#D55E00", "darkgreen"),
   title = "Car performance predicted by transmission & cylinder count",
   subtitle = "Source: 1974 Motor Trend US magazine",
-  ggtheme = ggthemes::theme_stata(),
+  ggtheme = hrbrthemes::theme_ipsum_ps(),
   ggstatsplot.layer = FALSE
 ) +                                    
   # further modification with the ggplot2 commands
@@ -1002,61 +1098,24 @@ ggstatsplot::ggcoefstats(
                 y = NULL)
 ```
 
-<img src="man/figures/README-ggcoefstats2-1.png" width="80%" />
+<img src="man/figures/README-ggcoefstats2-1.png" width="100%" />
 
-All the regression model classes that are supported in the `broom`
-package with `tidy` and `glance` methods
-(<https://broom.tidyverse.org/articles/available-methods.html>) are also
-supported by `ggcoefstats`. Additionally, we can make a number of
-aesthetic modifications by changing the defaults for theme and palette.
+Most of the regression models that are supported in the `broom` and
+`broom.mixed` packages with `tidy` and `glance` methods are also
+supported by `ggcoefstats`. For example-
 
-Let’s see a couple more examples:
+`aareg`, `anova`, `aov`, `aovlist`, `Arima`, `biglm`, `brmsfit`,
+`btergm`, `cch`, `clm`, `clmm`, `confusionMatrix`, `coxph`, `ergm`,
+`felm`, `fitdistr`, `glmerMod`, `glmmTMB`, `gls`, `gam`, `Gam`,
+`gamlss`, `garch`, `glm`, `glmmadmb`, `glmmTMB`, `glmrob`, `gmm`,
+`ivreg`, `lm`, `lm.beta`, `lmerMod`, `lmodel2`, `lmrob`, `mcmc`,
+`MCMCglmm`, `mediate`, `mjoint`, `mle2`, `multinom`, `nlmerMod`, `nlrq`,
+`nls`, `orcutt`, `plm`, `polr`, `ridgelm`, `rlm`, `rlmerMod`, `rq`,
+`speedlm`, `stanreg`, `survreg`, `svyglm`, `svyolr`, `svyglm`, etc.
 
-``` r
-# for reproducibility
-set.seed(123)
-library(quantreg)
-library(nlme)
-
-# loading dataframe needed for the analyses below
-data(stackloss)
-
-# combining plots together
-ggstatsplot::combine_plots(
-  # quantile regression
-  ggstatsplot::ggcoefstats(
-    x = quantreg::rq(
-      formula = stack.loss ~ stack.x,
-      data = stackloss,
-      method = "br"
-    ),
-    se.type = "iid",
-    title = "quantile regression"
-  ),
-  # linear model using generalized least squares
-  ggstatsplot::ggcoefstats(
-    x = nlme::gls(
-      model = follicles ~ sin(2 * pi * Time) + cos(2 * pi * Time),
-      data = Ovary,
-      correlation = corAR1(form = ~ 1 | Mare)
-    ),
-    point.color = "red",
-    stats.label.color = "black",
-    ggtheme = hrbrthemes::theme_ipsum_ps(),
-    ggstatsplot.layer = FALSE,
-    exclude.intercept = FALSE,
-    title = "generalized least squares model"
-  ),
-  labels = c("(a)", "(b)"),
-  nrow = 2
-)
-```
-
-<img src="man/figures/README-ggcoefstats3-1.png" width="100%" />
-
-This is by no means an exhaustive list of models supported by
-`ggcoefstats`. For a more thorough discussion about all regression
-models supported, see the associated vignette-
+For an exhaustive list of all regression models supported by
+`ggcoefstats` and what to do in case the regression model you are
+interested in is not supported, see the associated vignette-
 <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcoefstats.html>
 
 ## `combine_plots`
@@ -1182,6 +1241,24 @@ using the Github issues system over trying to reach out to me in other
 ways (personal e-mail, Twitter, etc.). Pull requests for contributions
 are encouraged.
 
+Here are some simple ways in which you can contribute:
+
+  - Read and correct any inconsistencies in the
+    [documentation](https://indrajeetpatil.github.io/ggstatsplot/)
+
+  - Raise issues about bugs or wanted features
+
+  - Review code
+
+  - Add new functionality (in the form of new plotting functions or
+    helpers for preparing subtitles)
+
 Please note that this project is released with a [Contributor Code of
 Conduct](CONDUCT.md). By participating in this project you agree to
 abide by its terms.
+
+# Session Information
+
+For details about the session information in which this `README` file
+was rendered, see-
+<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/session_info.html>

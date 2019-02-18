@@ -9,12 +9,13 @@ yuend_ci(data, x, y, tr = 0.1, nboot = 100, conf.level = 0.95,
   conf.type = "norm", ...)
 }
 \arguments{
-\item{data}{Dataframe from which variables specified are preferentially to be
-taken.}
+\item{data}{A dataframe (or a tibble) from which variables specified are to
+be taken. A matrix or tables will \strong{not} be accepted.}
 
-\item{x}{The grouping variable.}
+\item{x}{The grouping variable from the dataframe \code{data}.}
 
-\item{y}{The response - a vector of length the number of rows of \code{x}.}
+\item{y}{The response (a.k.a. outcome or dependent) variable from the
+dataframe \code{data}.}
 
 \item{tr}{Trim level for the mean when carrying out \code{robust} tests. If you
 get error stating "Standard error cannot be computed because of Winsorized
@@ -163,5 +164,20 @@ intervals required. The value should be any subset of the values \code{"norm"},
 \description{
 Custom function to get confidence intervals for effect size
 measure for paired samples robust t-tests.
+}
+\examples{
+\dontrun{
+ggstatsplot:::yuend_ci(
+  data = dplyr::filter(
+    .data = ggstatsplot::iris_long,
+    condition \%in\% c("Sepal.Length", "Petal.Length")
+  ),
+  x = condition,
+  y = value,
+  nboot = 50,
+  tr = 0.2
+)
+}
+
 }
 \keyword{internal}

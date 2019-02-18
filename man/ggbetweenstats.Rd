@@ -9,25 +9,26 @@ ggbetweenstats(data, x, y, plot.type = "boxviolin",
   type = "parametric", pairwise.comparisons = FALSE,
   pairwise.annotation = "asterisk", pairwise.display = "significant",
   p.adjust.method = "holm", effsize.type = "unbiased",
-  partial = TRUE, effsize.noncentral = FALSE, bf.prior = 0.707,
+  partial = TRUE, effsize.noncentral = TRUE, bf.prior = 0.707,
   bf.message = FALSE, results.subtitle = TRUE, xlab = NULL,
   ylab = NULL, caption = NULL, title = NULL, subtitle = NULL,
   sample.size.label = TRUE, k = 2, var.equal = FALSE,
-  conf.level = 0.95, nboot = 100, tr = 0.1, mean.label.size = 3,
+  conf.level = 0.95, nboot = 100, tr = 0.1,
+  axes.range.restrict = FALSE, mean.label.size = 3,
   mean.label.fontface = "bold", mean.label.color = "black",
   notch = FALSE, notchwidth = 0.5, linetype = "solid",
   outlier.tagging = FALSE, outlier.shape = 19, outlier.label = NULL,
   outlier.label.color = "black", outlier.color = "black",
   outlier.coef = 1.5, mean.plotting = TRUE, mean.ci = FALSE,
   mean.size = 5, mean.color = "darkred", point.jitter.width = NULL,
-  point.jitter.height = 0.1, point.dodge.width = 0.6,
+  point.jitter.height = 0, point.dodge.width = 0.6,
   ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
   package = "RColorBrewer", palette = "Dark2", direction = 1,
   ggplot.component = NULL, messages = TRUE)
 }
 \arguments{
-\item{data}{A dataframe from which variables specified are preferentially to
-be taken.}
+\item{data}{A dataframe (or a tibble) from which variables specified are to
+be taken. A matrix or tables will \strong{not} be accepted.}
 
 \item{x}{The grouping variable from the dataframe \code{data}.}
 
@@ -76,7 +77,7 @@ will be returned. Valid only for objects of class \code{lm}, \code{aov}, \code{a
 
 \item{effsize.noncentral}{Logical indicating whether to use non-central
 \emph{t}-distributions for computing the confidence interval for Cohen's \emph{d}
-or Hedge's \emph{g} (Default: \code{FALSE}).}
+or Hedge's \emph{g} (Default: \code{TRUE}).}
 
 \item{bf.prior}{A number between 0.5 and 2 (default \code{0.707}), the prior width
 to use in calculating Bayes factors.}
@@ -88,9 +89,8 @@ favor of the \emph{null} hypothesis \strong{for parametric test} (Default: \code
 to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
 the plot will be returned.}
 
-\item{xlab}{Label for \code{x} axis variable.}
-
-\item{ylab}{Label for \code{y} axis variable.}
+\item{xlab, ylab}{Labels for \code{x} and \code{y} axis variables. If \code{NULL} (default),
+variable names for \code{x} and \code{y} will be used.}
 
 \item{caption}{The text for the plot caption.}
 
@@ -113,8 +113,8 @@ should be displayed for each level of the grouping variable \code{x} (Default:
     is used, which generalizes the commonly known 2-sample Welch test to
     the case of arbitrarily many samples.}
 
-\item{conf.level}{A scalar value between 0 and 1. If unspecified, the
-default is to return \code{95\%} lower and upper confidence intervals (\code{0.95}).}
+\item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
+\code{95\%} lower and upper confidence intervals (\code{0.95}).}
 
 \item{nboot}{Number of bootstrap samples for computing effect size (Default:
 \code{100}).}
@@ -124,6 +124,11 @@ get error stating "Standard error cannot be computed because of Winsorized
 variance of 0 (e.g., due to ties). Try to decrease the trimming level.",
 try to play around with the value of \code{tr}, which is by default set to
 \code{0.1}. Lowering the value might help.}
+
+\item{axes.range.restrict}{Logical that decides whether to restrict the axes
+values ranges to \code{min} and \code{max} values of the axes variables (Default:
+\code{FALSE}), only relevant for functions where axes variables are of numeric
+type.}
 
 \item{mean.label.size, mean.label.fontface, mean.label.color}{Aesthetics for
 the label displaying mean. Defaults: \code{3}, \code{"bold"},\code{"black"}, respectively.}
@@ -186,8 +191,8 @@ direction. Defaults to \code{0.60}.}
 
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
 \code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
-extension packages are allowed (e.g., \code{ggthemes::theme_economist()},
-\code{hrbrthemes::theme_ipsum_ps()}, \code{ggthemes::theme_fivethirtyeight()}, etc.).}
+extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
+\code{hrbrthemes::theme_ipsum_ps()}, etc.).}
 
 \item{ggstatsplot.layer}{Logical that decides whether \code{theme_ggstatsplot}
 theme elements are to be displayed along with the selected \code{ggtheme}
@@ -205,7 +210,9 @@ type. Default palette is \code{"Dark2"}.}
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
 by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
 of the current function. Default is \code{NULL}. The argument should be entered
-as a function.}
+as a function. If the given function has an argument \code{axes.range.restrict}
+and if it has been set to \code{TRUE}, the added ggplot component \emph{might} not
+work as expected.}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
@@ -250,7 +257,7 @@ ggstatsplot::ggbetweenstats(
   caption = "Transmission (0 = automatic, 1 = manual)",
   bf.message = TRUE
 )
-
+\dontrun{
 # more detailed function call
 ggstatsplot::ggbetweenstats(
   data = datasets::morley,
@@ -266,10 +273,11 @@ ggstatsplot::ggbetweenstats(
   outlier.tagging = TRUE,
   outlier.label = Run,
   nboot = 10,
-  ggtheme = ggthemes::theme_few(),
+  ggtheme = ggplot2::theme_grey(),
   ggstatsplot.layer = FALSE,
   bf.message = TRUE
 )
+}
 }
 \references{
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggbetweenstats.html}

@@ -5,19 +5,23 @@
 \title{Grouped pie charts with statistical tests}
 \usage{
 grouped_ggpiestats(data, main, condition = NULL, counts = NULL,
-  grouping.var, title.prefix = "Group", ratio = NULL, paired = FALSE,
-  factor.levels = NULL, stat.title = NULL, sample.size.label = TRUE,
-  bf.message = FALSE, sampling.plan = "indepMulti",
-  fixed.margin = "rows", prior.concentration = 1, caption = NULL,
-  conf.level = 0.95, nboot = 25, simulate.p.value = FALSE,
+  grouping.var, title.prefix = NULL, ratio = NULL, paired = FALSE,
+  results.subtitle = TRUE, factor.levels = NULL, stat.title = NULL,
+  sample.size.label = TRUE, label.separator = "\\n",
+  label.text.size = 4, label.fill.color = "white",
+  label.fill.alpha = 1, bf.message = FALSE,
+  sampling.plan = "indepMulti", fixed.margin = "rows",
+  prior.concentration = 1, subtitle = NULL, caption = NULL,
+  conf.level = 0.95, nboot = 100, simulate.p.value = FALSE,
   B = 2000, legend.title = NULL, facet.wrap.name = NULL, k = 2,
   perc.k = 0, slice.label = "percentage", facet.proptest = TRUE,
   ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
   package = "RColorBrewer", palette = "Dark2", direction = 1,
-  messages = TRUE, ...)
+  ggplot.component = NULL, messages = TRUE, ...)
 }
 \arguments{
-\item{data}{The data as a data frame (matrix or tables will not be accepted).}
+\item{data}{A dataframe (or a tibble) from which variables specified are to
+be taken. A matrix or tables will \strong{not} be accepted.}
 
 \item{main}{The variable to use as the \strong{rows} in the
 contingency table.}
@@ -28,10 +32,12 @@ table.}
 \item{counts}{A string naming a variable in data containing counts, or \code{NULL}
 if each row represents a single observation (Default).}
 
-\item{grouping.var}{Grouping variable.}
+\item{grouping.var}{A single grouping variable (can be entered either as a
+bare name \code{x} or as a string \code{"x"}).}
 
-\item{title.prefix}{Character specifying the prefix text for the fixed plot
-title (name of each factor level) (Default: \code{"Group"}).}
+\item{title.prefix}{Character string specifying the prefix text for the fixed
+plot title (name of each factor level) (Default: \code{NULL}). If \code{NULL}, the
+variable name entered for \code{grouping.var} will be used.}
 
 \item{ratio}{A vector of numbers: the expected proportions for the proportion
 test. Default is \code{NULL}, which means if there are two levels \code{ratio = c(1,1)}, etc.}
@@ -39,6 +45,10 @@ test. Default is \code{NULL}, which means if there are two levels \code{ratio = 
 \item{paired}{Logical indicating whether data came from a within-subjects
 design study (Default: \code{FALSE}). If \code{TRUE}, McNemar test subtitle will be
 returned. If \code{FALSE}, Pearson's chi-square test will be returned.}
+
+\item{results.subtitle}{Decides whether the results of statistical tests are
+to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
+the plot will be returned.}
 
 \item{factor.levels}{A character vector with labels for factor levels of
 \code{main} variable.}
@@ -51,6 +61,20 @@ like \code{"main x condition"} or \code{"interaction"}.}
 \item{sample.size.label}{Logical that decides whether sample size information
 should be displayed for each level of the grouping variable \code{condition}
 (Default: \code{TRUE}).}
+
+\item{label.separator}{If \code{"both"} counts and proportion information is to be
+displayed in a label, this argument decides whether these two pieces of
+information are going to be on the same line (\code{" "}) or on separate lines
+(\code{"\n"}).}
+
+\item{label.text.size}{Numeric that decides text size for slice/bar labels
+(Default: \code{4}).}
+
+\item{label.fill.color}{Character that specifies fill color for slice/bar
+labels (Default: \code{white}).}
+
+\item{label.fill.alpha}{Numeric that specifies fill color transparency or
+\code{"alpha"} for slice/bar labels (Default: \code{1} range \code{0} to \code{1}).}
 
 \item{bf.message}{Logical that decides whether to display a caption with
 results from bayes factor test in favor of the null hypothesis (default:
@@ -69,13 +93,16 @@ to \code{1} by default. It indexes the expected deviation from the null
 hypothesis under the alternative, and corresponds to Gunel and Dickey's
 (1974) \code{"a"} parameter.}
 
+\item{subtitle}{The text for the plot subtitle. Will work only if
+\code{results.subtitle = FALSE}.}
+
 \item{caption}{The text for the plot caption.}
 
 \item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
 \code{95\%} lower and upper confidence intervals (\code{0.95}).}
 
 \item{nboot}{Number of bootstrap samples for computing effect size (Default:
-\code{25}).}
+\code{100}).}
 
 \item{simulate.p.value}{a logical indicating whether to compute
     p-values by Monte Carlo simulation.}
@@ -102,8 +129,8 @@ to be carried out for each level of \code{condition} (Default: \code{TRUE}).}
 
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
 \code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
-extension packages are allowed (e.g., \code{ggthemes::theme_economist()},
-\code{hrbrthemes::theme_ipsum_ps()}, \code{ggthemes::theme_fivethirtyeight()}, etc.).}
+extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
+\code{hrbrthemes::theme_ipsum_ps()}, etc.).}
 
 \item{ggstatsplot.layer}{Logical that decides whether \code{theme_ggstatsplot}
 theme elements are to be displayed along with the selected \code{ggtheme}
@@ -117,6 +144,13 @@ palette. If a number, will index into the list of palettes of appropriate
 type. Default palette is \code{"Dark2"}.}
 
 \item{direction}{Either \code{1} or \code{-1}. If \code{-1} the palette will be reversed.}
+
+\item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
+by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
+of the current function. Default is \code{NULL}. The argument should be entered
+as a function. If the given function has an argument \code{axes.range.restrict}
+and if it has been set to \code{TRUE}, the added ggplot component \emph{might} not
+work as expected.}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}

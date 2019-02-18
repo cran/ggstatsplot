@@ -35,6 +35,8 @@ plots from \code{ggExtra} and details from the statistical tests in the
 subtitle.
 \item \code{\link[ggstatsplot]{ggpiestats}} function to produce pie chart
 with details from the statistical tests in the subtitle.
+\item \code{\link[ggstatsplot]{ggbarstats}} function to produce stacked bar
+chart with details from the statistical tests in the subtitle.
 \item \code{\link[ggstatsplot]{gghistostats}} function to produce histogram
 for a single variable with results from one sample test displayed in the
 subtitle.
@@ -65,9 +67,9 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Indrajeet Patil \email{patilindrajeet.science@gmail.com} (0000-0003-1995-6531)
+\strong{Maintainer}: Indrajeet Patil \email{patilindrajeet.science@gmail.com} (0000-0003-1995-6531) [contributor]
 
-Other contributors:
+Authors:
 \itemize{
   \item Chuck Powell \email{ibecav@gmail.com} (0000-0002-3606-2188) [contributor]
 }

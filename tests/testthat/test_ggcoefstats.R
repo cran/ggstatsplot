@@ -5,6 +5,7 @@ context("ggcoefstats")
 testthat::test_that(
   desc = "ggcoefstats with lm model",
   code = {
+    testthat::skip_on_cran()
     set.seed(123)
 
     # model
@@ -91,6 +92,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "ggcoefstats with glmer model",
   code = {
+    testthat::skip_on_cran()
     library(lme4)
 
     # model
@@ -165,6 +167,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "ggcoefstats with partial variants of effect size for f-statistic",
   code = {
+    testthat::skip_on_cran()
 
     ## partial eta-squared
 
@@ -372,6 +375,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "ggcoefstats with non-partial variants of effect size for f-statistic",
   code = {
+    testthat::skip_on_cran()
 
     # model
     set.seed(123)
@@ -431,6 +435,8 @@ testthat::test_that(
 testthat::test_that(
   desc = "check merMod output",
   code = {
+    testthat::skip_on_cran()
+
     # setup
     set.seed(123)
     library(lme4)
@@ -454,10 +460,14 @@ testthat::test_that(
     )
     mod2 <- lme4::glmer(y ~ x + (1 | f), data = d, family = poisson)
     mod3 <-
-      lme4::lmer(weight ~ Time * Diet + (1 + Time |
-        Chick),
-      data = ChickWeight,
-      REML = FALSE
+      lme4::lmer(
+        formula = weight ~ Time * Diet + (1 + Time | Chick),
+        data = ChickWeight,
+        REML = FALSE,
+        control = lme4::lmerControl(
+          optimizer = "bobyqa",
+          check.conv.grad = .makeCC("message", tol = 2e-2, relTol = NULL)
+        )
       )
 
     # broom output
@@ -532,6 +542,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "check glm output",
   code = {
+    testthat::skip_on_cran()
 
     # set up
     set.seed(123)
@@ -593,6 +604,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "check lmRob output",
   code = {
+    testthat::skip_on_cran()
 
     # set up
     set.seed(123)
@@ -705,48 +717,12 @@ testthat::test_that(
   }
 )
 
-
-# check lmodel2 output ----------------------------------------------
-
-testthat::test_that(
-  desc = "check lmodel2 output",
-  code = {
-
-    # setup
-    set.seed(123)
-    library(lmodel2)
-    data(mod2ex2)
-
-    # model
-    Ex2.res <-
-      lmodel2::lmodel2(
-        formula = Prey ~ Predators,
-        data = mod2ex2,
-        range.y = "relative",
-        range.x = "relative",
-        nperm = 99
-      )
-
-    # plot
-    df <- ggstatsplot::ggcoefstats(
-      x = Ex2.res,
-      output = "tidy",
-      exclude.intercept = FALSE
-    )
-
-    # tests
-    testthat::expect_equal(dim(df), c(8L, 4L))
-    testthat::expect_identical(as.character(df$term[[1]]), "MA_Intercept")
-    testthat::expect_identical(as.character(df$term[[2]]), "MA_Slope")
-  }
-)
-
-
 # check aareg output ----------------------------------------------
 
 testthat::test_that(
   desc = "check aareg output",
   code = {
+    testthat::skip_on_cran()
 
     # model
     library(survival)
@@ -821,11 +797,13 @@ testthat::test_that(
         output = "tidy"
       )
 
-    # tests
+    # dimensions
     testthat::expect_equal(dim(df.clm1), c(9L, 12L))
     testthat::expect_equal(dim(df.clm2), c(6L, 12L))
     testthat::expect_equal(dim(df.clm3), c(3L, 12L))
     testthat::expect_equal(dim(df.clm4), c(3L, 12L))
+
+    # coefficients
     testthat::expect_identical(
       unique(df.clm1$coefficient_type),
       c("alpha", "beta")
@@ -836,10 +814,6 @@ testthat::test_that(
       unique(df.clm4$coefficient_type),
       unique(df.clm3$coefficient_type)
     )
-    testthat::expect_error(ggstatsplot::ggcoefstats(
-      x = mod.clm,
-      coefficient.type = "xyz"
-    ))
 
     # polr model
     set.seed(123)
@@ -891,10 +865,6 @@ testthat::test_that(
       unique(df.polr4$coefficient_type),
       unique(df.polr3$coefficient_type)
     )
-    testthat::expect_error(ggstatsplot::ggcoefstats(
-      x = mod.polr,
-      coefficient.type = "xyz"
-    ))
   }
 )
 
@@ -996,11 +966,73 @@ testthat::test_that(
   }
 )
 
+# checking bayesian models work ------------------------------------------
+
+testthat::test_that(
+  desc = "ggcoefstats works with data frames",
+  code = {
+    testthat::skip_on_cran()
+
+    # setup
+    library(lme4)
+    suppressPackageStartupMessages(library(MCMCglmm))
+
+    # model
+    set.seed(123)
+    mm0 <- MCMCglmm::MCMCglmm(
+      fixed = scale(Reaction) ~ scale(Days),
+      random = ~Subject,
+      data = sleepstudy,
+      nitt = 4000,
+      pr = TRUE,
+      verbose = FALSE
+    )
+
+    # output from broom.mixed
+    broom_df <- broom.mixed::tidy(
+      x = mm0,
+      conf.int = TRUE,
+      effects = "fixed"
+    )
+
+    # sticking to defaults
+    df1 <- ggstatsplot::ggcoefstats(
+      x = mm0,
+      exclude.intercept = FALSE,
+      output = "tidy"
+    )
+
+    # customizing
+    df2 <- ggstatsplot::ggcoefstats(
+      x = mm0,
+      title = "multivariate generalized linear mixed model",
+      conf.method = "HPDinterval",
+      exclude.intercept = FALSE,
+      robust = TRUE,
+      output = "tidy"
+    )
+
+    # default
+    testthat::expect_equal(df1$estimate, broom_df$estimate, tolerance = 0.001)
+    testthat::expect_equal(df1$std.error, broom_df$std.error, tolerance = 0.001)
+    testthat::expect_equal(df1$conf.low, broom_df$conf.low, tolerance = 0.001)
+    testthat::expect_equal(df1$conf.high, broom_df$conf.high, tolerance = 0.001)
+
+    # custom
+    testthat::expect_identical(as.character(df2$term), c("(Intercept)", "scale(Days)"))
+    testthat::expect_equal(df2$estimate, c(0.01964504, 0.53422489), tolerance = 0.001)
+    testthat::expect_equal(df2$std.error, c(0.16551929, 0.04574515), tolerance = 0.001)
+    testthat::expect_equal(df2$conf.low, c(-0.2679899, 0.4493697), tolerance = 0.001)
+    testthat::expect_equal(df2$conf.high, c(0.3007959, 0.6163155), tolerance = 0.001)
+  }
+)
+
 # dataframe as input ----------------------------------------------------
 
 testthat::test_that(
   desc = "ggcoefstats works with data frames",
   code = {
+    testthat::skip_on_cran()
     set.seed(123)
 
     # creating dataframe
@@ -1030,7 +1062,7 @@ testthat::test_that(
       x = df6,
       meta.analytic.effect = TRUE
     ))
-    testthat::expect_error(ggstatsplot::ggcoefstats(x = df7))
+    testthat::expect_message(ggstatsplot::ggcoefstats(x = df7))
 
     # plotting the dataframe
     p1 <- ggstatsplot::ggcoefstats(x = df1, statistic = "t", sort = "none")
@@ -1051,7 +1083,19 @@ testthat::test_that(
 
     # meta subtitle
     meta_subtitle <-
-      ggstatsplot::subtitle_meta_ggcoefstats(data = df5, k = 3, messages = FALSE)
+      ggstatsplot::subtitle_meta_ggcoefstats(
+        data = df5,
+        k = 3,
+        messages = FALSE,
+        output = "subtitle"
+      )
+    meta_caption <-
+      ggstatsplot::subtitle_meta_ggcoefstats(
+        data = df5,
+        k = 3,
+        messages = FALSE,
+        output = "caption"
+      )
 
     # build plots
     pb1 <- ggplot2::ggplot_build(p1)
@@ -1122,7 +1166,6 @@ testthat::test_that(
     testthat::expect_null(p4$labels$y, NULL)
     testthat::expect_null(p4$labels$title, NULL)
     testthat::expect_null(p4$labels$subtitle, NULL)
-    testthat::expect_null(p4$labels$caption, NULL)
 
     # checking meta-analysis
     testthat::expect_error(ggstatsplot::ggcoefstats(
@@ -1132,6 +1175,7 @@ testthat::test_that(
     ))
 
     testthat::expect_identical(pb6$plot$labels$subtitle, meta_subtitle)
+    testthat::expect_identical(pb6$plot$labels$caption, meta_caption)
   }
 )
 
@@ -1196,6 +1240,8 @@ testthat::test_that(
 testthat::test_that(
   desc = "check if glance works",
   code = {
+    testthat::skip_on_cran()
+    library(lme4)
 
     # creating broom and ggstatsplot output
     # lm
@@ -1229,6 +1275,8 @@ testthat::test_that(
 testthat::test_that(
   desc = "check if augment works",
   code = {
+    testthat::skip_on_cran()
+
     # set up
     library(lme4)
 
@@ -1266,6 +1314,35 @@ testthat::test_that(
     testthat::expect_true(inherits(df1.ggstats, what = "tbl_df"))
     testthat::expect_true(inherits(df2.ggstats, what = "tbl_df"))
     testthat::expect_true(inherits(df3.ggstats, what = "tbl_df"))
+  }
+)
+
+# augment with clm works ----------------------------------------
+
+testthat::test_that(
+  desc = "augment with clm works",
+  code = {
+    testthat::skip_on_cran()
+    testthat::skip_on_appveyor()
+    testthat::skip_on_travis()
+
+    # augment
+    set.seed(123)
+    mod4 <- stats::lm(formula = mpg ~ wt + qsec, data = mtcars)
+    newdata <- mtcars %>%
+      head(6) %>%
+      dplyr::mutate(.data = ., wt = wt + 1)
+    df4.broom <- tibble::as_tibble(broom::augment(x = mod4, newdata = newdata))
+    df4.ggstats <-
+      ggstatsplot::ggcoefstats(
+        x = mod4,
+        output = "augment",
+        newdata = newdata
+      )
+
+    # tests
+    testthat::expect_identical(df4.broom, df4.ggstats)
+    testthat::expect_equal(dim(df4.ggstats), c(6L, 13L))
   }
 )
 
@@ -1341,6 +1418,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "unsupported model objects",
   code = {
+    testthat::skip_on_cran()
 
     # mod-1
     set.seed(123)

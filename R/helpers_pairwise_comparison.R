@@ -57,7 +57,7 @@ games_howell <- function(data,
 
   # ============================ analysis ===============================
 
-  statistics <- lapply(X = 1:ncol(combs), FUN = function(x) {
+  statistics <- lapply(X = 1:NCOL(combs), FUN = function(x) {
 
     # mean difference
     mean.diff <- Mean[combs[2, x]] - Mean[combs[1, x]]
@@ -90,7 +90,7 @@ games_howell <- function(data,
         std[combs[2, x]] / n[combs[2, x]]))
 
     # upper confidence limit for mean difference
-    conf.high <- lapply(X = 1:ncol(combs), FUN = function(x) {
+    conf.high <- lapply(X = 1:NCOL(combs), FUN = function(x) {
       mean.diff + stats::qtukey(
         p = 0.95,
         nmeans = groups,
@@ -99,7 +99,7 @@ games_howell <- function(data,
     })[[1]]
 
     # lower confidence limit for mean difference
-    conf.low <- lapply(X = 1:ncol(combs), FUN = function(x) {
+    conf.low <- lapply(X = 1:NCOL(combs), FUN = function(x) {
       mean.diff - stats::qtukey(
         p = 0.95,
         nmeans = groups,
@@ -170,6 +170,7 @@ games_howell <- function(data,
 #' @author Indrajeet Patil
 #'
 #' @inheritParams ggbetweenstats
+#' @param ... Additional arguments.
 #' @inheritParams stats::t.test
 #' @inheritParams WRS2::rmmcp
 #'
@@ -188,17 +189,17 @@ games_howell <- function(data,
 #' @family helper_messages
 #'
 #' @examples
-#' 
+#'
 #' # time consuming, so not run on `CRAN` machines
 #' \dontrun{
 #' # show all columns in a tibble
 #' options(tibble.width = Inf)
-#' 
+#'
 #' # for reproducibility
 #' set.seed(123)
-#' 
+#'
 #' #------------------- between-subjects design ----------------------------
-#' 
+#'
 #' # parametric
 #' # if `var.equal = TRUE`, then Student's *t*-test will be run
 #' ggstatsplot::pairwise_p(
@@ -210,7 +211,7 @@ games_howell <- function(data,
 #'   paired = FALSE,
 #'   p.adjust.method = "bonferroni"
 #' )
-#' 
+#'
 #' # if `var.equal = FALSE`, then Games-Howell test will be run
 #' ggstatsplot::pairwise_p(
 #'   data = ggplot2::msleep,
@@ -221,7 +222,7 @@ games_howell <- function(data,
 #'   paired = FALSE,
 #'   p.adjust.method = "bonferroni"
 #' )
-#' 
+#'
 #' # non-parametric
 #' ggstatsplot::pairwise_p(
 #'   data = ggplot2::msleep,
@@ -231,7 +232,7 @@ games_howell <- function(data,
 #'   paired = FALSE,
 #'   p.adjust.method = "none"
 #' )
-#' 
+#'
 #' # robust
 #' ggstatsplot::pairwise_p(
 #'   data = ggplot2::msleep,
@@ -243,16 +244,16 @@ games_howell <- function(data,
 #' )
 #' }
 #' #------------------- within-subjects design ----------------------------
-#' 
+#'
 #' set.seed(123)
 #' library(jmv)
 #' data("bugs", package = "jmv")
-#' 
+#'
 #' # converting to long format
 #' bugs_long <- bugs %>%
 #'   tibble::as_tibble(.) %>%
 #'   tidyr::gather(., key, value, LDLF:HDHF)
-#' 
+#'
 #' # parametric
 #' ggstatsplot::pairwise_p(
 #'   data = bugs_long,
@@ -262,7 +263,7 @@ games_howell <- function(data,
 #'   paired = TRUE,
 #'   p.adjust.method = "BH"
 #' )
-#' 
+#'
 #' # non-parametric
 #' ggstatsplot::pairwise_p(
 #'   data = bugs_long,
@@ -272,7 +273,7 @@ games_howell <- function(data,
 #'   paired = TRUE,
 #'   p.adjust.method = "BY"
 #' )
-#' 
+#'
 #' # robust
 #' ggstatsplot::pairwise_p(
 #'   data = bugs_long,
@@ -296,6 +297,8 @@ pairwise_p <- function(data,
                        k = 2,
                        messages = TRUE,
                        ...) {
+  ellipsis::check_dots_used()
+
   # ---------------------------- data cleanup -------------------------------
   # creating a dataframe
   data <-
@@ -666,7 +669,9 @@ pairwise_p_caption <- function(type,
                                var.equal = FALSE,
                                paired = FALSE,
                                p.adjust.method = "holm",
-                               caption = NULL) {
+                               caption = NULL,
+                               ...) {
+  ellipsis::check_dots_used()
 
   # ======================= pairwise test run ==============================
 

@@ -6,19 +6,20 @@
 caption.}
 \usage{
 ggcoefstats(x, output = "plot", statistic = NULL, scales = NULL,
-  conf.method = "Wald", conf.type = "Wald", quick = FALSE,
-  p.kr = TRUE, p.adjust.method = "none", coefficient.type = NULL,
-  by.class = FALSE, effsize = "eta", partial = TRUE, nboot = 500,
-  meta.analytic.effect = FALSE, point.color = "blue", point.size = 3,
-  point.shape = 16, conf.int = TRUE, conf.level = 0.95,
-  se.type = "nid", k = 2, k.caption.summary = 0,
-  exclude.intercept = TRUE, exponentiate = FALSE,
-  errorbar.color = "black", errorbar.height = 0,
-  errorbar.linetype = "solid", errorbar.size = 0.5, vline = TRUE,
-  vline.color = "black", vline.linetype = "dashed", vline.size = 1,
-  sort = "none", xlab = "regression coefficient", ylab = "term",
-  title = NULL, subtitle = NULL, stats.labels = TRUE,
-  caption = NULL, caption.summary = TRUE, stats.label.size = 3,
+  conf.method = "Wald", conf.type = "Wald", component = "survival",
+  quick = FALSE, p.kr = TRUE, p.adjust.method = "none",
+  coefficient.type = NULL, by.class = FALSE, effsize = "eta",
+  partial = TRUE, nboot = 500, meta.analytic.effect = FALSE,
+  point.color = "blue", point.size = 3, point.shape = 16,
+  conf.int = TRUE, conf.level = 0.95, se.type = "nid", k = 2,
+  k.caption.summary = 0, exclude.intercept = TRUE,
+  exponentiate = FALSE, errorbar.color = "black",
+  errorbar.height = 0, errorbar.linetype = "solid",
+  errorbar.size = 0.5, vline = TRUE, vline.color = "black",
+  vline.linetype = "dashed", vline.size = 1, sort = "none",
+  xlab = "regression coefficient", ylab = "term", title = NULL,
+  subtitle = NULL, stats.labels = TRUE, caption = NULL,
+  caption.summary = TRUE, stats.label.size = 3,
   stats.label.fontface = "bold", stats.label.color = NULL,
   label.r = 0.15, label.size = 0.25, label.box.padding = 1,
   label.label.padding = 0.25, label.point.padding = 0.5,
@@ -51,13 +52,20 @@ kind of model it is dealing with.}
 \item{scales}{scales on which to report the variables: for random effects, the choices are \sQuote{"sdcor"} (standard deviations and correlations: the default if \code{scales} is \code{NULL}) or \sQuote{"vcov"} (variances and covariances). \code{NA} means no transformation, appropriate e.g. for fixed effects; inverse-link transformations (exponentiation or logistic) are not yet implemented, but may be in the future.}
 
 \item{conf.method}{Character describing method for computing confidence
-intervals (for more, see \code{lme4::confint.merMod}). This argument is valid
-only for the \code{merMod} class model objects (\code{lmer}, \code{glmer}, \code{nlmer}, etc.).
-For MCMC model objects (Stan, JAGS, etc.), the allowed options are
-\code{"quantile"} or \code{"HPDinterval"}.}
+intervals (for more, see \code{?lme4::confint.merMod} and
+\code{?broom.mixed::tidy.brmsfit}). This argument has different defaults
+depending on the model object. For the \code{merMod} class model objects
+(\code{lmer}, \code{glmer}, \code{nlmer}, etc.), the default is \code{"Wald"} (other options
+are: \code{"profile"}, \code{"boot"}). For MCMC or brms fit model objects (Stan,
+JAGS, etc.), the default is \code{"quantile"}, while the only other options is
+\code{"HPDinterval"}.}
 
 \item{conf.type}{the type of confidence interval
 (see \code{\link[ordinal:confint.clm]{ordinal::confint.clm()}})}
+
+\item{component}{Character specifying whether to tidy the survival or
+the longitudinal component of the model. Must be either \code{"survival"} or
+\code{"longitudinal"}. Defaults to \code{"survival"}.}
 
 \item{quick}{Logical indiciating if the only the \code{term} and \code{estimate}
 columns should be returned. Often useful to avoid time consuming
@@ -239,8 +247,8 @@ or symbol.}
 
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
 \code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
-extension packages are allowed (e.g., \code{ggthemes::theme_economist()},
-\code{hrbrthemes::theme_ipsum_ps()}, \code{ggthemes::theme_fivethirtyeight()}, etc.).}
+extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
+\code{hrbrthemes::theme_ipsum_ps()}, etc.).}
 
 \item{ggstatsplot.layer}{Logical that decides whether \code{theme_ggstatsplot}
 theme elements are to be displayed along with the selected \code{ggtheme}
@@ -353,6 +361,36 @@ ggstatsplot::ggcoefstats(
   x = df,
   statistic = "t",
   meta.analytic.effect = TRUE
+)
+
+# -------------- getting model summary ------------------------------
+
+# model
+library(lme4)
+lmm1 <- lme4::lmer(
+  formula = Reaction ~ Days + (Days | Subject),
+  data = sleepstudy
+)
+
+# dataframe with model summary
+ggstatsplot::ggcoefstats(x = lmm1, output = "glance")
+
+# -------------- getting augmented dataframe ------------------------------
+
+# setup
+set.seed(123)
+library(survival)
+
+# fit
+cfit <-
+  survival::coxph(formula = Surv(time, status) ~ age + sex, data = lung)
+
+# augmented dataframe
+ggstatsplot::ggcoefstats(
+  x = cfit,
+  data = lung,
+  output = "augment",
+  type.predict = "risk"
 )
 }
 \references{

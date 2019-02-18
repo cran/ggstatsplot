@@ -2,14 +2,14 @@
 % Please edit documentation in R/helpers_ggpiestats_subtitles.R
 \name{subtitle_onesample_proptest}
 \alias{subtitle_onesample_proptest}
-\title{Making text subtitle for Proportion Test (N Outcomes), a chi-squared
-Goodness of fit test.}
+\title{Making text subtitle for Proportion Test (N Outcomes)}
 \usage{
 subtitle_onesample_proptest(data, main, counts = NULL, ratio = NULL,
-  legend.title = NULL, k = 2)
+  legend.title = NULL, k = 2, ...)
 }
 \arguments{
-\item{data}{The data as a data frame (matrix or tables will not be accepted).}
+\item{data}{A dataframe (or a tibble) from which variables specified are to
+be taken. A matrix or tables will \strong{not} be accepted.}
 
 \item{main}{The variable to use as the \strong{rows} in the
 contingency table.}
@@ -24,10 +24,11 @@ test. Default is \code{NULL}, which means if there are two levels \code{ratio = 
 
 \item{k}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2}).}
+
+\item{...}{Additional arguments.}
 }
 \description{
-Making text subtitle for Proportion Test (N Outcomes), a chi-squared
-Goodness of fit test.
+This is going to be a chi-squared Goodness of fit test.
 }
 \examples{
 

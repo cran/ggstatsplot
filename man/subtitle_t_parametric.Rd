@@ -6,16 +6,17 @@
 designs).}
 \usage{
 subtitle_t_parametric(data, x, y, paired = FALSE, effsize.type = "g",
-  effsize.noncentral = FALSE, conf.level = 0.95, var.equal = FALSE,
+  effsize.noncentral = TRUE, conf.level = 0.95, var.equal = FALSE,
   k = 2, ...)
 }
 \arguments{
-\item{data}{Dataframe from which variables specified are preferentially to be
-taken.}
+\item{data}{A dataframe (or a tibble) from which variables specified are to
+be taken. A matrix or tables will \strong{not} be accepted.}
 
-\item{x}{The grouping variable.}
+\item{x}{The grouping variable from the dataframe \code{data}.}
 
-\item{y}{The response - a vector of length the number of rows of \code{x}.}
+\item{y}{The response (a.k.a. outcome or dependent) variable from the
+dataframe \code{data}.}
 
 \item{paired}{a logical indicating whether you want a paired
     t-test.}
@@ -28,10 +29,10 @@ omega-squared for \strong{anova})).}
 
 \item{effsize.noncentral}{Logical indicating whether to use non-central
 \emph{t}-distributions for computing the confidence interval for Cohen's \emph{d}
-or Hedge's \emph{g} (Default: \code{FALSE}).}
+or Hedge's \emph{g} (Default: \code{TRUE}).}
 
-\item{conf.level}{A scalar value between 0 and 1. If unspecified, the
-default is to return \code{95\%} lower and upper confidence intervals (\code{0.95}).}
+\item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
+\code{95\%} lower and upper confidence intervals (\code{0.95}).}
 
 \item{var.equal}{a logical variable indicating whether to treat the
     variances in the samples as equal.  If \code{TRUE}, then a simple F
@@ -43,11 +44,33 @@ default is to return \code{95\%} lower and upper confidence intervals (\code{0.9
 \item{k}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2}).}
 
-\item{...}{Additional arguments (ignored).}
+\item{...}{Additional arguments.}
 }
 \description{
 Making text subtitle for the t-test (between-/within-subjects
 designs).
+}
+\details{
+Cohen's \emph{d} is calculated in the traditional fashion as the
+difference between means or mean minus \emph{mu} divided by the estimated
+standardized deviation.  By default Hedge's correction is applied
+(\emph{N}-3)/(\emph{N}-2.25) to produce \emph{g}. For independent samples \emph{t}-test, there
+are two possibilities implemented. If the \emph{t}-test did not make a
+homogeneity of variance assumption, (the Welch test), the variance term
+will mirror the Welch test, otherwise a pooled and weighted estimate is
+used. If a paired samples \emph{t}-test was requested, then effect size desired is
+based on the standard deviation of the differences.
+
+The computation of the confidence intervals defaults to a use of
+non-central Student-\emph{t} distributions (\code{effsize.noncentral = TRUE});
+otherwise a central distribution is used.
+
+When computing confidence intervals the variance of the effect size \emph{d} or \emph{g} is
+computed using the conversion formula reported in Cooper et al. (2009)
+\itemize{
+\item \code{((n1+n2)/(n1*n2) + .5*d^2/df) * ((n1+n2)/df)} (independent samples)
+\item \code{sqrt(((1 / n) + (d^2 / n)) * 2 * (1 - r))}  (paired case)
+}
 }
 \examples{
 
@@ -74,6 +97,9 @@ subtitle_t_parametric(
   effsize.type = "d"
 )
 }
+\seealso{
+subtitle_t_parametric
+}
 \author{
-Indrajeet Patil
+Indrajeet Patil, Chuck Powell
 }

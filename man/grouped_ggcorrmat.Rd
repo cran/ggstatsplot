@@ -6,7 +6,7 @@
 levels of a grouping variable}
 \usage{
 grouped_ggcorrmat(data, cor.vars = NULL, cor.vars.names = NULL,
-  grouping.var, title.prefix = "Group", output = "plot",
+  grouping.var, title.prefix = NULL, output = "plot",
   matrix.type = "full", method = "square", corr.method = "pearson",
   type = NULL, exact = FALSE, continuity = TRUE, beta = 0.1,
   digits = 2, k = NULL, sig.level = 0.05, p.adjust.method = "none",
@@ -32,10 +32,12 @@ computed and visualized. If \code{NULL} (default), all numeric variables from
 \item{cor.vars.names}{Optional list of names to be used for \code{cor.vars}. The
 names should be entered in the same order.}
 
-\item{grouping.var}{Grouping variable.}
+\item{grouping.var}{A single grouping variable (can be entered either as a
+bare name \code{x} or as a string \code{"x"}).}
 
-\item{title.prefix}{Character specifying the prefix text for the fixed plot
-title (name of each factor level) (Default: \code{"Group"}).}
+\item{title.prefix}{Character string specifying the prefix text for the fixed
+plot title (name of each factor level) (Default: \code{NULL}). If \code{NULL}, the
+variable name entered for \code{grouping.var} will be used.}
 
 \item{output}{Character that decides expected output from this function:
 \code{"plot"} (for visualization matrix) or \code{"correlations"} (or \code{"corr"} or
@@ -124,8 +126,8 @@ colors from the specified \code{palette} from \code{package} will be selected.}
 
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
 \code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
-extension packages are allowed (e.g., \code{ggthemes::theme_economist()},
-\code{hrbrthemes::theme_ipsum_ps()}, \code{ggthemes::theme_fivethirtyeight()}, etc.).}
+extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
+\code{hrbrthemes::theme_ipsum_ps()}, etc.).}
 
 \item{ggstatsplot.layer}{Logical that decides whether \code{theme_ggstatsplot}
 theme elements are to be displayed along with the selected \code{ggtheme}
@@ -298,5 +300,5 @@ ggstatsplot::grouped_ggcorrmat(
 \code{\link{grouped_ggscatterstats}}
 }
 \author{
-Indrajeet Patil
+Indrajeet Patil, Chuck Powell
 }

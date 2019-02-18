@@ -95,3 +95,52 @@ testthat::test_that(
     )
   }
 )
+
+# glmerMod works -------------------------------------------------------
+
+testthat::test_that(
+  desc = "glmerMod works",
+  code = {
+    testthat::skip_on_cran()
+
+    library(lme4)
+
+    # data
+    utils::data(anorexia, package = "MASS")
+
+    # model
+    set.seed(123)
+    mod <-
+      lme4::glmer(
+        formula = Postwt ~ Prewt + (1 | Treat),
+        family = stats::Gamma(),
+        control = lme4::glmerControl(
+          "Nelder_Mead",
+          check.conv.grad = .makeCC(
+            action = "message",
+            tol = 0.01,
+            relTol = NULL
+          ),
+          check.conv.singular = .makeCC(action = "message", tol = 0.01),
+          check.conv.hess = .makeCC(action = "message", tol = 0.01)
+        ),
+        data = anorexia
+      )
+
+    # dataframe with labels
+    df <- ggstatsplot:::ggcoefstats_label_maker(
+      x = mod,
+      tidy_df = broom.mixed::tidy(x = mod, effects = "fixed"),
+      glance_df = broom.mixed::glance(mod)
+    )
+
+    # checking the labels
+    testthat::expect_equal(
+      df$label,
+      c(
+        "list(~italic(beta)==0.02, ~italic(t)(68)==41.12, ~italic(p)<= 0.001)",
+        "list(~italic(beta)==0.00, ~italic(t)(68)==-7.27, ~italic(p)<= 0.001)"
+      )
+    )
+  }
+)

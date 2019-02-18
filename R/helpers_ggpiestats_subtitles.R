@@ -4,7 +4,6 @@
 #' @name subtitle_contingency_tab
 #' @author Indrajeet Patil
 #'
-#' @param data The data as a data frame (matrix or tables will not be accepted).
 #' @param main The variable to use as the **rows** in the
 #'   contingency table.
 #' @param condition The variable to use as the **columns** in the contingency
@@ -18,22 +17,21 @@
 #'   test. The default is `NULL`, i.e. no title will be added to describe the
 #'   effect being shown. An example of a `stat.title` argument will be something
 #'   like `"main x condition"` or `"interaction"`.
-#' @param messages Decides whether messages references, notes, and warnings are
-#'   to be displayed (Default: `TRUE`).
 #' @inheritParams chisq_v_ci
 #' @inheritParams subtitle_t_parametric
 #' @inheritParams stats::chisq.test
+#' @inheritParams subtitle_anova_parametric
 #'
 #' @importFrom tibble tribble as_tibble
 #' @importFrom exact2x2 exact2x2
-#' @importFrom tidyr uncount
+#' @importFrom tidyr uncount drop_na
 #' @importFrom broom tidy
 #' @importFrom jmv propTestN contTables contTablesPaired
 #'
 #' @seealso \code{\link{ggpiestats}}
 #'
 #' @examples
-#' 
+#'
 #' # without counts data
 #' subtitle_contingency_tab(
 #'   data = mtcars,
@@ -41,11 +39,11 @@
 #'   condition = cyl,
 #'   nboot = 15
 #' )
-#' 
+#'
 #' # with counts data
 #' # in case of no variation, a `NULL` will be returned.
 #' library(jmv)
-#' 
+#'
 #' as.data.frame(HairEyeColor) %>%
 #'   dplyr::filter(.data = ., Sex == "Male") %>%
 #'   subtitle_contingency_tab(
@@ -61,7 +59,7 @@ subtitle_contingency_tab <- function(data,
                                      main,
                                      condition,
                                      counts = NULL,
-                                     nboot = 25,
+                                     nboot = 100,
                                      paired = FALSE,
                                      stat.title = NULL,
                                      conf.level = 0.95,
@@ -69,57 +67,34 @@ subtitle_contingency_tab <- function(data,
                                      simulate.p.value = FALSE,
                                      B = 2000,
                                      k = 2,
-                                     messages = TRUE) {
+                                     messages = TRUE,
+                                     ...) {
+  ellipsis::check_dots_used()
 
   # =============================== dataframe ================================
 
-  # creating a dataframe based on which variables are provided
-  if (base::missing(counts)) {
-    data <-
-      dplyr::select(
-        .data = data,
-        main = !!rlang::enquo(main),
-        condition = !!rlang::quo_name(rlang::enquo(condition))
-      ) %>%
-      dplyr::filter(
-        .data = .,
-        !is.na(main), !is.na(condition)
-      ) %>%
-      tibble::as_tibble(x = .)
-  } else {
-    data <-
-      dplyr::select(
-        .data = data,
-        main = !!rlang::enquo(main),
-        condition = !!rlang::quo_name(rlang::enquo(condition)),
-        counts = !!rlang::quo_name(rlang::enquo(counts))
-      ) %>%
-      dplyr::filter(
-        .data = .,
-        !is.na(main), !is.na(condition), !is.na(counts)
-      ) %>%
-      tibble::as_tibble(x = .)
-  }
+  # creating a dataframe
+  data <-
+    dplyr::select(
+      .data = data,
+      main = !!rlang::enquo(main),
+      condition = !!rlang::enquo(condition),
+      counts = !!rlang::enquo(counts)
+    ) %>%
+    tidyr::drop_na(data = .)
 
   # main and condition need to be a factor for this analysis
   # also drop the unused levels of the factors
 
   # main
   data %<>%
-    dplyr::mutate_at(
-      .tbl = .,
-      .vars = "main",
-      .funs = ~ base::droplevels(x = base::as.factor(x = .))
-    )
+    dplyr::mutate(.data = ., main = droplevels(as.factor(main))) %>%
+    tibble::as_tibble(x = .)
 
   # condition
   if (!base::missing(condition)) {
     data %<>%
-      dplyr::mutate_at(
-        .tbl = .,
-        .vars = "condition",
-        .funs = ~ base::droplevels(x = base::as.factor(x = .))
-      )
+      dplyr::mutate(.data = ., condition = droplevels(as.factor(condition)))
 
     # in case there is no variation, no subtitle will be shown
     if (length(unique(levels(data$condition))) == 1L) {
@@ -172,40 +147,19 @@ subtitle_contingency_tab <- function(data,
         B = B
       ))
 
-    # object with Cramer's V
-    jmv_df <- jmv::contTables(
+    # computing confidence interval for Cramer's V
+    effsize_df <- chisq_v_ci(
       data = data,
-      rows = "condition",
-      cols = "main",
-      phiCra = TRUE,
-      chiSq = TRUE,
-      chiSqCorr = FALSE
+      rows = main,
+      cols = condition,
+      nboot = nboot,
+      conf.level = conf.level,
+      conf.type = conf.type
     )
 
-    # preparing Cramer's V object depending on whether V is NaN or not it will
-    # be NaN in cases where there are no values of one categorial variable for
-    # level of another categorial variable
-    if (is.nan(as.data.frame(jmv_df$nom)[[4]])) {
-      # in case Cramer's V is a NaN
-      effsize_df <- tibble::tribble(
-        ~Cramer.V, ~conf.low, ~conf.high,
-        NaN, NaN, NaN
-      )
-    } else {
-      # results for confidence interval of Cramer's V
-      effsize_df <- chisq_v_ci(
-        data = data,
-        rows = main,
-        cols = condition,
-        nboot = nboot,
-        conf.level = conf.level,
-        conf.type = conf.type
-      )
-
-      # message about effect size measure
-      if (isTRUE(messages)) {
-        effsize_ci_message(nboot = nboot, conf.level = conf.level)
-      }
+    # message about effect size measure
+    if (isTRUE(messages)) {
+      effsize_ci_message(nboot = nboot, conf.level = conf.level)
     }
 
     # preparing subtitle
@@ -226,7 +180,7 @@ subtitle_contingency_tab <- function(data,
       k.parameter = 0L
     )
 
-    # ============== McNemar's test ===========================================
+    # ======================== McNemar's test =================================
   } else if (isTRUE(paired)) {
     # carrying out McNemar's test
     stats_df <-
@@ -296,8 +250,8 @@ subtitle_contingency_tab <- function(data,
 }
 
 
-#' @title Making text subtitle for Proportion Test (N Outcomes), a chi-squared
-#'   Goodness of fit test.
+#' @title Making text subtitle for Proportion Test (N Outcomes)
+#' @description This is going to be a chi-squared Goodness of fit test.
 #' @name subtitle_onesample_proptest
 #' @author Indrajeet Patil
 #'
@@ -308,16 +262,16 @@ subtitle_contingency_tab <- function(data,
 #' @inheritParams subtitle_contingency_tab
 #'
 #' @examples
-#' 
+#'
 #' # with counts
 #' library(jmv)
-#' 
+#'
 #' subtitle_onesample_proptest(
 #'   data = as.data.frame(HairEyeColor),
 #'   main = Eye,
 #'   counts = Freq
 #' )
-#' 
+#'
 #' # in case no variation, only sample size will be shown
 #' subtitle_onesample_proptest(
 #'   data = cbind.data.frame(x = rep("a", 10)),
@@ -331,35 +285,25 @@ subtitle_onesample_proptest <- function(data,
                                         counts = NULL,
                                         ratio = NULL,
                                         legend.title = NULL,
-                                        k = 2) {
+                                        k = 2,
+                                        ...) {
+  ellipsis::check_dots_used()
 
   # saving the column label for the 'main' variables
   if (is.null(legend.title)) {
-    legend.title <-
-      colnames(dplyr::select(
-        .data = data,
-        !!rlang::enquo(main)
-      ))[1]
+    legend.title <- rlang::as_name(rlang::ensym(main))
   }
 
   # ============================ dataframe ===============================
 
-  if (base::missing(counts)) {
-    data <-
-      dplyr::select(
-        .data = data,
-        main = !!rlang::enquo(main)
-      ) %>%
-      dplyr::filter(.data = ., !is.na(main))
-  } else {
-    data <-
-      dplyr::select(
-        .data = data,
-        main = !!rlang::enquo(main),
-        counts = !!rlang::enquo(counts)
-      ) %>%
-      dplyr::filter(.data = ., !is.na(main), !is.na(counts))
-  }
+  # creating a dataframe
+  data <-
+    dplyr::select(
+      .data = data,
+      main = !!rlang::enquo(main),
+      counts = !!rlang::enquo(counts)
+    ) %>%
+    tidyr::drop_na(data = .)
 
   # ====================== converting counts ================================
 
@@ -372,7 +316,7 @@ subtitle_onesample_proptest <- function(data,
         .remove = TRUE,
         .id = "id"
       ) %>%
-      tibble::as_tibble(.)
+      tibble::as_tibble(x = .)
   }
 
   # ============================= statistical test =========================
@@ -385,12 +329,16 @@ subtitle_onesample_proptest <- function(data,
     jmv::propTestN(
       data = data,
       var = "main",
-      ratio = ratio
+      ratio = ratio,
+      expected = FALSE
     )
+
+  # extracting the results
+  stats_df <- tibble::as_tibble(as.data.frame(stats_df$tests))
 
   # if there is no value corresponding to one of the levels of the 'main'
   # variable, then no subtitle is needed
-  if (is.nan(as.data.frame(stats_df$tests)$chi[[1]])) {
+  if (is.nan(stats_df$chi[[1]])) {
     subtitle <-
       base::substitute(
         expr =
@@ -424,23 +372,16 @@ subtitle_onesample_proptest <- function(data,
             ", ",
             italic("p"),
             " = ",
-            pvalue,
+            p.value,
             ", ",
             italic("n"),
             " = ",
             n
           ),
         env = base::list(
-          estimate = specify_decimal_p(
-            x = as.data.frame(stats_df$tests)[[1]],
-            k = k
-          ),
-          df = as.data.frame(stats_df$tests)[[2]],
-          pvalue = specify_decimal_p(
-            x = as.data.frame(stats_df$tests)[[3]],
-            k = k,
-            p.value = TRUE
-          ),
+          estimate = specify_decimal_p(x = stats_df$chi[[1]], k = k),
+          df = stats_df$df[[1]],
+          p.value = specify_decimal_p(x = stats_df$p[[1]], k = k, p.value = TRUE),
           n = sample_size
         )
       )

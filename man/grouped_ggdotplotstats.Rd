@@ -4,11 +4,11 @@
 \alias{grouped_ggdotplotstats}
 \title{Grouped histograms for distribution of a labelled numeric variable}
 \usage{
-grouped_ggdotplotstats(data, x, y, grouping.var, title.prefix = "Group",
+grouped_ggdotplotstats(data, x, y, grouping.var, title.prefix = NULL,
   xlab = NULL, ylab = NULL, subtitle = NULL, caption = NULL,
   type = "parametric", test.value = 0, bf.prior = 0.707,
   bf.message = FALSE, robust.estimator = "onestep",
-  conf.level = 0.95, nboot = 500, k = 2,
+  conf.level = 0.95, nboot = 100, k = 2,
   ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
   point.color = "black", point.size = 3, point.shape = 16,
   results.subtitle = TRUE, centrality.para = "mean",
@@ -20,19 +20,22 @@ grouped_ggdotplotstats(data, x, y, grouping.var, title.prefix = "Group",
   test.k = 0, ggplot.component = NULL, messages = TRUE, ...)
 }
 \arguments{
-\item{data}{Dataframe from which variables specified are preferentially to be
-taken. This argument is optional.}
+\item{data}{A dataframe (or a tibble) from which variables specified are to
+be taken. A matrix or tables will \strong{not} be accepted.}
 
 \item{x}{A numeric variable.}
 
 \item{y}{Label or grouping variable.}
 
-\item{grouping.var}{Grouping variable.}
+\item{grouping.var}{A single grouping variable (can be entered either as a
+bare name \code{x} or as a string \code{"x"}).}
 
-\item{title.prefix}{Character specifying the prefix text for the fixed plot
-title (name of each factor level) (Default: \code{"Group"}).}
+\item{title.prefix}{Character string specifying the prefix text for the fixed
+plot title (name of each factor level) (Default: \code{NULL}). If \code{NULL}, the
+variable name entered for \code{grouping.var} will be used.}
 
-\item{xlab}{Label for \code{x} axis variable.}
+\item{xlab}{Labels for \code{x} and \code{y} axis variables. If \code{NULL} (default),
+variable names for \code{x} and \code{y} will be used.}
 
 \item{ylab}{Label for \code{y} axis variable.}
 
@@ -59,8 +62,8 @@ favor of the \emph{null} hypothesis \strong{for parametric test} (Default: \code
 (\code{"onestep"} (Default), \code{"mom"}, or \code{"median"}). For more, see
 \code{?WRS2::onesampb}.}
 
-\item{conf.level}{A scalar value between 0 and 1. If unspecified, the
-default is to return \code{95\%} lower and upper confidence intervals (\code{0.95}).}
+\item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
+\code{95\%} lower and upper confidence intervals (\code{0.95}).}
 
 \item{nboot}{Number of bootstrap samples for robust one-sample location test
 (Default: \code{100}).}
@@ -70,8 +73,8 @@ default is to return \code{95\%} lower and upper confidence intervals (\code{0.9
 
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
 \code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
-extension packages are allowed (e.g., \code{ggthemes::theme_economist()},
-\code{hrbrthemes::theme_ipsum_ps()}, \code{ggthemes::theme_fivethirtyeight()}, etc.).}
+extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
+\code{hrbrthemes::theme_ipsum_ps()}, etc.).}
 
 \item{ggstatsplot.layer}{Logical that decides whether \code{theme_ggstatsplot}
 theme elements are to be displayed along with the selected \code{ggtheme}
@@ -128,7 +131,9 @@ be displayed for \strong{test.value} line (Default: \code{TRUE}).}
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
 by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
 of the current function. Default is \code{NULL}. The argument should be entered
-as a function.}
+as a function. If the given function has an argument \code{axes.range.restrict}
+and if it has been set to \code{TRUE}, the added ggplot component \emph{might} not
+work as expected.}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
@@ -203,9 +208,10 @@ ggstatsplot::grouped_ggdotplotstats(
   grouping.var = "cyl",
   test.value = 15.5,
   title.prefix = "cylinder count",
-  ggplot.component = ggplot2::scale_y_continuous(
-    sec.axis = ggplot2::dup_axis(name = "percentile score"),
-    breaks = seq(0, 12, 2)
+  ggplot.component = ggplot2::scale_x_continuous(
+    sec.axis = ggplot2::dup_axis(),
+    limits = c(12, 24),
+    breaks = seq(12, 24, 2)
   ),
   messages = FALSE
 )

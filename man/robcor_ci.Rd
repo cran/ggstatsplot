@@ -8,8 +8,8 @@ robcor_ci(data, x, y, beta = 0.1, nboot = 100, conf.level = 0.95,
   conf.type = "norm", ...)
 }
 \arguments{
-\item{data}{Dataframe from which variables specified are preferentially to be
-taken.}
+\item{data}{A dataframe (or a tibble) from which variables specified are to
+be taken. A matrix or tables will \strong{not} be accepted.}
 
 \item{x}{A vector containing the explanatory variable.}
 
@@ -164,5 +164,19 @@ sample size, bending constant, no. of bootstrap samples, etc.
 \description{
 Custom function to get confidence intervals for percentage bend
 correlation coefficient.
+}
+\examples{
+\dontrun{
+ggstatsplot:::robcor_ci(
+  data = mtcars,
+  x = "hp",
+  y = "mpg",
+  beta = .01,
+  nboot = 125,
+  conf.level = .99,
+  conf.type = c("basic")
+)
+}
+
 }
 \keyword{internal}

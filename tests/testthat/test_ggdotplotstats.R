@@ -1,4 +1,3 @@
-# context ------------------------------------------------------------
 context(desc = "ggdotplotstats")
 
 # ggdotplotstats works ----------------------------------------------
@@ -6,6 +5,7 @@ context(desc = "ggdotplotstats")
 testthat::test_that(
   desc = "ggdotplotstats works as expected",
   code = {
+    testthat::skip_on_cran()
 
     # creating a new dataset
     morley_new <- morley %>%
@@ -82,7 +82,9 @@ testthat::test_that(
         "(BF"["01"],
         ") = ",
         "-1.2779",
-        ", Prior width = ",
+        ", ",
+        italic("r")["Cauchy"],
+        " = ",
         "0.8800"
       )
     )))
@@ -156,6 +158,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "ggdotplotstats works with summarized data",
   code = {
+    testthat::skip_on_cran()
 
     # creating a summary data
     set.seed(123)

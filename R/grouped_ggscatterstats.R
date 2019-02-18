@@ -7,11 +7,8 @@
 #'   histograms/boxplots/density plots with statistical details added as a
 #'   subtitle.
 #'
-#' @param grouping.var Grouping variable. Can be entered either as
-#'   a character string (e.g., `"group"`) or as a bare expression (e.g, `group`).
-#' @param title.prefix Character specifying the prefix text for the fixed plot
-#'   title (name of each factor level) (Default: `"Group"`).
 #' @inheritParams ggscatterstats
+#' @inheritParams grouped_ggbetweenstats
 #' @inheritDotParams combine_plots
 #'
 #' @import ggplot2
@@ -30,11 +27,11 @@
 #' @inherit ggscatterstats return details
 #'
 #' @examples
-#' 
+#'
 #' \dontrun{
 #' # to ensure reproducibility
 #' set.seed(123)
-#' 
+#'
 #' # basic function call
 #' ggstatsplot::grouped_ggscatterstats(
 #'   data = dplyr::filter(
@@ -48,7 +45,7 @@
 #'   formula = y ~ x + I(x^3),
 #'   grouping.var = genre
 #' )
-#' 
+#'
 #' # using labeling
 #' # (also show how to modify basic plot from within function call)
 #' ggstatsplot::grouped_ggscatterstats(
@@ -66,9 +63,9 @@
 #'   palette = "appletv",
 #'   messages = FALSE
 #' )
-#' 
+#'
 #' # labeling without expression
-#' 
+#'
 #' ggstatsplot::grouped_ggscatterstats(
 #'   data = dplyr::filter(
 #'     .data = ggstatsplot::movies_long,
@@ -98,7 +95,7 @@ grouped_ggscatterstats <- function(data,
                                    label.var = NULL,
                                    label.expression = NULL,
                                    grouping.var,
-                                   title.prefix = "Group",
+                                   title.prefix = NULL,
                                    xlab = NULL,
                                    ylab = NULL,
                                    method = "lm",
@@ -183,7 +180,14 @@ grouped_ggscatterstats <- function(data,
   # ensure the grouping variable works quoted or unquoted
   grouping.var <- rlang::ensym(grouping.var)
 
+  # if `title.prefix` is not provided, use the variable `grouping.var` name
+  if (is.null(title.prefix)) {
+    title.prefix <- rlang::as_name(grouping.var)
+  }
+
   # getting the dataframe ready
+  # note that `dplyr::everything` is used because point labelling can involve
+  # any of the data columns
   df <-
     dplyr::select(
       .data = data,
@@ -191,26 +195,11 @@ grouped_ggscatterstats <- function(data,
       !!rlang::enquo(x),
       !!rlang::enquo(y),
       dplyr::everything()
-    ) %>%
-    dplyr::mutate(
-      .data = .,
-      title.text = !!rlang::enquo(grouping.var)
     )
 
-  # creating dataframe per level of grouping
+  # creating a list for grouped analysis
   df %<>%
-    dplyr::mutate_if(
-      .tbl = .,
-      .predicate = purrr::is_bare_character,
-      .funs = ~ as.factor(.)
-    ) %>%
-    dplyr::mutate_if(
-      .tbl = .,
-      .predicate = is.factor,
-      .funs = ~ base::droplevels(.)
-    ) %>%
-    dplyr::filter(.data = ., !is.na(!!rlang::enquo(grouping.var))) %>%
-    base::split(.[[rlang::quo_text(grouping.var)]])
+    grouped_list(data = ., grouping.var = !!rlang::enquo(grouping.var))
 
   # if labeling expression has been specified, format the arguments accordingly
   if (isTRUE(expression.present)) {
@@ -330,7 +319,6 @@ grouped_ggscatterstats <- function(data,
       ggplot.component = ggplot.component,
       messages = messages
     )
-
 
   # combining the list of plots into a single plot
   combined_plot <-

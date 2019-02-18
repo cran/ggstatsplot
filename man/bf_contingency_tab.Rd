@@ -6,10 +6,11 @@
 \usage{
 bf_contingency_tab(data, main, condition, sampling.plan = "indepMulti",
   fixed.margin = "rows", prior.concentration = 1, caption = NULL,
-  output = "caption", k = 2)
+  output = "caption", k = 2, ...)
 }
 \arguments{
-\item{data}{The data as a data frame (matrix or tables will not be accepted).}
+\item{data}{A dataframe (or a tibble) from which variables specified are to
+be taken. A matrix or tables will \strong{not} be accepted.}
 
 \item{main}{The variable to use as the \strong{rows} in the
 contingency table.}
@@ -38,6 +39,8 @@ results).}
 
 \item{k}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2}).}
+
+\item{...}{further arguments to be passed to or from methods.}
 }
 \description{
 Bayesian contingency table analysis.
