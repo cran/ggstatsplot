@@ -5,6 +5,7 @@ context("subtitle_contingency_tab")
 testthat::test_that(
   desc = "subtitle_contingency_tab works - data without NAs",
   code = {
+    testthat::skip_on_cran()
 
     # ggstatsplot output
     set.seed(123)
@@ -15,7 +16,7 @@ testthat::test_that(
         condition = Class,
         stat.title = "Testing",
         k = 5,
-        conf.level = .99,
+        conf.level = 0.99,
         conf.type = "basic",
         nboot = 5,
         messages = FALSE
@@ -37,14 +38,14 @@ testthat::test_that(
           " = ",
           "< 0.001",
           ", ",
-          italic("V"),
+          italic("V")["Cramer"],
           " = ",
           "0.29412",
           ", CI"["99%"],
           " [",
-          "0.26560",
+          "0.15228",
           ", ",
-          "0.31106",
+          "0.17109",
           "]",
           ", ",
           italic("n"),
@@ -63,6 +64,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "subtitle_contingency_tab works - data with NAs",
   code = {
+    testthat::skip_on_cran()
 
     # introduce NAs
     # check that 2-by-2 doesn't produce continuity correction
@@ -109,14 +111,14 @@ testthat::test_that(
           " = ",
           "0.107",
           ", ",
-          italic("V"),
+          italic("V")["Cramer"],
           " = ",
           "0.43",
           ", CI"["99%"],
           " [",
-          "0.02",
+          "0.05",
           ", ",
-          "0.86",
+          "0.87",
           "]",
           ", ",
           italic("n"),

@@ -7,10 +7,12 @@
 (between-subjects designs).}
 \usage{
 subtitle_mann_nonparametric(data, x, y, paired = FALSE, k = 2,
-  conf.level = 0.95, messages = TRUE, ...)
+  conf.level = 0.95, conf.type = "norm", nboot = 100,
+  messages = TRUE, ...)
 
 subtitle_t_nonparametric(data, x, y, paired = FALSE, k = 2,
-  conf.level = 0.95, messages = TRUE, ...)
+  conf.level = 0.95, conf.type = "norm", nboot = 100,
+  messages = TRUE, ...)
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
@@ -30,6 +32,13 @@ dataframe \code{data}.}
 \item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
 \code{95\%} lower and upper confidence intervals (\code{0.95}).}
 
+\item{conf.type}{A vector of character strings representing the type of
+intervals required. The value should be any subset of the values \code{"norm"},
+\code{"basic"}, \code{"perc"}, \code{"bca"}. For more, see \code{?boot::boot.ci}.}
+
+\item{nboot}{Number of bootstrap samples for computing confidence interval
+for the effect size (Default: \code{100}).}
+
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
 
@@ -41,28 +50,80 @@ Making text subtitle for the Mann-Whitney \emph{U}-test
 }
 \details{
 Two-sample Wilcoxon test, also known as Mann-Whitney test, is
-carried out. The effect size estimate for this test is Spearman's \emph{rho}
-as the ranks of the \code{y} variable related to the factor \code{x}.
+carried out.
 
-For the two independent samples case, the Mann Whitney \emph{U}-test
-is calculated and \emph{W} is reported from \emph{stats::wilcox.test}. For the
-paired samples case the Wilcoxon signed rank test is run and \emph{V} is
-reported.
+For the two independent samples case, the Mann-Whitney \emph{U}-test is
+calculated and \emph{W} is reported from \emph{stats::wilcox.test}. For the paired
+samples case the Wilcoxon signed rank test is run and \emph{V} is reported.
 
 Since there is no single commonly accepted method for reporting effect size
-for these tests we are computing and reporting Spearman's \emph{rho} a.k.a. \emph{r}
-along with the confidence intervals associated with the estimate.
+for these tests we are computing and reporting \emph{r} (computed as
+\eqn{Z/\sqrt{N}}) along with the confidence intervals associated with the
+estimate.
 
-We have selected \emph{Spearman's rho} which should be nearly identical to rank
-bi-serial and Somer's \emph{d} for the case of x as two factors (including) as a
-pre/post measure and with \emph{y} treated as ranks rather than raw scores.
+\emph{Note:} The \emph{stats::wilcox.test} function does not follow the
+same convention as \emph{stats::t.test}. The sign of the \emph{V} test statistic
+will always be positive since it is \strong{the sum of the positive signed ranks}.
+Therefore \emph{V} will vary in magnitude but not significance based solely
+on the order of the grouping variable. Consider manually
+reordering your factor levels if appropriate as shown in the second example
+below.
 }
 \examples{
-subtitle_mann_nonparametric(
+\dontrun{
+set.seed(123)
+
+# -------------- between-subjects design ------------------------
+# simple function call
+ggstatsplot::subtitle_mann_nonparametric(
   data = sleep,
   x = group,
   y = extra
 )
+
+# creating a smaller dataset
+msleep_short <- dplyr::filter(
+  .data = ggplot2::msleep,
+  vore \%in\% c("carni", "herbi")
+)
+
+# modifying few things
+ggstatsplot::subtitle_mann_nonparametric(
+  data = msleep_short,
+  x = vore,
+  y = sleep_rem,
+  nboot = 200,
+  conf.level = 0.99,
+  conf.type = "bca"
+)
+
+# The order of the grouping factor matters when computing *V*
+# Changing default alphabeical order manually
+msleep_short$vore <- factor(msleep_short$vore,
+  levels = c("herbi", "carni")
+)
+
+# note the change in the reported *V* value but the identical
+# value for *p* and the reversed effect size
+ggstatsplot::subtitle_mann_nonparametric(
+  data = msleep_short,
+  x = vore,
+  y = sleep_rem
+)
+
+# -------------- within-subjects design ------------------------
+# using dataset included in the package
+ggstatsplot::subtitle_mann_nonparametric(
+  data = VR_dilemma,
+  x = modality,
+  y = score,
+  paired = TRUE,
+  conf.level = 0.90,
+  conf.type = "perc",
+  nboot = 200,
+  k = 5
+)
+}
 }
 \author{
 Indrajeet Patil, Chuck Powell

@@ -17,16 +17,19 @@
 #'   test. The default is `NULL`, i.e. no title will be added to describe the
 #'   effect being shown. An example of a `stat.title` argument will be something
 #'   like `"main x condition"` or `"interaction"`.
-#' @inheritParams chisq_v_ci
+#' @param bias.correct If `TRUE`, a bias correction will be applied to Cramer's
+#'   *V*.
+#' @param ... Additional arguments (currently ignored).
+#' @inheritParams t1way_ci
 #' @inheritParams subtitle_t_parametric
 #' @inheritParams stats::chisq.test
 #' @inheritParams subtitle_anova_parametric
 #'
 #' @importFrom tibble tribble as_tibble
-#' @importFrom exact2x2 exact2x2
 #' @importFrom tidyr uncount drop_na
-#' @importFrom broom tidy
-#' @importFrom jmv propTestN contTables contTablesPaired
+#' @importFrom jmv propTestN contTables
+#' @importFrom stats mcnemar.test chisq.test
+#' @importFrom rcompanion cramerV
 #'
 #' @seealso \code{\link{ggpiestats}}
 #'
@@ -66,6 +69,7 @@ subtitle_contingency_tab <- function(data,
                                      conf.type = "norm",
                                      simulate.p.value = FALSE,
                                      B = 2000,
+                                     bias.correct = FALSE,
                                      k = 2,
                                      messages = TRUE,
                                      ...) {
@@ -138,7 +142,7 @@ subtitle_contingency_tab <- function(data,
 
     # object contatining stats
     stats_df <-
-      broom::tidy(stats::chisq.test(
+      broomExtra::tidy(stats::chisq.test(
         x = data$main,
         y = data$condition,
         correct = FALSE,
@@ -148,101 +152,101 @@ subtitle_contingency_tab <- function(data,
       ))
 
     # computing confidence interval for Cramer's V
-    effsize_df <- chisq_v_ci(
-      data = data,
-      rows = main,
-      cols = condition,
-      nboot = nboot,
-      conf.level = conf.level,
-      conf.type = conf.type
-    )
-
-    # message about effect size measure
-    if (isTRUE(messages)) {
-      effsize_ci_message(nboot = nboot, conf.level = conf.level)
-    }
-
-    # preparing subtitle
-    subtitle <- subtitle_template(
-      no.parameters = 1L,
-      stat.title = stat.title,
-      statistic.text = quote(italic(chi)^2),
-      statistic = stats_df$statistic[[1]],
-      parameter = stats_df$parameter[[1]],
-      p.value = stats_df$p.value[[1]],
-      effsize.text = quote(italic("V")),
-      effsize.estimate = effsize_df$Cramer.V[[1]],
-      effsize.LL = effsize_df$conf.low[[1]],
-      effsize.UL = effsize_df$conf.high[[1]],
-      n = sample_size,
-      conf.level = conf.level,
-      k = k,
-      k.parameter = 0L
-    )
+    # if there was problem computing Cramer's V or its effect size, use NaN
+    effsize_df <-
+      tryCatch(
+        expr = rcompanion::cramerV(
+          x = as.integer(data$main),
+          y = as.integer(data$condition),
+          ci = TRUE,
+          conf = conf.level,
+          type = conf.type,
+          R = nboot,
+          histogram = FALSE,
+          digits = k,
+          bias.correct = bias.correct
+        ) %>%
+          tibble::as_tibble(x = .),
+        error = function(x) {
+          tibble::tribble(
+            ~r, ~lower.ci, ~upper.ci,
+            NaN, NaN, NaN
+          )
+        }
+      )
 
     # ======================== McNemar's test =================================
-  } else if (isTRUE(paired)) {
-    # carrying out McNemar's test
-    stats_df <-
-      jmv::contTablesPaired(
-        data = data,
-        rows = "condition",
-        cols = "main",
-        counts = NULL,
-        chiSq = TRUE,
-        chiSqCorr = FALSE,
-        exact = FALSE,
-        pcRow = FALSE,
-        pcCol = FALSE
+  } else {
+
+    # figuring out all unique factor levels across two variables
+    factor.levels <- union(levels(data$main), levels(data$condition))
+
+    # introducing dropped levels back into the variabls
+    data %<>%
+      dplyr::mutate_at(
+        .tbl = .,
+        .vars = dplyr::vars(main, condition),
+        .funs = factor,
+        levels = factor.levels
       )
 
-    # extracting needed information from jamovi object
-    stats_df <- as.data.frame(stats_df$test)
+    # creating a matrix with frequencies and cleaning it up
+    mat_df <- as.matrix(table(data$main, data$condition))
 
-    # computing exact odds ratio as effect size and their confidence interval
+    # computing effect size + CI
+    stats_df <- broomExtra::tidy(stats::mcnemar.test(
+      x = mat_df,
+      y = NULL,
+      correct = FALSE
+    ))
+
+    # computing effect size + CI
     effsize_df <-
-      exact2x2::exact2x2(
-        x = data$main,
-        y = data$condition,
-        or = 1,
-        alternative = "two.sided",
-        tsmethod = NULL,
-        conf.int = TRUE,
-        conf.level = conf.level,
-        tol = 0.00001,
-        conditional = TRUE,
-        paired = TRUE,
-        plot = FALSE,
-        midp = FALSE
+      tryCatch(
+        expr = cohenG_ci(
+          x = mat_df,
+          nboot = nboot,
+          conf.level = conf.level,
+          conf.type = conf.type
+        ) %>%
+          tibble::as_tibble(x = .),
+        error = function(x) {
+          tibble::tribble(
+            ~r, ~lower.ci, ~upper.ci,
+            NaN, NaN, NaN
+          )
+        }
       )
+  }
 
-    # converting to log odds
-    effsize_df <- tibble::tribble(
-      ~`estimate`,
-      ~conf.low,
-      ~conf.high,
-      log(effsize_df$estimate[[1]]),
-      log(effsize_df$conf.int[1]),
-      log(effsize_df$conf.int[2])
-    )
+  # effct size text
+  if (isTRUE(paired)) {
+    effsize.text <- quote(italic("g")["Cohen"])
+  } else {
+    effsize.text <- quote(italic("V")["Cramer"])
+  }
 
-    # preparing subtitle
-    subtitle <- subtitle_template(
-      no.parameters = 1L,
-      stat.title = stat.title,
-      statistic.text = quote(italic(chi)^2),
-      statistic = stats_df$`value[mcn]`[[1]],
-      parameter = stats_df$`df[mcn]`[[1]],
-      p.value = stats_df$`p[mcn]`[[1]],
-      effsize.text = quote("log"["e"](OR)),
-      effsize.estimate = effsize_df$estimate[[1]],
-      effsize.LL = effsize_df$conf.low[[1]],
-      effsize.UL = effsize_df$conf.high[[1]],
-      n = sample_size,
-      conf.level = conf.level,
-      k = k,
-      k.parameter = 0L
-    )
+  # preparing subtitle
+  subtitle <- subtitle_template(
+    no.parameters = 1L,
+    stat.title = stat.title,
+    statistic.text = quote(italic(chi)^2),
+    statistic = stats_df$statistic[[1]],
+    parameter = stats_df$parameter[[1]],
+    p.value = stats_df$p.value[[1]],
+    effsize.text = effsize.text,
+    effsize.estimate = effsize_df$r[[1]],
+    effsize.LL = effsize_df$lower.ci[[1]],
+    effsize.UL = effsize_df$upper.ci[[1]],
+    n = sample_size,
+    conf.level = conf.level,
+    k = k,
+    k.parameter = 0L
+  )
+
+  # message about effect size measure
+  if (isTRUE(messages)) {
+    effsize_ci_message(nboot = nboot, conf.level = conf.level)
   }
 
   # return the subtitle

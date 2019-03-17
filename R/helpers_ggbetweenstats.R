@@ -97,6 +97,114 @@ mean_labeller <- function(data,
 }
 
 
+#' @title Adding labels for mean values.
+#' @name mean_ggrepel
+#' @author Indrajeet Patil
+#'
+#' @param mean.data A dataframe containing means for each level of the factor.
+#'   The columns should be titled `x`, `y`, and `label`.
+#' @param plot A `ggplot` object for which means are to be displayed.
+#' @param ... Additional arguments.
+#' @inheritParams ggbetweenstats
+#' @inheritParams ggrepel::geom_label_repel
+#'
+#' @importFrom ggrepel geom_label_repel
+#' @importFrom rlang !! enquo
+#' @importFrom ellipsis check_dots_used
+#'
+#' @examples
+#'
+#' \dontrun{
+#' # this internal function may not have much utility outside of the package
+#' set.seed(123)
+#' library(ggplot2)
+#'
+#' # make a plot
+#' p <- ggplot(data = iris, aes(x = Species, y = Sepal.Length)) +
+#'   geom_boxplot()
+#'
+#' # get a dataframe with means
+#' mean_dat <- ggstatsplot:::mean_labeller(
+#'   data = iris,
+#'   x = Species,
+#'   y = Sepal.Length,
+#'   mean.ci = TRUE,
+#'   k = 3
+#' )
+#'
+#' # add means
+#' ggstatsplot:::mean_ggrepel(
+#'   plot = p,
+#'   mean.data = mean_dat,
+#'   mean.color = "darkgreen"
+#' )
+#' }
+#' @keywords internal
+
+# function body
+mean_ggrepel <- function(plot,
+                         mean.data,
+                         mean.size = 5,
+                         mean.color = "darkred",
+                         mean.label.size = 3,
+                         mean.label.fontface = "bold",
+                         mean.label.color = "black",
+                         inherit.aes = TRUE,
+                         ...) {
+
+  # check any misspecified argumenta
+  ellipsis::check_dots_used()
+
+  # highlight the mean of each group
+  if (isTRUE(inherit.aes)) {
+    plot <- plot +
+      ggplot2::stat_summary(
+        fun.y = mean,
+        geom = "point",
+        color = mean.color,
+        size = mean.size,
+        na.rm = TRUE
+      )
+  } else {
+    plot <- plot +
+      ggplot2::stat_summary(
+        mapping = ggplot2::aes(
+          x = x,
+          y = y
+        ),
+        fun.y = mean,
+        geom = "point",
+        color = mean.color,
+        size = mean.size,
+        inherit.aes = FALSE,
+        na.rm = TRUE
+      )
+  }
+
+  # attach the labels with means to the plot
+  plot <- plot +
+    ggrepel::geom_label_repel(
+      data = mean.data,
+      mapping = ggplot2::aes(x = x, y = y, label = label),
+      size = mean.label.size,
+      fontface = mean.label.fontface,
+      color = mean.label.color,
+      direction = "both",
+      max.iter = 3e2,
+      box.padding = 0.35,
+      point.padding = 0.5,
+      segment.color = "black",
+      force = 2,
+      inherit.aes = FALSE,
+      na.rm = TRUE,
+      seed = 123
+    )
+
+  # return the plot with labels
+  return(plot)
+}
+
+
 #' @title Finding the outliers in the dataframe using Tukey's interquartile
 #'   range rule
 #' @name check_outlier
@@ -136,6 +244,66 @@ check_outlier <- function(var, coef = 1.5) {
   return(res)
 }
 
+
+#' @title Adding a column to dataframe describing outlier status.
+#' @name outlier_df
+#' @author Indrajeet Patil
+#' @description This function is mostly helpful for internal operations of some
+#'   of the functions in this package.
+#'
+#' @inheritParams ggbetweenstats
+#' @param ... Additional arguments.
+#'
+#' @importFrom rlang !! enquo
+#' @importFrom dplyr group_by mutate ungroup
+#'
+#' @examples
+#' # adding column for outlier and a label for that outlier
+#' ggstatsplot::outlier_df(
+#'   data = morley,
+#'   x = Expt,
+#'   y = Speed,
+#'   outlier.label = Run,
+#'   outlier.coef = 2
+#' ) %>%
+#'   dplyr::arrange(outlier)
+#' @export
+
+outlier_df <- function(data,
+                       x,
+                       y,
+                       outlier.label,
+                       outlier.coef = 1.5,
+                       ...) {
+  ellipsis::check_dots_used()
+
+  # add a logical column indicating whether a point is or is not an outlier
+  data %<>%
+    dplyr::group_by(.data = ., !!rlang::enquo(x)) %>%
+    dplyr::mutate(
+      .data = .,
+      isanoutlier = base::ifelse(
+        test = check_outlier(
+          var = !!rlang::enquo(y),
+          coef = outlier.coef
+        ),
+        yes = TRUE,
+        no = FALSE
+      )
+    ) %>%
+    dplyr::mutate(
+      .data = .,
+      outlier = base::ifelse(
+        test = isanoutlier,
+        yes = !!rlang::enquo(outlier.label),
+        no = NA
+      )
+    ) %>%
+    dplyr::ungroup(x = .)
+
+  # return the data frame with outlier
+  return(data)
+}
 
 #' @title Converts long-format dataframe to wide-format dataframe
 #' @name long_to_wide_converter
@@ -269,4 +437,105 @@ lm_effsize_standardizer <- function(object,
 
   # return the dataframe in standard format
   return(df)
+}
+
+
+#' @title Adding `geom_signif` to the plot.
+#' @name ggsignif_adder
+#' @param plot A `ggplot` object on which `geom_signif` needed to be added.
+#' @inheritParams ggbetweenstats
+#'
+#' @examples
+#' \dontrun{
+#' library(ggplot2)
+#'
+#' # data
+#' df <- data.frame(x = iris$Species, y = iris$Sepal.Length)
+#'
+#' # plot
+#' p <- ggplot(df, aes(x, y)) + geom_boxplot()
+#'
+#' # dataframe with pairwise comparison test results
+#' df_pair <- ggstatsplot::pairwise_p(df, x, y)
+#'
+#' # adding plot with
+#' ggstatsplot:::ggsignif_adder(
+#'   plot = p,
+#'   df_pairwise = df_pair,
+#'   data = df
+#' )
+#' }
+#'
+#' @keywords internal
+
+ggsignif_adder <- function(plot,
+                           df_pairwise,
+                           data,
+                           pairwise.annotation = "asterisk",
+                           pairwise.display = "significant") {
+  # creating a column for group combinations
+  df_pairwise %<>%
+    purrrlyr::by_row(
+      .d = .,
+      ..f = ~ c(.$group1, .$group2),
+      .collate = "list",
+      .to = "groups"
+    )
+
+  # decide what needs to be displayed:
+  # only significant or non-significant comparisons
+  if (pairwise.display %in% c("s", "significant")) {
+    df_pairwise %<>%
+      dplyr::filter(.data = ., significance != "ns")
+  } else if (pairwise.display %in% c("ns", "nonsignificant", "non-significant")) {
+    df_pairwise %<>%
+      dplyr::filter(.data = ., significance == "ns")
+  }
+
+  # proceed only if there are any significant comparisons to display
+  if (dim(df_pairwise)[[1]] != 0L) {
+    # deciding what needs to be displayed
+    if (pairwise.annotation %in% c("p", "p-value", "p.value")) {
+      # if p-values are to be displayed
+      df_pairwise %<>%
+        dplyr::rename(.data = ., label = p.value.label)
+
+      # for ggsignif
+      textsize <- 3
+      vjust <- 0
+    } else {
+      # otherwise just show the asterisks
+      df_pairwise %<>%
+        dplyr::rename(.data = ., label = significance)
+
+      # for ggsignif
+      textsize <- 4
+      vjust <- 0.2
+    }
+
+    # arrange the dataframe so that annotations are properly aligned
+    df_pairwise %<>%
+      dplyr::arrange(.data = ., group1)
+
+    # computing y coordinates for ggsgnif bars
+    ggsignif_y_position <-
+      ggsignif_position_calculator(x = data$x, y = data$y)
+
+    # adding ggsignif comparisons to the plot
+    plot <- plot +
+      ggsignif::geom_signif(
+        comparisons = df_pairwise$groups,
+        map_signif_level = TRUE,
+        textsize = textsize,
+        tip_length = 0.01,
+        vjust = vjust,
+        y_position = ggsignif_y_position,
+        annotations = df_pairwise$label,
+        test = NULL,
+        na.rm = TRUE
+      )
+  }
+
+  # return the plot
+  return(plot)
 }

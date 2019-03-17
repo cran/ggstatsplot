@@ -131,6 +131,8 @@ utils::globalVariables(
     "group2",
     "Group..1",
     "Group..2",
+    "Group...1",
+    "Group...2",
     "ci.lower",
     "ci.upper",
     "comparison",
@@ -181,7 +183,9 @@ utils::globalVariables(
     "I2",
     "Q",
     "tau",
-    "tau2"
+    "tau2",
+    "id",
+    "coef.type"
   ),
   package = "ggstatsplot",
   add = FALSE

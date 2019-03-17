@@ -174,15 +174,15 @@ games_howell <- function(data,
 #' @inheritParams stats::t.test
 #' @inheritParams WRS2::rmmcp
 #'
-#' @importFrom dplyr select rename mutate mutate_if everything full_join
-#' @importFrom stats p.adjust pairwise.t.test na.omit
-#' @importFrom stats aov TukeyHSD var sd
+#' @importFrom dplyr select rename mutate mutate_if everything full_join vars
+#' @importFrom stats p.adjust pairwise.t.test na.omit aov TukeyHSD var sd
+#' @importFrom stringr str_replace
 #' @importFrom WRS2 lincon rmmcp
 #' @importFrom tidyr gather spread separate
 #' @importFrom rlang !! enquo
 #' @importFrom tibble as_tibble rowid_to_column enframe
-#' @importFrom broom tidy
 #' @importFrom jmv anovaNP anovaRMNP
+#' @importFrom utils packageVersion
 #'
 #' @seealso \code{\link{ggbetweenstats}}, \code{\link{grouped_ggbetweenstats}}
 #'
@@ -306,15 +306,8 @@ pairwise_p <- function(data,
       .data = data,
       x = !!rlang::enquo(x),
       y = !!rlang::enquo(y)
-    )
-
-  # convert the grouping variable to factor and drop unused levels
-  data %<>%
-    dplyr::mutate_at(
-      .tbl = .,
-      .vars = "x",
-      .funs = ~ base::droplevels(x = base::as.factor(x = .))
     ) %>%
+    dplyr::mutate(.data = ., x = droplevels(as.factor(x))) %>%
     tibble::as_tibble(x = .)
 
   # ---------------------------- parametric ---------------------------------
@@ -331,7 +324,7 @@ pairwise_p <- function(data,
         )
 
       # extracting and cleaning up Tukey's HSD output
-      df_tukey <- TukeyHSD(aovmodel) %>%
+      df_tukey <- stats::TukeyHSD(x = aovmodel, conf.level = 0.95) %>%
         broom::tidy(x = .) %>%
         dplyr::select(comparison, estimate, conf.low, conf.high) %>%
         tidyr::separate(
@@ -340,20 +333,15 @@ pairwise_p <- function(data,
           into = c("group1", "group2"),
           sep = "-"
         ) %>%
-        dplyr::rename(.data = ., mean.difference = estimate)
-
-      # changing names of factor levels
-      df_tukey$group1 <-
-        stringr::str_replace(
-          string = df_tukey$group1,
-          pattern = "_",
-          replacement = "-"
-        )
-      df_tukey$group2 <-
-        stringr::str_replace(
-          string = df_tukey$group2,
-          pattern = "_",
-          replacement = "-"
+        dplyr::rename(.data = ., mean.difference = estimate) %>%
+        dplyr::mutate_at(
+          .tbl = .,
+          .vars = dplyr::vars(dplyr::matches("^group[0-9]$")),
+          .funs = ~ stringr::str_replace(
+            string = .,
+            pattern = "_",
+            replacement = "-"
+          )
         )
 
       # combining mean difference and results from pairwise t-test
@@ -544,11 +532,11 @@ pairwise_p <- function(data,
     rob_df_tidy <-
       suppressMessages(rob_pairwise_df$comp %>%
         tibble::as_tibble(x = ., .name_repair = "unique")) %>%
-      dplyr::rename(
-        .data = .,
-        group1 = Group..1,
-        group2 = Group..2
-      )
+        dplyr::rename(
+          .data = .,
+          group1 = Group...1,
+          group2 = Group...2
+        )
 
     # cleaning the raw object and getting it in the right format
     df <-

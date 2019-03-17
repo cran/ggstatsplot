@@ -5,12 +5,13 @@ context("subtitle_anova_parametric")
 testthat::test_that(
   desc = "parametric anova subtitles work (without NAs)",
   code = {
+    testthat::skip_on_cran()
 
     # ggstatsplot output
     set.seed(123)
     using_function1 <-
       ggstatsplot::subtitle_anova_parametric(
-        data = movies_long,
+        data = ggstatsplot::movies_long,
         x = genre,
         y = rating,
         effsize.type = "partial_eta",
@@ -63,6 +64,8 @@ testthat::test_that(
 testthat::test_that(
   desc = "parametric anova subtitles work (with NAs)",
   code = {
+    testthat::skip_on_cran()
+
     # the expected result
     set.seed(123)
     r <-
@@ -113,9 +116,9 @@ testthat::test_that(
           "0.085",
           ", CI"["95%"],
           " [",
-          "-0.023",
+          "-0.008",
           ", ",
-          "0.247",
+          "0.258",
           "]",
           ", ",
           italic("n"),
@@ -134,6 +137,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "parametric anova subtitles with partial omega-squared",
   code = {
+    testthat::skip_on_cran()
 
     # ggstatsplot output
     set.seed(123)
@@ -170,9 +174,9 @@ testthat::test_that(
           "0.1438",
           ", CI"["95%"],
           " [",
-          "-0.0159",
+          "-0.0241",
           ", ",
-          "0.4279",
+          "0.4012",
           "]",
           ", ",
           italic("n"),
@@ -191,6 +195,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "parametric anova subtitles with partial eta-squared and data with NAs",
   code = {
+    testthat::skip_on_cran()
 
     # ggstatsplot output
     set.seed(123)
@@ -252,6 +257,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "parametric anova subtitles with partial eta-squared and data with NAs",
   code = {
+    testthat::skip_on_cran()
 
     # ggstatsplot output
     # eta
@@ -307,9 +313,9 @@ testthat::test_that(
           "0.1926",
           ", CI"["95%"],
           " [",
-          "0.0399",
+          "0.0319",
           ", ",
-          "0.4640",
+          "0.4387",
           "]",
           ", ",
           italic("n"),

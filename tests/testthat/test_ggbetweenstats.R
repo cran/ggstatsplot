@@ -82,6 +82,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "checking labels and data from plot",
   code = {
+    testthat::skip_on_cran()
 
     # creating the plot
     set.seed(123)
@@ -203,6 +204,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "checking mean labels are working",
   code = {
+    testthat::skip_on_cran()
 
     # creating the plot
     set.seed(123)
@@ -345,10 +347,11 @@ testthat::test_that(
       data = mtcars,
       x = cyl,
       y = wt,
-      nboot = 50,
+      nboot = 10,
+      effsize.type = "partial.eta",
       var.equal = TRUE,
       messages = FALSE,
-      k = 2
+      k = 3
     )
 
     # subtitle
@@ -357,10 +360,11 @@ testthat::test_that(
       data = mtcars,
       x = cyl,
       y = wt,
-      nboot = 50,
+      nboot = 10,
+      effsize.type = "partial.eta",
       var.equal = TRUE,
       messages = FALSE,
-      k = 2
+      k = 3
     )
 
     # checking if these two are equal
@@ -438,9 +442,9 @@ testthat::test_that(
         "0.49",
         ", CI"["95%"],
         " [",
-        "-0.03",
+        "-0.04",
         ", ",
-        "1.02",
+        "1.01",
         "]",
         ", ",
         italic("n"),

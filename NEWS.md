@@ -1,8 +1,37 @@
-# ggstatsplot 0.0.8.9000
+# ggstatsplot 0.0.9.9000
+
+NEW FEATURES
+
+  - `ggcoefstats` can support following new model objects: `rjags`.
+  - New `VR_dilemma` dataset for toying around with within-subjects design.
+  - `subtitle_t_onesample` supports both Cohen's *d* and Hedge's *g* as effect
+    sizes and also produces their confidence intervals. Additionally,
+    non-central variants of these effect sizes are also supported. Thus,
+    `gghistostats` and its `grouped_` variant gets two new arguments:
+    `effsize.type`, `effsize.noncentral`.
+  - `ggpiestats` used to display odds ratio as effect size for paired designs
+    (McNemar test). But this was only working when the analysis was a 2 x 2
+    contingency table. It now instead displays Cohen's G as effect size, which
+    generalizes to any kind of design.
+
+MINOR CHANGES
+
+  - The internal function `outlier_df` to add a column specifying outlier status
+    of any given data point is now exported.
+  - `ggstatsplot` previously relied on an internal function `chisq_v_ci` to
+    compute confidence intervals for Cramer's *V* using bootstrapping but it was
+    pretty slow. It now instead relies on `rcompanion` package to compute
+    confidence intervals for *V*. `ggstatsplot`, therefore, gains a new
+    dependency.
+  - `subtitle_mann_nonparametric` and `subtitle_t_onesample` now computes effect
+    size *r* and its confidence intervals as $Z/\\sqrt{N}$ (with the help of
+    `rcompanion` package), instead of using Spearman correlation.
+
+# ggstatsplot 0.0.9
 
 BREAKING CHANGES
 
-  - `subtitle_t_parametric` no longer has `data` as the optional argument. This
+  - `subtitle_t_onesample` no longer has `data` as the optional argument. This
     was done to be consistent with other subtitle helper functions.
 
 NEW FEATURES
@@ -16,7 +45,7 @@ NEW FEATURES
   - `ggcoefstats` can support following new regression model objects: `brmsfit`,
     `gam`, `Gam`, `gamlss`, `mcmc`, `mjoint`, `stanreg`.
   - New function to convert plots which are not of `gg`/`ggplot` class to
-    convert into `ggplot` objects.
+    `ggplot` class objects.
   - Instead of using `effsize` to compute Cohen's *d* and Hedge's *g*,
     `ggstatsplot` now relies on a new (#159) internal function
     `effect_t_parametric` to compute them. This removes `effsize` from
@@ -29,7 +58,7 @@ NEW FEATURES
 MAJOR CHANGES
    
   - `ggbetweenstats` now defaults to using noncentral-*t* distribution for
-    computing Cohen's *d* and Hedge's *g*. To get variants with central-t
+    computing Cohen's *d* and Hedge's *g*. To get variants with central-*t*
     distribution, use `effsize.noncentral = FALSE`.
    
 MINOR CHANGES

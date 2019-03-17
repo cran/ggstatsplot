@@ -6,8 +6,8 @@
 sample designs).}
 \usage{
 effsize_t_parametric(formula = NULL, data = NULL, mu = 0,
-  paired = FALSE, hedges.correction = TRUE, conf.level = NULL,
-  var.equal = NULL, noncentral = TRUE, tobject = NULL, ...)
+  paired = FALSE, hedges.correction = TRUE, conf.level = 0.95,
+  var.equal = FALSE, noncentral = TRUE, tobject = NULL, ...)
 }
 \arguments{
 \item{formula}{This function only accepts the variables in \code{formula} format
@@ -73,31 +73,50 @@ msleep_short <- dplyr::filter(
 )
 
 # with defaults
-ggstatsplot::effsize_t_parametric(
+tobj1 <- t.test(
+  formula = sleep_rem ~ vore,
+  data = msleep_short
+)
+ggstatsplot:::effsize_t_parametric(
   formula = sleep_rem ~ vore,
   data = msleep_short,
+  tobject = tobj1
 )
 
 # changing defaults
-ggstatsplot::effsize_t_parametric(
+tobj2 <- t.test(
+  formula = sleep_rem ~ vore,
+  data = msleep_short,
+  mu = 1,
+  paired = FALSE,
+  conf.level = .99
+)
+ggstatsplot:::effsize_t_parametric(
   formula = sleep_rem ~ vore,
   data = msleep_short,
   mu = 1, # ignored in this case
   paired = FALSE,
   hedges.correction = TRUE,
   conf.level = .99,
-  noncentral = FALSE
+  noncentral = FALSE,
+  tobject = tobj2
 )
 
 #---------------- one-sample test ------------------------------------
 
-ggstatsplot::effsize_t_parametric(
+tobj3 <- t.test(
+  x = msleep_short$sleep_rem,
+  mu = 2,
+  conf.level = .90
+)
+ggstatsplot:::effsize_t_parametric(
   formula = ~sleep_rem,
   data = msleep_short,
   mu = 2,
   hedges.correction = TRUE,
   conf.level = .90,
-  noncentral = TRUE
+  noncentral = TRUE,
+  tobject = tobj3
 )
 }
 }

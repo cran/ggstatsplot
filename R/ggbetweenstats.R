@@ -1,7 +1,6 @@
 #' @title Box/Violin plots for group or condition comparisons in
 #'   between-subjects designs.
 #' @name ggbetweenstats
-#' @aliases ggbetweenstats
 #' @description A combination of box and violin plots along with jittered data
 #'   points for between-subjects designs with statistical details included in
 #'   the plot as a subtitle.
@@ -279,28 +278,15 @@ ggbetweenstats <- function(data,
       dplyr::mutate(.data = ., outlier.label = y)
   }
 
-  # if no. of factor levels is greater than the default palette color count
-  palette_message(
-    package = package,
-    palette = palette,
-    min_length = length(unique(levels(data$x)))[[1]]
-  )
-
   # add a logical column indicating whether a point is or is not an outlier
   data %<>%
-    dplyr::group_by(.data = ., x) %>%
-    dplyr::mutate(
-      .data = .,
-      isanoutlier = base::ifelse(
-        test = check_outlier(
-          var = y,
-          coef = outlier.coef
-        ),
-        yes = TRUE,
-        no = FALSE
-      )
-    ) %>%
-    dplyr::ungroup(x = .)
+    outlier_df(
+      data = .,
+      x = x,
+      y = y,
+      outlier.coef = outlier.coef,
+      outlier.label = outlier.label
+    )
 
   # -------------------------------- plot -----------------------------------
 
@@ -312,7 +298,7 @@ ggbetweenstats <- function(data,
     ) +
     # add all points which are not outliers
     ggplot2::geom_point(
-      data = data %>% dplyr::filter(.data = ., !isanoutlier),
+      data = dplyr::filter(.data = data, !isanoutlier),
       position = ggplot2::position_jitterdodge(
         jitter.width = point.jitter.width,
         dodge.width = point.dodge.width,
@@ -330,7 +316,7 @@ ggbetweenstats <- function(data,
     plot <- plot +
       # add all outliers in using same method
       ggplot2::geom_point(
-        data = data %>% dplyr::filter(.data = ., isanoutlier),
+        data = dplyr::filter(.data = data, isanoutlier),
         position = ggplot2::position_jitterdodge(
           jitter.width = point.jitter.width,
           dodge.width = point.dodge.width,
@@ -347,7 +333,7 @@ ggbetweenstats <- function(data,
       plot <- plot +
         # add all outliers in
         ggplot2::geom_point(
-          data = data %>% dplyr::filter(.data = ., isanoutlier),
+          data = dplyr::filter(.data = data, isanoutlier),
           size = 3,
           stroke = 0,
           alpha = 0.7,
@@ -498,25 +484,8 @@ ggbetweenstats <- function(data,
   if (isTRUE(outlier.tagging)) {
     # finding and tagging the outliers
     data_outlier_label <- data %>%
-      dplyr::group_by(.data = ., x) %>%
-      dplyr::mutate(
-        .data = .,
-        outlier = base::ifelse(
-          test = isanoutlier,
-          yes = outlier.label,
-          no = NA
-        )
-      ) %>%
-      dplyr::ungroup(x = .) %>%
       dplyr::filter(.data = ., isanoutlier) %>%
       dplyr::select(.data = ., -outlier)
-
-    # if there is no value for outlier.label
-    data_outlier_label$outlier.label <-
-      stringr::str_replace_na(
-        string = data_outlier_label$outlier.label,
-        replacement = "NA"
-      )
 
     # applying the labels to tagged outliers with ggrepel
     plot <-
@@ -550,34 +519,17 @@ ggbetweenstats <- function(data,
       k = k
     )
 
-  # highlight the mean of each group
+  # add labels for mean values
   if (isTRUE(mean.plotting)) {
-    plot <- plot +
-      ggplot2::stat_summary(
-        fun.y = mean,
-        geom = "point",
-        color = mean.color,
-        size = mean.size,
-        na.rm = TRUE
-      )
-
-    # attach the labels with means to the plot
-    plot <- plot +
-      ggrepel::geom_label_repel(
-        data = mean_dat,
-        mapping = ggplot2::aes(x = x, y = y, label = label),
-        size = mean.label.size,
-        fontface = mean.label.fontface,
-        color = mean.label.color,
-        direction = "both",
-        max.iter = 3e2,
-        box.padding = 0.35,
-        point.padding = 0.5,
-        segment.color = "black",
-        force = 2,
-        na.rm = TRUE,
-        seed = 123
-      )
+    plot <- mean_ggrepel(
+      plot = plot,
+      mean.data = mean_dat,
+      mean.size = mean.size,
+      mean.color = mean.color,
+      mean.label.size = mean.label.size,
+      mean.label.fontface = mean.label.fontface,
+      mean.label.color = mean.label.color
+    )
   }
 
   # ----------------- sample size labels --------------------------------------
@@ -593,7 +545,7 @@ ggbetweenstats <- function(data,
   if (isTRUE(pairwise.comparisons) && test == "anova") {
     # creating dataframe with pairwise comparison results
     df_pairwise <-
-      ggstatsplot::pairwise_p(
+      pairwise_p(
         data = data,
         x = x,
         y = y,
@@ -611,86 +563,14 @@ ggbetweenstats <- function(data,
       print(df_pairwise)
     }
 
-    # creating a column for group combinations
-    df_pairwise %<>%
-      purrrlyr::by_row(
-        .d = .,
-        ..f = ~ c(.$group1, .$group2),
-        .collate = "list",
-        .to = "groups"
-      )
-
-    # decide what needs to be displayed:
-    # only significant or non-significant comparisons
-    if (pairwise.display %in% c("s", "significant")) {
-      df_pairwise %<>%
-        dplyr::filter(.data = ., significance != "ns")
-    } else if (pairwise.display %in% c("ns", "nonsignificant", "non-significant")) {
-      df_pairwise %<>%
-        dplyr::filter(.data = ., significance == "ns")
-    }
-
-    # proceed only if there are any significant comparisons to display
-    if (dim(df_pairwise)[[1]] != 0L) {
-
-      # deciding what needs to be displayed
-      if (pairwise.annotation %in% c("p", "p-value", "p.value")) {
-        # if p-values are to be displayed
-        df_pairwise %<>%
-          dplyr::rename(.data = ., label = p.value.label)
-
-        # for ggsignif
-        textsize <- 3
-        vjust <- 0
-      } else {
-        # otherwise just show the asterisks
-        df_pairwise %<>%
-          dplyr::rename(.data = ., label = significance)
-
-        # for ggsignif
-        textsize <- 4
-        vjust <- 0.2
-      }
-
-      # arrange the dataframe so that annotations are properly aligned
-      df_pairwise %<>%
-        dplyr::arrange(.data = ., group1)
-
-      # retaining data corresponding to the levels of the grouping variable for
-      # which the comparisons are to be drawn
-      data_ggsignif <-
-        dplyr::filter(.data = data, x %in%
-          unique(x = c(levels(
-            as.factor(df_pairwise$group1)
-          ), levels(
-            as.factor(df_pairwise$group2)
-          )))) %>%
-        dplyr::mutate_if(
-          .tbl = .,
-          .predicate = base::is.factor,
-          .funs = ~ as.character(.)
-        ) %>%
-        dplyr::arrange(.data = ., x) %>%
-        tibble::as_tibble(x = .)
-
-      # computing y coordinates for ggsgnif bars
-      ggsignif_y_position <-
-        ggsignif_position_calculator(x = data$x, y = data$y)
-
-      # adding ggsignif comparisons to the plot
-      plot <- plot +
-        ggsignif::geom_signif(
-          comparisons = df_pairwise$groups,
-          map_signif_level = TRUE,
-          textsize = textsize,
-          tip_length = 0.01,
-          vjust = vjust,
-          y_position = ggsignif_y_position,
-          annotations = df_pairwise$label,
-          test = NULL,
-          na.rm = TRUE
-        )
-    }
+    # adding the layer for pairwise comparisons
+    plot <- ggsignif_adder(
+      plot = plot,
+      df_pairwise = df_pairwise,
+      data = data,
+      pairwise.annotation = pairwise.annotation,
+      pairwise.display = pairwise.display
+    )
 
     # preparing the caption for pairwise comparisons test
     caption <-
@@ -705,21 +585,23 @@ ggbetweenstats <- function(data,
 
   # ------------------------ annotations and themes -------------------------
 
-  # specifying theme and labels for the final plot
-  plot <- plot +
-    ggplot2::labs(
-      x = xlab,
-      y = ylab,
+  # specifiying annotations and other aesthetic aspects for the plot
+  plot <-
+    aesthetic_addon(
+      plot = plot,
+      x = data$x,
+      xlab = xlab,
+      ylab = ylab,
       title = title,
       subtitle = subtitle,
       caption = caption,
-      color = xlab
-    ) +
-    ggstatsplot::theme_mprl(
       ggtheme = ggtheme,
-      ggstatsplot.layer = ggstatsplot.layer
-    ) +
-    ggplot2::theme(legend.position = "none")
+      ggstatsplot.layer = ggstatsplot.layer,
+      package = package,
+      palette = palette,
+      direction = direction,
+      ggplot.component = ggplot.component
+    )
 
   # don't do scale restriction in case of post hoc comparisons
   if (isTRUE(axes.range.restrict) && !isTRUE(pairwise.comparisons)) {
@@ -727,25 +609,6 @@ ggbetweenstats <- function(data,
       ggplot2::coord_cartesian(ylim = c(min(data$y), max(data$y))) +
       ggplot2::scale_y_continuous(limits = c(min(data$y), max(data$y)))
   }
-
-  # choosing palette
-  plot <- plot +
-    paletteer::scale_color_paletteer_d(
-      package = !!package,
-      palette = !!palette,
-      direction = direction
-    ) +
-    paletteer::scale_fill_paletteer_d(
-      package = !!package,
-      palette = !!palette,
-      direction = direction
-    )
-
-  # ---------------- adding ggplot component ---------------------------------
-
-  # if any additional modification needs to be made to the plot
-  # this is primarily useful for grouped_ variant of this function
-  plot <- plot + ggplot.component
 
   # --------------------- messages ------------------------------------------
 

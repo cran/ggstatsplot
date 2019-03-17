@@ -5,6 +5,7 @@ context("subtitle_t_parametric")
 testthat::test_that(
   desc = "parametric t-test works (between-subjects without NAs)",
   code = {
+    testthat::skip_on_cran()
 
     # ggstatsplot output
     set.seed(123)
@@ -68,6 +69,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "parametric t-test works (between-subjects with NAs)",
   code = {
+    testthat::skip_on_cran()
 
     # ggstatsplot output
     set.seed(123)
@@ -110,9 +112,9 @@ testthat::test_that(
           "-0.863",
           ", CI"["90%"],
           " [",
-          "-1.015",
+          "-1.014",
           ", ",
-          "-0.714",
+          "-0.713",
           "]",
           ", ",
           italic("n"),
@@ -131,11 +133,12 @@ testthat::test_that(
 testthat::test_that(
   desc = "parametric t-test works (within-subjects without NAs)",
   code = {
+    testthat::skip_on_cran()
 
     # output from ggstatsplot helper subtitle
     set.seed(123)
     subtitle <-
-      ggstatsplot::subtitle_t_parametric(
+      suppressWarnings(ggstatsplot::subtitle_t_parametric(
         data = dplyr::filter(
           ggstatsplot::iris_long,
           condition %in% c("Sepal.Length", "Sepal.Width")
@@ -146,7 +149,7 @@ testthat::test_that(
         effsize.type = "g",
         k = 4,
         conf.level = 0.50
-      )
+      ))
 
     # expected
     expected <- ggplot2::expr(
@@ -164,7 +167,7 @@ testthat::test_that(
         ", ",
         italic("g"),
         " = ",
-        "-2.8282",
+        "2.8282",
         ", CI"["50%"],
         " [",
         "2.7224",
@@ -189,6 +192,7 @@ testthat::test_that(
 testthat::test_that(
   desc = "parametric t-test works (within-subjects with NAs)",
   code = {
+    testthat::skip_on_cran()
 
     # loading the dataset
     data("bugs", package = "jmv")
@@ -228,7 +232,7 @@ testthat::test_that(
         ", ",
         italic("d"),
         " = ",
-        "-0.381",
+        "0.381",
         ", CI"["95%"],
         " [",
         "0.167",
