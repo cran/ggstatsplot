@@ -1,4 +1,63 @@
-# ggstatsplot 0.0.9.9000
+# ggstatsplot 0.0.11
+ 
+BREAKING CHANGES
+
+  - Instead of having two separate functions that dealt with repeated measures
+    (`subtitle_friedman_nonparametric`) and between-subjects
+    (`subtitle_kw_nonparametric`), a single function
+    `subtitle_anova_nonparametric` handles both of these designs with the
+    `paired` argument determining which test is run.
+  - All functions that supported Bayes Factor analysis (`type = "bf"`) will only
+    return BF value and the scale used. Previously, this was a mix of parametric
+    statistics and BF, which was confusing and often times misleading since
+    these two types of analyses relied on different tests.
+  - The default for `bf.message` has been changed from `FALSE` to `TRUE`. This
+    is to make the Bayes Factor analysis more visible to the user.
+    
+MAJOR CHANGES
+
+  - `ggscatterstats` returns only plot (without any statistical details) when
+    the specified model is not linear (i.e., either when `method` argument is
+    not `"lm"` or when `formula` is not `y ~ x`).
+
+NEW FEATURES
+
+  - New functions `ggwithinstats` (and its `grouped_` variant) are introduced as
+    a counterpart to `ggbetweenstats` to handle repeated measures designs.
+  - For repeated measures ANOVA, `subtitle_anova_nonparametric` now returns
+    confidence intervals for Kendall's *W*.
+  - All functions get `return` argument that can be used to return either
+    `"plot"`, `"subtitle"`, or `"caption"`. This makes it unnecessary to
+    remember which subtitle function is to be used where. As a result, in the
+    next release, all subtitle making functions will not be exported and are
+    encouraged not be used either by other developers or by users.
+  - Both `subtitle_anova_robust` and `subtitle_anova_parametric` gain a new
+    argument `paired` to support repeated measures designs.
+  - `ggcoefstats` can support following new model objects: `drc`, `mlm`.
+  - `ggcoefstats` gains `bf.message` argument to display a caption containing
+    results from Bayesian random-effects meta-analysis. It therefore gains a new
+    dependency: `metaBMA`.
+  - `ggpiestats` and `ggcatstats` will now display Cramer's *V* as effect size
+    for one-sample proportion tests.
+  - All functions gain `stat.title` argument (`NULL` by default) that can be
+    used to prefix the subtitle with a string of interest. This is possibly
+    useful for specifying the details of the statistical test.
+
+MINOR CHANGES
+
+  - `pairwise_p()` function no longer outputs `conf.low` and `conf.high` columns
+    when parametric *post hoc* tests are run. This is because these values were
+    accurate only when no *p*-value adjustment was carried out.
+  - Instead of using the internal function `cor_test_ci`, `ggscatterstats`
+    instead used `SpearmanRho` function from `DescTools` package. This was done
+    to reduce number of custom internal functions used to compute CIs for
+    various effect sizes. `ggstatsplot` therefore gains `DescTools` as a
+    dependency.
+  - The `sampling.plan` argument default for `ggbarstats` function has been
+    changed from `"indepMulti"` to `"jointMulti"` to be consistent with its
+    sister function `ggpiestats`.
+  
+# ggstatsplot 0.0.10
 
 NEW FEATURES
 
@@ -24,7 +83,7 @@ MINOR CHANGES
     confidence intervals for *V*. `ggstatsplot`, therefore, gains a new
     dependency.
   - `subtitle_mann_nonparametric` and `subtitle_t_onesample` now computes effect
-    size *r* and its confidence intervals as $Z/\\sqrt{N}$ (with the help of
+    size *r* and its confidence intervals as $Z/\sqrt{N}$ (with the help of
     `rcompanion` package), instead of using Spearman correlation.
 
 # ggstatsplot 0.0.9

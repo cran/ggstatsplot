@@ -35,13 +35,14 @@
 #' @inheritParams histo_labeller
 #' @inheritParams ggbetweenstats
 #'
+#' @seealso \code{\link{grouped_gghistostats}}, \code{\link{ggdotplotstats}},
+#'  \code{\link{grouped_ggdotplotstats}}
+#'
 #' @import ggplot2
 #'
 #' @importFrom dplyr select bind_rows summarize mutate mutate_at mutate_if
 #' @importFrom dplyr group_by n arrange
 #' @importFrom rlang enquo as_name !!
-#' @importFrom jmv ttestOneS
-#' @importFrom WRS2 onesampb
 #' @importFrom scales percent percent_format
 #' @importFrom stats dnorm
 #' @importFrom crayon green blue yellow red
@@ -62,7 +63,6 @@
 #'   x = Sepal.Length,
 #'   bar.measure = "mix",
 #'   type = "p",
-#'   bf.message = TRUE,
 #'   caption = substitute(paste(italic("Note"), ": Iris dataset by Fisher.")),
 #'   bf.prior = 0.8,
 #'   test.value = 3,
@@ -70,8 +70,6 @@
 #'   binwidth = 0.10,
 #'   bar.fill = "grey50"
 #' )
-#' @seealso \code{\link{grouped_gghistostats}}
-#'
 #' @references
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/gghistostats.html}
 #'
@@ -83,13 +81,14 @@ gghistostats <- function(data = NULL,
                          binwidth = NULL,
                          bar.measure = "count",
                          xlab = NULL,
+                         stat.title = NULL,
                          title = NULL,
                          subtitle = NULL,
                          caption = NULL,
                          type = "parametric",
                          test.value = 0,
                          bf.prior = 0.707,
-                         bf.message = FALSE,
+                         bf.message = TRUE,
                          robust.estimator = "onestep",
                          effsize.type = "g",
                          effsize.noncentral = TRUE,
@@ -120,6 +119,7 @@ gghistostats <- function(data = NULL,
                          normal.curve.linetype = "solid",
                          normal.curve.size = 1.0,
                          ggplot.component = NULL,
+                         return = "plot",
                          messages = TRUE) {
 
   # if data is not available then don't display any messages
@@ -191,6 +191,7 @@ gghistostats <- function(data = NULL,
         conf.level = conf.level,
         nboot = nboot,
         k = k,
+        stat.title = stat.title,
         messages = messages
       )
   }
@@ -206,8 +207,8 @@ gghistostats <- function(data = NULL,
   # preparing the basic layout of the plot based on whether counts or density
   # information is needed
 
-  if (bar.measure == "count") {
-    # only counts
+  # only counts
+  if (bar.measure %in% c("counts", "n", "count", "N")) {
     plot <- ggplot2::ggplot(
       data = data,
       mapping = ggplot2::aes(x = x)
@@ -227,8 +228,10 @@ gghistostats <- function(data = NULL,
         low = low.color,
         high = high.color
       )
-  } else if (bar.measure == "proportion") {
-    # only proportion
+  }
+
+  # only proportion
+  if (bar.measure %in% c("percentage", "perc", "proportion", "prop", "%")) {
     plot <- ggplot2::ggplot(
       data = data,
       mapping = ggplot2::aes(x = x)
@@ -251,8 +254,10 @@ gghistostats <- function(data = NULL,
       ) +
       ggplot2::scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
       ggplot2::ylab("proportion")
-  } else if (bar.measure == "density") {
-    # only density
+  }
+
+  # only density
+  if (bar.measure == "density") {
     plot <- ggplot2::ggplot(
       data = data,
       mapping = ggplot2::aes(x = x)
@@ -272,8 +277,10 @@ gghistostats <- function(data = NULL,
         low = low.color,
         high = high.color
       )
-  } else if (bar.measure %in% c("mix", "both", "all")) {
-    # all things combined
+  }
+
+  # all things combined
+  if (bar.measure %in% c("both", "mix", "all", "everything")) {
     plot <- ggplot2::ggplot(
       data = data,
       mapping = ggplot2::aes(x = x)
@@ -322,7 +329,7 @@ gghistostats <- function(data = NULL,
     }
 
     # adding normal curve count & mix
-    if (bar.measure %in% c("mix", "count")) {
+    if (bar.measure %in% c("both", "mix", "all", "everything", "counts", "n", "count", "N")) {
       plot <- plot +
         ggplot2::stat_function(
           fun = function(x, mean, sd, n, bw) {
@@ -342,7 +349,7 @@ gghistostats <- function(data = NULL,
     }
 
     # adding normal curve proportion
-    if (bar.measure == "proportion") {
+    if (bar.measure %in% c("percentage", "perc", "proportion", "prop", "%")) {
       plot <- plot +
         ggplot2::stat_function(
           fun = function(x, mean, sd, n, bw) {
@@ -434,5 +441,11 @@ gghistostats <- function(data = NULL,
   }
 
   # return the final plot
-  return(plot)
+  return(switch(
+    EXPR = return,
+    "plot" = plot,
+    "subtitle" = subtitle,
+    "caption" = caption,
+    plot
+  ))
 }

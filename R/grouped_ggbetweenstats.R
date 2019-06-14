@@ -21,7 +21,8 @@
 #' @importFrom glue glue
 #' @importFrom purrr pmap
 #'
-#' @seealso \code{\link{ggbetweenstats}}
+#' @seealso \code{\link{ggbetweenstats}}, \code{\link{ggwithinstats}},
+#'  \code{\link{grouped_ggwithinstats}}
 #'
 #' @inherit ggbetweenstats return references
 #' @inherit ggbetweenstats return details
@@ -37,10 +38,9 @@
 #'   x = year,
 #'   y = hwy,
 #'   grouping.var = drv,
-#'   conf.level = 0.99,
-#'   bf.message = TRUE
+#'   conf.level = 0.99
 #' )
-#' \dontrun{
+#' \donttest{
 #' # modifying individual plots using `ggplot.component` argument
 #' ggstatsplot::grouped_ggbetweenstats(
 #'   data = dplyr::filter(
@@ -75,11 +75,12 @@ grouped_ggbetweenstats <- function(data,
                                    partial = TRUE,
                                    effsize.noncentral = TRUE,
                                    bf.prior = 0.707,
-                                   bf.message = FALSE,
+                                   bf.message = TRUE,
                                    results.subtitle = TRUE,
                                    xlab = NULL,
                                    ylab = NULL,
                                    subtitle = NULL,
+                                   stat.title = NULL,
                                    caption = NULL,
                                    sample.size.label = TRUE,
                                    k = 2,
@@ -87,6 +88,8 @@ grouped_ggbetweenstats <- function(data,
                                    conf.level = 0.95,
                                    nboot = 100,
                                    tr = 0.1,
+                                   sort = "none",
+                                   sort.fun = mean,
                                    axes.range.restrict = FALSE,
                                    mean.label.size = 3,
                                    mean.label.fontface = "bold",
@@ -113,22 +116,23 @@ grouped_ggbetweenstats <- function(data,
                                    palette = "Dark2",
                                    direction = 1,
                                    ggplot.component = NULL,
+                                   return = "plot",
                                    messages = TRUE,
                                    ...) {
 
   # =================== check user input and prep =========================
 
   # create a list of function call to check
-  param_list <- base::as.list(base::match.call())
+  param_list <- as.list(match.call())
 
   # check that there is a grouping.var
   if (!"grouping.var" %in% names(param_list)) {
-    base::stop("You must specify a grouping variable")
+    stop("You must specify a grouping variable")
   }
 
   # check that conditioning and grouping.var are different
   if (as.character(param_list$x) == as.character(param_list$grouping.var)) {
-    base::message(cat(
+    message(cat(
       crayon::red("\nError: "),
       crayon::blue(
         "Identical variable (",
@@ -137,7 +141,7 @@ grouped_ggbetweenstats <- function(data,
       ),
       sep = ""
     ))
-    base::return(base::invisible(param_list$x))
+    return(invisible(param_list$x))
   }
 
   # ensure the grouping variable works quoted or unquoted
@@ -219,6 +223,7 @@ grouped_ggbetweenstats <- function(data,
       xlab = xlab,
       ylab = ylab,
       subtitle = subtitle,
+      stat.title = stat.title,
       caption = caption,
       sample.size.label = sample.size.label,
       k = k,
@@ -226,6 +231,8 @@ grouped_ggbetweenstats <- function(data,
       conf.level = conf.level,
       nboot = nboot,
       tr = tr,
+      sort = sort,
+      sort.fun = sort.fun,
       axes.range.restrict = axes.range.restrict,
       mean.label.size = mean.label.size,
       mean.label.fontface = mean.label.fontface,
@@ -250,22 +257,26 @@ grouped_ggbetweenstats <- function(data,
       palette = palette,
       direction = direction,
       ggplot.component = ggplot.component,
+      return = return,
       messages = messages
     )
 
   # combining the list of plots into a single plot
-  combined_plot <-
-    ggstatsplot::combine_plots(
-      plotlist = plotlist_purrr,
-      ...
-    )
+  if (return == "plot") {
+    combined_object <-
+      ggstatsplot::combine_plots(
+        plotlist = plotlist_purrr,
+        ...
+      )
 
-  # show the note about grouped_ variant producing object which is not of
-  # class ggplot
-  if (isTRUE(messages)) {
-    grouped_message()
+    # inform user this can't be modified further with ggplot commands
+    if (isTRUE(messages)) {
+      grouped_message()
+    }
+  } else {
+    combined_object <- plotlist_purrr
   }
 
   # return the combined plot
-  return(combined_plot)
+  return(combined_object)
 }

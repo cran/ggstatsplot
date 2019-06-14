@@ -29,14 +29,18 @@
 #' @importFrom tidyr uncount drop_na
 #' @importFrom jmv propTestN contTables
 #' @importFrom stats mcnemar.test chisq.test
-#' @importFrom rcompanion cramerV
+#' @importFrom rcompanion cramerV cohenG
 #'
 #' @seealso \code{\link{ggpiestats}}
+#'
+#' @details For more details about how the effect sizes and their confidence
+#'   intervals were computed, see documentation in `?rcompanion::cramerV` and
+#'   `?rcompanion::cohenG`.
 #'
 #' @examples
 #'
 #' # without counts data
-#' subtitle_contingency_tab(
+#' ggstatsplot::subtitle_contingency_tab(
 #'   data = mtcars,
 #'   main = am,
 #'   condition = cyl,
@@ -96,17 +100,17 @@ subtitle_contingency_tab <- function(data,
     tibble::as_tibble(x = .)
 
   # condition
-  if (!base::missing(condition)) {
+  if (!missing(condition)) {
     data %<>%
       dplyr::mutate(.data = ., condition = droplevels(as.factor(condition)))
 
     # in case there is no variation, no subtitle will be shown
     if (length(unique(levels(data$condition))) == 1L) {
       # display message
-      base::message(cat(
+      message(cat(
         crayon::red("Error: "),
         crayon::blue("Row variable 'condition' contains less than 2 levels.\n"),
-        crayon::blue("Chi-squared test can't be run; no subtitle displayed.\n"),
+        crayon::blue("Chi-squared test can't be run; no subtitle displayed."),
         sep = ""
       ))
 
@@ -120,8 +124,8 @@ subtitle_contingency_tab <- function(data,
 
   # ============================ converting counts ===========================
 
-  # untable the dataframe based on the count for each obervation
-  if (!base::missing(counts)) {
+  # untable the dataframe based on the count for each observation
+  if (!missing(counts)) {
     data %<>%
       tidyr::uncount(
         data = .,
@@ -140,7 +144,7 @@ subtitle_contingency_tab <- function(data,
   # running Pearson's Chi-square test of independence
   if (!isTRUE(paired)) {
 
-    # object contatining stats
+    # object containing stats
     stats_df <-
       broomExtra::tidy(stats::chisq.test(
         x = data$main,
@@ -166,10 +170,16 @@ subtitle_contingency_tab <- function(data,
           digits = k,
           bias.correct = bias.correct
         ) %>%
-          tibble::as_tibble(x = .),
+          tibble::as_tibble(x = .) %>%
+          dplyr::rename(
+            .data = .,
+            estimate = Cramer.V,
+            conf.low = lower.ci,
+            conf.high = upper.ci
+          ),
         error = function(x) {
           tibble::tribble(
-            ~r, ~lower.ci, ~upper.ci,
+            ~estimate, ~conf.low, ~conf.high,
             NaN, NaN, NaN
           )
         }
@@ -201,25 +211,26 @@ subtitle_contingency_tab <- function(data,
     ))
 
     # computing effect size + CI
-    effsize_df <-
-      tryCatch(
-        expr = cohenG_ci(
-          x = mat_df,
-          nboot = nboot,
-          conf.level = conf.level,
-          conf.type = conf.type
-        ) %>%
-          tibble::as_tibble(x = .),
-        error = function(x) {
-          tibble::tribble(
-            ~r, ~lower.ci, ~upper.ci,
-            NaN, NaN, NaN
-          )
-        }
-      )
+    effsize_df <- rcompanion::cohenG(
+      x = mat_df,
+      ci = TRUE,
+      conf = conf.level,
+      type = conf.type,
+      R = nboot,
+      histogram = FALSE,
+      digits = 5
+    )$Global.statistics %>%
+      tibble::as_tibble(x = .) %>%
+      dplyr::rename(
+        .data = .,
+        estimate = Value,
+        conf.low = lower.ci,
+        conf.high = upper.ci
+      ) %>%
+      dplyr::filter(.data = ., Statistic == "g")
   }
 
-  # effct size text
+  # effect size text
   if (isTRUE(paired)) {
     effsize.text <- quote(italic("g")["Cohen"])
   } else {
@@ -235,9 +246,9 @@ subtitle_contingency_tab <- function(data,
     parameter = stats_df$parameter[[1]],
     p.value = stats_df$p.value[[1]],
     effsize.text = effsize.text,
-    effsize.estimate = effsize_df$r[[1]],
-    effsize.LL = effsize_df$lower.ci[[1]],
-    effsize.UL = effsize_df$upper.ci[[1]],
+    effsize.estimate = effsize_df$estimate[[1]],
+    effsize.LL = effsize_df$conf.low[[1]],
+    effsize.UL = effsize_df$conf.high[[1]],
     n = sample_size,
     conf.level = conf.level,
     k = k,
@@ -265,18 +276,31 @@ subtitle_contingency_tab <- function(data,
 #' @param legend.title Title text for the legend.
 #' @inheritParams subtitle_contingency_tab
 #'
+#' @importFrom ellipsis check_dots_used
+#' @importFrom rlang !! enquo as_name ensym
+#' @importFrom tibble as_tibble rownames_to_column
+#' @importFrom tidyr uncount drop_na gather spread
+#' @importFrom rcompanion cramerVFit
+#' @importFrom jmv propTestN
+#'
+#' @details For more details about how the effect sizes and their confidence
+#'   intervals were computed, see documentation in `?rcompanion::cramerVFit`.
+#'
 #' @examples
 #'
-#' # with counts
+#' # for reproducibility
+#' set.seed(123)
 #' library(jmv)
 #'
+#' # with counts
 #' subtitle_onesample_proptest(
 #'   data = as.data.frame(HairEyeColor),
 #'   main = Eye,
-#'   counts = Freq
+#'   counts = Freq,
+#'   ratio = c(0.2, 0.2, 0.3, 0.3)
 #' )
 #'
-#' # in case no variation, only sample size will be shown
+#' # in case of no variation, only sample size will be shown
 #' subtitle_onesample_proptest(
 #'   data = cbind.data.frame(x = rep("a", 10)),
 #'   main = x
@@ -288,8 +312,13 @@ subtitle_onesample_proptest <- function(data,
                                         main,
                                         counts = NULL,
                                         ratio = NULL,
+                                        conf.level = 0.95,
+                                        conf.type = "norm",
+                                        nboot = 100,
+                                        stat.title = NULL,
                                         legend.title = NULL,
                                         k = 2,
+                                        messages = TRUE,
                                         ...) {
   ellipsis::check_dots_used()
 
@@ -311,8 +340,8 @@ subtitle_onesample_proptest <- function(data,
 
   # ====================== converting counts ================================
 
-  # untable the dataframe based on the count for each obervation
-  if (!base::missing(counts)) {
+  # untable the dataframe based on the count for each observation
+  if (!missing(counts)) {
     data %<>%
       tidyr::uncount(
         data = .,
@@ -328,6 +357,11 @@ subtitle_onesample_proptest <- function(data,
   # sample size
   sample_size <- nrow(data)
 
+  # ratio
+  if (is.null(ratio)) {
+    ratio <- rep(1 / length(table(data$main)), length(table(data$main)))
+  }
+
   # conducting proportion test with jmv::propTestN()
   stats_df <-
     jmv::propTestN(
@@ -338,57 +372,70 @@ subtitle_onesample_proptest <- function(data,
     )
 
   # extracting the results
-  stats_df <- tibble::as_tibble(as.data.frame(stats_df$tests))
+  stats_df <-
+    tibble::as_tibble(as.data.frame(stats_df$tests)) %>%
+    dplyr::rename(.data = ., statistic = chi, parameter = df, p.value = p)
 
   # if there is no value corresponding to one of the levels of the 'main'
   # variable, then no subtitle is needed
-  if (is.nan(stats_df$chi[[1]])) {
+  if (is.nan(stats_df$statistic[[1]])) {
     subtitle <-
-      base::substitute(
-        expr =
-          paste(
-            italic("n"),
-            " = ",
-            n
-          ),
-        env = base::list(n = sample_size)
+      substitute(
+        expr = paste(italic("n"), " = ", n),
+        env = list(n = sample_size)
       )
 
     # display message
-    base::message(cat(
+    message(cat(
       crayon::red("Warning: "),
       crayon::blue("Proportion test will not be run because it requires "),
       crayon::yellow(legend.title),
-      crayon::blue(" to have at least \n2 levels with non-zero frequencies.\n"),
+      crayon::blue(" to have at least \n2 levels with non-zero frequencies."),
       sep = ""
     ))
   } else {
-    # preparing proportion test subtitle for the plot
-    subtitle <-
-      base::substitute(
-        expr =
-          paste(
-            italic(chi)^2,
-            "(",
-            df,
-            ") = ",
-            estimate,
-            ", ",
-            italic("p"),
-            " = ",
-            p.value,
-            ", ",
-            italic("n"),
-            " = ",
-            n
-          ),
-        env = base::list(
-          estimate = specify_decimal_p(x = stats_df$chi[[1]], k = k),
-          df = stats_df$df[[1]],
-          p.value = specify_decimal_p(x = stats_df$p[[1]], k = k, p.value = TRUE),
-          n = sample_size
-        )
+
+    # dataframe with effect size and its confidence intervals
+    effsize_df <- rcompanion::cramerVFit(
+      x = as.vector(table(data$main)),
+      p = ratio,
+      ci = TRUE,
+      conf = conf.level,
+      type = conf.type,
+      R = nboot,
+      histogram = FALSE,
+      digits = 5
+    ) %>%
+      tibble::as_tibble(x = .) %>%
+      dplyr::rename(
+        .data = .,
+        estimate = Cramer.V,
+        conf.low = lower.ci,
+        conf.high = upper.ci
       )
+
+    # message about effect size measure
+    if (isTRUE(messages)) {
+      effsize_ci_message(nboot = nboot, conf.level = conf.level)
+    }
+
+    # preparing subtitle
+    subtitle <- subtitle_template(
+      no.parameters = 1L,
+      stat.title = stat.title,
+      statistic.text = quote(italic(chi)^2),
+      statistic = stats_df$statistic[[1]],
+      parameter = stats_df$parameter[[1]],
+      p.value = stats_df$p.value[[1]],
+      effsize.text = quote(italic("V")["Cramer"]),
+      effsize.estimate = effsize_df$estimate[[1]],
+      effsize.LL = effsize_df$conf.low[[1]],
+      effsize.UL = effsize_df$conf.high[[1]],
+      n = sample_size,
+      conf.level = conf.level,
+      k = k,
+      k.parameter = 0L
+    )
   }
 
   # return the subtitle text

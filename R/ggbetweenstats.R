@@ -31,10 +31,11 @@
 #'   argument to make sure that your plot is not uber-cluttered when you have
 #'   multiple groups being compared and scores of pairwise comparisons being
 #'   displayed.
-#' @param bf.prior A number between 0.5 and 2 (default `0.707`), the prior width
-#'   to use in calculating Bayes factors.
+#' @param bf.prior A number between `0.5` and `2` (default `0.707`), the prior
+#'   width to use in calculating Bayes factors.
 #' @param bf.message Logical that decides whether to display Bayes Factor in
-#'   favor of the *null* hypothesis **for parametric test** (Default: `FALSE`).
+#'   favor of the *null* hypothesis. This argument is relevant only **for
+#'   parametric test** (Default: `TRUE`).
 #' @param results.subtitle Decides whether the results of statistical tests are
 #'   to be displayed as a subtitle (Default: `TRUE`). If set to `FALSE`, only
 #'   the plot will be returned.
@@ -100,6 +101,17 @@
 #'   values ranges to `min` and `max` values of the axes variables (Default:
 #'   `FALSE`), only relevant for functions where axes variables are of numeric
 #'   type.
+#' @param sort If `"ascending"` (default), `x`-axis variable factor levels will
+#'   be sorted based on increasing values of `y`-axis variable. If
+#'   `"descending"`, the opposite. If `"none"`, no sorting will happen.
+#' @param sort.fun The function used to sort (default: `mean`).
+#' @param return Character that describes what is to be returned: can be
+#'   `"plot"` (default) or `"subtitle"` or `"caption"`. Setting this to
+#'   `"subtitle"` will return the expression containing statistical results,
+#'   which will be a `NULL` if you set `results.subtitle = FALSE`. Setting this
+#'   to `"caption"` will return the expression containing details about Bayes
+#'   Factor analysis, but valid only when `type = "p"` and `bf.message = TRUE`,
+#'   otherwise this will return a `NULL`.
 #' @inheritParams paletteer::scale_color_paletteer_d
 #' @inheritParams theme_ggstatsplot
 #' @inheritParams t1way_ci
@@ -110,8 +122,6 @@
 #'
 #' @importFrom dplyr select group_by arrange mutate mutate_at mutate_if
 #' @importFrom ggrepel geom_label_repel
-#' @importFrom WRS2 t1way yuen yuen.effect.ci
-#' @importFrom sjstats eta_sq omega_sq
 #' @importFrom stats na.omit t.test oneway.test
 #' @importFrom rlang enquo quo_name as_name !!
 #' @importFrom ggrepel geom_label_repel
@@ -120,11 +130,10 @@
 #' @importFrom ggsignif geom_signif
 #' @importFrom purrrlyr by_row
 #'
-#' @seealso \code{\link{grouped_ggbetweenstats}},
-#'  \code{\link{pairwise_p}}
+#' @seealso \code{\link{grouped_ggbetweenstats}}, \code{\link{ggwithinstats}},
+#'  \code{\link{grouped_ggwithinstats}}, \code{\link{pairwise_p}}
 #'
 #' @details
-#'
 #' For parametric tests, Welch's ANOVA/*t*-test are used as a default (i.e.,
 #' `var.equal = FALSE`).
 #' References:
@@ -140,10 +149,10 @@
 #'  \item *t*-test: Yuen's test for trimmed means (see `?WRS2::yuen`)
 #'  }
 #'
-#' Variant of this function `ggwithinstats` is currently in progress. You *can*
-#' still use this function just to prepare the **plot** for exploratory data
-#' analysis, but the statistical details displayed in the subtitle will be
-#' incorrect. You can remove them by adding `+ ggplot2::labs(subtitle = NULL)`.
+#'  For more about how the effect size measures (for nonparametric tests) and
+#'  their confidence intervals are computed, see `?rcompanion::wilcoxonR`.
+#'
+#'  For repeated measures designs, use `ggwithinstats`.
 #'
 #' @references
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggbetweenstats.html}
@@ -152,6 +161,7 @@
 #'
 #' # to get reproducible results from bootstrapping
 #' set.seed(123)
+#' library(ggstatsplot)
 #'
 #' # simple function call with the defaults
 #' ggstatsplot::ggbetweenstats(
@@ -159,10 +169,9 @@
 #'   x = am,
 #'   y = mpg,
 #'   title = "Fuel efficiency by type of car transmission",
-#'   caption = "Transmission (0 = automatic, 1 = manual)",
-#'   bf.message = TRUE
+#'   caption = "Transmission (0 = automatic, 1 = manual)"
 #' )
-#' \dontrun{
+#' \donttest{
 #' # more detailed function call
 #' ggstatsplot::ggbetweenstats(
 #'   data = datasets::morley,
@@ -179,8 +188,7 @@
 #'   outlier.label = Run,
 #'   nboot = 10,
 #'   ggtheme = ggplot2::theme_grey(),
-#'   ggstatsplot.layer = FALSE,
-#'   bf.message = TRUE
+#'   ggstatsplot.layer = FALSE
 #' )
 #' }
 #' @export
@@ -199,19 +207,22 @@ ggbetweenstats <- function(data,
                            partial = TRUE,
                            effsize.noncentral = TRUE,
                            bf.prior = 0.707,
-                           bf.message = FALSE,
+                           bf.message = TRUE,
                            results.subtitle = TRUE,
                            xlab = NULL,
                            ylab = NULL,
                            caption = NULL,
                            title = NULL,
                            subtitle = NULL,
+                           stat.title = NULL,
                            sample.size.label = TRUE,
                            k = 2,
                            var.equal = FALSE,
                            conf.level = 0.95,
                            nboot = 100,
                            tr = 0.1,
+                           sort = "none",
+                           sort.fun = mean,
                            axes.range.restrict = FALSE,
                            mean.label.size = 3,
                            mean.label.fontface = "bold",
@@ -238,6 +249,7 @@ ggbetweenstats <- function(data,
                            palette = "Dark2",
                            direction = 1,
                            ggplot.component = NULL,
+                           return = "plot",
                            messages = TRUE) {
 
   # no pairwise comparisons are available for bayesian t-tests
@@ -288,7 +300,29 @@ ggbetweenstats <- function(data,
       outlier.label = outlier.label
     )
 
-  # -------------------------------- plot -----------------------------------
+  # figure out which test to run based on the number of levels of the
+  # independent variables
+  if (length(levels(as.factor(data$x))) < 3) {
+    test <- "t-test"
+  } else {
+    test <- "anova"
+  }
+
+  # --------------------------------- sorting --------------------------------
+
+  # if sorting is happening
+  if (sort != "none") {
+    data %<>%
+      sort_xy(
+        data = .,
+        x = x,
+        y = y,
+        sort = sort,
+        sort.fun = sort.fun
+      )
+  }
+
+  # -------------------------- basic plot -----------------------------------
 
   # create the basic plot
   plot <-
@@ -395,26 +429,18 @@ ggbetweenstats <- function(data,
       ggbetweenstats_geom_violin
   }
 
-  # --------------------- subtitle preparation -------------------------------
+  # --------------------- subtitle/caption preparation ------------------------
 
   if (isTRUE(results.subtitle)) {
-    # figure out which test to run based on the number of levels of the
-    # independent variables
-    if (length(levels(as.factor(data$x))) < 3) {
-      test <- "t-test"
-    } else {
-      test <- "anova"
-    }
 
     # figuring out which effect size to use
     effsize.type <- effsize_type_switch(effsize.type)
 
     # preparing the bayes factor message
-    if (test == "t-test") {
-
+    if (type %in% c("parametric", "p") && isTRUE(bf.message)) {
       # preparing the BF message for null
-      if (isTRUE(bf.message)) {
-        bf.caption.text <-
+      if (test == "t-test") {
+        caption <-
           bf_two_sample_ttest(
             data = data,
             x = x,
@@ -425,11 +451,9 @@ ggbetweenstats <- function(data,
             output = "caption",
             k = k
           )
-      }
-    } else if (test == "anova") {
-      # preparing the BF message for null
-      if (isTRUE(bf.message)) {
-        bf.caption.text <-
+      } else if (test == "anova") {
+        # preparing the BF message for null
+        caption <-
           bf_oneway_anova(
             data = data,
             x = x,
@@ -443,34 +467,28 @@ ggbetweenstats <- function(data,
     }
 
     # extracting the subtitle using the switch function
-    if (isTRUE(results.subtitle)) {
-      subtitle <-
-        ggbetweenstats_switch(
-          # switch based on
-          type = type,
-          test = test,
-          # arguments relevant for subtitle helper functions
-          data = data,
-          x = x,
-          y = y,
-          paired = FALSE,
-          effsize.type = effsize.type,
-          partial = partial,
-          effsize.noncentral = effsize.noncentral,
-          var.equal = var.equal,
-          bf.prior = bf.prior,
-          tr = tr,
-          nboot = nboot,
-          conf.level = conf.level,
-          k = k,
-          messages = messages
-        )
-    }
-
-    # if bayes factor message needs to be displayed
-    if (type %in% c("parametric", "p") && isTRUE(bf.message)) {
-      caption <- bf.caption.text
-    }
+    subtitle <-
+      ggbetweenstats_switch(
+        # switch based on
+        type = type,
+        test = test,
+        # arguments relevant for subtitle helper functions
+        data = data,
+        x = x,
+        y = y,
+        paired = FALSE,
+        effsize.type = effsize.type,
+        partial = partial,
+        effsize.noncentral = effsize.noncentral,
+        var.equal = var.equal,
+        bf.prior = bf.prior,
+        tr = tr,
+        nboot = nboot,
+        conf.level = conf.level,
+        stat.title = stat.title,
+        k = k,
+        messages = messages
+      )
   } else {
     test <- "none"
   }
@@ -585,23 +603,25 @@ ggbetweenstats <- function(data,
 
   # ------------------------ annotations and themes -------------------------
 
-  # specifiying annotations and other aesthetic aspects for the plot
-  plot <-
-    aesthetic_addon(
-      plot = plot,
-      x = data$x,
-      xlab = xlab,
-      ylab = ylab,
-      title = title,
-      subtitle = subtitle,
-      caption = caption,
-      ggtheme = ggtheme,
-      ggstatsplot.layer = ggstatsplot.layer,
-      package = package,
-      palette = palette,
-      direction = direction,
-      ggplot.component = ggplot.component
-    )
+  # specifying annotations and other aesthetic aspects for the plot
+  if (return == "plot") {
+    plot <-
+      aesthetic_addon(
+        plot = plot,
+        x = data$x,
+        xlab = xlab,
+        ylab = ylab,
+        title = title,
+        subtitle = subtitle,
+        caption = caption,
+        ggtheme = ggtheme,
+        ggstatsplot.layer = ggstatsplot.layer,
+        package = package,
+        palette = palette,
+        direction = direction,
+        ggplot.component = ggplot.component
+      )
+  }
 
   # don't do scale restriction in case of post hoc comparisons
   if (isTRUE(axes.range.restrict) && !isTRUE(pairwise.comparisons)) {
@@ -613,7 +633,6 @@ ggbetweenstats <- function(data,
   # --------------------- messages ------------------------------------------
 
   if (isTRUE(messages)) {
-
     # display normality test result as a message
     normality_message(
       x = data$y,
@@ -634,5 +653,11 @@ ggbetweenstats <- function(data,
   }
 
   # return the final plot
-  return(plot)
+  return(switch(
+    EXPR = return,
+    "plot" = plot,
+    "subtitle" = subtitle,
+    "caption" = caption,
+    plot
+  ))
 }

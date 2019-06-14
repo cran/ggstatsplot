@@ -106,17 +106,17 @@ The `type` (of test) argument also accepts the following abbreviations: `"p"`
 *robust*).
 
 **Important**: 
-In contrast to all other functions in this package, the
-`ggscatterstats` function returns object that is **not** further modifiable
-with `ggplot2`. This can be avoided by not plotting the marginal distributions
-(`marginal = FALSE`). Currently trying to find a workaround this problem.
+In contrast to all other functions in this package, the `ggscatterstats`
+function returns object that is **not** further modifiable with `ggplot2`. This
+can be avoided by not plotting the marginal distributions (`marginal = FALSE`).
+Currently trying to find a workaround this problem.
 
-**Using `ggscatterstats()` in R Notebooks or Rmarkdown**
+## Using `ggscatterstats` in `R Notebook` or `R Markdown`
 
-If you try including a `ggscatterstats()` plot inside an R Notebook or
-Rmarkdown code chunk, you'll notice that the plot doesn't get output. In
-order to get a `ggscatterstats()` to show up in an these contexts, you need
-to save the ggscatterstats plot as a variable in one code chunk, and
+If you try including a `ggscatterstats()` plot inside an `R Notebook` or
+`R Markdown` code chunk, you'll notice that the plot doesn't get output. In
+order to get a `ggscatterstats()` to show up in these contexts, you need
+to save the `ggscatterstats` plot as a variable in one code chunk, and
 explicitly print it using the `grid` package in another chunk, like
 this:
 
@@ -207,6 +207,19 @@ can be easily done using `purrr`.
 See the associated vignette here:
 <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/purrr_examples.html>
 
+## Summary of tests
+
+Following tests are carried out for each type of analyses. Additionally, the
+correlation coefficients (and their confidence intervals) are used as effect
+sizes-
+
+Type | Test | CI?
+----------- | ------------------------- | ---
+Parametric | Pearson's correlation coefficient | <font color="green">Yes<font>
+Non-parametric | Spearman's rank correlation coefficient | <font color="green">Yes<font>
+Robust | Percentage bend correlation coefficient | <font color="green">Yes<font>
+Bayes Factor | Pearson's correlation coefficient | <font color="red">No<font>
+
 ## Different smoothing methods
 
 Additionally, different smoothing methods can be specified. For example, if a
@@ -246,7 +259,6 @@ plot_list2 <- purrr::pmap(
                    y ~ x + I(x ^ 2)),
     line.color = list("#009E73", "#F0E442", "#0072B2", "#D55E00"),
     marginal = FALSE,
-    results.subtitle = FALSE,
     messages = FALSE
   ),
   .f = ggstatsplot::ggscatterstats

@@ -5,7 +5,7 @@
 \title{Bayesian two-samples \emph{t}-test.}
 \usage{
 bf_two_sample_ttest(data, x, y, paired = FALSE, bf.prior = 0.707,
-  caption = NULL, output = "caption", k = 2, ...)
+  caption = NULL, output = "null", k = 2, ...)
 }
 \arguments{
 \item{data}{for use with \code{formula}, a data frame containing all the
@@ -18,14 +18,15 @@ paired)}
 
 \item{paired}{if \code{TRUE}, observations are paired}
 
-\item{bf.prior}{A number between 0.5 and 2 (default \code{0.707}), the prior width
-to use in calculating Bayes factors.}
+\item{bf.prior}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
+width to use in calculating Bayes factors.}
 
 \item{caption}{The text for the plot caption.}
 
-\item{output}{Can either be \code{"caption"} (which will contain text for evidence
-in favor of null)  or \code{"results"} (which will return the dataframe with
-results).}
+\item{output}{Can either be \code{"null"} (or \code{"caption"} or \code{"H0"}, which will
+contain text for evidence in favor of the null hypothesis or H0)  or
+\code{"alternative"} (or \code{"title"} or \code{"H1"}) or \code{"results"}, which will return
+a dataframe with results all the details).}
 
 \item{k}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2}).}

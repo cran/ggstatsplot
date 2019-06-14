@@ -10,15 +10,13 @@ testthat::test_that(
     # Hedge's g and non-central
     set.seed(123)
     using_function1 <-
-      suppressWarnings(
-        ggstatsplot::subtitle_t_onesample(
-          data = movies_long,
-          x = length,
-          test.value = 120,
-          type = "p",
-          k = 5,
-          messages = FALSE
-        )
+      ggstatsplot::subtitle_t_onesample(
+        data = movies_long,
+        x = length,
+        test.value = 120,
+        type = "p",
+        k = 5,
+        messages = FALSE
       )
 
     set.seed(123)
@@ -215,15 +213,13 @@ testthat::test_that(
     # ggstatsplot output
     set.seed(123)
     using_function <-
-      suppressWarnings(
-        ggstatsplot::subtitle_t_onesample(
-          data = ToothGrowth,
-          x = len,
-          test.value = 20,
-          type = "np",
-          k = 4,
-          messages = TRUE
-        )
+      ggstatsplot::subtitle_t_onesample(
+        data = ToothGrowth,
+        x = len,
+        test.value = 20,
+        type = "np",
+        k = 4,
+        messages = TRUE
       )
 
     # expected output
@@ -242,12 +238,12 @@ testthat::test_that(
           ", ",
           italic(r),
           " = ",
-          "0.1264",
+          "-0.1264",
           ", CI"["95%"],
           " [",
-          "-0.1279",
+          "-0.3805",
           ", ",
-          "0.3150",
+          "0.1545",
           "]",
           ", ",
           italic("n"),
@@ -272,15 +268,14 @@ testthat::test_that(
     # ggstatsplot output
     set.seed(123)
     using_function <-
-      suppressWarnings(
-        ggstatsplot::subtitle_t_onesample(
-          data = anscombe,
-          x = x1,
-          test.value = 8,
-          type = "r",
-          k = 4,
-          messages = TRUE
-        )
+      ggstatsplot::subtitle_t_onesample(
+        data = anscombe,
+        x = x1,
+        test.value = 8,
+        type = "r",
+        k = 4,
+        conf.level = 0.99,
+        messages = TRUE
       )
 
     # expected output
@@ -291,11 +286,11 @@ testthat::test_that(
           italic("M")[robust],
           " = ",
           "9.0000",
-          ", CI"["95%"],
+          ", CI"["99%"],
           " [",
-          "6.9545",
+          "6.0128",
           ", ",
-          "11.3845",
+          "11.6299",
           "], ",
           italic("p"),
           " = ",
@@ -322,44 +317,31 @@ testthat::test_that(
     # ggstatsplot output
     set.seed(123)
     using_function <-
-      suppressWarnings(
-        ggstatsplot::subtitle_t_onesample(
-          data = anscombe,
-          x = x2,
-          test.value = 8,
-          type = "bf",
-          messages = FALSE
-        )
+      ggstatsplot::subtitle_t_onesample(
+        data = anscombe,
+        x = x2,
+        test.value = 8,
+        type = "bf",
+        messages = FALSE
       )
 
     # expected output
     set.seed(123)
     results <-
-      ggplot2::expr(
-        paste(
-          italic("t"),
-          "(",
-          10,
-          ") = ",
-          "1.00",
-          ", log"["e"],
+      ggplot2::expr(atop(
+        displaystyle(NULL),
+        expr = paste(
+          "In favor of alternative: ",
+          "log"["e"],
           "(BF"["10"],
           ") = ",
           "-0.80",
           ", ",
           italic("r")["Cauchy"],
           " = ",
-          "0.71",
-          ", ",
-          italic("d"),
-          " = ",
-          "0.30",
-          ", ",
-          italic("n"),
-          " = ",
-          11L
+          "0.71"
         )
-      )
+      ))
 
     # testing overall call
     testthat::expect_identical(using_function, results)

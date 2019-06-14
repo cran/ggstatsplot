@@ -16,9 +16,9 @@
 #' @importFrom rlang !! enquo quo_name ensym
 #' @importFrom glue glue
 #' @importFrom purrr map set_names
-#' @importFrom tidyr nest
 #'
-#' @seealso \code{\link{ggbarstats}}
+#' @seealso \code{\link{ggbarstats}}, \code{\link{ggpiestats}},
+#'  \code{\link{grouped_ggpiestats}}
 #'
 #' @inherit ggbarstats return references
 #' @inherit ggbarstats return details
@@ -26,7 +26,7 @@
 #'
 #' @examples
 #'
-#' \dontrun{
+#' \donttest{
 #' # with condition and with count data
 #' library(jmv)
 #'
@@ -54,10 +54,9 @@
 #'   main = color,
 #'   condition = clarity,
 #'   grouping.var = cut,
-#'   bf.message = TRUE,
 #'   sampling.plan = "poisson",
 #'   title.prefix = "Quality",
-#'   data.label = "both",
+#'   bar.label = "both",
 #'   messages = FALSE,
 #'   perc.k = 1,
 #'   nrow = 2
@@ -83,8 +82,8 @@ grouped_ggbarstats <- function(data,
                                label.fill.color = "white",
                                label.fill.alpha = 1,
                                bar.outline.color = "black",
-                               bf.message = FALSE,
-                               sampling.plan = "jointMulti",
+                               bf.message = TRUE,
+                               sampling.plan = "indepMulti",
                                fixed.margin = "rows",
                                prior.concentration = 1,
                                subtitle = NULL,
@@ -100,7 +99,8 @@ grouped_ggbarstats <- function(data,
                                ylab = "Percent",
                                k = 2,
                                perc.k = 0,
-                               data.label = "percentage",
+                               bar.label = "percentage",
+                               data.label = NULL,
                                bar.proptest = TRUE,
                                ggtheme = ggplot2::theme_bw(),
                                ggstatsplot.layer = TRUE,
@@ -108,23 +108,24 @@ grouped_ggbarstats <- function(data,
                                palette = "Dark2",
                                direction = 1,
                                ggplot.component = NULL,
+                               return = "plot",
                                messages = TRUE,
                                ...) {
 
   # ======================== check user input =============================
 
   # create a list of function call to check
-  param_list <- base::as.list(base::match.call())
+  param_list <- as.list(match.call())
 
   # check that there is a grouping.var
   if (!"grouping.var" %in% names(param_list)) {
-    base::stop("You must specify a grouping variable")
+    stop("You must specify a grouping variable")
   }
 
   # check that conditioning and grouping.var are different
   if ("condition" %in% names(param_list)) {
     if (as.character(param_list$condition) == as.character(param_list$grouping.var)) {
-      base::message(cat(
+      message(cat(
         crayon::red("\nError: "),
         crayon::blue(
           "Identical variable (",
@@ -133,7 +134,7 @@ grouped_ggbarstats <- function(data,
         ),
         sep = ""
       ))
-      base::return(base::invisible(param_list$condition))
+      return(invisible(param_list$condition))
     }
   }
 
@@ -220,6 +221,7 @@ grouped_ggbarstats <- function(data,
       k = k,
       perc.k = perc.k,
       data.label = data.label,
+      bar.label = bar.label,
       bar.proptest = bar.proptest,
       ggtheme = ggtheme,
       ggstatsplot.layer = ggstatsplot.layer,
@@ -227,23 +229,26 @@ grouped_ggbarstats <- function(data,
       palette = palette,
       direction = direction,
       ggplot.component = ggplot.component,
+      return = return,
       messages = messages
     )
 
-
   # combining the list of plots into a single plot
-  combined_plot <-
-    ggstatsplot::combine_plots(
-      plotlist = plotlist_purrr,
-      ...
-    )
+  if (return == "plot") {
+    combined_object <-
+      ggstatsplot::combine_plots(
+        plotlist = plotlist_purrr,
+        ...
+      )
 
-  # show the note about grouped_ variant producing object which is not of
-  # class ggplot
-  if (isTRUE(messages)) {
-    grouped_message()
+    # inform user this can't be modified further with ggplot commands
+    if (isTRUE(messages)) {
+      grouped_message()
+    }
+  } else {
+    combined_object <- plotlist_purrr
   }
 
   # return the combined plot
-  return(combined_plot)
+  return(combined_object)
 }

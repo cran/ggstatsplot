@@ -2,22 +2,23 @@
 % Please edit documentation in R/grouped_ggdotplotstats.R
 \name{grouped_ggdotplotstats}
 \alias{grouped_ggdotplotstats}
-\title{Grouped histograms for distribution of a labelled numeric variable}
+\title{Grouped histograms for distribution of a labeled numeric variable}
 \usage{
 grouped_ggdotplotstats(data, x, y, grouping.var, title.prefix = NULL,
-  xlab = NULL, ylab = NULL, subtitle = NULL, caption = NULL,
-  type = "parametric", test.value = 0, bf.prior = 0.707,
-  bf.message = FALSE, robust.estimator = "onestep",
-  conf.level = 0.95, nboot = 100, k = 2,
-  ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
-  point.color = "black", point.size = 3, point.shape = 16,
-  results.subtitle = TRUE, centrality.para = "mean",
-  centrality.color = "blue", centrality.size = 1,
-  centrality.linetype = "dashed", centrality.line.labeller = TRUE,
-  centrality.k = 2, test.value.line = FALSE,
-  test.value.color = "black", test.value.size = 1,
-  test.value.linetype = "dashed", test.line.labeller = TRUE,
-  test.k = 0, ggplot.component = NULL, messages = TRUE, ...)
+  xlab = NULL, ylab = NULL, stat.title = NULL, subtitle = NULL,
+  caption = NULL, type = "parametric", test.value = 0,
+  bf.prior = 0.707, bf.message = TRUE, robust.estimator = "onestep",
+  conf.level = 0.95, effsize.type = "g", effsize.noncentral = TRUE,
+  nboot = 100, k = 2, ggtheme = ggplot2::theme_bw(),
+  ggstatsplot.layer = TRUE, point.color = "black", point.size = 3,
+  point.shape = 16, results.subtitle = TRUE,
+  centrality.para = "mean", centrality.color = "blue",
+  centrality.size = 1, centrality.linetype = "dashed",
+  centrality.line.labeller = TRUE, centrality.k = 2,
+  test.value.line = FALSE, test.value.color = "black",
+  test.value.size = 1, test.value.linetype = "dashed",
+  test.line.labeller = TRUE, test.k = 0, ggplot.component = NULL,
+  return = "plot", messages = TRUE, ...)
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
@@ -39,6 +40,10 @@ variable names for \code{x} and \code{y} will be used.}
 
 \item{ylab}{Label for \code{y} axis variable.}
 
+\item{stat.title}{A character describing the test being run, which will be
+added as a prefix in the subtitle. The default is \code{NULL}. An example of a
+\code{stat.title} argument will be something like \code{"Student's t-test: "}.}
+
 \item{subtitle}{The text for the plot subtitle. Will work only if
 \code{results.subtitle = FALSE}.}
 
@@ -52,11 +57,12 @@ or \code{"robust"} or \code{"bayes"}).Corresponding abbreviations are also accep
 \item{test.value}{A number specifying the value of the null hypothesis
 (Default: \code{0}).}
 
-\item{bf.prior}{A number between 0.5 and 2 (default \code{0.707}), the prior width
-to use in calculating Bayes factors.}
+\item{bf.prior}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
+width to use in calculating Bayes factors.}
 
 \item{bf.message}{Logical that decides whether to display Bayes Factor in
-favor of the \emph{null} hypothesis \strong{for parametric test} (Default: \code{FALSE}).}
+favor of the \emph{null} hypothesis. This argument is relevant only \strong{for
+parametric test} (Default: \code{TRUE}).}
 
 \item{robust.estimator}{If \code{test = "robust"} robust estimator to be used
 (\code{"onestep"} (Default), \code{"mom"}, or \code{"median"}). For more, see
@@ -64,6 +70,14 @@ favor of the \emph{null} hypothesis \strong{for parametric test} (Default: \code
 
 \item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
 \code{95\%} lower and upper confidence intervals (\code{0.95}).}
+
+\item{effsize.type}{Type of effect size needed for \emph{parametric} tests. The
+argument can be \code{"biased"} (\code{"d"} for Cohen's \emph{d}) or \code{"unbiased"}
+(\code{"g"} Hedge's \emph{g} for \strong{t-test}). The default is}
+
+\item{effsize.noncentral}{Logical indicating whether to use non-central
+\emph{t}-distributions for computing the confidence interval for Cohen's \emph{d}
+or Hedge's \emph{g} (Default: \code{TRUE}).}
 
 \item{nboot}{Number of bootstrap samples for computing confidence interval
 for the effect size (Default: \code{100}).}
@@ -134,6 +148,14 @@ of the current function. Default is \code{NULL}. The argument should be entered
 as a function. If the given function has an argument \code{axes.range.restrict}
 and if it has been set to \code{TRUE}, the added ggplot component \emph{might} not
 work as expected.}
+
+\item{return}{Character that describes what is to be returned: can be
+\code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
+\code{"subtitle"} will return the expression containing statistical results,
+which will be a \code{NULL} if you set \code{results.subtitle = FALSE}. Setting this
+to \code{"caption"} will return the expression containing details about Bayes
+Factor analysis, but valid only when \code{type = "p"} and \code{bf.message = TRUE},
+otherwise this will return a \code{NULL}.}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
@@ -217,7 +239,8 @@ ggstatsplot::grouped_ggdotplotstats(
 )
 }
 \seealso{
-\code{\link{ggdotplotstats}}
+\code{\link{grouped_gghistostats}}, \code{\link{ggdotplotstats}},
+\code{\link{gghistostats}}
 }
 \author{
 Indrajeet Patil

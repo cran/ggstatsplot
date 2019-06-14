@@ -9,12 +9,12 @@ ggwithinstats(data, x, y, type = "parametric",
   pairwise.comparisons = FALSE, pairwise.annotation = "asterisk",
   pairwise.display = "significant", p.adjust.method = "holm",
   effsize.type = "unbiased", partial = TRUE,
-  effsize.noncentral = TRUE, bf.prior = 0.707, bf.message = FALSE,
-  results.subtitle = TRUE, xlab = NULL, ylab = NULL,
-  caption = NULL, title = NULL, subtitle = NULL,
+  effsize.noncentral = TRUE, bf.prior = 0.707, bf.message = TRUE,
+  sphericity.correction = TRUE, results.subtitle = TRUE, xlab = NULL,
+  ylab = NULL, caption = NULL, title = NULL, subtitle = NULL,
   sample.size.label = TRUE, k = 2, conf.level = 0.95, nboot = 100,
-  tr = 0.1, path.point = TRUE, path.mean = TRUE,
-  axes.range.restrict = FALSE, mean.label.size = 3,
+  tr = 0.1, path.point = TRUE, path.mean = TRUE, sort = "none",
+  sort.fun = mean, axes.range.restrict = FALSE, mean.label.size = 3,
   mean.label.fontface = "bold", mean.label.color = "black",
   notch = FALSE, notchwidth = 0.5, linetype = "solid",
   outlier.tagging = FALSE, outlier.shape = 19, outlier.label = NULL,
@@ -23,7 +23,7 @@ ggwithinstats(data, x, y, type = "parametric",
   mean.size = 5, mean.color = "darkred",
   ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
   package = "RColorBrewer", palette = "Dark2", direction = 1,
-  ggplot.component = NULL, messages = TRUE)
+  ggplot.component = NULL, return = "plot", messages = TRUE)
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
@@ -74,11 +74,16 @@ will be returned. Valid only for objects of class \code{lm}, \code{aov}, \code{a
 \emph{t}-distributions for computing the confidence interval for Cohen's \emph{d}
 or Hedge's \emph{g} (Default: \code{TRUE}).}
 
-\item{bf.prior}{A number between 0.5 and 2 (default \code{0.707}), the prior width
-to use in calculating Bayes factors.}
+\item{bf.prior}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
+width to use in calculating Bayes factors.}
 
 \item{bf.message}{Logical that decides whether to display Bayes Factor in
-favor of the \emph{null} hypothesis \strong{for parametric test} (Default: \code{FALSE}).}
+favor of the \emph{null} hypothesis. This argument is relevant only \strong{for
+parametric test} (Default: \code{TRUE}).}
+
+\item{sphericity.correction}{Logical that decides whether to apply correction
+to account for violation of sphericity in a repeated measures design ANOVA
+(Default: \code{TRUE}).}
 
 \item{results.subtitle}{Decides whether the results of statistical tests are
 to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
@@ -118,8 +123,16 @@ try to play around with the value of \code{tr}, which is by default set to
 
 \item{path.point, path.mean}{Logical that decides whether individual data
 points and means, respectively, should be connected using \code{geom_path}. Both
-default to \code{TRUE}. In case of large number of data points, it is advisable
-to set \code{path.point = FALSE} as these lines can overwhelm the plot.}
+default to \code{TRUE}. Note that \code{path.point} argument is relevant only when
+there are two groups (i.e., in case of a \emph{t}-test). In case of large number
+of data points, it is advisable to set \code{path.point = FALSE} as these lines
+can overwhelm the plot.}
+
+\item{sort}{If \code{"ascending"} (default), \code{x}-axis variable factor levels will
+be sorted based on increasing values of \code{y}-axis variable. If
+\code{"descending"}, the opposite. If \code{"none"}, no sorting will happen.}
+
+\item{sort.fun}{The function used to sort (default: \code{mean}).}
 
 \item{axes.range.restrict}{Logical that decides whether to restrict the axes
 values ranges to \code{min} and \code{max} values of the axes variables (Default:
@@ -207,27 +220,60 @@ as a function. If the given function has an argument \code{axes.range.restrict}
 and if it has been set to \code{TRUE}, the added ggplot component \emph{might} not
 work as expected.}
 
+\item{return}{Character that describes what is to be returned: can be
+\code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
+\code{"subtitle"} will return the expression containing statistical results,
+which will be a \code{NULL} if you set \code{results.subtitle = FALSE}. Setting this
+to \code{"caption"} will return the expression containing details about Bayes
+Factor analysis, but valid only when \code{type = "p"} and \code{bf.message = TRUE},
+otherwise this will return a \code{NULL}.}
+
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
 }
 \description{
-A combination of box and violin plots along with jittered data
-points for within-subjects designs with statistical details included in
-the plot as a subtitle.
+A combination of box and violin plots along with raw
+(unjittered) data points for within-subjects designs with statistical
+details included in the plot as a subtitle.
 }
 \details{
-\strong{This function is still work in progress.}
+For more about how the effect size measures (for nonparametric tests) and
+their confidence intervals are computed, see \code{?rcompanion::wilcoxonPairedR}.
+
+For independent measures designs, use \code{ggbetweenstats}.
 }
 \examples{
-ggstatsplot:::ggwithinstats(
-  data = ggstatsplot::iris_long,
-  x = attribute,
-  y = value,
-  bf.message = TRUE,
-  messages = FALSE
+
+# setup
+set.seed(123)
+library(ggstatsplot)
+
+# two groups (t-test)
+ggstatsplot::ggwithinstats(
+  data = VR_dilemma,
+  x = modality,
+  y = score,
+  xlab = "Presentation modality",
+  ylab = "Proportion of utilitarian decisions"
 )
+
+# more than two groups (anova)
+library(WRS2)
+
+ggstatsplot::ggwithinstats(
+  data = tibble::as_tibble(WineTasting),
+  x = Wine,
+  y = Taste,
+  type = "r",
+  pairwise.comparisons = TRUE,
+  outlier.tagging = TRUE,
+  outlier.label = Taster
+)
+}
+\seealso{
+\code{\link{grouped_ggbetweenstats}}, \code{\link{ggbetweenstats}},
+\code{\link{grouped_ggwithinstats}}, \code{\link{pairwise_p}}
 }
 \author{
 Indrajeet Patil
 }
-\keyword{internal}

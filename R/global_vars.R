@@ -185,7 +185,17 @@ utils::globalVariables(
     "tau",
     "tau2",
     "id",
-    "coef.type"
+    "coef.type",
+    "Value",
+    "Statistic",
+    "d.pmean",
+    "d.pmean.LB",
+    "d.pmean.UB",
+    "Cramer V",
+    "lwr.ci",
+    "upr.ci",
+    "lower.ci",
+    "upper.ci"
   ),
   package = "ggstatsplot",
   add = FALSE

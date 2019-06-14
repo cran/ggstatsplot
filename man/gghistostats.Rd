@@ -5,9 +5,9 @@
 \title{Histogram for distribution of a numeric variable}
 \usage{
 gghistostats(data = NULL, x, binwidth = NULL, bar.measure = "count",
-  xlab = NULL, title = NULL, subtitle = NULL, caption = NULL,
-  type = "parametric", test.value = 0, bf.prior = 0.707,
-  bf.message = FALSE, robust.estimator = "onestep",
+  xlab = NULL, stat.title = NULL, title = NULL, subtitle = NULL,
+  caption = NULL, type = "parametric", test.value = 0,
+  bf.prior = 0.707, bf.message = TRUE, robust.estimator = "onestep",
   effsize.type = "g", effsize.noncentral = TRUE, conf.level = 0.95,
   nboot = 100, k = 2, ggtheme = ggplot2::theme_bw(),
   ggstatsplot.layer = TRUE, fill.gradient = FALSE,
@@ -20,7 +20,7 @@ gghistostats(data = NULL, x, binwidth = NULL, bar.measure = "count",
   test.value.linetype = "dashed", test.line.labeller = TRUE,
   test.k = 0, normal.curve = FALSE, normal.curve.color = "black",
   normal.curve.linetype = "solid", normal.curve.size = 1,
-  ggplot.component = NULL, messages = TRUE)
+  ggplot.component = NULL, return = "plot", messages = TRUE)
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
@@ -44,6 +44,10 @@ proportion in the same plot.}
 \item{xlab}{Labels for \code{x} and \code{y} axis variables. If \code{NULL} (default),
 variable names for \code{x} and \code{y} will be used.}
 
+\item{stat.title}{A character describing the test being run, which will be
+added as a prefix in the subtitle. The default is \code{NULL}. An example of a
+\code{stat.title} argument will be something like \code{"Student's t-test: "}.}
+
 \item{title}{The text for the plot title.}
 
 \item{subtitle}{The text for the plot subtitle. Will work only if
@@ -59,11 +63,12 @@ or \code{"robust"} or \code{"bayes"}).Corresponding abbreviations are also accep
 \item{test.value}{A number specifying the value of the null hypothesis
 (Default: \code{0}).}
 
-\item{bf.prior}{A number between 0.5 and 2 (default \code{0.707}), the prior width
-to use in calculating Bayes factors.}
+\item{bf.prior}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
+width to use in calculating Bayes factors.}
 
 \item{bf.message}{Logical that decides whether to display Bayes Factor in
-favor of the \emph{null} hypothesis \strong{for parametric test} (Default: \code{FALSE}).}
+favor of the \emph{null} hypothesis. This argument is relevant only \strong{for
+parametric test} (Default: \code{TRUE}).}
 
 \item{robust.estimator}{If \code{test = "robust"} robust estimator to be used
 (\code{"onestep"} (Default), \code{"mom"}, or \code{"median"}). For more, see
@@ -161,6 +166,14 @@ as a function. If the given function has an argument \code{axes.range.restrict}
 and if it has been set to \code{TRUE}, the added ggplot component \emph{might} not
 work as expected.}
 
+\item{return}{Character that describes what is to be returned: can be
+\code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
+\code{"subtitle"} will return the expression containing statistical results,
+which will be a \code{NULL} if you set \code{results.subtitle = FALSE}. Setting this
+to \code{"caption"} will return the expression containing details about Bayes
+Factor analysis, but valid only when \code{type = "p"} and \code{bf.message = TRUE},
+otherwise this will return a \code{NULL}.}
+
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
 }
@@ -184,7 +197,6 @@ ggstatsplot::gghistostats(
   x = Sepal.Length,
   bar.measure = "mix",
   type = "p",
-  bf.message = TRUE,
   caption = substitute(paste(italic("Note"), ": Iris dataset by Fisher.")),
   bf.prior = 0.8,
   test.value = 3,
@@ -197,7 +209,8 @@ ggstatsplot::gghistostats(
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/gghistostats.html}
 }
 \seealso{
-\code{\link{grouped_gghistostats}}
+\code{\link{grouped_gghistostats}}, \code{\link{ggdotplotstats}},
+\code{\link{grouped_ggdotplotstats}}
 }
 \author{
 Indrajeet Patil

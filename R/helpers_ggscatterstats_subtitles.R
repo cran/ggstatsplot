@@ -10,13 +10,13 @@
 #'   parametric/pearson's), `"np"` (nonparametric/spearman), `"r"` (robust),
 #'   `"bf"` (for bayes factor), resp.
 #' @inheritParams robcor_ci
-#' @inheritParams cor_test_ci
 #' @inheritParams bf_corr_test
 #' @inheritParams subtitle_anova_parametric
 #'
 #' @importFrom dplyr select
 #' @importFrom rlang !! enquo
 #' @importFrom stats cor.test
+#' @importFrom DescTools SpearmanRho
 #'
 #' @examples
 #'
@@ -49,8 +49,9 @@ subtitle_ggscatterstats <- function(data,
                                     bf.prior = 0.707,
                                     conf.level = 0.95,
                                     conf.type = "norm",
-                                    messages = TRUE,
                                     k = 2,
+                                    stat.title = NULL,
+                                    messages = TRUE,
                                     ...) {
   ellipsis::check_dots_used()
 
@@ -91,7 +92,7 @@ subtitle_ggscatterstats <- function(data,
     # preparing subtitle
     subtitle <- subtitle_template(
       no.parameters = 1L,
-      stat.title = NULL,
+      stat.title = stat.title,
       statistic.text = quote(italic("t")),
       statistic = stats_df$statistic[[1]],
       parameter = stats_df$parameter[[1]],
@@ -123,19 +124,13 @@ subtitle_ggscatterstats <- function(data,
 
     # getting confidence interval for rho using broom bootstrap
     effsize_df <-
-      cor_test_ci(
-        data = data,
-        x = x,
-        y = y,
-        nboot = nboot,
-        conf.level = conf.level,
-        conf.type = conf.type
-      )
-
-    # message about effect size measure
-    if (isTRUE(messages)) {
-      effsize_ci_message(nboot = nboot, conf.level = conf.level)
-    }
+      DescTools::SpearmanRho(
+        x = data$x,
+        y = data$y,
+        use = "pairwise.complete.obs",
+        conf.level = conf.level
+      ) %>%
+      tibble::enframe(x = .)
 
     # preparing subtitle
     subtitle <- subtitle_template(
@@ -147,8 +142,8 @@ subtitle_ggscatterstats <- function(data,
       p.value = stats_df$p.value[[1]],
       effsize.text = quote(italic(rho)["Spearman"]),
       effsize.estimate = stats_df$estimate,
-      effsize.LL = effsize_df$conf.low[[1]],
-      effsize.UL = effsize_df$conf.high[[1]],
+      effsize.LL = effsize_df$value[[2]],
+      effsize.UL = effsize_df$value[[3]],
       n = sample_size,
       conf.level = conf.level,
       k = k,
@@ -195,47 +190,15 @@ subtitle_ggscatterstats <- function(data,
   } else if (stats.type == "bayes") {
 
     # bayes factor results
-    bf_results <-
+    subtitle <-
       bf_corr_test(
         data = data,
         x = x,
         y = y,
         bf.prior = bf.prior,
         caption = NULL,
-        output = "results"
-      )
-
-    # preparing the subtitle
-    subtitle <-
-      base::substitute(
-        expr =
-          paste(
-            italic("r")["Pearson"],
-            "(",
-            df,
-            ")",
-            " = ",
-            estimate,
-            ", log"["e"],
-            "(BF"["10"],
-            ") = ",
-            bf,
-            ", ",
-            italic("r")["Cauchy"],
-            " = ",
-            bf_prior,
-            ", ",
-            italic("n"),
-            " = ",
-            n
-          ),
-        env = base::list(
-          df = stats_df$parameter[[1]],
-          estimate = specify_decimal_p(x = stats_df$estimate[[1]], k = k),
-          bf = specify_decimal_p(x = bf_results$log_e_bf10[[1]], k = k),
-          bf_prior = specify_decimal_p(x = bf_results$bf.prior[[1]], k = k),
-          n = sample_size
-        )
+        output = "h1",
+        k = k
       )
   }
 

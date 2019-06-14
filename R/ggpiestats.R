@@ -39,6 +39,9 @@
 #' @inheritParams gghistostats
 #' @inheritParams cat_label_df
 #'
+#' @seealso \code{\link{grouped_ggpiestats}}, \code{\link{ggbarstats}},
+#'  \code{\link{grouped_ggbarstats}}
+#'
 #' @import ggplot2
 #'
 #' @importFrom dplyr select group_by summarize n arrange if_else desc
@@ -61,6 +64,10 @@
 #'   ever be applied in practice (Camilli & Hopkins, 1978, 1979; Feinberg, 1980;
 #'   Larntz, 1978; Thompson, 1988).
 #'
+#'   For more about how the effect size measures and their confidence intervals
+#'   are computed, see `?rcompanion::cohenG`, `?rcompanion::cramerV`, and
+#'   `?rcompanion::cramerVFit`.
+#'
 #' @examples
 #'
 #' # for reproducibility
@@ -71,7 +78,7 @@
 #'   data = ggplot2::msleep,
 #'   main = vore,
 #'   perc.k = 1,
-#'   k = 2
+#'   k = 3
 #' )
 #'
 #' # simple function call with the defaults (with condition)
@@ -86,7 +93,7 @@
 #' )
 #'
 #' # simple function call with the defaults (without condition; with count data)
-#' library(jmv)
+#' library(jmv, warn.conflicts = FALSE)
 #'
 #' ggstatsplot::ggpiestats(
 #'   data = as.data.frame(HairEyeColor),
@@ -110,7 +117,7 @@ ggpiestats <- function(data,
                        label.text.size = 4,
                        label.fill.color = "white",
                        label.fill.alpha = 1,
-                       bf.message = FALSE,
+                       bf.message = TRUE,
                        sampling.plan = "indepMulti",
                        fixed.margin = "rows",
                        prior.concentration = 1,
@@ -133,6 +140,7 @@ ggpiestats <- function(data,
                        palette = "Dark2",
                        direction = 1,
                        ggplot.component = NULL,
+                       return = "plot",
                        messages = TRUE) {
 
   # ================= extracting column names as labels  =====================
@@ -144,7 +152,7 @@ ggpiestats <- function(data,
 
   # if facetting variable name is not specified, use the variable name for
   # 'condition' argument
-  if (!base::missing(condition)) {
+  if (!missing(condition)) {
     if (is.null(facet.wrap.name)) {
       facet.wrap.name <- rlang::as_name(rlang::ensym(condition))
     }
@@ -166,7 +174,7 @@ ggpiestats <- function(data,
   # =========================== converting counts ============================
 
   # untable the dataframe based on the count for each obervation
-  if (!base::missing(counts)) {
+  if (!missing(counts)) {
     data %<>%
       tidyr::uncount(
         data = .,
@@ -186,7 +194,7 @@ ggpiestats <- function(data,
     dplyr::mutate(.data = ., main = droplevels(as.factor(main)))
 
   # condition
-  if (!base::missing(condition)) {
+  if (!missing(condition)) {
     data %<>%
       dplyr::mutate(.data = ., condition = droplevels(as.factor(condition)))
   }
@@ -209,7 +217,7 @@ ggpiestats <- function(data,
   # if sample size labels are to be displayed at the bottom of the pie charts
   # for each facet
   if (isTRUE(sample.size.label)) {
-    if (!base::missing(condition)) {
+    if (!missing(condition)) {
       df_n_label <-
         dplyr::full_join(
           x = df,
@@ -225,14 +233,14 @@ ggpiestats <- function(data,
             dplyr::mutate_if(
               .tbl = .,
               .predicate = purrr::is_bare_character,
-              .funs = ~ base::as.factor(.)
+              .funs = ~ as.factor(.)
             ),
           by = "condition"
         ) %>%
         dplyr::mutate(
           .data = .,
           condition_n_label = dplyr::if_else(
-            condition = base::duplicated(condition),
+            condition = duplicated(condition),
             true = NA_character_,
             false = as.character(condition_n_label)
           )
@@ -295,7 +303,7 @@ ggpiestats <- function(data,
     )
 
   # if facet_wrap is *not* happening
-  if (base::missing(condition)) {
+  if (missing(condition)) {
     p <- p +
       ggplot2::coord_polar(theta = "y")
   } else {
@@ -335,7 +343,7 @@ ggpiestats <- function(data,
   # =============== chi-square test (either Pearson or McNemar) =============
 
   # if facetting by condition is happening
-  if (!base::missing(condition)) {
+  if (!missing(condition)) {
     if (isTRUE(facet.proptest)) {
       # merging dataframe containing results from the proportion test with
       # counts and percentage dataframe
@@ -393,7 +401,7 @@ ggpiestats <- function(data,
         )
 
       # preparing the BF message for null hypothesis support
-      if (isTRUE(bf.message)) {
+      if (isTRUE(bf.message) && !is.null(subtitle)) {
         bf.caption.text <-
           bf_contingency_tab(
             data = data,
@@ -444,9 +452,14 @@ ggpiestats <- function(data,
       subtitle <- subtitle_onesample_proptest(
         data = data,
         main = main,
+        conf.level = conf.level,
+        conf.type = "norm",
+        nboot = nboot,
         ratio = ratio,
+        stat.title = stat.title,
         legend.title = legend.title,
-        k = k
+        k = k,
+        messages = messages
       )
     }
   }
@@ -472,5 +485,11 @@ ggpiestats <- function(data,
   p <- p + ggplot.component
 
   # return the final plot
-  return(p)
+  return(switch(
+    EXPR = return,
+    "plot" = p,
+    "subtitle" = subtitle,
+    "caption" = caption,
+    p
+  ))
 }

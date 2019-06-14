@@ -1,4 +1,4 @@
-#' @title Grouped histograms for distribution of a labelled numeric variable
+#' @title Grouped histograms for distribution of a labeled numeric variable
 #' @name grouped_ggdotplotstats
 #' @description Helper function for `ggstatsplot::ggdotplotstats` to apply this
 #'   function across multiple levels of a given factor and combining the
@@ -14,9 +14,9 @@
 #' @importFrom rlang !! enquo quo_name ensym
 #' @importFrom glue glue
 #' @importFrom purrr pmap
-#' @importFrom tidyr nest
 #'
-#' @seealso \code{\link{ggdotplotstats}}
+#' @seealso \code{\link{grouped_gghistostats}}, \code{\link{ggdotplotstats}},
+#'  \code{\link{gghistostats}}
 #'
 #' @inherit ggdotplotstats return references
 #' @inherit ggdotplotstats return details
@@ -54,14 +54,17 @@ grouped_ggdotplotstats <- function(data,
                                    title.prefix = NULL,
                                    xlab = NULL,
                                    ylab = NULL,
+                                   stat.title = NULL,
                                    subtitle = NULL,
                                    caption = NULL,
                                    type = "parametric",
                                    test.value = 0,
                                    bf.prior = 0.707,
-                                   bf.message = FALSE,
+                                   bf.message = TRUE,
                                    robust.estimator = "onestep",
                                    conf.level = 0.95,
+                                   effsize.type = "g",
+                                   effsize.noncentral = TRUE,
                                    nboot = 100,
                                    k = 2,
                                    ggtheme = ggplot2::theme_bw(),
@@ -83,6 +86,7 @@ grouped_ggdotplotstats <- function(data,
                                    test.line.labeller = TRUE,
                                    test.k = 0,
                                    ggplot.component = NULL,
+                                   return = "plot",
                                    messages = TRUE,
                                    ...) {
 
@@ -125,6 +129,7 @@ grouped_ggdotplotstats <- function(data,
       .f = ggstatsplot::ggdotplotstats,
       xlab = xlab,
       ylab = ylab,
+      stat.title = stat.title,
       subtitle = subtitle,
       caption = caption,
       type = type,
@@ -133,6 +138,8 @@ grouped_ggdotplotstats <- function(data,
       bf.message = bf.message,
       robust.estimator = robust.estimator,
       conf.level = conf.level,
+      effsize.type = effsize.type,
+      effsize.noncentral = effsize.noncentral,
       nboot = nboot,
       k = k,
       results.subtitle = results.subtitle,
@@ -154,22 +161,26 @@ grouped_ggdotplotstats <- function(data,
       point.size = point.size,
       point.shape = point.shape,
       ggplot.component = ggplot.component,
+      return = return,
       messages = messages
     )
 
   # combining the list of plots into a single plot
-  combined_plot <-
-    ggstatsplot::combine_plots(
-      plotlist = plotlist_purrr,
-      ...
-    )
+  if (return == "plot") {
+    combined_object <-
+      ggstatsplot::combine_plots(
+        plotlist = plotlist_purrr,
+        ...
+      )
 
-  # show the note about grouped_ variant producing object which is not of
-  # class ggplot
-  if (isTRUE(messages)) {
-    grouped_message()
+    # inform user this can't be modified further with ggplot commands
+    if (isTRUE(messages)) {
+      grouped_message()
+    }
+  } else {
+    combined_object <- plotlist_purrr
   }
 
   # return the combined plot
-  return(combined_plot)
+  return(combined_object)
 }

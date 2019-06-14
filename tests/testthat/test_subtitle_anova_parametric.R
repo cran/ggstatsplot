@@ -1,4 +1,4 @@
-context("subtitle_anova_parametric")
+context("subtitle_anova_parametric - between-subjects")
 
 # parametric anova subtitles (without NAs) -----------------------------------
 
@@ -6,6 +6,7 @@ testthat::test_that(
   desc = "parametric anova subtitles work (without NAs)",
   code = {
     testthat::skip_on_cran()
+
 
     # ggstatsplot output
     set.seed(123)
@@ -139,6 +140,7 @@ testthat::test_that(
   code = {
     testthat::skip_on_cran()
 
+
     # ggstatsplot output
     set.seed(123)
     using_function1 <-
@@ -197,6 +199,7 @@ testthat::test_that(
   code = {
     testthat::skip_on_cran()
 
+
     # ggstatsplot output
     set.seed(123)
     using_function1 <-
@@ -245,10 +248,7 @@ testthat::test_that(
       )
 
     # testing overall call
-    testthat::expect_identical(
-      object = using_function1,
-      expected = results1
-    )
+    testthat::expect_identical(using_function1, results1)
   }
 )
 
@@ -363,5 +363,240 @@ testthat::test_that(
 
     # omega
     testthat::expect_identical(using_function2, results2)
+  }
+)
+
+
+context("subtitle_anova_parametric - within-subjects")
+
+# parametric repeated anova subtitles (basic) ---------------------------------
+
+testthat::test_that(
+  desc = "parametric anova subtitles work (without NAs)",
+  code = {
+    testthat::skip_on_cran()
+
+    # ggstatsplot output
+    set.seed(123)
+    using_function1 <-
+      ggstatsplot::subtitle_anova_parametric(
+        data = ggstatsplot::iris_long,
+        x = condition,
+        y = value,
+        paired = TRUE,
+        nboot = 20,
+        k = 3,
+        conf.level = 0.99,
+        messages = TRUE
+      )
+
+    # expected output
+    results1 <-
+      ggplot2::expr(
+        paste(
+          NULL,
+          italic("F"),
+          "(",
+          "1.149",
+          ",",
+          "171.217",
+          ") = ",
+          "776.318",
+          ", ",
+          italic("p"),
+          " = ",
+          "< 0.001",
+          ", ",
+          omega^2,
+          " = ",
+          "0.707",
+          ", CI"["99%"],
+          " [",
+          "0.758",
+          ", ",
+          "0.825",
+          "]",
+          ", ",
+          italic("n"),
+          " = ",
+          150L
+        )
+      )
+
+    # testing overall call
+    testthat::expect_identical(using_function1, results1)
+  }
+)
+
+# parametric repeated anova subtitles ---------------------------------
+
+testthat::test_that(
+  desc = "parametric anova subtitles work (with NAs)",
+  code = {
+    testthat::skip_on_cran()
+
+    # ggstatsplot output
+    set.seed(123)
+    using_function1 <-
+      ggstatsplot::subtitle_anova_parametric(
+        data = WRS2::WineTasting,
+        x = Wine,
+        y = Taste,
+        paired = TRUE,
+        effsize.type = "biased",
+        sphericity.correction = FALSE,
+        k = 4,
+        conf.level = 0.99,
+        messages = FALSE
+      )
+
+    # expected output
+    results1 <-
+      ggplot2::expr(
+        paste(
+          NULL,
+          italic("F"),
+          "(",
+          "2",
+          ",",
+          "42",
+          ") = ",
+          "6.2883",
+          ", ",
+          italic("p"),
+          " = ",
+          "0.0041",
+          ", ",
+          eta["p"]^2,
+          " = ",
+          "0.2304",
+          ", CI"["99%"],
+          " [",
+          "0.0020",
+          ", ",
+          "0.4598",
+          "]",
+          ", ",
+          italic("n"),
+          " = ",
+          22L
+        )
+      )
+
+    # testing overall call
+    testthat::expect_identical(using_function1, results1)
+
+    # ggstatsplot output
+    set.seed(123)
+    using_function2 <-
+      ggstatsplot::subtitle_anova_parametric(
+        data = WRS2::WineTasting,
+        x = Wine,
+        y = Taste,
+        paired = TRUE,
+        effsize.type = "bogus",
+        k = 5,
+        conf.level = 0.90,
+        nboot = 15,
+        messages = FALSE
+      )
+
+    # expected output
+    results2 <-
+      ggplot2::expr(
+        paste(
+          NULL,
+          italic("F"),
+          "(",
+          "1.54700",
+          ",",
+          "32.48706",
+          ") = ",
+          "6.28831",
+          ", ",
+          italic("p"),
+          " = ",
+          "0.00844",
+          ", ",
+          omega^2,
+          " = ",
+          "0.01701",
+          ", CI"["90%"],
+          " [",
+          "0.03464",
+          ", ",
+          "0.28869",
+          "]",
+          ", ",
+          italic("n"),
+          " = ",
+          22L
+        )
+      )
+
+    # testing overall call
+    testthat::expect_identical(using_function2, results2)
+  }
+)
+
+# parametric repeated anova subtitles (catch bad data) -----------------------
+
+testthat::test_that(
+  desc = "parametric anova subtitles work (catch bad data)",
+  code = {
+    testthat::skip_on_cran()
+
+    # ggstatsplot output
+
+    # fake a data entry mistake
+    iris_long[5, 3] <- "Sepal.Width"
+
+    # sample size should be different
+    set.seed(123)
+    using_function1 <- ggstatsplot::subtitle_anova_parametric(
+      data = iris_long,
+      x = condition,
+      y = value,
+      paired = TRUE,
+      effsize.type = "eta",
+      partial = FALSE,
+      conf.level = 0.50,
+      messages = FALSE
+    )
+
+    # expected
+    results1 <- ggplot2::expr(
+      paste(
+        NULL,
+        italic("F"),
+        "(",
+        "1.28",
+        ",",
+        "189.93",
+        ") = ",
+        "686.64",
+        ", ",
+        italic("p"),
+        " = ",
+        "< 0.001",
+        ", ",
+        eta["p"]^2,
+        " = ",
+        "0.82",
+        ", CI"["50%"],
+        " [",
+        "0.81",
+        ", ",
+        "0.83",
+        "]",
+        ", ",
+        italic("n"),
+        " = ",
+        149L
+      )
+    )
+
+    # testing overall call
+    testthat::expect_identical(using_function1, results1)
   }
 )

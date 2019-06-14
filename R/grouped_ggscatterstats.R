@@ -18,7 +18,6 @@
 #' @importFrom rlang !! enquo quo_name ensym as_quosure parse_expr quo_text
 #' @importFrom glue glue
 #' @importFrom purrr map set_names pmap
-#' @importFrom tidyr nest
 #'
 #' @seealso \code{\link{ggscatterstats}}, \code{\link{ggcorrmat}},
 #' \code{\link{grouped_ggcorrmat}}
@@ -28,7 +27,7 @@
 #'
 #' @examples
 #'
-#' \dontrun{
+#' \donttest{
 #' # to ensure reproducibility
 #' set.seed(123)
 #'
@@ -75,7 +74,7 @@
 #'   x = budget,
 #'   y = length,
 #'   grouping.var = genre,
-#'   bf.message = TRUE,
+#'   bf.message = FALSE,
 #'   label.var = "title",
 #'   marginal = FALSE,
 #'   title.prefix = "Genre",
@@ -91,7 +90,7 @@ grouped_ggscatterstats <- function(data,
                                    type = "pearson",
                                    conf.level = 0.95,
                                    bf.prior = 0.707,
-                                   bf.message = FALSE,
+                                   bf.message = TRUE,
                                    label.var = NULL,
                                    label.expression = NULL,
                                    grouping.var,
@@ -123,6 +122,7 @@ grouped_ggscatterstats <- function(data,
                                    ysize = 0.7,
                                    centrality.para = NULL,
                                    results.subtitle = TRUE,
+                                   stat.title = NULL,
                                    caption = NULL,
                                    subtitle = NULL,
                                    nboot = 100,
@@ -132,21 +132,22 @@ grouped_ggscatterstats <- function(data,
                                    ggtheme = ggplot2::theme_bw(),
                                    ggstatsplot.layer = TRUE,
                                    ggplot.component = NULL,
+                                   return = "plot",
                                    messages = TRUE,
                                    ...) {
 
   # create a list of function call to check for label.expression
-  param_list <- base::as.list(base::match.call())
+  param_list <- as.list(match.call())
 
   # check that there is a grouping.var
   if (!"grouping.var" %in% names(param_list)) {
-    base::stop("You must specify a grouping variable")
+    stop("You must specify a grouping variable")
   }
 
   # check that label.var and grouping.var are different
   if ("label.var" %in% names(param_list)) {
     if (as.character(param_list$label.var) == as.character(param_list$grouping.var)) {
-      base::message(cat(
+      message(cat(
         crayon::red("\nError: "),
         crayon::blue(
           "Identical variable (",
@@ -155,7 +156,7 @@ grouped_ggscatterstats <- function(data,
         ),
         sep = ""
       ))
-      base::return(base::invisible(param_list$label.var))
+      return(invisible(param_list$label.var))
     }
   }
 
@@ -212,7 +213,7 @@ grouped_ggscatterstats <- function(data,
       # the environment is essential
       label.expression <- rlang::as_quosure(
         x = label.expression,
-        env = base::sys.frame(which = 0)
+        env = sys.frame(which = 0)
       )
     }
   }
@@ -308,6 +309,7 @@ grouped_ggscatterstats <- function(data,
       ysize = ysize,
       centrality.para = centrality.para,
       results.subtitle = results.subtitle,
+      stat.title = stat.title,
       caption = caption,
       subtitle = subtitle,
       nboot = nboot,
@@ -317,22 +319,26 @@ grouped_ggscatterstats <- function(data,
       ggtheme = ggtheme,
       ggstatsplot.layer = ggstatsplot.layer,
       ggplot.component = ggplot.component,
+      return = return,
       messages = messages
     )
 
   # combining the list of plots into a single plot
-  combined_plot <-
-    ggstatsplot::combine_plots(
-      plotlist = plotlist_purrr,
-      ...
-    )
+  if (return == "plot") {
+    combined_object <-
+      ggstatsplot::combine_plots(
+        plotlist = plotlist_purrr,
+        ...
+      )
 
-  # show the note about `grouped_` variant producing object which is not of
-  # class ggplot
-  if (isTRUE(messages)) {
-    grouped_message()
+    # inform user this can't be modified further with ggplot commands
+    if (isTRUE(messages)) {
+      grouped_message()
+    }
+  } else {
+    combined_object <- plotlist_purrr
   }
 
   # return the combined plot
-  return(combined_plot)
+  return(combined_object)
 }

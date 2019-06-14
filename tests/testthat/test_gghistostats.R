@@ -125,7 +125,6 @@ testthat::test_that(
 testthat::test_that(
   desc = "checking gghistostats and non-parametric stats - data without NAs",
   code = {
-    testthat::skip_on_cran()
 
     # creating the plot
     set.seed(123)
@@ -283,8 +282,9 @@ testthat::test_that(
       )
 
     # testing labels
-    testthat::expect_identical(p$labels$subtitle, p_subtitle)
-    testthat::expect_identical(p$labels$y, "proportion")
+    testthat::expect_identical(pb$plot$labels$subtitle, p_subtitle)
+    testthat::expect_null(pb$plot$labels$caption, NULL)
+    testthat::expect_identical(pb$plot$labels$y, "proportion")
 
     # checking different data layers
     testthat::expect_equal(length(pb$data), 1L)
@@ -494,6 +494,12 @@ testthat::test_that(
     testthat::expect_equal(mean(pb2$data[[2]]$y), 0.008271081, tolerance = 0.001)
     testthat::expect_equal(mean(pb3$data[[2]]$y), 4.627659, tolerance = 0.001)
     testthat::expect_equal(mean(pb4$data[[2]]$y), 0.1082654, tolerance = 0.001)
+
+    # annotation
+    testthat::expect_null(pb1$plot$labels$caption, NULL)
+    testthat::expect_null(pb2$plot$labels$caption, NULL)
+    testthat::expect_null(pb3$plot$labels$caption, NULL)
+    testthat::expect_null(pb4$plot$labels$caption, NULL)
   }
 )
 
@@ -507,20 +513,22 @@ testthat::test_that(
     # creating the plot
     set.seed(123)
     p <-
-      ggstatsplot::gghistostats(
+      suppressWarnings(ggstatsplot::gghistostats(
         x = morley$Speed,
-        results.subtitle = FALSE,
+        effsize.type = "d",
+        effsize.noncentral = FALSE,
+        bf.message = FALSE,
         ggplot.component = ggplot2::scale_x_continuous(
           sec.axis = ggplot2::dup_axis(name = ggplot2::element_blank())
         ),
         messages = FALSE
-      )
+      ))
 
     # build the plot
     pb <- ggplot2::ggplot_build(p)
 
     # tests
-    testthat::expect_null(pb$plot$labels$subtitle, NULL)
+    testthat::expect_null(pb$plot$labels$caption, NULL)
     testthat::expect_equal(pb$layout$panel_params[[1]]$x.range,
       c(582.75, 1127.25),
       tolerance = 0.001
@@ -544,6 +552,57 @@ testthat::test_that(
     testthat::expect_identical(
       pb$layout$panel_params[[1]]$y.labels,
       c("0", "5", "10", "15", "20")
+    )
+  }
+)
+
+# subtitle return --------------------------------------------------
+
+testthat::test_that(
+  desc = "subtitle return",
+  code = {
+    testthat::skip_on_cran()
+
+    # should return a list of length 3
+    set.seed(123)
+    p_sub <- ggstatsplot::gghistostats(
+      data = ggplot2::msleep,
+      x = brainwt,
+      return = "subtitle",
+      type = "np",
+      test.value = 0.25,
+      messages = FALSE
+    )
+
+    # tests
+    testthat::expect_identical(
+      p_sub,
+      ggplot2::expr(
+        paste(
+          NULL,
+          "log"["e"](italic("V")),
+          " = ",
+          "5.57",
+          ", ",
+          italic("p"),
+          " = ",
+          "< 0.001",
+          ", ",
+          italic(r),
+          " = ",
+          "-0.58",
+          ", CI"["95%"],
+          " [",
+          "-0.81",
+          ", ",
+          "-0.38",
+          "]",
+          ", ",
+          italic("n"),
+          " = ",
+          56L
+        )
+      )
     )
   }
 )

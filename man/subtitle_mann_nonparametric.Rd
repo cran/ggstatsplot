@@ -8,11 +8,11 @@
 \usage{
 subtitle_mann_nonparametric(data, x, y, paired = FALSE, k = 2,
   conf.level = 0.95, conf.type = "norm", nboot = 100,
-  messages = TRUE, ...)
+  stat.title = NULL, messages = TRUE, ...)
 
 subtitle_t_nonparametric(data, x, y, paired = FALSE, k = 2,
   conf.level = 0.95, conf.type = "norm", nboot = 100,
-  messages = TRUE, ...)
+  stat.title = NULL, messages = TRUE, ...)
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
@@ -23,8 +23,10 @@ be taken. A matrix or tables will \strong{not} be accepted.}
 \item{y}{The response (a.k.a. outcome or dependent) variable from the
 dataframe \code{data}.}
 
-\item{paired}{a logical indicating whether you want a paired
-    t-test.}
+\item{paired}{Logical that decides whether the design is repeated
+measures/within-subjects (in which case one-way Friedman Rank Sum Test will
+be carried out) or between-subjects (in which case one-way Kruskal–Wallis H
+test will be carried out). The default is \code{FALSE}.}
 
 \item{k}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2}).}
@@ -38,6 +40,10 @@ intervals required. The value should be any subset of the values \code{"norm"},
 
 \item{nboot}{Number of bootstrap samples for computing confidence interval
 for the effect size (Default: \code{100}).}
+
+\item{stat.title}{A character describing the test being run, which will be
+added as a prefix in the subtitle. The default is \code{NULL}. An example of a
+\code{stat.title} argument will be something like \code{"Student's t-test: "}.}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
@@ -59,7 +65,9 @@ samples case the Wilcoxon signed rank test is run and \emph{V} is reported.
 Since there is no single commonly accepted method for reporting effect size
 for these tests we are computing and reporting \emph{r} (computed as
 \eqn{Z/\sqrt{N}}) along with the confidence intervals associated with the
-estimate.
+estimate. Note that \emph{N} here corresponds to total \emph{sample size} for
+independent/between-subjects designs, and to total number of \emph{pairs} (and
+\strong{not} \emph{observations}) for repeated measures/within-subjects designs.
 
 \emph{Note:} The \emph{stats::wilcox.test} function does not follow the
 same convention as \emph{stats::t.test}. The sign of the \emph{V} test statistic
@@ -70,7 +78,7 @@ reordering your factor levels if appropriate as shown in the second example
 below.
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(123)
 
 # -------------- between-subjects design ------------------------

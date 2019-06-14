@@ -1,28 +1,60 @@
 #' @title Box/Violin plots for group or condition comparisons in
 #'   **within**-subjects (or repeated measures) designs.
 #' @name ggwithinstats
-#' @description A combination of box and violin plots along with jittered data
-#'   points for within-subjects designs with statistical details included in
-#'   the plot as a subtitle.
+#' @description A combination of box and violin plots along with raw
+#'   (unjittered) data points for within-subjects designs with statistical
+#'   details included in the plot as a subtitle.
 #' @author Indrajeet Patil
 #'
 #' @inheritParams ggbetweenstats
 #' @param path.point,path.mean Logical that decides whether individual data
 #'   points and means, respectively, should be connected using `geom_path`. Both
-#'   default to `TRUE`. In case of large number of data points, it is advisable
-#'   to set `path.point = FALSE` as these lines can overwhelm the plot.
+#'   default to `TRUE`. Note that `path.point` argument is relevant only when
+#'   there are two groups (i.e., in case of a *t*-test). In case of large number
+#'   of data points, it is advisable to set `path.point = FALSE` as these lines
+#'   can overwhelm the plot.
+#' @inheritParams subtitle_anova_parametric
 #'
-#' @details **This function is still work in progress.**
+#' @seealso \code{\link{grouped_ggbetweenstats}}, \code{\link{ggbetweenstats}},
+#'  \code{\link{grouped_ggwithinstats}}, \code{\link{pairwise_p}}
+#'
+#' @importFrom forcats fct_reorder
+#'
+#' @details
+#'
+#'  For more about how the effect size measures (for nonparametric tests) and
+#'  their confidence intervals are computed, see `?rcompanion::wilcoxonPairedR`.
+#'
+#'  For independent measures designs, use `ggbetweenstats`.
 #'
 #' @examples
-#' ggstatsplot:::ggwithinstats(
-#'   data = ggstatsplot::iris_long,
-#'   x = attribute,
-#'   y = value,
-#'   bf.message = TRUE,
-#'   messages = FALSE
+#'
+#' # setup
+#' set.seed(123)
+#' library(ggstatsplot)
+#'
+#' # two groups (t-test)
+#' ggstatsplot::ggwithinstats(
+#'   data = VR_dilemma,
+#'   x = modality,
+#'   y = score,
+#'   xlab = "Presentation modality",
+#'   ylab = "Proportion of utilitarian decisions"
 #' )
-#' @keywords internal
+#'
+#' # more than two groups (anova)
+#' library(WRS2)
+#'
+#' ggstatsplot::ggwithinstats(
+#'   data = tibble::as_tibble(WineTasting),
+#'   x = Wine,
+#'   y = Taste,
+#'   type = "r",
+#'   pairwise.comparisons = TRUE,
+#'   outlier.tagging = TRUE,
+#'   outlier.label = Taster
+#' )
+#' @export
 
 # defining the function
 ggwithinstats <- function(data,
@@ -37,7 +69,8 @@ ggwithinstats <- function(data,
                           partial = TRUE,
                           effsize.noncentral = TRUE,
                           bf.prior = 0.707,
-                          bf.message = FALSE,
+                          bf.message = TRUE,
+                          sphericity.correction = TRUE,
                           results.subtitle = TRUE,
                           xlab = NULL,
                           ylab = NULL,
@@ -51,6 +84,8 @@ ggwithinstats <- function(data,
                           tr = 0.1,
                           path.point = TRUE,
                           path.mean = TRUE,
+                          sort = "none",
+                          sort.fun = mean,
                           axes.range.restrict = FALSE,
                           mean.label.size = 3,
                           mean.label.fontface = "bold",
@@ -74,6 +109,7 @@ ggwithinstats <- function(data,
                           palette = "Dark2",
                           direction = 1,
                           ggplot.component = NULL,
+                          return = "plot",
                           messages = TRUE) {
 
   # no pairwise comparisons are available for bayesian t-tests
@@ -104,12 +140,24 @@ ggwithinstats <- function(data,
       y = !!rlang::enquo(y),
       outlier.label = !!rlang::enquo(outlier.label)
     ) %>%
-    tidyr::drop_na(data = .) %>%
     dplyr::mutate(.data = ., x = droplevels(as.factor(x))) %>%
+    tibble::as_tibble(x = .)
+
+  # figuring out number of levels in the grouping factor
+  x_n_levels <- length(levels(data$x))[[1]]
+
+  # removing observations that don't have all repeated values
+  data %<>%
+    dplyr::filter(.data = ., !is.na(x)) %>%
     dplyr::group_by(.data = ., x) %>%
     dplyr::mutate(.data = ., id = dplyr::row_number()) %>%
     dplyr::ungroup(x = .) %>%
-    tibble::as_tibble(x = .)
+    dplyr::filter(.data = ., !is.na(y)) %>%
+    dplyr::group_by(.data = ., id) %>%
+    dplyr::mutate(.data = ., n = dplyr::n()) %>%
+    dplyr::ungroup(x = .) %>%
+    dplyr::filter(.data = ., n == x_n_levels) %>%
+    dplyr::select(.data = ., -n)
 
   # if outlier.label column is not present, just use the values from `y` column
   if (!"outlier.label" %in% names(data)) {
@@ -126,6 +174,28 @@ ggwithinstats <- function(data,
       outlier.coef = outlier.coef,
       outlier.label = outlier.label
     )
+
+  # figure out which test to run based on the number of levels of the
+  # independent variables
+  if (length(levels(as.factor(data$x))) < 3) {
+    test <- "t-test"
+  } else {
+    test <- "anova"
+  }
+
+  # --------------------------------- sorting --------------------------------
+
+  # if sorting is happening
+  if (sort != "none") {
+    data %<>%
+      sort_xy(
+        data = .,
+        x = x,
+        y = y,
+        sort = sort,
+        sort.fun = sort.fun
+      )
+  }
 
   # --------------------------------- basic plot ------------------------------
 
@@ -146,8 +216,8 @@ ggwithinstats <- function(data,
       fill = "white",
       width = 0.2,
       alpha = 0.5,
-      notch = FALSE,
-      notchwidth = 0.1
+      notch = notch,
+      notchwidth = notchwidth
     ) +
     ggplot2::geom_violin(
       mapping = ggplot2::aes(x = x, y = y),
@@ -158,8 +228,8 @@ ggwithinstats <- function(data,
       na.rm = TRUE
     )
 
-  # add a connecting path only if there are less than two groups
-  if (isTRUE(path.point)) {
+  # add a connecting path only if there are only two groups
+  if (test != "anova" && isTRUE(path.point)) {
     plot <- plot +
       ggplot2::geom_path(
         color = "grey50",
@@ -169,26 +239,18 @@ ggwithinstats <- function(data,
       )
   }
 
-  # --------------------- subtitle preparation -------------------------------
+  # --------------------- subtitle/caption preparation ------------------------
 
   if (isTRUE(results.subtitle)) {
-    # figure out which test to run based on the number of levels of the
-    # independent variables
-    if (length(levels(as.factor(data$x))) < 3) {
-      test <- "t-test"
-    } else {
-      test <- "anova"
-    }
 
     # figuring out which effect size to use
     effsize.type <- effsize_type_switch(effsize.type)
 
     # preparing the bayes factor message
-    if (test == "t-test") {
-
+    if (type %in% c("parametric", "p") && isTRUE(bf.message)) {
       # preparing the BF message for null
-      if (isTRUE(bf.message)) {
-        bf.caption.text <-
+      if (test == "t-test") {
+        caption <-
           bf_two_sample_ttest(
             data = data,
             x = x,
@@ -199,11 +261,8 @@ ggwithinstats <- function(data,
             output = "caption",
             k = k
           )
-      }
-    } else if (test == "anova") {
-      # preparing the BF message for null
-      if (isTRUE(bf.message)) {
-        bf.caption.text <-
+      } else if (test == "anova") {
+        caption <-
           bf_oneway_anova(
             data = data,
             x = x,
@@ -217,34 +276,28 @@ ggwithinstats <- function(data,
     }
 
     # extracting the subtitle using the switch function
-    if (isTRUE(results.subtitle)) {
-      subtitle <-
-        ggbetweenstats_switch(
-          # switch based on
-          type = type,
-          test = test,
-          # arguments relevant for subtitle helper functions
-          data = data,
-          x = x,
-          y = y,
-          paired = TRUE,
-          effsize.type = effsize.type,
-          partial = partial,
-          effsize.noncentral = effsize.noncentral,
-          var.equal = TRUE,
-          bf.prior = bf.prior,
-          tr = tr,
-          nboot = nboot,
-          conf.level = conf.level,
-          k = k,
-          messages = messages
-        )
-    }
-
-    # if bayes factor message needs to be displayed
-    if (type %in% c("parametric", "p") && isTRUE(bf.message)) {
-      caption <- bf.caption.text
-    }
+    subtitle <-
+      ggbetweenstats_switch(
+        # switch based on
+        type = type,
+        test = test,
+        # arguments relevant for subtitle helper functions
+        data = data,
+        x = x,
+        y = y,
+        paired = TRUE,
+        effsize.type = effsize.type,
+        partial = partial,
+        effsize.noncentral = effsize.noncentral,
+        var.equal = TRUE,
+        sphericity.correction = sphericity.correction,
+        bf.prior = bf.prior,
+        tr = tr,
+        nboot = nboot,
+        conf.level = conf.level,
+        k = k,
+        messages = messages
+      )
   } else {
     test <- "none"
   }
@@ -373,35 +426,35 @@ ggwithinstats <- function(data,
 
   # ------------------------ annotations and themes -------------------------
 
-  # specifiying annotations and other aesthetic aspects for the plot
-  plot <-
-    aesthetic_addon(
-      plot = plot,
-      x = data$x,
-      xlab = xlab,
-      ylab = ylab,
-      title = title,
-      subtitle = subtitle,
-      caption = caption,
-      ggtheme = ggtheme,
-      ggstatsplot.layer = ggstatsplot.layer,
-      package = package,
-      palette = palette,
-      direction = direction,
-      ggplot.component = ggplot.component
-    )
+  # specifying annotations and other aesthetic aspects for the plot
+  if (return == "plot") {
+    plot <-
+      aesthetic_addon(
+        plot = plot,
+        x = data$x,
+        xlab = xlab,
+        ylab = ylab,
+        title = title,
+        subtitle = subtitle,
+        caption = caption,
+        ggtheme = ggtheme,
+        ggstatsplot.layer = ggstatsplot.layer,
+        package = package,
+        palette = palette,
+        direction = direction,
+        ggplot.component = ggplot.component
+      )
 
-  # don't do scale restriction in case of post hoc comparisons
-  if (isTRUE(axes.range.restrict) && !isTRUE(pairwise.comparisons)) {
-    plot <- plot +
-      ggplot2::coord_cartesian(ylim = c(min(data$y), max(data$y))) +
-      ggplot2::scale_y_continuous(limits = c(min(data$y), max(data$y)))
+    # don't do scale restriction in case of post hoc comparisons
+    if (isTRUE(axes.range.restrict) && !isTRUE(pairwise.comparisons)) {
+      plot <- plot +
+        ggplot2::coord_cartesian(ylim = c(min(data$y), max(data$y))) +
+        ggplot2::scale_y_continuous(limits = c(min(data$y), max(data$y)))
+    }
   }
-
   # --------------------- messages ------------------------------------------
 
   if (isTRUE(messages)) {
-
     # display normality test result as a message
     normality_message(
       x = data$y,
@@ -422,5 +475,11 @@ ggwithinstats <- function(data,
   }
 
   # return the final plot
-  return(plot)
+  return(switch(
+    EXPR = return,
+    "plot" = plot,
+    "subtitle" = subtitle,
+    "caption" = caption,
+    plot
+  ))
 }

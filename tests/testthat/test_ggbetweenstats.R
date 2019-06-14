@@ -77,12 +77,59 @@ testthat::test_that(
   }
 )
 
+# checking sorting -------------------------------------------------------
+
+testthat::test_that(
+  desc = "checking sorting",
+  code = {
+    testthat::skip_on_cran()
+
+    set.seed(123)
+    p1 <- ggstatsplot::ggbetweenstats(
+      data = iris,
+      x = Species,
+      y = Sepal.Length,
+      sort = "none",
+      results.subtitle = FALSE,
+      messages = FALSE
+    )
+
+    set.seed(123)
+    p2 <- ggstatsplot::ggbetweenstats(
+      data = iris,
+      x = Species,
+      y = Sepal.Length,
+      sort = "ascending",
+      results.subtitle = FALSE,
+      messages = FALSE
+    )
+
+    set.seed(123)
+    p3 <- ggstatsplot::ggbetweenstats(
+      data = iris,
+      x = Species,
+      y = Sepal.Length,
+      sort = "xxx",
+      results.subtitle = FALSE,
+      messages = FALSE
+    )
+
+    # built plots
+    pb1 <- ggplot2::ggplot_build(p1)
+    pb2 <- ggplot2::ggplot_build(p2)
+    pb3 <- ggplot2::ggplot_build(p3)
+
+    # tests
+    testthat::expect_equal(pb1$data[[6]]$label, rev(pb3$data[[6]]$label))
+    testthat::expect_equal(pb1$data[[6]]$label, pb2$data[[6]]$label)
+  }
+)
+
 # checking labels and data from plot -------------------------------------
 
 testthat::test_that(
   desc = "checking labels and data from plot",
   code = {
-    testthat::skip_on_cran()
 
     # creating the plot
     set.seed(123)
@@ -175,7 +222,6 @@ testthat::test_that(
     )
 
     # checking plot labels
-    # testthat::expect_identical(p$labels$subtitle, p_subtitle)
     testthat::expect_identical(p$labels$title, "mammalian sleep")
     testthat::expect_identical(
       p$labels$caption,
@@ -408,7 +454,7 @@ testthat::test_that(
         outlier.tagging = TRUE,
         outlier.coef = 0.75,
         outlier.color = "blue",
-        bf.message = TRUE,
+        bf.message = FALSE,
         mean.plotting = FALSE,
         sample.size.label = FALSE,
         package = "wesanderson",
@@ -452,20 +498,7 @@ testthat::test_that(
         60L
       )
     ))
-    testthat::expect_identical(pb2$plot$labels$caption, ggplot2::expr(atop(
-      displaystyle(NULL),
-      expr = paste(
-        "In favor of null: ",
-        "log"["e"],
-        "(BF"["01"],
-        ") = ",
-        "-0.18",
-        ", ",
-        italic("r")["Cauchy"],
-        " = ",
-        "0.71"
-      )
-    )))
+    testthat::expect_null(pb2$plot$labels$caption, NULL)
     testthat::expect_identical(length(pb1$data), 5L)
     testthat::expect_identical(length(pb1$data), 5L)
     testthat::expect_identical(length(pb2$data), 4L)
@@ -533,5 +566,57 @@ testthat::test_that(
 
     # test
     testthat::expect_identical(p$labels$y, "SL")
+  }
+)
+
+# subtitle return works ------------------------------------------------
+
+testthat::test_that(
+  desc = "subtitle return works",
+  code = {
+    testthat::skip_on_cran()
+
+    # plot
+    set.seed(123)
+    subtitle_exp <- ggstatsplot::ggbetweenstats(
+      data = iris,
+      x = Species,
+      y = Sepal.Length,
+      return = "subtitle",
+      messages = FALSE
+    )
+
+    # test
+    testthat::expect_identical(
+      subtitle_exp,
+      ggplot2::expr(paste(
+        NULL,
+        italic("F"),
+        "(",
+        "2",
+        ",",
+        "92.21",
+        ") = ",
+        "138.91",
+        ", ",
+        italic("p"),
+        " = ",
+        "< 0.001",
+        ", ",
+        omega["p"]^2,
+        " = ",
+        "0.61",
+        ", CI"["95%"],
+        " [",
+        "0.54",
+        ", ",
+        "0.69",
+        "]",
+        ", ",
+        italic("n"),
+        " = ",
+        150L
+      ))
+    )
   }
 )

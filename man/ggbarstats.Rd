@@ -9,16 +9,16 @@ ggbarstats(data, main, condition = NULL, counts = NULL, ratio = NULL,
   stat.title = NULL, sample.size.label = TRUE, label.separator = " ",
   label.text.size = 4, label.fill.color = "white",
   label.fill.alpha = 1, bar.outline.color = "black",
-  bf.message = FALSE, sampling.plan = "jointMulti",
+  bf.message = TRUE, sampling.plan = "indepMulti",
   fixed.margin = "rows", prior.concentration = 1, title = NULL,
   subtitle = NULL, caption = NULL, legend.position = "right",
   x.axis.orientation = NULL, conf.level = 0.95, nboot = 100,
   simulate.p.value = FALSE, B = 2000, legend.title = NULL,
   xlab = NULL, ylab = "Percent", k = 2, perc.k = 0,
-  data.label = "percentage", bar.proptest = TRUE,
+  bar.label = "percentage", data.label = NULL, bar.proptest = TRUE,
   ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
   package = "RColorBrewer", palette = "Dark2", direction = 1,
-  ggplot.component = NULL, messages = TRUE)
+  ggplot.component = NULL, return = "plot", messages = TRUE)
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
@@ -129,9 +129,9 @@ will cause the \code{x} axis label to be the \code{main} variable).}
 \item{perc.k}{Numeric that decides number of decimal places for percentage
 labels (Default: \code{0}).}
 
-\item{data.label}{Character decides what information needs to be displayed
-on the label in each pie slice. Possible options are \code{"percentage"}
-(default), \code{"counts"}, \code{"both"}.}
+\item{bar.label, data.label}{Character decides what information needs to be
+displayed on the label in each pie slice. Possible options are
+\code{"percentage"} (default), \code{"counts"}, \code{"both"}.}
 
 \item{bar.proptest}{Decides whether proportion test for \code{main} variable is
 to be carried out for each level of \code{condition} (Default: \code{TRUE}).}
@@ -161,6 +161,14 @@ as a function. If the given function has an argument \code{axes.range.restrict}
 and if it has been set to \code{TRUE}, the added ggplot component \emph{might} not
 work as expected.}
 
+\item{return}{Character that describes what is to be returned: can be
+\code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
+\code{"subtitle"} will return the expression containing statistical results,
+which will be a \code{NULL} if you set \code{results.subtitle = FALSE}. Setting this
+to \code{"caption"} will return the expression containing details about Bayes
+Factor analysis, but valid only when \code{type = "p"} and \code{bf.message = TRUE},
+otherwise this will return a \code{NULL}.}
+
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
 }
@@ -172,6 +180,10 @@ research which suggests that the Yates' correction is overly conservative,
 even in small sample sizes. As such it is recommended that it should not
 ever be applied in practice (Camilli & Hopkins, 1978, 1979; Feinberg, 1980;
 Larntz, 1978; Thompson, 1988).
+
+For more about how the effect size measures and their confidence intervals
+are computed, see \code{?rcompanion::cohenG}, \code{?rcompanion::cramerV}, and
+\code{?rcompanion::cramerVFit}.
 }
 \description{
 Bar charts for categorical data with statistical details
@@ -187,12 +199,11 @@ ggstatsplot::ggbarstats(
   data = datasets::mtcars,
   main = vs,
   condition = cyl,
-  bf.message = TRUE,
   nboot = 10,
   labels.legend = c("0 = V-shaped", "1 = straight"),
   legend.title = "Engine"
 )
-\dontrun{
+\donttest{
 # simple function call with the defaults (with count data)
 library(jmv)
 
@@ -203,6 +214,10 @@ ggstatsplot::ggbarstats(
   counts = Freq
 )
 }
+}
+\seealso{
+\code{\link{grouped_ggbarstats}}, \code{\link{ggpiestats}},
+\code{\link{grouped_ggpiestats}}
 }
 \author{
 Chuck Powell, Indrajeet Patil

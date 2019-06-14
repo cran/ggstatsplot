@@ -5,7 +5,6 @@ context(desc = "pairwise_p with ggsignif")
 testthat::test_that(
   desc = "check comparison significant displays - adjusted",
   code = {
-    testthat::skip_on_cran()
 
     # creating the plot
     set.seed(123)
@@ -13,6 +12,7 @@ testthat::test_that(
       data = ggplot2::msleep,
       x = vore,
       y = brainwt,
+      bf.message = FALSE,
       messages = FALSE,
       pairwise.comparisons = TRUE,
       pairwise.display = "s",
@@ -56,6 +56,7 @@ testthat::test_that(
       data = ggstatsplot::movies_wide,
       x = mpaa,
       y = votes,
+      bf.message = FALSE,
       messages = FALSE,
       pairwise.comparisons = TRUE,
       p.adjust.method = "none",
@@ -85,7 +86,7 @@ testthat::test_that(
       as.character(unique(data_signif$annotation)),
       c("p = 0.079", "p = 0.139", "p = 0.825")
     )
-    testthat::expect_equal(data_dims, c(3L, 11L))
+    testthat::expect_equal(data_dims, c(3L, 9L))
 
     # checking comparison groups and labels
     testthat::expect_identical(dat$group1, c("PG-13", "PG-13", "R"))
@@ -149,6 +150,7 @@ testthat::test_that(
       y = rating,
       type = "np",
       messages = FALSE,
+      bf.message = FALSE,
       pairwise.comparisons = TRUE,
       p.adjust.method = "fdr",
       pairwise.display = "all",
@@ -233,6 +235,7 @@ testthat::test_that(
       data = ggplot2::mpg,
       x = drv,
       y = cty,
+      bf.message = FALSE,
       messages = FALSE,
       k = 3,
       type = "r",
@@ -310,6 +313,7 @@ testthat::test_that(
       data = mtcars,
       x = cyl,
       y = wt,
+      bf.message = FALSE,
       messages = FALSE,
       k = 3,
       type = "p",
@@ -337,9 +341,9 @@ testthat::test_that(
     data_signif <- tibble::as_tibble(pb$data[[7]])
 
     # checking comparison groups and labels
-    testthat::expect_equal(data_dims, c(3L, 8L))
-    testthat::expect_identical(dat$group1, c("6", "8", "8"))
-    testthat::expect_identical(dat$group2, c("4", "4", "6"))
+    testthat::expect_equal(data_dims, c(3L, 6L))
+    testthat::expect_identical(dat$group1, c("4", "4", "6"))
+    testthat::expect_identical(dat$group2, c("6", "8", "8"))
     testthat::expect_identical(dat$significance, c("*", "***", "*"))
     testthat::expect_identical(
       p$labels$caption,
@@ -359,21 +363,13 @@ testthat::test_that(
       c(0.8314156, 1.7134870, 0.8820714),
       tolerance = 0.001
     )
-    testthat::expect_equal(dat$conf.low,
-      c(0.07939155, 1.08680032, 0.16206323),
-      tolerance = 0.001
-    )
-    testthat::expect_equal(dat$conf.high,
-      c(1.583440, 2.340174, 1.602080),
-      tolerance = 0.001
-    )
 
     # checking ggsignif layers
     testthat::expect_equal(ggsignif_stat$y_position,
       c(5.559600, 5.852925, 6.146250),
       tolerance = 0.001
     )
-    testthat::expect_equal(ggsignif_stat$comparisons[[2]], c("8", "4"))
+    testthat::expect_equal(ggsignif_stat$comparisons[[2]], c("4", "8"))
     testthat::expect_equal(
       ggsignif_stat$annotations,
       c(
@@ -388,15 +384,15 @@ testthat::test_that(
     testthat::expect_identical(
       as.character(data_signif$group),
       c(
-        "6-4-1",
-        "6-4-1",
-        "6-4-1",
-        "8-4-2",
-        "8-4-2",
-        "8-4-2",
-        "8-6-3",
-        "8-6-3",
-        "8-6-3"
+        "4-6-1",
+        "4-6-1",
+        "4-6-1",
+        "4-8-2",
+        "4-8-2",
+        "4-8-2",
+        "6-8-3",
+        "6-8-3",
+        "6-8-3"
       )
     )
   }

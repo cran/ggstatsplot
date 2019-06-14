@@ -8,6 +8,7 @@
 #'   or Hedge's *g* (Default: `TRUE`).
 #' @inheritParams subtitle_anova_parametric
 #' @inheritParams stats::t.test
+#' @inheritParams subtitle_template
 #'
 #' @importFrom dplyr select mutate_at
 #' @importFrom rlang !! enquo
@@ -73,6 +74,7 @@ subtitle_t_parametric <- function(data,
                                   conf.level = 0.95,
                                   var.equal = FALSE,
                                   k = 2,
+                                  stat.title = NULL,
                                   ...) {
 
   # creating a dataframe
@@ -133,6 +135,7 @@ subtitle_t_parametric <- function(data,
     na.action = na.omit
   )
 
+  # tidy dataframe from model object
   stats_df <-
     broomExtra::tidy(tobject)
 
@@ -160,7 +163,7 @@ subtitle_t_parametric <- function(data,
   # preparing subtitle
   subtitle <- subtitle_template(
     no.parameters = 1L,
-    stat.title = NULL,
+    stat.title = stat.title,
     statistic.text = quote(italic("t")),
     statistic = stats_df$statistic[[1]],
     parameter = stats_df$parameter[[1]],
@@ -203,7 +206,9 @@ subtitle_t_parametric <- function(data,
 #'   Since there is no single commonly accepted method for reporting effect size
 #'   for these tests we are computing and reporting *r* (computed as
 #'   \eqn{Z/\sqrt{N}}) along with the confidence intervals associated with the
-#'   estimate.
+#'   estimate. Note that *N* here corresponds to total *sample size* for
+#'   independent/between-subjects designs, and to total number of *pairs* (and
+#'   **not** *observations*) for repeated measures/within-subjects designs.
 #'
 #'   *Note:* The *stats::wilcox.test* function does not follow the
 #'   same convention as *stats::t.test*. The sign of the *V* test statistic
@@ -214,7 +219,7 @@ subtitle_t_parametric <- function(data,
 #'   below.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(123)
 #'
 #' # -------------- between-subjects design ------------------------
@@ -279,6 +284,7 @@ subtitle_mann_nonparametric <- function(data,
                                         conf.level = 0.95,
                                         conf.type = "norm",
                                         nboot = 100,
+                                        stat.title = NULL,
                                         messages = TRUE,
                                         ...) {
 
@@ -314,7 +320,7 @@ subtitle_mann_nonparametric <- function(data,
   } else {
     # remove NAs listwise for between-subjects design
     data %<>%
-      dplyr::filter(.data = ., !is.na(x), !is.na(y))
+      tidyr::drop_na(data = .)
 
     # sample size
     sample_size <- nrow(data)
@@ -372,7 +378,7 @@ subtitle_mann_nonparametric <- function(data,
     no.parameters = 0L,
     parameter = NULL,
     parameter2 = NULL,
-    stat.title = NULL,
+    stat.title = stat.title,
     statistic.text = statistic.text,
     statistic = log(stats_df$statistic[[1]]),
     p.value = stats_df$p.value[[1]],
@@ -451,6 +457,7 @@ subtitle_t_robust <- function(data,
                               conf.level = 0.95,
                               conf.type = "norm",
                               k = 2,
+                              stat.title = NULL,
                               messages = TRUE,
                               ...) {
 
@@ -461,7 +468,8 @@ subtitle_t_robust <- function(data,
       x = !!rlang::enquo(x),
       y = !!rlang::enquo(y)
     ) %>%
-    dplyr::mutate(.data = ., x = droplevels(as.factor(x)))
+    dplyr::mutate(.data = ., x = droplevels(as.factor(x))) %>%
+    tibble::as_tibble(x = .)
 
   # when paired robust t-test is run, `df` is going to be an integer
   if (isTRUE(paired)) {
@@ -503,7 +511,7 @@ subtitle_t_robust <- function(data,
     # preparing subtitle
     subtitle <- subtitle_template(
       no.parameters = 1L,
-      stat.title = NULL,
+      stat.title = stat.title,
       statistic.text = quote(italic("t")),
       statistic = stats_df$test[[1]],
       parameter = stats_df$df[[1]],
@@ -521,12 +529,26 @@ subtitle_t_robust <- function(data,
     # ---------------------------- within-subjects design -------------------
   } else {
 
+    # converting to long format and then getting it back in wide so that the
+    # rowid variable can be used as the block variable
+    data_within <-
+      long_to_wide_converter(
+        data = data,
+        x = x,
+        y = y
+      ) %>%
+      tidyr::gather(data = ., key, value, -rowid) %>%
+      dplyr::arrange(.data = ., rowid)
+
+    # sample size
+    sample_size <- length(unique(data_within$rowid))
+
     # getting dataframe of results from the custom function
     stats_df <-
       yuend_ci(
-        data = data,
-        x = x,
-        y = y,
+        data = data_within,
+        x = key,
+        y = value,
         tr = tr,
         nboot = nboot,
         conf.level = conf.level,
@@ -545,7 +567,7 @@ subtitle_t_robust <- function(data,
       effsize.estimate = stats_df$xi[[1]],
       effsize.LL = stats_df$conf.low[[1]],
       effsize.UL = stats_df$conf.high[[1]],
-      n = stats_df$n[[1]],
+      n = sample_size,
       conf.level = conf.level,
       k = k,
       k.parameter = k.df
@@ -570,15 +592,13 @@ subtitle_t_robust <- function(data,
 #' @inheritParams subtitle_t_parametric
 #' @inheritParams subtitle_anova_parametric
 #'
-#' @importFrom jmv ttestIS ttestPS
-#'
 #' @examples
 #' # for reproducibility
 #' set.seed(123)
 #'
 #' # between-subjects design
 #'
-#' subtitle_t_bayes(
+#' ggstatsplot::subtitle_t_bayes(
 #'   data = mtcars,
 #'   x = am,
 #'   y = wt,
@@ -587,7 +607,7 @@ subtitle_t_robust <- function(data,
 #'
 #' # within-subjects design
 #'
-#' subtitle_t_bayes(
+#' ggstatsplot::subtitle_t_bayes(
 #'   data = dplyr::filter(
 #'     ggstatsplot::intent_morality,
 #'     condition %in% c("accidental", "attempted"),
@@ -608,7 +628,6 @@ subtitle_t_bayes <- function(data,
                              k = 2,
                              ...) {
 
-
   # creating a dataframe
   data <-
     dplyr::select(
@@ -616,116 +635,20 @@ subtitle_t_bayes <- function(data,
       x = !!rlang::enquo(x),
       y = !!rlang::enquo(y)
     ) %>%
-    dplyr::mutate(.data = ., x = droplevels(as.factor(x)))
-
-  # -------------------------- between-subjects design ------------------------
-
-  # running bayesian analysis
-  if (!isTRUE(paired)) {
-
-    # removing NAs
-    data %<>%
-      stats::na.omit(.)
-
-    # sample size
-    sample_size <- nrow(data)
-
-    # independent samples design
-    jmv_results <-
-      jmv::ttestIS(
-        data = data,
-        vars = "y",
-        group = "x",
-        students = TRUE,
-        effectSize = TRUE,
-        bf = TRUE,
-        bfPrior = bf.prior,
-        hypothesis = "different",
-        miss = "listwise"
-      )
-
-    # --------------------- within-subjects design ---------------------------
-  } else if (isTRUE(paired)) {
-
-    # jamovi needs data to be wide format and not long format
-    data_wide <- long_to_wide_converter(
-      data = data,
-      x = x,
-      y = y
-    )
-
-    # dependent samples design
-    jmv_results <-
-      jmv::ttestPS(
-        data = na.omit(data_wide),
-        pairs = list(list(
-          i1 = colnames(data_wide)[[2]], i2 = colnames(data_wide)[[3]]
-        )),
-        students = TRUE,
-        effectSize = TRUE,
-        bf = TRUE,
-        bfPrior = bf.prior,
-        hypothesis = "different",
-        miss = "listwise"
-      )
-
-    # sample size
-    sample_size <- nrow(data_wide)
-  }
+    dplyr::mutate(.data = ., x = droplevels(as.factor(x))) %>%
+    tibble::as_tibble(.)
 
   # preparing the subtitle
   subtitle <-
-    base::substitute(
-      expr =
-        paste(
-          italic("t"),
-          "(",
-          df,
-          ") = ",
-          estimate,
-          ", log"["e"],
-          "(BF"["10"],
-          ") = ",
-          bf,
-          ", ",
-          italic("r")["Cauchy"],
-          " = ",
-          bf_prior,
-          ", ",
-          italic("d"),
-          " = ",
-          effsize,
-          ", ",
-          italic("n"),
-          " = ",
-          n
-        ),
-      env = base::list(
-        df = as.data.frame(jmv_results$ttest)$`df[stud]`,
-        estimate = specify_decimal_p(
-          x = as.data.frame(jmv_results$ttest)$`stat[stud]`,
-          k = k
-        ),
-        bf = specify_decimal_p(
-          x = log(
-            x = as.data.frame(jmv_results$ttest)$`stat[bf]`,
-            base = exp(1)
-          ),
-          k = 1,
-          p.value = FALSE
-        ),
-        bf_prior = specify_decimal_p(
-          x = bf.prior,
-          k = 3,
-          p.value = FALSE
-        ),
-        effsize = specify_decimal_p(
-          x = as.data.frame(jmv_results$ttest)$`es[stud]`,
-          k = k,
-          p.value = FALSE
-        ),
-        n = sample_size
-      )
+    bf_two_sample_ttest(
+      data = data,
+      x = x,
+      y = y,
+      paired = paired,
+      bf.prior = bf.prior,
+      caption = NULL,
+      output = "h1",
+      k = k
     )
 
   # return the message
@@ -766,12 +689,11 @@ subtitle_t_bayes <- function(data,
 #' Psychological Measurement, Vol. 61 No. 4, August 2001 532-574. \item Cohen,
 #' J. (1988). Statistical power analysis for the behavioral sciences (2nd ed.)
 #' Hillsdale, NJ: Lawrence Erlbaum Associates. \item David C. Howell (2010).
-#' Confidence Intervals on Effect Size, retrieved from
-#' (\url{https://www.uvm.edu/~dhowell/methods7/Supplements/Confidence\%20Intervals\%20on\%20Effect\%20Size.pdf}).
+#' Confidence Intervals on Effect Size
 #' }
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' #---------------- two-sample test ------------------------------------
 #'
 #' # creating a smaller dataset
@@ -956,10 +878,9 @@ effsize_t_parametric <- function(formula = NULL,
     method <- "Hedges's g"
     d <- d * (n - 3) / (n - 2.25)
   }
+
   lower.ci <- c(d - Z * Sigmad)
   upper.ci <- c(d + Z * Sigmad)
-
-
 
   # -------------- calculate NCP intervals -------------------
 
@@ -1004,28 +925,20 @@ effsize_t_parametric <- function(formula = NULL,
   # -------------- return results desired ------------------
 
   if (isTRUE(noncentral)) {
-    return(tibble::tibble(
-      method = method,
-      estimate = d,
-      conf.low = min(ncp.lower.ci, ncp.upper.ci),
-      conf.high = max(ncp.lower.ci, ncp.upper.ci),
-      conf.level = conf.level,
-      alternative = "two.sided",
-      paired = paired,
-      noncentral = noncentral,
-      var.equal = var.equal
-    ))
-  } else {
-    return(tibble::tibble(
-      method = method,
-      estimate = d,
-      conf.low = lower.ci,
-      conf.high = upper.ci,
-      conf.level = conf.level,
-      alternative = "two.sided",
-      paired = paired,
-      noncentral = noncentral,
-      var.equal = var.equal
-    ))
+    lower.ci <- min(ncp.lower.ci, ncp.upper.ci)
+    upper.ci <- max(ncp.lower.ci, ncp.upper.ci)
   }
+
+  # return the final dataframe with results
+  return(tibble::tibble(
+    method = method,
+    estimate = d,
+    conf.low = lower.ci,
+    conf.high = upper.ci,
+    conf.level = conf.level,
+    alternative = "two.sided",
+    paired = paired,
+    noncentral = noncentral,
+    var.equal = var.equal
+  ))
 }

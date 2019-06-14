@@ -27,16 +27,10 @@ games_howell <- function(data,
       .data = data,
       x = !!rlang::enquo(x),
       y = !!rlang::enquo(y)
-    )
-
-  # convert the grouping variable to factor and drop unused levels
-  data %<>%
-    stats::na.omit(.) %>%
-    dplyr::mutate_at(
-      .tbl = .,
-      .vars = "x",
-      .funs = ~ base::droplevels(x = base::as.factor(x = .))
-    )
+    ) %>%
+    tidyr::drop_na(data = .) %>%
+    dplyr::mutate(.data = ., x = droplevels(as.factor(x))) %>%
+    tibble::as_tibble(x = .)
 
   # variables of interest for running the test
   grp <- data$x
@@ -182,7 +176,7 @@ games_howell <- function(data,
 #' @importFrom rlang !! enquo
 #' @importFrom tibble as_tibble rowid_to_column enframe
 #' @importFrom jmv anovaNP anovaRMNP
-#' @importFrom utils packageVersion
+#' @importFrom forcats fct_relabel
 #'
 #' @seealso \code{\link{ggbetweenstats}}, \code{\link{grouped_ggbetweenstats}}
 #'
@@ -191,7 +185,7 @@ games_howell <- function(data,
 #' @examples
 #'
 #' # time consuming, so not run on `CRAN` machines
-#' \dontrun{
+#' \donttest{
 #' # show all columns in a tibble
 #' options(tibble.width = Inf)
 #'
@@ -316,17 +310,25 @@ pairwise_p <- function(data,
     if (isTRUE(var.equal) || isTRUE(paired)) {
       # anova model
       aovmodel <- stats::aov(formula = y ~ x, data = data)
-      aovmodel$model$x <-
-        stringr::str_replace(
-          string = aovmodel$model$x,
-          pattern = "-",
-          replacement = "_"
+
+      # safeguarding against edge cases
+      aovmodel$model %<>%
+        dplyr::mutate(
+          .data = .,
+          x = forcats::fct_relabel(
+            .f = x,
+            .fun = ~ stringr::str_replace(
+              string = .x,
+              pattern = "-",
+              replacement = "_"
+            )
+          )
         )
 
       # extracting and cleaning up Tukey's HSD output
       df_tukey <- stats::TukeyHSD(x = aovmodel, conf.level = 0.95) %>%
-        broom::tidy(x = .) %>%
-        dplyr::select(comparison, estimate, conf.low, conf.high) %>%
+        broomExtra::tidy(x = .) %>%
+        dplyr::select(.data = ., comparison, estimate) %>%
         tidyr::separate(
           data = .,
           col = comparison,
@@ -344,27 +346,32 @@ pairwise_p <- function(data,
           )
         )
 
+      # tidy dataframe with results from pairwise tests
+      df_tidy <- broomExtra::tidy(
+        stats::pairwise.t.test(
+          x = data$y,
+          g = data$x,
+          p.adjust.method = p.adjust.method,
+          paired = paired,
+          alternative = "two.sided",
+          na.action = na.omit
+        )
+      ) %>%
+        signif_column(data = ., p = p.value)
+
       # combining mean difference and results from pairwise t-test
       df <-
         dplyr::full_join(
           x = df_tukey,
-          y = broom::tidy(
-            stats::pairwise.t.test(
-              x = data$y,
-              g = data$x,
-              p.adjust.method = p.adjust.method,
-              paired = paired,
-              alternative = "two.sided",
-              na.action = na.omit
-            )
-          ) %>%
-            ggstatsplot::signif_column(data = ., p = p.value),
+          y = df_tidy,
           by = c("group1", "group2")
-        )
+        ) %>% # the group columns need to be swapped to be consistent
+        dplyr::rename(.data = ., group2 = group1, group1 = group2) %>%
+        dplyr::select(.data = ., group1, group2, dplyr::everything())
 
       # display message about the post hoc tests run
       if (isTRUE(messages)) {
-        base::message(cat(
+        message(cat(
           crayon::green("Note: "),
           crayon::blue(
             "The parametric pairwise multiple comparisons test used-\n",
@@ -375,7 +382,7 @@ pairwise_p <- function(data,
           sep = ""
         ))
       }
-    } else if (!isTRUE(var.equal)) {
+    } else {
 
       # dataframe with Games-Howell test results
       df <-
@@ -384,11 +391,12 @@ pairwise_p <- function(data,
           .data = .,
           p.value = stats::p.adjust(p = p.value, method = p.adjust.method)
         ) %>%
-        ggstatsplot::signif_column(data = ., p = p.value)
+        signif_column(data = ., p = p.value) %>%
+        dplyr::select(.data = ., -conf.low, -conf.high)
 
       # display message about the post hoc tests run
       if (isTRUE(messages)) {
-        base::message(cat(
+        message(cat(
           crayon::green("Note: "),
           crayon::blue(
             "The parametric pairwise multiple comparisons test used-\n",
@@ -400,9 +408,11 @@ pairwise_p <- function(data,
         ))
       }
     }
-    # ---------------------------- nonparametric ----------------------------
-    #
-  } else if (type %in% c("nonparametric", "np")) {
+  }
+
+  # ---------------------------- nonparametric ----------------------------
+
+  if (type %in% c("nonparametric", "np")) {
     if (!isTRUE(paired)) {
       # running Dwass-Steel-Crichtlow-Fligner test using `jmv` package
       jmv_pairs <-
@@ -431,7 +441,7 @@ pairwise_p <- function(data,
 
       # letting the user know which test was run
       if (isTRUE(messages)) {
-        base::message(cat(
+        message(cat(
           crayon::green("Note: "),
           crayon::blue(
             "The nonparametric pairwise multiple comparisons test used-\n",
@@ -443,7 +453,6 @@ pairwise_p <- function(data,
         ))
       }
     } else {
-
       # converting the entered long format data to wide format
       data_wide <- long_to_wide_converter(
         data = data,
@@ -479,7 +488,7 @@ pairwise_p <- function(data,
 
       # letting the user know which test was run
       if (isTRUE(messages)) {
-        base::message(cat(
+        message(cat(
           crayon::green("Note: "),
           crayon::blue(
             "The nonparametric pairwise multiple comparisons test used-\n",
@@ -491,10 +500,11 @@ pairwise_p <- function(data,
         ))
       }
     }
+  }
 
-    # ---------------------------- robust ----------------------------------
-    #
-  } else if (type %in% c("robust", "r")) {
+  # ---------------------------- robust ----------------------------------
+
+  if (type %in% c("robust", "r")) {
     if (!isTRUE(paired)) {
       # object with all details about pairwise comparisons
       rob_pairwise_df <-
@@ -517,7 +527,7 @@ pairwise_p <- function(data,
 
       # running pairwise multiple comparison tests
       rob_pairwise_df <-
-        base::with(
+        with(
           data = data_within,
           expr = WRS2::rmmcp(
             y = value,
@@ -530,13 +540,15 @@ pairwise_p <- function(data,
 
     # extracting the robust pairwise comparisons and tidying up names
     rob_df_tidy <-
-      suppressMessages(rob_pairwise_df$comp %>%
-        tibble::as_tibble(x = ., .name_repair = "unique")) %>%
-        dplyr::rename(
-          .data = .,
-          group1 = Group...1,
-          group2 = Group...2
-        )
+      suppressMessages(tibble::as_tibble(
+        x = rob_pairwise_df$comp,
+        .name_repair = "unique"
+      )) %>%
+      dplyr::rename(
+        .data = .,
+        group1 = Group...1,
+        group2 = Group...2
+      )
 
     # cleaning the raw object and getting it in the right format
     df <-
@@ -571,14 +583,11 @@ pairwise_p <- function(data,
 
     # renaming confidence interval names
     df %<>%
-      dplyr::rename(
-        .data = .,
-        conf.low = ci.lower, conf.high = ci.upper
-      )
+      dplyr::rename(.data = ., conf.low = ci.lower, conf.high = ci.upper)
 
     # message about which test was run
     if (isTRUE(messages)) {
-      base::message(cat(
+      message(cat(
         crayon::green("Note: "),
         crayon::blue(
           "The robust pairwise multiple comparisons test used-\n",
@@ -589,9 +598,13 @@ pairwise_p <- function(data,
         sep = ""
       ))
     }
-  } else if (type %in% c("bf", "bayes")) {
-    # print a message telling the user that this is currently not supported
-    base::stop(base::message(cat(
+  }
+
+  # ---------------------------- bayes factor --------------------------------
+
+  # print a message telling the user that this is currently not supported
+  if (type %in% c("bf", "bayes")) {
+    stop(message(cat(
       crayon::red("Warning: "),
       crayon::blue("No Bayes Factor pairwise comparisons currently available.\n"),
       sep = ""
@@ -600,11 +613,13 @@ pairwise_p <- function(data,
     )
   }
 
+  # ---------------------------- cleanup ----------------------------------
+
   # if there are factors, covert them to character to make life easy
   df %<>%
     dplyr::mutate_if(
       .tbl = .,
-      .predicate = base::is.factor,
+      .predicate = is.factor,
       .funs = ~ as.character(.)
     ) %>%
     purrrlyr::by_row(
@@ -681,19 +696,23 @@ pairwise_p_caption <- function(type,
     if (isTRUE(paired)) {
       test.description <- "Student's t-test"
     } else {
-      if (!isTRUE(var.equal)) {
-        test.description <- "Games-Howell test"
-      } else {
+      if (isTRUE(var.equal)) {
         test.description <- "Student's t-test"
+      } else {
+        test.description <- "Games-Howell test"
       }
     }
-  } else if (test.type == "np") {
+  }
+
+  if (test.type == "np") {
     if (isTRUE(paired)) {
       test.description <- "Durbin-Conover test"
     } else {
       test.description <- "Dwass-Steel-Crichtlow-Fligner test"
     }
-  } else if (test.type == "r") {
+  }
+
+  if (test.type == "r") {
     test.description <- "Yuen's trimmed means test"
   }
 
@@ -707,7 +726,7 @@ pairwise_p_caption <- function(type,
 
   # prepare the bayes factor message
   pairwise_caption <-
-    base::substitute(
+    substitute(
       atop(
         displaystyle(top.text),
         expr =
@@ -718,7 +737,7 @@ pairwise_p_caption <- function(type,
             bold(p.adjust.method.text)
           )
       ),
-      env = base::list(
+      env = list(
         top.text = caption,
         test.description = test.description,
         p.adjust.method.text = p.adjust.method.text
@@ -738,7 +757,7 @@ pairwise_p_caption <- function(type,
 ggsignif_position_calculator <- function(x, y) {
   # number of comparisons
   n_comparions <-
-    length(x = utils::combn(
+    length(utils::combn(
       x = unique(x),
       m = 2,
       simplify = FALSE

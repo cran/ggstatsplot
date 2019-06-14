@@ -6,7 +6,7 @@
 variable}
 \usage{
 grouped_ggscatterstats(data, x, y, type = "pearson", conf.level = 0.95,
-  bf.prior = 0.707, bf.message = FALSE, label.var = NULL,
+  bf.prior = 0.707, bf.message = TRUE, label.var = NULL,
   label.expression = NULL, grouping.var, title.prefix = NULL,
   xlab = NULL, ylab = NULL, method = "lm", method.args = list(),
   formula = y ~ x, point.color = "black", point.size = 3,
@@ -16,10 +16,11 @@ grouped_ggscatterstats(data, x, y, type = "pearson", conf.level = 0.95,
   "x", "y"), package = "wesanderson", palette = "Royal1",
   direction = 1, xfill = "#009E73", yfill = "#D55E00", xalpha = 1,
   yalpha = 1, xsize = 0.7, ysize = 0.7, centrality.para = NULL,
-  results.subtitle = TRUE, caption = NULL, subtitle = NULL,
-  nboot = 100, beta = 0.1, k = 2, axes.range.restrict = FALSE,
-  ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
-  ggplot.component = NULL, messages = TRUE, ...)
+  results.subtitle = TRUE, stat.title = NULL, caption = NULL,
+  subtitle = NULL, nboot = 100, beta = 0.1, k = 2,
+  axes.range.restrict = FALSE, ggtheme = ggplot2::theme_bw(),
+  ggstatsplot.layer = TRUE, ggplot.component = NULL, return = "plot",
+  messages = TRUE, ...)
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
@@ -48,7 +49,8 @@ parametric/pearson's), \code{"np"} (nonparametric/spearman), \code{"r"} (robust)
 to use in calculating Bayes factors.}
 
 \item{bf.message}{Logical that decides whether to display Bayes Factor in
-favor of the \emph{null} hypothesis \strong{for parametric test} (Default: \code{FALSE}).}
+favor of the \emph{null} hypothesis. This argument is relevant only \strong{for
+parametric test} (Default: \code{TRUE}).}
 
 \item{label.var}{Variable to use for points labels. Can be entered either as
 a character string (e.g., \code{"var1"}) or as a bare expression (e.g, \code{var1}).}
@@ -73,7 +75,7 @@ variable names for \code{x} and \code{y} will be used.}
 
 \item{method}{Smoothing method (function) to use, accepts either a character vector,
 e.g. \code{"auto"}, \code{"lm"}, \code{"glm"}, \code{"gam"}, \code{"loess"} or a function, e.g.
-\code{MASS::rlm} or \code{mgcv::gam}, \code{base::lm}, or \code{base::loess}.
+\code{MASS::rlm} or \code{mgcv::gam}, \code{stats::lm}, or \code{stats::loess}.
 
 For \code{method = "auto"} the smoothing method is chosen based on the
 size of the largest group (across all panels). \code{\link[=loess]{loess()}} is
@@ -165,6 +167,10 @@ or \code{"median"}) is to be displayed as vertical (for \code{x}) and horizontal
 to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
 the plot will be returned.}
 
+\item{stat.title}{A character describing the test being run, which will be
+added as a prefix in the subtitle. The default is \code{NULL}. An example of a
+\code{stat.title} argument will be something like \code{"Student's t-test: "}.}
+
 \item{caption}{The text for the plot caption.}
 
 \item{subtitle}{The text for the plot subtitle. Will work only if
@@ -198,6 +204,14 @@ of the current function. Default is \code{NULL}. The argument should be entered
 as a function. If the given function has an argument \code{axes.range.restrict}
 and if it has been set to \code{TRUE}, the added ggplot component \emph{might} not
 work as expected.}
+
+\item{return}{Character that describes what is to be returned: can be
+\code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
+\code{"subtitle"} will return the expression containing statistical results,
+which will be a \code{NULL} if you set \code{results.subtitle = FALSE}. Setting this
+to \code{"caption"} will return the expression containing details about Bayes
+Factor analysis, but valid only when \code{type = "p"} and \code{bf.message = TRUE},
+otherwise this will return a \code{NULL}.}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
@@ -258,7 +272,7 @@ subtitle.
 }
 \examples{
 
-\dontrun{
+\donttest{
 # to ensure reproducibility
 set.seed(123)
 
@@ -305,7 +319,7 @@ ggstatsplot::grouped_ggscatterstats(
   x = budget,
   y = length,
   grouping.var = genre,
-  bf.message = TRUE,
+  bf.message = FALSE,
   label.var = "title",
   marginal = FALSE,
   title.prefix = "Genre",

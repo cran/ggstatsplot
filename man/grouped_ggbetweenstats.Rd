@@ -10,11 +10,12 @@ grouped_ggbetweenstats(data, x, y, grouping.var, title.prefix = NULL,
   pairwise.comparisons = FALSE, pairwise.annotation = "asterisk",
   pairwise.display = "significant", p.adjust.method = "holm",
   effsize.type = "unbiased", partial = TRUE,
-  effsize.noncentral = TRUE, bf.prior = 0.707, bf.message = FALSE,
+  effsize.noncentral = TRUE, bf.prior = 0.707, bf.message = TRUE,
   results.subtitle = TRUE, xlab = NULL, ylab = NULL,
-  subtitle = NULL, caption = NULL, sample.size.label = TRUE, k = 2,
-  var.equal = FALSE, conf.level = 0.95, nboot = 100, tr = 0.1,
-  axes.range.restrict = FALSE, mean.label.size = 3,
+  subtitle = NULL, stat.title = NULL, caption = NULL,
+  sample.size.label = TRUE, k = 2, var.equal = FALSE,
+  conf.level = 0.95, nboot = 100, tr = 0.1, sort = "none",
+  sort.fun = mean, axes.range.restrict = FALSE, mean.label.size = 3,
   mean.label.fontface = "bold", mean.label.color = "black",
   notch = FALSE, notchwidth = 0.5, linetype = "solid",
   outlier.tagging = FALSE, outlier.label = NULL,
@@ -25,7 +26,7 @@ grouped_ggbetweenstats(data, x, y, grouping.var, title.prefix = NULL,
   point.dodge.width = 0.6, ggtheme = ggplot2::theme_bw(),
   ggstatsplot.layer = TRUE, package = "RColorBrewer",
   palette = "Dark2", direction = 1, ggplot.component = NULL,
-  messages = TRUE, ...)
+  return = "plot", messages = TRUE, ...)
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
@@ -87,11 +88,12 @@ will be returned. Valid only for objects of class \code{lm}, \code{aov}, \code{a
 \emph{t}-distributions for computing the confidence interval for Cohen's \emph{d}
 or Hedge's \emph{g} (Default: \code{TRUE}).}
 
-\item{bf.prior}{A number between 0.5 and 2 (default \code{0.707}), the prior width
-to use in calculating Bayes factors.}
+\item{bf.prior}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
+width to use in calculating Bayes factors.}
 
 \item{bf.message}{Logical that decides whether to display Bayes Factor in
-favor of the \emph{null} hypothesis \strong{for parametric test} (Default: \code{FALSE}).}
+favor of the \emph{null} hypothesis. This argument is relevant only \strong{for
+parametric test} (Default: \code{TRUE}).}
 
 \item{results.subtitle}{Decides whether the results of statistical tests are
 to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
@@ -105,6 +107,10 @@ variable names for \code{x} and \code{y} will be used.}
 
 \item{subtitle}{The text for the plot subtitle. Will work only if
 \code{results.subtitle = FALSE}.}
+
+\item{stat.title}{A character describing the test being run, which will be
+added as a prefix in the subtitle. The default is \code{NULL}. An example of a
+\code{stat.title} argument will be something like \code{"Student's t-test: "}.}
 
 \item{caption}{The text for the plot caption.}
 
@@ -133,6 +139,12 @@ get error stating "Standard error cannot be computed because of Winsorized
 variance of 0 (e.g., due to ties). Try to decrease the trimming level.",
 try to play around with the value of \code{tr}, which is by default set to
 \code{0.1}. Lowering the value might help.}
+
+\item{sort}{If \code{"ascending"} (default), \code{x}-axis variable factor levels will
+be sorted based on increasing values of \code{y}-axis variable. If
+\code{"descending"}, the opposite. If \code{"none"}, no sorting will happen.}
+
+\item{sort.fun}{The function used to sort (default: \code{mean}).}
 
 \item{axes.range.restrict}{Logical that decides whether to restrict the axes
 values ranges to \code{min} and \code{max} values of the axes variables (Default:
@@ -229,6 +241,14 @@ as a function. If the given function has an argument \code{axes.range.restrict}
 and if it has been set to \code{TRUE}, the added ggplot component \emph{might} not
 work as expected.}
 
+\item{return}{Character that describes what is to be returned: can be
+\code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
+\code{"subtitle"} will return the expression containing statistical results,
+which will be a \code{NULL} if you set \code{results.subtitle = FALSE}. Setting this
+to \code{"caption"} will return the expression containing details about Bayes
+Factor analysis, but valid only when \code{type = "p"} and \code{bf.message = TRUE},
+otherwise this will return a \code{NULL}.}
+
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
 
@@ -301,10 +321,10 @@ If robust tests are selected, following tests are used is .
 \item \emph{t}-test: Yuen's test for trimmed means (see \code{?WRS2::yuen})
 }
 
-Variant of this function \code{ggwithinstats} is currently in progress. You \emph{can}
-still use this function just to prepare the \strong{plot} for exploratory data
-analysis, but the statistical details displayed in the subtitle will be
-incorrect. You can remove them by adding \code{+ ggplot2::labs(subtitle = NULL)}.
+For more about how the effect size measures (for nonparametric tests) and
+their confidence intervals are computed, see \code{?rcompanion::wilcoxonR}.
+
+For repeated measures designs, use \code{ggwithinstats}.
 }
 \examples{
 
@@ -317,10 +337,9 @@ ggstatsplot::grouped_ggbetweenstats(
   x = year,
   y = hwy,
   grouping.var = drv,
-  conf.level = 0.99,
-  bf.message = TRUE
+  conf.level = 0.99
 )
-\dontrun{
+\donttest{
 # modifying individual plots using `ggplot.component` argument
 ggstatsplot::grouped_ggbetweenstats(
   data = dplyr::filter(
@@ -342,7 +361,8 @@ ggstatsplot::grouped_ggbetweenstats(
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggbetweenstats.html}
 }
 \seealso{
-\code{\link{ggbetweenstats}}
+\code{\link{ggbetweenstats}}, \code{\link{ggwithinstats}},
+\code{\link{grouped_ggwithinstats}}
 }
 \author{
 Indrajeet Patil, Chuck Powell

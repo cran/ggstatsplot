@@ -5,8 +5,8 @@
 #' @inheritParams tfz_labeller
 #'
 #' @examples
-#' \dontrun{
-#' # show all columns in a tibble
+#' \donttest{
+#' # show all columns in output tibble
 #' options(tibble.width = Inf)
 #'
 #' # for reproducibility
@@ -71,13 +71,14 @@
 #' op <- options(contrasts = c("contr.helmert", "contr.poly"))
 #' npk.aov <- stats::aov(formula = yield ~ block + N * P * K, data = npk)
 #'
-#' # converting to a dataframe using
-#' tidy_df <- ggstatsplot::lm_effsize_ci(
-#'   object = npk.aov,
-#'   effsize = "omega",
-#'   partial = FALSE,
-#'   nboot = 50
-#' ) %>%
+#' # extracting a tidy dataframe with effect size estimate and their CIs
+#' tidy_df <-
+#'   ggstatsplot::lm_effsize_ci(
+#'     object = npk.aov,
+#'     effsize = "omega",
+#'     partial = FALSE,
+#'     nboot = 50
+#'   ) %>%
 #'   dplyr::rename(.data = ., estimate = omegasq, statistic = F.value)
 #'
 #' # including a new column with a label
@@ -127,6 +128,7 @@ ggcoefstats_label_maker <- function(x,
       "lm.beta",
       "lmerMod",
       "lmRob",
+      "mlm",
       "multinom",
       "nlmerMod",
       "nlrq",
@@ -193,17 +195,22 @@ ggcoefstats_label_maker <- function(x,
   )
 
   # ================================ dataframe ================================
+
   if (class(x)[[1]] %in% df.mods) {
-    tidy_df <- tfz_labeller(
-      tidy_df = x,
-      glance_df = glance_df,
-      statistic = statistic,
-      effsize = effsize,
-      partial = partial,
-      k = k
-    )
-    # ================================ t-statistic labels =====================
-  } else if (class(x)[[1]] %in% t.mods) {
+    tidy_df <-
+      tfz_labeller(
+        tidy_df = x,
+        glance_df = glance_df,
+        statistic = statistic,
+        effsize = effsize,
+        partial = partial,
+        k = k
+      )
+  }
+
+  # ================================ t-statistic labels =====================
+
+  if (class(x)[[1]] %in% t.mods) {
     tidy_df %<>%
       tfz_labeller(
         tidy_df = .,
@@ -211,8 +218,11 @@ ggcoefstats_label_maker <- function(x,
         statistic = "t",
         k = k
       )
-    # ======================= z-statistic labels ==============================
-  } else if (class(x)[[1]] %in% z.mods) {
+  }
+
+  # ======================= z-statistic labels ==============================
+
+  if (class(x)[[1]] %in% z.mods) {
     tidy_df %<>%
       tfz_labeller(
         tidy_df = .,
@@ -220,9 +230,11 @@ ggcoefstats_label_maker <- function(x,
         statistic = "z",
         k = k
       )
+  }
 
-    # ================ t/z-statistic labels ===================================
-  } else if (class(x)[[1]] %in% g.mods) {
+  # ======================= t/z-statistic labels ==============================
+
+  if (class(x)[[1]] %in% g.mods) {
     if (class(x)[[1]] == "glm") {
       if (summary(x)$family$family[[1]] %in% g.t.mods) {
         tidy_df %<>%
@@ -260,15 +272,8 @@ ggcoefstats_label_maker <- function(x,
           )
       }
     } else if (class(x)[[1]] == "glmRob") {
-      if (x$family[[1]] %in% g.t.mods) {
-        tidy_df %<>%
-          tfz_labeller(
-            tidy_df = .,
-            glance_df = glance_df,
-            statistic = "t",
-            k = k
-          )
-      } else if (x$family[[1]] %in% g.z.mods) {
+      # only binomial and poisson families are implemented in `robust` package
+      if (x$family[[1]] %in% g.z.mods) {
         tidy_df %<>%
           tfz_labeller(
             tidy_df = .,
@@ -278,8 +283,11 @@ ggcoefstats_label_maker <- function(x,
           )
       }
     }
-    # ====================== F-statistic ====================================
-  } else if (class(x)[[1]] %in% f.mods) {
+  }
+
+  # ====================== F-statistic ====================================
+
+  if (class(x)[[1]] %in% f.mods) {
     tidy_df %<>%
       tfz_labeller(
         tidy_df = .,
@@ -351,7 +359,7 @@ tfz_labeller <- function(tidy_df,
   #--------------------------- t-statistic ------------------------------------
 
   # if the statistic is t-value
-  if (statistic == "t") {
+  if (statistic %in% c("t", "t.value", "t-value", "T")) {
     if ("df.residual" %in% names(glance_df) ||
       "df.residual" %in% names(tidy_df)) {
 
@@ -382,7 +390,7 @@ tfz_labeller <- function(tidy_df,
           .labels = TRUE
         )
     } else {
-      # for objects like rlm there will be no parameter
+      # for objects like `rlm` there will be no parameter
       tidy_df %<>%
         purrrlyr::by_row(
           .d = .,
@@ -402,8 +410,11 @@ tfz_labeller <- function(tidy_df,
           .labels = TRUE
         )
     }
-    #--------------------------- z-statistic ---------------------------------
-  } else if (statistic == "z") {
+  }
+
+  #--------------------------- z-statistic ---------------------------------
+
+  if (statistic %in% c("z", "z.value", "z-value", "Z")) {
     # if the statistic is z-value
     tidy_df %<>%
       purrrlyr::by_row(
@@ -422,9 +433,11 @@ tfz_labeller <- function(tidy_df,
         .to = "label",
         .labels = TRUE
       )
+  }
 
-    #--------------------------- f-statistic ---------------------------------
-  } else if (statistic == "f") {
+  #--------------------------- f-statistic ---------------------------------
+
+  if (statistic %in% c("f", "f.value", "f-value", "F-value", "F")) {
 
     # which effect size is needed?
     if (effsize == "eta") {
@@ -511,7 +524,7 @@ tfz_labeller <- function(tidy_df,
 #'     ), conf.high = c(
 #'       0.473580060546444, 0.845724236068931, 0.496860572498711,
 #'       0.652939922388847, 1.08550155858277
-#'     ), p.value.x = c(
+#'     ), p.value = c(
 #'       3.28679518728519e-15,
 #'       4.04778497135963e-75, 7.59757330804449e-29, 5.45155840151592e-26,
 #'       2.99171217913312e-13
@@ -566,7 +579,7 @@ subtitle_meta_ggcoefstats <- function(data,
   # check if the two columns needed are present
   if (sum(c("estimate", "std.error") %in% names(data)) != 2) {
     # inform the user that skipping labels for the same reason
-    base::stop(base::message(cat(
+    stop(message(cat(
       crayon::red("Error"),
       crayon::blue(": The dataframe **must** contain the following two columns:\n"),
       crayon::blue("`estimate` and `std.error`."),
@@ -624,7 +637,7 @@ subtitle_meta_ggcoefstats <- function(data,
 
   # preparing the subtitle
   subtitle <-
-    base::substitute(
+    substitute(
       expr =
         paste(
           "Summary effect: ",
@@ -649,7 +662,7 @@ subtitle_meta_ggcoefstats <- function(data,
           " = ",
           pvalue
         ),
-      env = base::list(
+      env = list(
         estimate = specify_decimal_p(x = df_tidy$estimate, k = k),
         LL = specify_decimal_p(x = df_tidy$conf.low, k = k),
         UL = specify_decimal_p(x = df_tidy$conf.high, k = k),
@@ -659,7 +672,7 @@ subtitle_meta_ggcoefstats <- function(data,
       )
     )
 
-  #----------------------- input checking ------------------------------------
+  #----------------------- model sumamry ------------------------------------
 
   df_glance <- with(
     data = meta_res,
@@ -681,7 +694,7 @@ subtitle_meta_ggcoefstats <- function(data,
 
   # preparing the subtitle
   caption <-
-    base::substitute(
+    substitute(
       atop(displaystyle(top.text),
         expr =
           paste(
@@ -705,7 +718,7 @@ subtitle_meta_ggcoefstats <- function(data,
             I2
           )
       ),
-      env = base::list(
+      env = list(
         top.text = caption,
         Q = specify_decimal_p(x = df_glance$QE, k = 0L),
         df = specify_decimal_p(x = (df_glance$k - 1), k = 0L),
@@ -717,13 +730,165 @@ subtitle_meta_ggcoefstats <- function(data,
 
   #---------------------------- output ---------------------------------------
 
-  if (output == "subtitle") {
-    return(subtitle)
-  } else if (output == "tidy") {
-    return(df_tidy)
-  } else if (output == "caption") {
-    return(caption)
-  } else if (output == "glance") {
-    return(df_glance)
+  # what needs to be returned?
+  return(switch(
+    EXPR = output,
+    "subtitle" = subtitle,
+    "tidy" = df_tidy,
+    "caption" = caption,
+    "glance" = df_glance,
+    "subtitle"
+  ))
+}
+
+
+#' @title Bayes factor message for random-effects meta-analysis
+#' @name bf_meta_message
+#' @importFrom metaBMA meta_random
+#'
+#' @inherit metaBMA::meta_random return Description
+#'
+#' @inheritParams subtitle_meta_ggcoefstats
+#' @inheritParams metaBMA::meta_random
+#'
+#' @examples
+#'
+#' \donttest{
+#' # setup
+#' set.seed(123)
+#' library(metaBMA)
+#'
+#' # creating a dataframe
+#' (df <-
+#'   structure(
+#'     .Data = list(
+#'       study = c("1", "2", "3", "4", "5"),
+#'       estimate = c(
+#'         0.382047603321706,
+#'         0.780783111514665,
+#'         0.425607573765058,
+#'         0.558365541235078,
+#'         0.956473848429961
+#'       ),
+#'       std.error = c(
+#'         0.0465576338644502,
+#'         0.0330218199731529,
+#'         0.0362834986178494,
+#'         0.0480571500648261,
+#'         0.062215818388157
+#'       )
+#'     ),
+#'     row.names = c(NA, -5L),
+#'     class = c("tbl_df", "tbl", "data.frame")
+#'   ))
+#'
+#' # getting bayes factor in favor of null hypothesis
+#' ggstatsplot::bf_meta_message(
+#'   data = df,
+#'   k = 3,
+#'   sample = 50,
+#'   messages = FALSE
+#' )
+#' }
+#'
+#' @export
+
+# function body
+bf_meta_message <- function(data,
+                            k = 2,
+                            d = "norm",
+                            d.par = c(0, 0.3),
+                            tau = "halfcauchy",
+                            tau.par = 0.5,
+                            sample = 10000,
+                            summarize = "integrate",
+                            caption = NULL,
+                            messages = TRUE,
+                            ...) {
+
+  #----------------------- input checking ------------------------------------
+
+  # check if the two columns needed are present
+  if (sum(c("estimate", "std.error") %in% names(data)) != 2) {
+    # inform the user that skipping labels for the same reason
+    stop(message(cat(
+      crayon::red("Error"),
+      crayon::blue(": The dataframe **must** contain the following two columns:\n"),
+      crayon::blue("`estimate` and `std.error`.\n"),
+      sep = ""
+    )),
+    call. = FALSE
+    )
   }
+
+  #----------------------- create labels column -------------------------------
+
+  if (!"term" %in% names(data)) {
+    data %<>%
+      dplyr::mutate(.data = ., term = 1:nrow(.)) %>%
+      dplyr::mutate(.data = ., term = as.character(term))
+  }
+
+  # extracting results from random-effects meta-analysis
+  bf_meta <- metaBMA::meta_random(
+    y = data$estimate,
+    SE = data$std.error,
+    labels = data$term,
+    d = d,
+    d.par = d.par,
+    tau = tau,
+    tau.par = tau.par,
+    sample = sample,
+    summarize = summarize,
+    method = "parallel",
+    ...
+  )
+
+  # print results from meta-analysis
+  if (isTRUE(messages)) {
+    print(bf_meta)
+  }
+
+  #----------------------- preparing caption -------------------------------
+
+  # creating a dataframe with posterior estimates
+  df_estimates <- as.data.frame(bf_meta$estimates) %>%
+    tibble::rownames_to_column(.data = ., var = "term") %>%
+    tibble::as_tibble(x = .) %>%
+    dplyr::filter(.data = ., term == "d")
+
+  # prepare the bayes factor message
+  bf_text <-
+    substitute(
+      atop(displaystyle(top.text),
+        expr =
+          paste(
+            "In favor of null: ",
+            "log"["e"],
+            "(BF"["01"],
+            ") = ",
+            bf,
+            ", ",
+            italic("d")["mean"]^"posterior",
+            " = ",
+            d.pmean,
+            ", CI"["95%"],
+            " [",
+            d.pmean.LB,
+            ", ",
+            d.pmean.UB,
+            "]"
+          )
+      ),
+      env = list(
+        top.text = caption,
+        bf = specify_decimal_p(x = -log(bf_meta$BF[[1]]), k = k),
+        d.pmean = specify_decimal_p(x = df_estimates$Mean[[1]], k = k),
+        d.pmean.LB = specify_decimal_p(x = df_estimates$HPD95lower[[1]], k = k),
+        d.pmean.UB = specify_decimal_p(x = df_estimates$HPD95upper[[1]], k = k)
+      )
+    )
+
+  # return the caption
+  return(bf_text)
 }

@@ -14,9 +14,9 @@
 #' @importFrom rlang !! enquo quo_name ensym
 #' @importFrom glue glue
 #' @importFrom purrr map set_names
-#' @importFrom tidyr nest
 #'
-#' @seealso \code{\link{ggpiestats}}
+#' @seealso \code{\link{ggbarstats}}, \code{\link{ggpiestats}},
+#'  \code{\link{grouped_ggbarstats}}
 #'
 #' @inherit ggpiestats return references
 #' @inherit ggpiestats return details
@@ -42,7 +42,7 @@
 #' )
 #'
 #' # the following will take slightly more amount of time
-#' \dontrun{
+#' \donttest{
 #' # for reproducibility
 #' set.seed(123)
 #'
@@ -57,7 +57,6 @@
 #'   main = color,
 #'   condition = clarity,
 #'   grouping.var = cut,
-#'   bf.message = TRUE,
 #'   sampling.plan = "poisson",
 #'   title.prefix = "Quality",
 #'   slice.label = "both",
@@ -85,7 +84,7 @@ grouped_ggpiestats <- function(data,
                                label.text.size = 4,
                                label.fill.color = "white",
                                label.fill.alpha = 1,
-                               bf.message = FALSE,
+                               bf.message = TRUE,
                                sampling.plan = "indepMulti",
                                fixed.margin = "rows",
                                prior.concentration = 1,
@@ -107,23 +106,24 @@ grouped_ggpiestats <- function(data,
                                palette = "Dark2",
                                direction = 1,
                                ggplot.component = NULL,
+                               return = "plot",
                                messages = TRUE,
                                ...) {
 
   # ======================== check user input =============================
 
   # create a list of function call to check
-  param_list <- base::as.list(base::match.call())
+  param_list <- as.list(match.call())
 
   # check that there is a grouping.var
   if (!"grouping.var" %in% names(param_list)) {
-    base::stop("You must specify a grouping variable")
+    stop("You must specify a grouping variable")
   }
 
   # check that conditioning and grouping.var are different
   if ("condition" %in% names(param_list)) {
     if (as.character(param_list$condition) == as.character(param_list$grouping.var)) {
-      base::message(cat(
+      message(cat(
         crayon::red("\nError: "),
         crayon::blue(
           "Identical variable (",
@@ -132,7 +132,7 @@ grouped_ggpiestats <- function(data,
         ),
         sep = ""
       ))
-      base::return(base::invisible(param_list$condition))
+      return(invisible(param_list$condition))
     }
   }
 
@@ -239,23 +239,26 @@ grouped_ggpiestats <- function(data,
       palette = palette,
       direction = direction,
       ggplot.component = ggplot.component,
+      return = return,
       messages = messages
     )
 
-
   # combining the list of plots into a single plot
-  combined_plot <-
-    ggstatsplot::combine_plots(
-      plotlist = plotlist_purrr,
-      ...
-    )
+  if (return == "plot") {
+    combined_object <-
+      ggstatsplot::combine_plots(
+        plotlist = plotlist_purrr,
+        ...
+      )
 
-  # show the note about grouped_ variant producing object which is not of
-  # class ggplot
-  if (isTRUE(messages)) {
-    grouped_message()
+    # inform user this can't be modified further with ggplot commands
+    if (isTRUE(messages)) {
+      grouped_message()
+    }
+  } else {
+    combined_object <- plotlist_purrr
   }
 
   # return the combined plot
-  return(combined_plot)
+  return(combined_object)
 }

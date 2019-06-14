@@ -18,8 +18,10 @@ be taken. A matrix or tables will \strong{not} be accepted.}
 
 \item{mu}{If conducting a single sample test against a mean (Default: \code{0}).}
 
-\item{paired}{a logical indicating whether you want a paired
-    t-test.}
+\item{paired}{Logical that decides whether the design is repeated
+measures/within-subjects (in which case one-way Friedman Rank Sum Test will
+be carried out) or between-subjects (in which case one-way Kruskal–Wallis H
+test will be carried out). The default is \code{FALSE}.}
 
 \item{hedges.correction}{Logical indicating whether to apply Hedges
 correction, Hedge's \emph{g} (Default: \code{TRUE}).}
@@ -58,12 +60,11 @@ That Are Based On Central And Noncentral Distributions, Educational and
 Psychological Measurement, Vol. 61 No. 4, August 2001 532-574. \item Cohen,
 J. (1988). Statistical power analysis for the behavioral sciences (2nd ed.)
 Hillsdale, NJ: Lawrence Erlbaum Associates. \item David C. Howell (2010).
-Confidence Intervals on Effect Size, retrieved from
-(\url{https://www.uvm.edu/~dhowell/methods7/Supplements/Confidence\%20Intervals\%20on\%20Effect\%20Size.pdf}).
+Confidence Intervals on Effect Size
 }
 }
 \examples{
-\dontrun{
+\donttest{
 #---------------- two-sample test ------------------------------------
 
 # creating a smaller dataset

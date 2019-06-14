@@ -34,7 +34,8 @@ testthat::test_that(
     p_subtitle <-
       ggstatsplot::subtitle_onesample_proptest(
         data = ggplot2::msleep,
-        main = "vore"
+        main = "vore",
+        nboot = 25
       )
 
     # checking dimensions of data
@@ -88,7 +89,6 @@ testthat::test_that(
 testthat::test_that(
   desc = "checking labels with contingency tab",
   code = {
-    testthat::skip_on_cran()
 
     # creating the plot
     set.seed(123)
@@ -102,6 +102,7 @@ testthat::test_that(
         nboot = 25,
         package = "wesanderson",
         palette = "Royal2",
+        ggtheme = ggplot2::theme_bw(),
         slice.label = "counts",
         legend.title = "transmission",
         factor.levels = c("0 = automatic", "1 = manual"),
@@ -195,6 +196,7 @@ testthat::test_that(
     testthat::expect_null(pb$plot$plot_env$stat.title, NULL)
     testthat::expect_identical(pb$plot$guides$fill$title[1], "transmission")
     testthat::expect_null(pb1$plot$labels$subtitle, NULL)
+    testthat::expect_null(pb1$plot$labels$caption, NULL)
     testthat::expect_identical(
       pb1$layout$facet_params$plot_env$facet.wrap.name,
       "transmission"
@@ -250,8 +252,10 @@ testthat::test_that(
       main = Sex,
       condition = Survived,
       nboot = 25,
+      bf.message = FALSE,
       counts = "Freq",
       perc.k = 2,
+      ggtheme = ggplot2::theme_minimal(),
       conf.level = 0.95,
       messages = TRUE
     )
@@ -290,6 +294,7 @@ testthat::test_that(
 
     # checking plot labels
     testthat::expect_identical(p$labels$subtitle, p_subtitle)
+    testthat::expect_null(p$labels$caption, NULL)
   }
 )
 
@@ -367,5 +372,86 @@ testthat::test_that(
       main = x,
       condition = y
     ))
+  }
+)
+
+# subtitle return --------------------------------------------------
+
+testthat::test_that(
+  desc = "subtitle return",
+  code = {
+    testthat::skip_on_cran()
+
+    # subtitle return
+    set.seed(123)
+    p_sub <- ggstatsplot::ggpiestats(
+      data = dplyr::sample_frac(tbl = forcats::gss_cat, size = 0.1),
+      main = race,
+      condition = marital,
+      return = "subtitle",
+      k = 4,
+      messages = FALSE
+    )
+
+    # caption return
+    set.seed(123)
+    p_cap <- ggstatsplot::ggpiestats(
+      data = dplyr::sample_frac(tbl = forcats::gss_cat, size = 0.1),
+      main = race,
+      condition = marital,
+      return = "caption",
+      k = 4,
+      messages = FALSE
+    )
+
+    # tests
+    testthat::expect_identical(p_sub, ggplot2::expr(
+      paste(
+        NULL,
+        italic(chi)^2,
+        "(",
+        "8",
+        ") = ",
+        "109.2007",
+        ", ",
+        italic("p"),
+        " = ",
+        "< 0.001",
+        ", ",
+        italic("V")["Cramer"],
+        " = ",
+        "0.1594",
+        ", CI"["95%"],
+        " [",
+        "0.0916",
+        ", ",
+        "0.1278",
+        "]",
+        ", ",
+        italic("n"),
+        " = ",
+        2148L
+      )
+    ))
+
+    testthat::expect_identical(
+      p_cap,
+      ggplot2::expr(atop(
+        displaystyle(NULL),
+        expr = paste(
+          "In favor of null: ",
+          "log"["e"],
+          "(BF"["01"],
+          ") = ",
+          "-36.8983",
+          ", sampling = ",
+          "independent multinomial",
+          ", ",
+          italic("a"),
+          " = ",
+          "1.0000"
+        )
+      ))
+    )
   }
 )

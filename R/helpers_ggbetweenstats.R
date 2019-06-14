@@ -34,7 +34,7 @@ mean_labeller <- function(data,
     dplyr::mutate_at(
       .tbl = .,
       .vars = "x",
-      .funs = ~ base::droplevels(x = base::as.factor(x = .))
+      .funs = ~ droplevels(x = as.factor(x = .))
     ) %>%
     tibble::as_tibble(x = .)
 
@@ -282,7 +282,7 @@ outlier_df <- function(data,
     dplyr::group_by(.data = ., !!rlang::enquo(x)) %>%
     dplyr::mutate(
       .data = .,
-      isanoutlier = base::ifelse(
+      isanoutlier = ifelse(
         test = check_outlier(
           var = !!rlang::enquo(y),
           coef = outlier.coef
@@ -293,7 +293,7 @@ outlier_df <- function(data,
     ) %>%
     dplyr::mutate(
       .data = .,
-      outlier = base::ifelse(
+      outlier = ifelse(
         test = isanoutlier,
         yes = !!rlang::enquo(outlier.label),
         no = NA
@@ -378,67 +378,6 @@ long_to_wide_converter <- function(data,
   return(data_wide)
 }
 
-#' @title Standardize a dataframe with effect sizes for `aov`, `lm`, `aovlist`,
-#'   etc. objects.
-#' @name lm_effsize_standardizer
-#'
-#' @inheritParams groupedstats::lm_effsize_ci
-#'
-#' @examples
-#' \dontrun{
-#' ggstatsplot:::lm_effsize_standardizer(
-#'   object = stats::lm(formula = brainwt ~ vore, data = ggplot2::msleep),
-#'   effsize = "eta",
-#'   partial = FALSE,
-#'   conf.level = 0.99,
-#'   nboot = 50
-#' )
-#' }
-#' @keywords internal
-
-# function body
-lm_effsize_standardizer <- function(object,
-                                    effsize = "eta",
-                                    partial = TRUE,
-                                    conf.level = 0.95,
-                                    nboot = 500) {
-
-  # creating a dataframe with effect size and its CI
-  df <- groupedstats::lm_effsize_ci(
-    object = object,
-    effsize = effsize,
-    partial = partial,
-    conf.level = conf.level,
-    nboot = nboot
-  )
-
-  # renaming the particular effect size to standard term 'estimate'
-  if (effsize == "eta") {
-    # partial eta-squared
-    if (isTRUE(partial)) {
-      df %<>%
-        dplyr::rename(.data = ., estimate = partial.etasq)
-    } else {
-      # eta-squared
-      df %<>%
-        dplyr::rename(.data = ., estimate = etasq)
-    }
-  } else if (effsize == "omega") {
-    # partial omega-squared
-    if (isTRUE(partial)) {
-      df %<>%
-        dplyr::rename(.data = ., estimate = partial.omegasq)
-    } else {
-      # omega-squared
-      df %<>%
-        dplyr::rename(.data = ., estimate = omegasq)
-    }
-  }
-
-  # return the dataframe in standard format
-  return(df)
-}
-
 
 #' @title Adding `geom_signif` to the plot.
 #' @name ggsignif_adder
@@ -517,7 +456,7 @@ ggsignif_adder <- function(plot,
     df_pairwise %<>%
       dplyr::arrange(.data = ., group1)
 
-    # computing y coordinates for ggsgnif bars
+    # computing y coordinates for ggsignif bars
     ggsignif_y_position <-
       ggsignif_position_calculator(x = data$x, y = data$y)
 
@@ -538,4 +477,37 @@ ggsignif_adder <- function(plot,
 
   # return the plot
   return(plot)
+}
+
+# function body
+sort_xy <- function(data,
+                    x,
+                    y,
+                    sort = "none",
+                    sort.fun = mean,
+                    ...) {
+  ellipsis::check_dots_used()
+
+  # decide the needed order
+  if (sort == "ascending") {
+    .desc <- FALSE
+  } else {
+    .desc <- TRUE
+  }
+
+  # reordering `x` based on its mean values
+  data %<>%
+    dplyr::mutate(
+      .data = .,
+      !!rlang::enquo(x) := forcats::fct_reorder(
+        .f = !!rlang::enquo(x),
+        .x = !!rlang::enquo(y),
+        .fun = sort.fun,
+        na.rm = TRUE,
+        .desc = .desc
+      )
+    )
+
+  # return the final dataframe
+  return(data)
 }

@@ -19,8 +19,10 @@ dataframe \code{data}.}
 \item{bf.prior}{A number between 0.5 and 2 (default \code{0.707}), the prior width
 to use in calculating Bayes factors.}
 
-\item{paired}{a logical indicating whether you want a paired
-    t-test.}
+\item{paired}{Logical that decides whether the design is repeated
+measures/within-subjects (in which case one-way Friedman Rank Sum Test will
+be carried out) or between-subjects (in which case one-way Kruskal–Wallis H
+test will be carried out). The default is \code{FALSE}.}
 
 \item{k}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2}).}
@@ -36,7 +38,7 @@ set.seed(123)
 
 # between-subjects design
 
-subtitle_t_bayes(
+ggstatsplot::subtitle_t_bayes(
   data = mtcars,
   x = am,
   y = wt,
@@ -45,7 +47,7 @@ subtitle_t_bayes(
 
 # within-subjects design
 
-subtitle_t_bayes(
+ggstatsplot::subtitle_t_bayes(
   data = dplyr::filter(
     ggstatsplot::intent_morality,
     condition \%in\% c("accidental", "attempted"),

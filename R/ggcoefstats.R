@@ -1,7 +1,6 @@
 #' @title Model coefficients for fitted models with the model summary as a
 #'   caption.
 #' @name ggcoefstats
-#' @aliases ggcoefstats
 #' @author Indrajeet Patil
 #' @return Plot with the regression coefficients' point estimates as dots with
 #'   confidence interval whiskers.
@@ -12,7 +11,7 @@
 #'   estimates of coefficients or other quantities of interest). Other optional
 #'   columns are `conf.low` and `conf.high` (for confidence intervals);
 #'   `p.value`. It is important that all `term` names should be unique.
-#' @param output Character describing the expected output from this function:
+#' @param output,return Character describing the expected output from this function:
 #'   `"plot"` (visualization of regression coefficients) or `"tidy"` (tidy
 #'   dataframe of results from `broom::tidy`) or `"glance"` (object from
 #'   `broom::glance`) or `"augment"` (object from `broom::augment`).
@@ -20,6 +19,10 @@
 #'   `"z"`) in the label. This is especially important if the `x` argument in
 #'   `ggcoefstats` is a dataframe in which case the function wouldn't know what
 #'   kind of model it is dealing with.
+#' @param bf.message Logical that decides whether results from running a
+#'   Bayesian meta-analysis assuming that the effect size *d* varies across
+#'   studies with standard deviation *t* (i.e., a random-effects analysis)
+#'   should be displayed in caption. Defaults to `FALSE`.
 #' @param xlab Label for `x` axis variable (Default: `"estimate"`).
 #' @param ylab Label for `y` axis variable (Default: `"term"`).
 #' @param subtitle The text for the plot subtitle. The input to this argument
@@ -152,6 +155,7 @@
 #' @param label.direction Character (`"both"`, `"x"`, or `"y"`) -- direction in
 #'   which to adjust position of labels (Default: `"y"`).
 #' @param ... Additional arguments to tidying method.
+#' @inheritParams bf_meta_message
 #' @inheritParams broom.mixed::tidy.merMod
 #' @inheritParams broom::tidy.clm
 #' @inheritParams broom::tidy.polr
@@ -165,6 +169,7 @@
 #' @importFrom broomExtra tidy glance augment
 #' @importFrom dplyr select bind_rows summarize mutate mutate_at mutate_if n
 #' @importFrom dplyr group_by arrange full_join vars matches desc everything
+#' @importFrom dplyr vars all_vars filter_at starts_with
 #' @importFrom purrrlyr by_row
 #' @importFrom stats as.formula lm confint qnorm
 #' @importFrom ggrepel geom_label_repel
@@ -172,6 +177,7 @@
 #' @importFrom sjstats p_value
 #' @importFrom tibble as_tibble rownames_to_column
 #' @importFrom tidyr unite
+#' @importFrom groupedstats lm_effsize_standardizer
 #'
 #' @references
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcoefstats.html}
@@ -198,7 +204,7 @@
 #' ggstatsplot::ggcoefstats(x = mod, output = "augment")
 #'
 #' # -------------- with custom dataframe -----------------------------------
-#'
+#' \donttest{
 #' # creating a dataframe
 #' df <-
 #'   structure(
@@ -269,9 +275,11 @@
 #' ggstatsplot::ggcoefstats(
 #'   x = df,
 #'   statistic = "t",
-#'   meta.analytic.effect = TRUE
+#'   meta.analytic.effect = TRUE,
+#'   bf.message = TRUE,
+#'   k = 3
 #' )
-#'
+#' }
 #' # -------------- getting model summary ------------------------------
 #'
 #' # model
@@ -311,6 +319,13 @@ ggcoefstats <- function(x,
                         conf.method = "Wald",
                         conf.type = "Wald",
                         component = "survival",
+                        bf.message = FALSE,
+                        d = "norm",
+                        d.par = c(0, 0.3),
+                        tau = "halfcauchy",
+                        tau.par = 0.5,
+                        sample = 10000,
+                        summarize = "integrate",
                         p.kr = TRUE,
                         p.adjust.method = "none",
                         coefficient.type = c("beta", "location", "coefficient"),
@@ -370,7 +385,9 @@ ggcoefstats <- function(x,
                         ggtheme = ggplot2::theme_bw(),
                         ggstatsplot.layer = TRUE,
                         messages = FALSE,
+                        return = NULL,
                         ...) {
+  output <- return %||% output
 
   # =================== list of objects (for tidy and glance) ================
 
@@ -379,7 +396,8 @@ ggcoefstats <- function(x,
     "data.frame",
     "grouped_df",
     "tbl",
-    "tbl_df"
+    "tbl_df",
+    "spec_tbl_df"
   )
 
   # creating a list of objects which will have fixed and random "effects"
@@ -428,6 +446,7 @@ ggcoefstats <- function(x,
       "mts",
       "muhaz",
       "optim",
+      "pam",
       "poLCA",
       "power.htest",
       "prcomp",
@@ -468,11 +487,16 @@ ggcoefstats <- function(x,
     "manova"
   )
 
+  # changing conf.method to something suitable for Bayesian models
+  if (class(x)[[1]] %in% bayes.mods && conf.method == "Wald") {
+    conf.method <- "quantile"
+  }
+
   # =========================== checking if object is supported ==============
 
   # glace is not supported for all models
   if (class(x)[[1]] %in% unsupported.mods) {
-    base::stop(base::message(cat(
+    stop(message(cat(
       crayon::red("Note: "),
       crayon::blue(
         "The object of class",
@@ -494,7 +518,7 @@ ggcoefstats <- function(x,
   if (!class(x)[[1]] %in% df.mods) {
     # if glance is not available, inform the user
     if (is.null(glance_df) && output == "plot") {
-      base::message(cat(
+      message(cat(
         crayon::green("Note: "),
         crayon::blue(
           "No model diagnostics information available for the object of class",
@@ -517,14 +541,17 @@ ggcoefstats <- function(x,
   # ============================= dataframe ===============================
 
   if (class(x)[[1]] %in% df.mods) {
+    # set tidy_df to entered dataframe
+    tidy_df <- tibble::as_tibble(x)
+
     # check for the two necessary columns
-    if (!any(names(x) %in% c("term", "estimate"))) {
-      base::stop(base::message(cat(
+    if (!"estimate" %in% names(tidy_df)) {
+      stop(message(cat(
         crayon::red("Error: "),
         crayon::blue(
           "The object of class",
           crayon::yellow(class(x)[[1]]),
-          "*must* contain the following two columns: 'term' and 'estimate'.\n"
+          "*must* contain the following column: 'estimate'.\n"
         ),
         sep = ""
       )),
@@ -532,15 +559,22 @@ ggcoefstats <- function(x,
       )
     }
 
+    # create a new term column if it's not present
+    if (!"term" %in% names(tidy_df)) {
+      tidy_df %<>%
+        dplyr::mutate(.data = ., term = 1:nrow(.)) %>%
+        dplyr::mutate(.data = ., term = as.character(term))
+    }
+
     # check that statistic is specified
     if (purrr::is_null(statistic)) {
-      base::message(cat(
+      message(cat(
         crayon::red("Note"),
         crayon::blue(
           ": For the object of class",
           crayon::yellow(class(x)[[1]]),
-          ", the argument `statistic` is not specified ('t', 'z', or 'f'),\n",
-          "so no labels will be displayed.\n"
+          ", the argument `statistic` is not specified ('t', 'z', or 'f').\n",
+          "Statistical labels will therefore be skipped.\n"
         ),
         sep = ""
       ))
@@ -549,33 +583,27 @@ ggcoefstats <- function(x,
       stats.labels <- FALSE
     }
 
-    # set tidy_df to entered dataframe
-    tidy_df <- tibble::as_tibble(x)
-
     # =========================== broom.mixed tidiers =======================
   } else if (class(x)[[1]] %in% mixed.mods) {
-
-    # changing conf.method to something suitable for Bayesian models
-    if (class(x)[[1]] %in% bayes.mods && conf.method == "Wald") {
-      conf.method <- "quantile"
-    }
 
     # getting tidy output using `broom.mixed`
     tidy_df <-
       broomExtra::tidy(
         x = x,
         conf.int = TRUE,
+        # exponentiate = exponentiate,
         conf.level = conf.level,
         effects = "fixed",
         scales = scales,
         conf.method = conf.method,
         ...
       )
+
     # ====================== tidying F-statistic objects ===================
   } else if (class(x)[[1]] %in% f.mods) {
     # creating dataframe
     tidy_df <-
-      lm_effsize_standardizer(
+      groupedstats::lm_effsize_standardizer(
         object = x,
         effsize = effsize,
         partial = partial,
@@ -616,6 +644,7 @@ ggcoefstats <- function(x,
         by_class = by.class,
         conf.type = conf.type,
         component = component,
+        # exponentiate = exponentiate,
         parametric = TRUE,
         ...
       )
@@ -628,13 +657,12 @@ ggcoefstats <- function(x,
     if (any(coefficient.type %in%
       c("alpha", "beta", "zeta", "intercept", "location", "scale", "coefficient"))) {
       # subset the dataframe, only if not all coefficients are to be retained
-      if (utils::packageVersion("broom") > "0.5.1") {
-        tidy_df %<>%
-          dplyr::filter(.data = ., coef.type %in% coefficient.type)
-      } else {
-        tidy_df %<>%
-          dplyr::filter(.data = ., coefficient_type %in% coefficient.type)
-      }
+      tidy_df %<>%
+        dplyr::filter_at(
+          .tbl = .,
+          .vars = dplyr::vars(dplyr::starts_with("coef")),
+          .vars_predicate = dplyr::all_vars(. %in% coefficient.type)
+        )
     }
   }
 
@@ -652,34 +680,27 @@ ggcoefstats <- function(x,
 
   # for some class of objects, there are going to be duplicate terms
   # create a new column by collapsing orignal `variable` and `term` columns
-  if (class(x)[[1]] %in% c("gmm", "lmodel2", "gamlss")) {
+  if (class(x)[[1]] %in% c("gmm", "lmodel2", "gamlss", "drc", "mlm")) {
     tidy_df %<>%
       tidyr::unite(
         data = .,
         col = "term",
-        dplyr::matches("term|variable|parameter|method"),
+        dplyr::matches("term|variable|parameter|method|curveid|response"),
         remove = TRUE,
         sep = "_"
       )
   }
 
-  # checking if there are any terms that are repeated
-  # since `term` column is a factor, remove any unused levels
-  term_df <- tidy_df %>%
-    dplyr::mutate(.data = ., term = droplevels(as.factor(term))) %>%
-    dplyr::count(term) %>%
-    dplyr::filter(.data = ., n != 1L)
-
   # halt if there are repeated terms
-  if (dim(term_df)[1] != 0L) {
-    base::message(cat(
+  if (any(duplicated(dplyr::select(tidy_df, term)))) {
+    message(cat(
       crayon::red("Error: "),
       crayon::blue(
-        "All elements in the column `term` should be unique."
+        "All elements in the column `term` should be unique.\n"
       ),
       sep = ""
     ))
-    base::return(base::invisible(dim(term_df)[1]))
+    return(invisible(tidy_df))
   }
 
   # =================== p-value computation ==================================
@@ -688,16 +709,13 @@ ggcoefstats <- function(x,
   if (class(x)[[1]] %in% p.mods) {
     # computing p-values
     tidy_df %<>%
-      tibble::as_tibble(x = .) %>%
-      dplyr::mutate_at(
-        .tbl = .,
-        .vars = "term",
-        .funs = ~ as.character(x = .)
-      ) %>%
       dplyr::full_join(
-        x = .,
+        x = dplyr::mutate_at(
+          .tbl = .,
+          .vars = "term",
+          .funs = ~ as.character(x = .)
+        ),
         y = sjstats::p_value(fit = x, p.kr = p.kr) %>%
-          tibble::as_tibble(x = .) %>%
           dplyr::select(.data = ., -std.error) %>%
           dplyr::mutate_at(
             .tbl = .,
@@ -705,12 +723,9 @@ ggcoefstats <- function(x,
             .funs = ~ as.character(x = .)
           ),
         by = "term"
-      )
-
-    # sometimes unwanted rows will percolate into merged dataframe
-    # remove such rows
-    tidy_df %<>%
-      dplyr::filter(.data = ., !is.na(estimate))
+      ) %>%
+      dplyr::filter(.data = ., !is.na(estimate)) %>%
+      tibble::as_tibble(x = .)
   }
 
   # ================== statistic and p-value check ===========================
@@ -723,7 +738,7 @@ ggcoefstats <- function(x,
     # inform the user that skipping labels for the same reason
     # (relevant only in case of a plot)
     if (output == "plot") {
-      base::message(cat(
+      message(cat(
         crayon::green("Note: "),
         crayon::blue(
           "No p-values and/or statistic available for regression coefficients from",
@@ -766,7 +781,7 @@ ggcoefstats <- function(x,
       conf.int <- FALSE
 
       # inform the user that skipping labels for the same reason
-      base::message(cat(
+      message(cat(
         crayon::green("Note: "),
         crayon::blue(
           "No confidence intervals available for regression coefficients from",
@@ -797,7 +812,7 @@ ggcoefstats <- function(x,
     tidy_df %<>%
       dplyr::filter(
         .data = .,
-        !base::grepl(
+        !grepl(
           pattern = "(Intercept)",
           x = term,
           ignore.case = TRUE
@@ -814,7 +829,7 @@ ggcoefstats <- function(x,
         .vars = dplyr::vars(dplyr::matches(
           match = "estimate|conf", ignore.case = TRUE
         )),
-        .funs = ~ base::exp(x = .)
+        .funs = ~ exp(x = .)
       )
   }
 
@@ -841,32 +856,44 @@ ggcoefstats <- function(x,
   # adding a column with labels to be used with `ggrepel`
   if (isTRUE(stats.labels)) {
     if (class(x)[[1]] %in% df.mods) {
-      tidy_df %<>%
-        ggcoefstats_label_maker(
-          x = .,
-          statistic = statistic,
-          tidy_df = .,
-          glance_df = glance_df,
-          k = k,
-          effsize = effsize,
-          partial = partial
-        )
-    } else {
-      tidy_df %<>%
-        ggcoefstats_label_maker(
-          x = x,
-          statistic = statistic,
-          tidy_df = .,
-          glance_df = glance_df,
-          k = k,
-          effsize = effsize,
-          partial = partial
-        )
+      # in case a dataframe was entered, `x` and `tidy_df` are going to be same
+      x <- tidy_df
+    }
+
+    # adding a column with labels using custom function
+    tidy_df %<>%
+      ggcoefstats_label_maker(
+        x = x,
+        statistic = statistic,
+        tidy_df = .,
+        glance_df = glance_df,
+        k = k,
+        effsize = effsize,
+        partial = partial
+      )
+  }
+
+  # ============== meta-analysis plus Bayes factor =========================
+
+  # check if meta-analysis is to be run
+  if (isTRUE(meta.analytic.effect) && "std.error" %in% names(tidy_df)) {
+    if (dim(dplyr::filter(.data = tidy_df, is.na(std.error)))[[1]] > 0) {
+      # inform the user that skipping labels for the same reason
+      message(cat(
+        crayon::red("Error: "),
+        crayon::blue(
+          "At least one of the values in the `std.error` column is NA.\n",
+          "No meta-analysis will be carried out.\n"
+        ),
+        sep = ""
+      ))
+
+      # turn off meta-analysis
+      meta.analytic.effect <- FALSE
     }
   }
 
-  # =================== meta-analytic subtitle ================================
-
+  # running meta-analysis
   if (isTRUE(meta.analytic.effect)) {
     # result
     subtitle <-
@@ -876,6 +903,23 @@ ggcoefstats <- function(x,
         messages = messages,
         output = "subtitle"
       )
+
+    # add Bayes factor caption
+    if (isTRUE(bf.message)) {
+      caption <-
+        bf_meta_message(
+          caption = caption,
+          data = tidy_df,
+          k = k,
+          messages = messages,
+          d = d,
+          d.par = d.par,
+          tau = tau,
+          tau.par = tau.par,
+          sample = sample,
+          summarize = summarize
+        )
+    }
 
     # model summary
     caption.meta <-
@@ -928,189 +972,193 @@ ggcoefstats <- function(x,
   # ========================== sorting ===================================
 
   # whether the term need to be arranged in any specified order
+  tidy_df$term <- as.factor(tidy_df$term)
+  tidy_df %<>% tibble::rownames_to_column(.data = ., var = "rowid")
+
+  # sorting factor levels
   if (sort != "none") {
-    tidy_df$term <- base::as.factor(tidy_df$term)
     if (sort == "ascending") {
-      new_order <- base::order(tidy_df$estimate, decreasing = FALSE)
+      new_order <- order(tidy_df$estimate, decreasing = FALSE)
     } else {
-      new_order <- base::order(tidy_df$estimate, decreasing = TRUE)
+      new_order <- order(tidy_df$estimate, decreasing = TRUE)
     }
-    tidy_df$term <- as.character(tidy_df$term)
-    tidy_df$term <-
-      base::factor(x = tidy_df$term, levels = tidy_df$term[new_order])
   } else {
-    tidy_df$term <- base::as.factor(tidy_df$term)
-    tidy_df %<>%
-      tibble::rownames_to_column(., var = "rowid")
-    new_order <- base::order(tidy_df$rowid, decreasing = FALSE)
-    tidy_df$term <- as.character(tidy_df$term)
-    tidy_df$term <-
-      base::factor(x = tidy_df$term, levels = tidy_df$term[new_order])
-    tidy_df %<>%
-      dplyr::select(.data = ., -rowid)
+    new_order <- order(tidy_df$rowid, decreasing = FALSE)
   }
 
-  # ========================== palette check =================================
+  # sorting `term` factor levels according to new sorting order
+  tidy_df$term <- as.character(tidy_df$term)
+  tidy_df$term <- factor(x = tidy_df$term, levels = tidy_df$term[new_order])
+  tidy_df %<>% dplyr::select(.data = ., -rowid)
 
   # palette check is necessary only if output is a plot
-  if (output == "plot" && isTRUE(stats.labels)) {
+  if (output == "plot") {
 
-    # counting the number of terms in the tidy dataframe
-    count_term <- length(tidy_df$term)
+    # ========================== basic plot ===================================
 
-    # if no. of factor levels is greater than the default palette color count
-    palette_message(
-      package = package,
-      palette = palette,
-      min_length = count_term
-    )
+    # setting up the basic architecture
+    plot <-
+      ggplot2::ggplot(
+        data = tidy_df,
+        mapping = ggplot2::aes(x = estimate, y = factor(term))
+      )
 
-    # computing the number of colors in a given palette
-    palette_df <-
-      tibble::as_tibble(x = paletteer::palettes_d_names) %>%
-      dplyr::filter(.data = ., package == !!package, palette == !!palette) %>%
-      dplyr::select(.data = ., length)
+    # if needed, adding the vertical line
+    if (isTRUE(vline)) {
+      # either at 1 - if coefficients are to be exponentiated - or at 0
+      if (isTRUE(exponentiate)) {
+        xintercept <- 1
+      } else {
+        xintercept <- 0
+      }
 
-    # if insufficient number of colors are available in a given palette
-    if (palette_df$length[[1]] < count_term) {
-      stats.label.color <- "black"
-    }
-
-    # if user has not specified colors, then use a color palette
-    if (is.null(stats.label.color)) {
-      stats.label.color <-
-        paletteer::paletteer_d(
-          package = !!package,
-          palette = !!palette,
-          n = count_term,
-          direction = direction,
-          type = "discrete"
-        )
-    }
-  }
-
-  # ========================== basic plot ===================================
-
-  # setting up the basic architecture
-  plot <-
-    ggplot2::ggplot(
-      data = tidy_df,
-      mapping = ggplot2::aes(x = estimate, y = factor(term))
-    )
-
-  # if needed, adding the vertical line
-  # either at 1 - if coefficients are exponentiated - or at 0
-  if (isTRUE(vline)) {
-    if (isTRUE(exponentiate)) {
+      # adding the line geom
       plot <- plot +
         ggplot2::geom_vline(
-          xintercept = 1,
-          color = vline.color,
-          linetype = vline.linetype,
-          size = vline.size,
-          na.rm = TRUE
-        ) +
-        ggplot2::scale_x_log10()
-    } else {
-      plot <- plot +
-        ggplot2::geom_vline(
-          xintercept = 0,
+          xintercept = xintercept,
           color = vline.color,
           linetype = vline.linetype,
           size = vline.size,
           na.rm = TRUE
         )
-    }
-  }
 
-  # if the confidence intervals are to be displayed on the plot
-  if (isTRUE(conf.int)) {
+      # logarithmic scale for exponent of coefficients
+      if (isTRUE(exponentiate)) {
+        plot <- plot +
+          ggplot2::scale_x_log10()
+      }
+    }
+
+    # if the confidence intervals are to be displayed on the plot
+    if (isTRUE(conf.int)) {
+      plot <- plot +
+        ggplot2::geom_errorbarh(
+          ggplot2::aes_string(xmin = "conf.low", xmax = "conf.high"),
+          color = errorbar.color,
+          height = errorbar.height,
+          linetype = errorbar.linetype,
+          size = errorbar.size,
+          na.rm = TRUE
+        )
+    }
+
+    # changing the point aesthetics
     plot <- plot +
-      ggplot2::geom_errorbarh(
-        ggplot2::aes_string(xmin = "conf.low", xmax = "conf.high"),
-        color = errorbar.color,
-        height = errorbar.height,
-        linetype = errorbar.linetype,
-        size = errorbar.size,
+      ggplot2::geom_point(
+        color = point.color,
+        size = point.size,
+        shape = point.shape,
         na.rm = TRUE
       )
-  }
 
-  # changing the point aesthetics
-  plot <- plot +
-    ggplot2::geom_point(
-      color = point.color,
-      size = point.size,
-      shape = point.shape,
-      na.rm = TRUE
-    )
+    # ========================= ggrepel labels ================================
 
-  # ========================= ggrepel labels ================================
+    # adding the labels
+    if (isTRUE(stats.labels)) {
+      # removing all rows that have NAs anywhere in the columns of interest
+      tidy_df %<>%
+        dplyr::filter_at(
+          .tbl = .,
+          .vars = dplyr::vars(dplyr::matches("estimate|statistic|std.error|p.value")),
+          .vars_predicate = dplyr::all_vars(!is.na(.))
+        )
 
-  # adding the labels
-  if (isTRUE(stats.labels)) {
-    plot <- plot +
-      ggrepel::geom_label_repel(
-        data = tidy_df,
-        mapping = ggplot2::aes(x = estimate, y = term, label = label),
-        size = stats.label.size,
-        fontface = stats.label.fontface,
-        color = stats.label.color,
-        box.padding = grid::unit(x = label.box.padding, units = "lines"),
-        label.padding = grid::unit(x = label.label.padding, units = "lines"),
-        point.padding = grid::unit(x = label.point.padding, units = "lines"),
-        label.r = grid::unit(x = label.r, units = "lines"),
-        label.size = label.size,
-        segment.color = label.segment.color,
-        segment.size = label.segment.size,
-        segment.alpha = label.segment.alpha,
-        min.segment.length = label.min.segment.length,
-        force = label.force,
-        max.iter = label.max.iter,
-        nudge_x = label.nudge.x,
-        nudge_y = label.nudge.y,
-        xlim = label.xlim,
-        ylim = label.ylim,
-        na.rm = TRUE,
-        show.legend = FALSE,
-        direction = label.direction,
-        parse = TRUE,
-        seed = 123
+      # ========================== palette check =================================
+
+      # counting the number of terms in the tidy dataframe
+      count_term <- length(tidy_df$term)
+
+      # if no. of factor levels is greater than the default palette color count
+      palette_message(
+        package = package,
+        palette = palette,
+        min_length = count_term
       )
+
+      # computing the number of colors in a given palette
+      palette_df <-
+        tibble::as_tibble(x = paletteer::palettes_d_names) %>%
+        dplyr::filter(.data = ., package == !!package, palette == !!palette) %>%
+        dplyr::select(.data = ., length)
+
+      # if insufficient number of colors are available in a given palette
+      if (palette_df$length[[1]] < count_term) {
+        stats.label.color <- "black"
+      }
+
+      # if user has not specified colors, then use a color palette
+      if (is.null(stats.label.color)) {
+        stats.label.color <-
+          paletteer::paletteer_d(
+            package = !!package,
+            palette = !!palette,
+            n = count_term,
+            direction = direction,
+            type = "discrete"
+          )
+      }
+
+      # adding labels
+      plot <- plot +
+        ggrepel::geom_label_repel(
+          data = tidy_df,
+          mapping = ggplot2::aes(x = estimate, y = term, label = label),
+          size = stats.label.size,
+          fontface = stats.label.fontface,
+          color = stats.label.color,
+          box.padding = grid::unit(x = label.box.padding, units = "lines"),
+          label.padding = grid::unit(x = label.label.padding, units = "lines"),
+          point.padding = grid::unit(x = label.point.padding, units = "lines"),
+          label.r = grid::unit(x = label.r, units = "lines"),
+          label.size = label.size,
+          segment.color = label.segment.color,
+          segment.size = label.segment.size,
+          segment.alpha = label.segment.alpha,
+          min.segment.length = label.min.segment.length,
+          force = label.force,
+          max.iter = label.max.iter,
+          nudge_x = label.nudge.x,
+          nudge_y = label.nudge.y,
+          xlim = label.xlim,
+          ylim = label.ylim,
+          na.rm = TRUE,
+          show.legend = FALSE,
+          direction = label.direction,
+          parse = TRUE,
+          seed = 123
+        )
+    }
+
+    # ========================== annotations =============================
+
+    # adding other labels to the plot
+    plot <- plot +
+      ggplot2::labs(
+        x = xlab,
+        y = ylab,
+        caption = caption,
+        subtitle = subtitle,
+        title = title
+      ) +
+      ggstatsplot::theme_mprl(
+        ggtheme = ggtheme,
+        ggstatsplot.layer = ggstatsplot.layer
+      ) +
+      ggplot2::theme(plot.caption = ggplot2::element_text(size = 10))
   }
-
-  # ========================== other plot labels =============================
-
-  # adding other labels to the plot
-  plot <- plot +
-    ggplot2::labs(
-      x = xlab,
-      y = ylab,
-      caption = caption,
-      subtitle = subtitle,
-      title = title
-    ) +
-    ggstatsplot::theme_mprl(
-      ggtheme = ggtheme,
-      ggstatsplot.layer = ggstatsplot.layer
-    ) +
-    ggplot2::theme(plot.caption = ggplot2::element_text(size = 10))
 
   # =========================== output =====================================
 
   # what needs to be returned?
-  if (output == "plot") {
-    # return the final plot
-    return(plot)
-  } else if (output == "tidy") {
-    # return the tidy output dataframe
-    return(tidy_df)
-  } else if (output == "glance") {
-    # return the glance summary
-    return(glance_df)
-  } else if (output == "augment") {
-    # return the augmented dataframe
-    broomExtra::augment(x = x, ...) %>%
-      tibble::as_tibble(x = .)
-  }
+  return(switch(
+    EXPR = output,
+    "plot" = plot,
+    "tidy" = tidy_df,
+    "dataframe" = tidy_df,
+    "df" = tidy_df,
+    "glance" = glance_df,
+    "summary" = glance_df,
+    "augment" = tibble::as_tibble(broomExtra::augment(x = x, ...)),
+    "plot"
+  ))
 }

@@ -16,7 +16,8 @@
 #' @importFrom purrr pmap
 #' @importFrom tidyr drop_na
 #'
-#' @seealso \code{\link{gghistostats}}
+#' @seealso \code{\link{gghistostats}}, \code{\link{ggdotplotstats}},
+#'  \code{\link{grouped_ggdotplotstats}}
 #'
 #' @inherit gghistostats return references
 #' @inherit gghistostats return details
@@ -27,7 +28,6 @@
 #'   data = iris,
 #'   x = Sepal.Length,
 #'   test.value = 5,
-#'   bf.message = TRUE,
 #'   grouping.var = Species,
 #'   bar.fill = "orange",
 #'   nrow = 1,
@@ -48,12 +48,13 @@ grouped_gghistostats <- function(data,
                                  binwidth = NULL,
                                  bar.measure = "count",
                                  xlab = NULL,
+                                 stat.title = NULL,
                                  subtitle = NULL,
                                  caption = NULL,
                                  type = "parametric",
                                  test.value = 0,
                                  bf.prior = 0.707,
-                                 bf.message = FALSE,
+                                 bf.message = TRUE,
                                  robust.estimator = "onestep",
                                  effsize.type = "g",
                                  effsize.noncentral = TRUE,
@@ -84,6 +85,7 @@ grouped_gghistostats <- function(data,
                                  normal.curve.linetype = "solid",
                                  normal.curve.size = 1.0,
                                  ggplot.component = NULL,
+                                 return = "plot",
                                  messages = TRUE,
                                  ...) {
 
@@ -144,6 +146,7 @@ grouped_gghistostats <- function(data,
       .f = ggstatsplot::gghistostats,
       bar.measure = bar.measure,
       xlab = xlab,
+      stat.title = stat.title,
       subtitle = subtitle,
       caption = caption,
       type = type,
@@ -181,22 +184,26 @@ grouped_gghistostats <- function(data,
       ggstatsplot.layer = ggstatsplot.layer,
       fill.gradient = fill.gradient,
       ggplot.component = ggplot.component,
+      return = return,
       messages = messages
     )
 
   # combining the list of plots into a single plot
-  combined_plot <-
-    ggstatsplot::combine_plots(
-      plotlist = plotlist_purrr,
-      ...
-    )
+  if (return == "plot") {
+    combined_object <-
+      ggstatsplot::combine_plots(
+        plotlist = plotlist_purrr,
+        ...
+      )
 
-  # show the note about grouped_ variant producing object which is not of
-  # class ggplot
-  if (isTRUE(messages)) {
-    grouped_message()
+    # inform user this can't be modified further with ggplot commands
+    if (isTRUE(messages)) {
+      grouped_message()
+    }
+  } else {
+    combined_object <- plotlist_purrr
   }
 
   # return the combined plot
-  return(combined_plot)
+  return(combined_object)
 }

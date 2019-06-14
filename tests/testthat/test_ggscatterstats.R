@@ -5,7 +5,6 @@ context(desc = "ggscatterstats")
 testthat::test_that(
   desc = "checking ggscatterstats - without NAs - pearson's r",
   code = {
-    testthat::skip_on_cran()
 
     # creating the plot
     set.seed(123)
@@ -162,6 +161,9 @@ testthat::test_that(
         messages = FALSE
       )
 
+    # build the plot
+    pb <- ggplot2::ggplot_build(p)
+
     # subtitle
     set.seed(123)
     p_subtitle <- ggstatsplot::subtitle_ggscatterstats(
@@ -174,6 +176,7 @@ testthat::test_that(
     )
 
     testthat::expect_identical(p$plot_env$subtitle, p_subtitle)
+    testthat::expect_null(pb$plot$labels$caption, NULL)
   }
 )
 
@@ -257,6 +260,7 @@ testthat::test_that(
         palette = "Royal1",
         package = "wesanderson",
         marginal = FALSE,
+        bf.message = FALSE,
         centrality.para = "median",
         axes.range.restrict = TRUE,
         ggplot.component = ggplot2::scale_y_continuous(breaks = seq(0, 20, 2)),
@@ -301,6 +305,7 @@ testthat::test_that(
       pb$layout$panel_params[[1]]$y.labels,
       c("4", "6", "8", "10", "12", "14", "16", "18", "20")
     )
+    testthat::expect_null(pb$plot$labels$caption, NULL)
   }
 )
 
@@ -515,28 +520,127 @@ testthat::test_that(
   }
 )
 
-# message checks ----------------------------------------------------------
+# checking formula specification -------------------------------------------
 
 testthat::test_that(
-  desc = "class of object",
+  desc = "checking formula specification",
   code = {
     testthat::skip_on_cran()
 
     # creating the messages
     set.seed(123)
-    p_message1 <- capture.output(
-      ggstatsplot::subtitle_ggscatterstats(
-        data = dplyr::starwars,
-        x = mass,
-        y = height,
-        conf.level = 0.50,
-        nboot = 10,
-        type = "np"
-      )
+    p1 <- ggstatsplot::ggscatterstats(
+      data = dplyr::starwars,
+      x = mass,
+      y = height,
+      formula = y ~ log(x),
+      method = stats::lm,
+      marginal = FALSE
     )
 
-    p_message2 <- capture.output(
-      ggstatsplot::subtitle_ggscatterstats(
+    set.seed(123)
+    p2 <- ggstatsplot::ggscatterstats(
+      data = dplyr::starwars,
+      x = mass,
+      y = height,
+      method = "gam",
+      marginal = FALSE
+    )
+
+    p3 <- suppressWarnings(ggstatsplot::ggscatterstats(
+      data = dplyr::starwars,
+      x = mass,
+      y = height,
+      method = gmm::gmm,
+      marginal = FALSE
+    ))
+
+    # build the plot
+    pb1 <- ggplot2::ggplot_build(p1)
+    pb2 <- ggplot2::ggplot_build(p2)
+    pb3 <- suppressWarnings(ggplot2::ggplot_build(p3))
+
+    # checking subtitle - lack thereof
+    testthat::expect_null(pb1$plot$labels$subtitle, NULL)
+    testthat::expect_is(pb1$plot$layers[[2]]$stat_params$method, "function")
+    testthat::expect_identical(
+      as.character(deparse(pb1$plot$layers[[2]]$stat_params$formula)),
+      "y ~ log(x)"
+    )
+
+    testthat::expect_null(pb2$plot$labels$subtitle, NULL)
+    testthat::expect_identical(pb2$plot$layers[[2]]$stat_params$method[[1]], "gam")
+    testthat::expect_identical(
+      as.character(deparse(pb2$plot$layers[[2]]$stat_params$formula)),
+      "y ~ x"
+    )
+
+    testthat::expect_null(pb3$plot$labels$subtitle, NULL)
+  }
+)
+
+# subtitle return ----------------------------------------------------------
+
+testthat::test_that(
+  desc = "subtitle return",
+  code = {
+    testthat::skip_on_cran()
+
+    # creating the messages
+    set.seed(123)
+    p_sub <- ggstatsplot::ggscatterstats(
+      data = dplyr::starwars,
+      x = mass,
+      y = height,
+      conf.level = 0.90,
+      type = "r",
+      return = "subtitle",
+      messages = FALSE
+    )
+
+    # checking captured messages
+    testthat::expect_identical(p_sub, ggplot2::expr(
+      paste(
+        NULL,
+        italic("t"),
+        "(",
+        "57",
+        ") = ",
+        "8.48",
+        ", ",
+        italic("p"),
+        " = ",
+        "< 0.001",
+        ", ",
+        italic(rho)["pb"],
+        " = ",
+        "0.75",
+        ", CI"["90%"],
+        " [",
+        "0.64",
+        ", ",
+        "0.87",
+        "]",
+        ", ",
+        italic("n"),
+        " = ",
+        59L
+      )
+    ))
+  }
+)
+
+
+# message checks ----------------------------------------------------------
+
+testthat::test_that(
+  desc = "message checks",
+  code = {
+    testthat::skip_on_cran()
+
+    # creating the messages
+    p_message1 <- capture.output(
+      ggstatsplot::ggscatterstats(
         data = dplyr::starwars,
         x = mass,
         y = height,
@@ -548,11 +652,6 @@ testthat::test_that(
 
     # checking captured messages
     testthat::expect_match(p_message1[1],
-      "50% CI for effect size estimate was computed with 10",
-      fixed = TRUE
-    )
-
-    testthat::expect_match(p_message2[1],
       "90% CI for effect size estimate was computed with 15",
       fixed = TRUE
     )

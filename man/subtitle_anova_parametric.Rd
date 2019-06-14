@@ -2,11 +2,12 @@
 % Please edit documentation in R/helpers_ggbetween_anova_subtitles.R
 \name{subtitle_anova_parametric}
 \alias{subtitle_anova_parametric}
-\title{Making text subtitle for the between-subject anova designs.}
+\title{Making text subtitle for parametric ANOVA.}
 \usage{
-subtitle_anova_parametric(data, x, y, effsize.type = "unbiased",
-  partial = TRUE, conf.level = 0.95, nboot = 100,
-  var.equal = FALSE, k = 2, messages = TRUE, ...)
+subtitle_anova_parametric(data, x, y, paired = FALSE,
+  effsize.type = "unbiased", partial = TRUE, conf.level = 0.95,
+  nboot = 100, var.equal = FALSE, sphericity.correction = TRUE,
+  k = 2, stat.title = NULL, messages = TRUE, ...)
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
@@ -16,6 +17,11 @@ be taken. A matrix or tables will \strong{not} be accepted.}
 
 \item{y}{The response (a.k.a. outcome or dependent) variable from the
 dataframe \code{data}.}
+
+\item{paired}{Logical that decides whether the design is repeated
+measures/within-subjects (in which case one-way Friedman Rank Sum Test will
+be carried out) or between-subjects (in which case one-way Kruskal–Wallis H
+test will be carried out). The default is \code{FALSE}.}
 
 \item{effsize.type}{Type of effect size needed for \emph{parametric} tests. The
 argument can be \code{"biased"} (\code{"d"} for Cohen's \emph{d} for \strong{t-test};
@@ -41,8 +47,16 @@ for the effect size (Default: \code{100}).}
     is used, which generalizes the commonly known 2-sample Welch test to
     the case of arbitrarily many samples.}
 
+\item{sphericity.correction}{Logical that decides whether to apply correction
+to account for violation of sphericity in a repeated measures design ANOVA
+(Default: \code{TRUE}).}
+
 \item{k}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2}).}
+
+\item{stat.title}{A character describing the test being run, which will be
+added as a prefix in the subtitle. The default is \code{NULL}. An example of a
+\code{stat.title} argument will be something like \code{"Student's t-test: "}.}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
@@ -50,25 +64,49 @@ to be displayed (Default: \code{TRUE}).}
 \item{...}{Additional arguments.}
 }
 \description{
-Making text subtitle for the between-subject anova designs.
+Making text subtitle for parametric ANOVA.
+}
+\note{
+For repeated measures designs (\code{paired = TRUE}), only omega-squared and
+partial eta-squared effect sizes are supported.
 }
 \examples{
+
+# for reproducibility
+set.seed(123)
+library(ggstatsplot)
+
+# -------------------- between-subjects ------------------------------
+
 # with defaults
-subtitle_anova_parametric(
+ggstatsplot::subtitle_anova_parametric(
   data = ggplot2::msleep,
   x = vore,
   y = sleep_rem,
+  paired = FALSE,
   k = 3
 )
 
 # modifying the defaults
-subtitle_anova_parametric(
+ggstatsplot::subtitle_anova_parametric(
   data = ggplot2::msleep,
   x = vore,
   y = sleep_rem,
+  paired = FALSE,
   effsize.type = "biased",
   partial = FALSE,
   var.equal = TRUE,
+  nboot = 10
+)
+
+# -------------------- repeated measures ------------------------------
+
+ggstatsplot::subtitle_anova_parametric(
+  data = iris_long,
+  x = condition,
+  y = value,
+  paired = TRUE,
+  k = 4,
   nboot = 10
 )
 }

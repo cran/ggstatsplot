@@ -66,6 +66,7 @@ testthat::test_that(
   code = {
     testthat::skip_on_cran()
 
+
     # introduce NAs
     # check that 2-by-2 doesn't produce continuity correction
     set.seed(123)

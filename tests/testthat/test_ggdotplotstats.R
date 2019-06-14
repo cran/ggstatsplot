@@ -5,7 +5,6 @@ context(desc = "ggdotplotstats")
 testthat::test_that(
   desc = "ggdotplotstats works as expected",
   code = {
-    testthat::skip_on_cran()
 
     # creating a new dataset
     morley_new <- morley %>%
@@ -31,6 +30,8 @@ testthat::test_that(
         test.value = 800,
         type = "p",
         k = 4,
+        effsize.type = "d",
+        effsize.noncentral = FALSE,
         title = "Michelson-Morley experiment",
         caption = "Studies carried out in 1887",
         xlab = substitute(paste("Speed of light (", italic("c"), ")")),
@@ -58,6 +59,8 @@ testthat::test_that(
       ggstatsplot::subtitle_t_onesample(
         data = dat,
         x = x,
+        effsize.type = "d",
+        effsize.noncentral = FALSE,
         test.value = 800,
         type = "p",
         k = 4,
@@ -71,10 +74,10 @@ testthat::test_that(
         paste("Speed of light (", italic("c"), ")")
       )
     )
-    testthat::expect_identical(p$labels$y, "Experimental run")
-    testthat::expect_identical(p$labels$title, "Michelson-Morley experiment")
-    testthat::expect_identical(p$labels$subtitle, p_subtitle)
-    testthat::expect_identical(p$labels$caption, ggplot2::expr(atop(
+    testthat::expect_identical(pb$plot$labels$y, "Experimental run")
+    testthat::expect_identical(pb$plot$labels$title, "Michelson-Morley experiment")
+    testthat::expect_identical(pb$plot$labels$subtitle, p_subtitle)
+    testthat::expect_identical(pb$plot$labels$caption, ggplot2::expr(atop(
       displaystyle("Studies carried out in 1887"),
       expr = paste(
         "In favor of null: ",
@@ -210,6 +213,59 @@ testthat::test_that(
       pb$layout$panel_params[[1]]$x.labels,
       pb$layout$panel_params[[1]]$x.sec.labels
     )
-    testthat::expect_null(p$labels$subtitle, NULL)
+    testthat::expect_null(pb$plot$labels$subtitle, NULL)
+    testthat::expect_null(pb$plot$labels$caption, NULL)
+  }
+)
+
+# subtitle return --------------------------------------------------
+
+testthat::test_that(
+  desc = "subtitle return",
+  code = {
+    testthat::skip_on_cran()
+
+    # should return a list of length 3
+    set.seed(123)
+    p_sub <- suppressWarnings(ggstatsplot::ggdotplotstats(
+      data = morley,
+      x = Speed,
+      y = Expt,
+      test.value = 800,
+      return = "subtitle",
+      type = "np",
+      messages = FALSE
+    ))
+
+    # tests
+    testthat::expect_identical(
+      p_sub,
+      ggplot2::expr(
+        paste(
+          NULL,
+          "log"["e"](italic("V")),
+          " = ",
+          "2.71",
+          ", ",
+          italic("p"),
+          " = ",
+          "0.059",
+          ", ",
+          italic(r),
+          " = ",
+          "0.90",
+          ", CI"["95%"],
+          " [",
+          "0.88",
+          ", ",
+          "0.91",
+          "]",
+          ", ",
+          italic("n"),
+          " = ",
+          5L
+        )
+      )
+    )
   }
 )

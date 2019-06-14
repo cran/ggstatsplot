@@ -13,6 +13,9 @@
 #' @inheritParams gghistostats
 #' @inheritParams ggcoefstats
 #'
+#' @seealso \code{\link{grouped_gghistostats}}, \code{\link{gghistostats}},
+#'  \code{\link{grouped_ggdotplotstats}}
+#'
 #' @examples
 #' # for reproducibility
 #' set.seed(123)
@@ -31,7 +34,6 @@
 #'   centrality.k = 0,
 #'   title = "Fuel economy data",
 #'   xlab = "city miles per gallon",
-#'   bf.message = TRUE,
 #'   caption = substitute(
 #'     paste(italic("Source"), ": EPA dataset on http://fueleconomy.gov")
 #'   )
@@ -45,13 +47,16 @@ ggdotplotstats <- function(data,
                            xlab = NULL,
                            ylab = NULL,
                            title = NULL,
+                           stat.title = NULL,
                            subtitle = NULL,
                            caption = NULL,
                            type = "parametric",
                            test.value = 0,
                            bf.prior = 0.707,
-                           bf.message = FALSE,
+                           bf.message = TRUE,
                            robust.estimator = "onestep",
+                           effsize.type = "g",
+                           effsize.noncentral = TRUE,
                            conf.level = 0.95,
                            nboot = 100,
                            k = 2,
@@ -74,6 +79,7 @@ ggdotplotstats <- function(data,
                            test.line.labeller = TRUE,
                            test.k = 0,
                            ggplot.component = NULL,
+                           return = "plot",
                            messages = TRUE) {
 
   # ------------------------------ variable names ----------------------------
@@ -141,9 +147,13 @@ ggdotplotstats <- function(data,
         test.value = test.value,
         bf.prior = bf.prior,
         robust.estimator = robust.estimator,
+        effsize.type = effsize.type,
+        effsize.noncentral = effsize.noncentral,
+        conf.type = "norm",
         conf.level = conf.level,
         nboot = nboot,
         k = k,
+        stat.title = stat.title,
         messages = messages
       )
   }
@@ -257,5 +267,11 @@ ggdotplotstats <- function(data,
   }
 
   # return the plot
-  return(plot)
+  return(switch(
+    EXPR = return,
+    "plot" = plot,
+    "subtitle" = subtitle,
+    "caption" = caption,
+    plot
+  ))
 }

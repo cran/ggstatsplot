@@ -17,7 +17,6 @@ testthat::test_that(
         type = "nonparametric",
         k = 5,
         conf.level = 0.999,
-        conf.type = "perc",
         nboot = 50,
         messages = FALSE
       ))
@@ -40,9 +39,9 @@ testthat::test_that(
           "0.46669",
           ", CI"["99.9%"],
           " [",
-          "0.41794",
+          "0.39941",
           ", ",
-          "0.51081",
+          "0.52898",
           "]",
           ", ",
           italic("n"),
@@ -121,6 +120,7 @@ testthat::test_that(
   code = {
     testthat::skip_on_cran()
 
+
     # using function
     set.seed(123)
     using_function <-
@@ -189,36 +189,25 @@ testthat::test_that(
         y = sleep_rem,
         type = "bf",
         k = 3,
-        conf.level = 0.95,
-        conf.type = "perc",
-        nboot = 25,
         messages = FALSE
       ))
 
     # expected
     expected <-
-      ggplot2::expr(
-        paste(
-          italic("r")["Pearson"],
-          "(",
-          46L,
-          ")",
-          " = ",
-          "-0.221",
-          ", log"["e"],
+      ggplot2::expr(atop(
+        displaystyle(NULL),
+        expr = paste(
+          "In favor of alternative: ",
+          "log"["e"],
           "(BF"["10"],
           ") = ",
           "-0.425",
           ", ",
           italic("r")["Cauchy"],
           " = ",
-          "0.707",
-          ", ",
-          italic("n"),
-          " = ",
-          48L
+          "0.707"
         )
-      )
+      ))
 
     # testing overall call
     testthat::expect_identical(using_function, expected)
