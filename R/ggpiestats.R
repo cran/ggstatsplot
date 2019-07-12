@@ -44,13 +44,12 @@
 #'
 #' @import ggplot2
 #'
-#' @importFrom dplyr select group_by summarize n arrange if_else desc
-#' @importFrom dplyr mutate mutate_at mutate_if
-#' @importFrom rlang !! enquo quo_name
+#' @importFrom dplyr select group_by summarize n mutate mutate_at mutate_if
+#' @importFrom rlang !! enquo quo_name as_name ensym
 #' @importFrom crayon green blue yellow red
 #' @importFrom paletteer scale_fill_paletteer_d
 #' @importFrom groupedstats grouped_proptest
-#' @importFrom tidyr uncount
+#' @importFrom tidyr uncount drop_na
 #' @importFrom tibble as_tibble
 #'
 #' @references
@@ -78,6 +77,7 @@
 #'   data = ggplot2::msleep,
 #'   main = vore,
 #'   perc.k = 1,
+#'   bf.message = FALSE,
 #'   k = 3
 #' )
 #'
@@ -125,9 +125,11 @@ ggpiestats <- function(data,
                        subtitle = NULL,
                        caption = NULL,
                        conf.level = 0.95,
+                       bf.prior = 0.707,
                        nboot = 100,
                        simulate.p.value = FALSE,
                        B = 2000,
+                       bias.correct = FALSE,
                        legend.title = NULL,
                        facet.wrap.name = NULL,
                        k = 2,
@@ -152,29 +154,27 @@ ggpiestats <- function(data,
 
   # if facetting variable name is not specified, use the variable name for
   # 'condition' argument
-  if (!missing(condition)) {
-    if (is.null(facet.wrap.name)) {
-      facet.wrap.name <- rlang::as_name(rlang::ensym(condition))
-    }
+  if (!missing(condition) && rlang::is_null(facet.wrap.name)) {
+    facet.wrap.name <- rlang::as_name(rlang::ensym(condition))
   }
 
   # =============================== dataframe ================================
 
   # creating a dataframe
-  data <-
+  data %<>%
     dplyr::select(
-      .data = data,
-      main = !!rlang::enquo(main),
-      condition = !!rlang::enquo(condition),
-      counts = !!rlang::enquo(counts)
+      .data = .,
+      main = {{ main }},
+      condition = {{ condition }},
+      counts = {{ counts }}
     ) %>%
     tidyr::drop_na(data = .) %>%
     tibble::as_tibble(x = .)
 
   # =========================== converting counts ============================
 
-  # untable the dataframe based on the count for each obervation
-  if (!missing(counts)) {
+  # untable the dataframe based on the count for each observation
+  if ("counts" %in% names(data)) {
     data %<>%
       tidyr::uncount(
         data = .,
@@ -194,62 +194,28 @@ ggpiestats <- function(data,
     dplyr::mutate(.data = ., main = droplevels(as.factor(main)))
 
   # condition
-  if (!missing(condition)) {
+  if ("condition" %in% names(data)) {
     data %<>%
       dplyr::mutate(.data = ., condition = droplevels(as.factor(condition)))
   }
 
   # convert the data into percentages; group by conditional variable if needed
-  df <- cat_counter(data, main, condition)
-
   # dataframe with summary labels
-  df %<>%
+  df <-
     cat_label_df(
-      data = .,
+      data = cat_counter(data, main, condition),
       label.col.name = "slice.label",
       label.content = slice.label,
       label.separator = label.separator,
       perc.k = perc.k
     )
 
-  # ============================ sample size label ==========================
+  # ============ preparing label dataframe and other annotations  =============
 
-  # if sample size labels are to be displayed at the bottom of the pie charts
-  # for each facet
-  if (isTRUE(sample.size.label)) {
-    if (!missing(condition)) {
-      df_n_label <-
-        dplyr::full_join(
-          x = df,
-          y = df %>%
-            dplyr::group_by(.data = ., condition) %>%
-            dplyr::summarize(.data = ., total_n = sum(counts)) %>%
-            dplyr::ungroup(x = .) %>%
-            dplyr::mutate(
-              .data = .,
-              condition_n_label = paste("(n = ", total_n, ")", sep = "")
-            ) %>%
-            # changing character variables into factors
-            dplyr::mutate_if(
-              .tbl = .,
-              .predicate = purrr::is_bare_character,
-              .funs = ~ as.factor(.)
-            ),
-          by = "condition"
-        ) %>%
-        dplyr::mutate(
-          .data = .,
-          condition_n_label = dplyr::if_else(
-            condition = duplicated(condition),
-            true = NA_character_,
-            false = as.character(condition_n_label)
-          )
-        ) %>%
-        tidyr::drop_na(data = .)
-    }
+  # dataframe containing all details needed for sample size and prop test
+  if ("condition" %in% names(data)) {
+    df_labels <- df_facet_label(data = data, x = main, y = condition)
   }
-
-  # ================= preparing names for legend and facet_wrap ==============
 
   # reorder the category factor levels to order the legend
   df$main <- factor(x = df$main, levels = unique(df$main))
@@ -257,12 +223,11 @@ ggpiestats <- function(data,
   # getting labels for all levels of the 'main' variable factor
   if (is.null(factor.levels)) {
     legend.labels <- as.character(df$main)
-  } else if (!missing(factor.levels)) {
+  } else {
     legend.labels <- factor.levels
   }
 
-  # custom labeller function to use if the user wants a different name for
-  # facet_wrap variable
+  # custom function for facet_wrap variable label
   label_facet <- function(original_var, custom_name) {
     lev <- levels(as.factor(original_var))
     lab <- paste0(custom_name, ": ", lev)
@@ -340,33 +305,52 @@ ggpiestats <- function(data,
       fill = ggplot2::guide_legend(override.aes = list(color = NA))
     )
 
-  # =============== chi-square test (either Pearson or McNemar) =============
+  # ========================= statistical analysis ==========================
 
-  # if facetting by condition is happening
-  if (!missing(condition)) {
+  # if subtitle with results is to be displayed
+  if (isTRUE(results.subtitle)) {
+    subtitle <-
+      subtitle_contingency_tab(
+        data = data,
+        main = main,
+        condition = condition,
+        ratio = ratio,
+        nboot = nboot,
+        paired = paired,
+        stat.title = stat.title,
+        legend.title = legend.title,
+        conf.level = conf.level,
+        conf.type = "norm",
+        bias.correct = bias.correct,
+        simulate.p.value = simulate.p.value,
+        B = B,
+        k = k,
+        messages = messages
+      )
+
+    # preparing Bayes Factor caption
+    if (isTRUE(bf.message) && !is.null(subtitle)) {
+      caption <- bf_contingency_tab(
+        data = data,
+        main = main,
+        condition = condition,
+        sampling.plan = sampling.plan,
+        fixed.margin = fixed.margin,
+        prior.concentration = prior.concentration,
+        caption = caption,
+        output = "caption",
+        k = k
+      )
+    }
+  }
+
+  # if faceting by condition is happening
+  if ("condition" %in% names(data)) {
+
+    # ================ sample size and proportion test labels =================
+
+    # adding significance labels to pie charts for grouped proportion tests
     if (isTRUE(facet.proptest)) {
-      # merging dataframe containing results from the proportion test with
-      # counts and percentage dataframe
-      df2 <-
-        dplyr::full_join(
-          x = df,
-          # running grouped proportion test with helper functions
-          y = groupedstats::grouped_proptest(
-            data = data,
-            grouping.vars = condition,
-            measure = main
-          ),
-          by = "condition"
-        ) %>%
-        dplyr::mutate(
-          .data = .,
-          significance = dplyr::if_else(
-            condition = duplicated(condition),
-            true = NA_character_,
-            false = significance
-          )
-        ) %>%
-        dplyr::filter(.data = ., !is.na(significance))
 
       # display grouped proportion test results
       if (isTRUE(messages)) {
@@ -377,58 +361,15 @@ ggpiestats <- function(data,
         )
 
         # print the tibble and leave out unnecessary columns
-        print(tibble::as_tibble(df2) %>%
-          dplyr::select(.data = ., -c(main:slice.label)))
+        print(df_labels)
       }
-    }
 
-    # if subtitle with results is to be displayed
-    if (isTRUE(results.subtitle)) {
-      subtitle <-
-        subtitle_contingency_tab(
-          data = data,
-          main = main,
-          condition = condition,
-          nboot = nboot,
-          paired = paired,
-          stat.title = stat.title,
-          conf.level = conf.level,
-          conf.type = "norm",
-          simulate.p.value = simulate.p.value,
-          B = B,
-          messages = messages,
-          k = k
-        )
-
-      # preparing the BF message for null hypothesis support
-      if (isTRUE(bf.message) && !is.null(subtitle)) {
-        bf.caption.text <-
-          bf_contingency_tab(
-            data = data,
-            main = main,
-            condition = condition,
-            sampling.plan = sampling.plan,
-            fixed.margin = fixed.margin,
-            prior.concentration = prior.concentration,
-            caption = caption,
-            output = "caption",
-            k = k
-          )
-
-        # assign it to captio
-        caption <- bf.caption.text
-      }
-    }
-
-    # ====================== facetted proportion test =======================
-
-    # adding significance labels to pie charts for grouped proportion tests
-    if (isTRUE(facet.proptest)) {
+      # adding labels
       p <-
         p +
         ggplot2::geom_text(
-          data = df2,
-          mapping = ggplot2::aes(label = significance, x = 1.65),
+          data = df_labels,
+          mapping = ggplot2::aes(label = significance, x = 1.65, y = 0.5),
           position = ggplot2::position_fill(vjust = 1),
           size = 5,
           na.rm = TRUE
@@ -440,27 +381,12 @@ ggpiestats <- function(data,
       p <-
         p +
         ggplot2::geom_text(
-          data = df_n_label,
-          mapping = ggplot2::aes(label = condition_n_label, x = 1.65),
+          data = df_labels,
+          mapping = ggplot2::aes(label = N, x = 1.65, y = 1),
           position = ggplot2::position_fill(vjust = 0.5),
           size = 4,
           na.rm = TRUE
         )
-    }
-  } else {
-    if (isTRUE(results.subtitle)) {
-      subtitle <- subtitle_onesample_proptest(
-        data = data,
-        main = main,
-        conf.level = conf.level,
-        conf.type = "norm",
-        nboot = nboot,
-        ratio = ratio,
-        stat.title = stat.title,
-        legend.title = legend.title,
-        k = k,
-        messages = messages
-      )
     }
   }
 
@@ -476,13 +402,8 @@ ggpiestats <- function(data,
       title = title,
       caption = caption
     ) +
-    ggplot2::guides(fill = ggplot2::guide_legend(title = legend.title))
-
-  # ---------------- adding ggplot component ---------------------------------
-
-  # if any additional modification needs to be made to the plot
-  # this is primarily useful for grouped_ variant of this function
-  p <- p + ggplot.component
+    ggplot2::guides(fill = ggplot2::guide_legend(title = legend.title)) +
+    ggplot.component
 
   # return the final plot
   return(switch(

@@ -25,7 +25,7 @@ testthat::test_that(
       ggplot2::expr(
         paste(
           NULL,
-          italic(chi)^2,
+          chi["gof"]^2,
           "(",
           "1",
           ") = ",
@@ -53,6 +53,48 @@ testthat::test_that(
 
     # testing overall call
     testthat::expect_identical(using_function1, results1)
+
+    # with counts
+    set.seed(123)
+    using_function2 <- ggstatsplot::subtitle_contingency_tab(
+      data = as.data.frame(Titanic),
+      main = Sex,
+      counts = "Freq",
+      messages = FALSE
+    )
+
+    results2 <-
+      ggplot2::expr(
+        paste(
+          NULL,
+          chi["gof"]^2,
+          "(",
+          "1",
+          ") = ",
+          "722.45",
+          ", ",
+          italic("p"),
+          " = ",
+          "< 0.001",
+          ", ",
+          italic("V")["Cramer"],
+          " = ",
+          "0.57",
+          ", CI"["95%"],
+          " [",
+          "0.54",
+          ", ",
+          "0.61",
+          "]",
+          ", ",
+          italic("n"),
+          " = ",
+          2201L
+        )
+      )
+
+    # testing overall call
+    testthat::expect_identical(using_function2, results2)
   }
 )
 
@@ -80,7 +122,7 @@ testthat::test_that(
       ggplot2::expr(
         paste(
           NULL,
-          italic(chi)^2,
+          chi["gof"]^2,
           "(",
           "1",
           ") = ",
@@ -134,7 +176,7 @@ testthat::test_that(
       ggplot2::expr(
         paste(
           NULL,
-          italic(chi)^2,
+          chi["gof"]^2,
           "(",
           "3",
           ") = ",
@@ -174,25 +216,22 @@ testthat::test_that(
     set.seed(123)
 
     # creating a dataframe
-    df <- tibble::tribble(
-      ~x,
-      "one"
-    )
+    df <- dplyr::filter(mtcars, am == "0")
 
     # subtitle
     using_function1 <- ggstatsplot::subtitle_onesample_proptest(
       data = df,
-      main = x
+      main = am
     )
 
     # expected output
-    results1 <- ggplot2::expr(paste(italic("n"), " = ", 1L))
+    results1 <- ggplot2::expr(paste(italic("n"), " = ", 19L))
 
     # capturing message
     p_message <-
       capture.output(ggstatsplot::subtitle_onesample_proptest(
         data = df,
-        main = x
+        main = am
       ))
 
     # testing overall call

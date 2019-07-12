@@ -1,6 +1,12 @@
 ---
 title: "ggstatsplot: ggplot2 Based Plots with Statistical Details"
-author: "Indrajeet Patil"
+author: 
+- name: Indrajeet Patil
+  affiliation: Harvard University
+- name: Fiery Cushman
+  affiliation: Harvard University
+- name: Mina Cikara
+  affiliation: Harvard University
 date: "`r Sys.Date()`"
 output:
   rmarkdown::html_vignette:
@@ -39,12 +45,12 @@ The `ggstatsplot` package is an opinionated collection of plots made with
 publication-ready statistical graphics. All plots share an underlying principle
 of displaying information-rich plots with all necessary statistical details
 included in the plots themselves. Although the plots produced by `ggstatsplot`
-are still `ggplot` objects and can thus be further modified using `ggplot2`
-commands, there is a limit to how many such modifications can be made. That is,
-it is less flexible than `ggplot2`, but that's a feature and not a bug. The
-original intent behind this package is to offload struggles associated with
-*constructing* the plot and focus more on the *interpretation* of that data
-displayed in the plot.
+are still `ggplot` objects and can thus be further modified to certain extent
+using `ggplot2` commands. That is, it is less flexible than `ggplot2`, but
+that's a feature and not a bug. The original intent behind this package is to
+offload struggles associated with *constructing* the plot and focus more on the
+*interpretation* of the data and associated statistical analysis displayed in the
+plot.
 
 # Graphical perception
    
@@ -262,8 +268,9 @@ structure of the data. More specifically,
     
   - All `ggstatsplot` functions remove `NA`s from variables of interest (similar
     to `ggplot2`; Wickham, 2016, p.207) in the data and display total sample
-    size (*n*) in the subtitle to inform the user/reader about the number of
-    observations included for both the statistical analysis and the
+    size (*n*, either observations for between-subjects or pairs for
+    within-subjects designs) in the subtitle to inform the user/reader about the
+    number of observations included for both the statistical analysis and the
     visualization. But, when sample sizes differ *across* tests in the same
     function, `ggstatsplot` makes an effort to inform the user of this aspect.
     For example, `ggcorrmat` features several correlation test pairs and,
@@ -345,7 +352,7 @@ Functions | Type | Test | Effect size | 95% CI available?
 `ggbetweenstats` | Parametric | Student's and Welch's *t*-test | Cohen's *d*, Hedge's *g* | <font color="green">$\checkmark$</font> 
 `ggbetweenstats` | Parametric | Fisher's and Welch's one-way ANOVA | $$\eta^2, \eta^2_p, \omega^2, \omega^2_p$$ | <font color="green">$\checkmark$</font> 
 `ggbetweenstats` | Non-parametric | Mann-Whitney *U*-test | *r* | <font color="green">$\checkmark$</font> 
-`ggbetweenstats` | Non-parametric | Kruskal-Wallis Rank Sum Test | $$\eta^2_H$$ | <font color="green">$\checkmark$</font> 
+`ggbetweenstats` | Non-parametric | Kruskal-Wallis Rank Sum Test | $$\epsilon^2$$ | <font color="green">$\checkmark$</font> 
 `ggbetweenstats` | Robust | Yuen's test for trimmed means | $$\xi$$ | <font color="green">$\checkmark$</font> 
 `ggbetweenstats` | Robust | Heteroscedastic one-way ANOVA for trimmed means | $$\xi$$ | <font color="green">$\checkmark$</font> 
 `ggwithinstats` | Parametric | Student's *t*-test | Cohen's *d*, Hedge's *g* | <font color="green">$\checkmark$</font> 
@@ -354,9 +361,9 @@ Functions | Type | Test | Effect size | 95% CI available?
 `ggwithinstats` | Non-parametric | Friedman test | $$W_{Kendall}$$ | <font color="green">$\checkmark$</font>
 `ggwithinstats` | Robust | Yuen's test on trimmed means for dependent samples | $$\xi$$ | <font color="green">$\checkmark$</font> 
 `ggwithinstats` | Robust | Heteroscedastic one-way repeated measures ANOVA for trimmed means | <font color="red">$\times$</font> | <font color="red">$\times$</font>
-`ggpiestats` | Parametric | $$\text{Pearson's}~ \chi^2 ~\text{test}$$ | Cramer's *V* | <font color="green">$\checkmark$</font>
+`ggpiestats` | Parametric | $$\text{Pearson's}~ \chi^2 ~\text{test}$$ | Cramér's *V* | <font color="green">$\checkmark$</font>
 `ggpiestats` | Parametric | McNemar's test | Cohen's *g* | <font color="green">$\checkmark$</font>
-`ggpiestats` | Parametric | One-sample proportion test | Cramer's *V* | <font color="green">$\checkmark$</font>
+`ggpiestats` | Parametric | One-sample proportion test | Cramér's *V* | <font color="green">$\checkmark$</font>
 `ggscatterstats`/`ggcorrmat` | Parametric | Pearson's *r* | *r* | <font color="green">$\checkmark$</font>
 `ggscatterstats`/`ggcorrmat` | Non-parametric | $$\text{Spearman's}~ \rho$$ | $$\rho$$ | <font color="green">$\checkmark$</font>
 `ggscatterstats`/`ggcorrmat` | Robust | Percentage bend correlation | *r* | <font color="green">$\checkmark$</font>
@@ -375,7 +382,7 @@ Parametric | between-subjects | Yes | Student's *t*-test | <font color="green">$
 Parametric | within-subjects | `NA` | Student's *t*-test | <font color="green">$\checkmark$</font> 
 Non-parametric | between-subjects | No | Dwass-Steel-Crichtlow-Fligner test | <font color="green">$\checkmark$</font> 
 Non-parametric | within-subjects | No | Durbin-Conover test | <font color="green">$\checkmark$</font> 
-Robust | between-subjects | No | Yuen's trimmed means test | <font color="green">$\checkmark$</font> 
+Robust | between-subjects | No | Yuen's two-sample trimmed means *t*-test | <font color="green">$\checkmark$</font> 
 Robust | within-subjects | `NA` | Yuen's trimmed means test | <font color="green">$\checkmark$</font>
 Bayes Factor | between-subjects | No | <font color="red">$\times$</font> | <font color="red">$\times$</font>
 Bayes Factor | between-subjects | Yes | <font color="red">$\times$</font> | <font color="red">$\times$</font>
@@ -450,7 +457,7 @@ statistical reporting and why.
 
 1. **APA guidelines** (APA, 2009) are followed (for the most part) by default:   
   - Percentages are displayed with no decimal places (Figure-2).
-  - Correlations, *t*-tests, and chi-squared tests are reported with the degrees
+  - Correlations, *t*-tests, and $\chi^2$-tests are reported with the degrees
     of freedom in parentheses and the significance level (Figure-2, Figure-3b,
     Figure-5).
   - ANOVAs are reported with two degrees of freedom and the significance level
@@ -460,7 +467,7 @@ statistical reporting and why.
     statistic (depending on the model, this can be a *t* or *z* statistic) and
     the corresponding significance level (Figure-6).
   - With the exception of *p*-values, most statistics are rounded to two decimal
-    places.
+    places by default.
 
 2. Default statistical tests: 
 
@@ -494,7 +501,7 @@ calls-
 
 # Conclusion
 
-# Acknowlegdments
+# Acknowledgments
 
 
 

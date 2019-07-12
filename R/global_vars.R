@@ -11,6 +11,7 @@ utils::globalVariables(
     "chi",
     "counts",
     "df",
+    "df.residual",
     "df1",
     "df2",
     "desc",
@@ -188,6 +189,7 @@ utils::globalVariables(
     "coef.type",
     "Value",
     "Statistic",
+    "statistic",
     "d.pmean",
     "d.pmean.LB",
     "d.pmean.UB",
@@ -195,7 +197,11 @@ utils::globalVariables(
     "lwr.ci",
     "upr.ci",
     "lower.ci",
-    "upper.ci"
+    "upper.ci",
+    "epsilon.squared",
+    "condition",
+    "main",
+    "pair1"
   ),
   package = "ggstatsplot",
   add = FALSE

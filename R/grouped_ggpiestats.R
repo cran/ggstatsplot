@@ -24,6 +24,7 @@
 #'
 #' @examples
 #'
+#' \donttest{
 #' # grouped one-sample proportion tests
 #' ggstatsplot::grouped_ggpiestats(
 #'   data = mtcars,
@@ -42,7 +43,6 @@
 #' )
 #'
 #' # the following will take slightly more amount of time
-#' \donttest{
 #' # for reproducibility
 #' set.seed(123)
 #'
@@ -91,9 +91,11 @@ grouped_ggpiestats <- function(data,
                                subtitle = NULL,
                                caption = NULL,
                                conf.level = 0.95,
+                               bf.prior = 0.707,
                                nboot = 100,
                                simulate.p.value = FALSE,
                                B = 2000,
+                               bias.correct = FALSE,
                                legend.title = NULL,
                                facet.wrap.name = NULL,
                                k = 2,
@@ -148,18 +150,16 @@ grouped_ggpiestats <- function(data,
 
   # creating a dataframe
   df <-
+    data %>%
     dplyr::select(
-      .data = data,
-      !!rlang::enquo(grouping.var),
-      !!rlang::enquo(main),
-      !!rlang::enquo(condition),
-      !!rlang::enquo(counts)
+      .data = .,
+      {{ grouping.var }},
+      {{ main }},
+      {{ condition }},
+      {{ counts }}
     ) %>%
-    tidyr::drop_na(data = .)
-
-  # creating a list for grouped analysis
-  df %<>%
-    grouped_list(data = ., grouping.var = !!rlang::enquo(grouping.var))
+    tidyr::drop_na(data = .) %>% # creating a list for grouped analysis
+    grouped_list(data = ., grouping.var = {{ grouping.var }})
 
   # ============== build pmap list based on conditions =====================
 
@@ -223,10 +223,12 @@ grouped_ggpiestats <- function(data,
       prior.concentration = prior.concentration,
       subtitle = subtitle,
       caption = caption,
+      bf.prior = bf.prior,
       conf.level = conf.level,
       nboot = nboot,
       simulate.p.value = simulate.p.value,
       B = B,
+      bias.correct = bias.correct,
       legend.title = legend.title,
       facet.wrap.name = facet.wrap.name,
       k = k,

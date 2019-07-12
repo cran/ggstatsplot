@@ -25,7 +25,47 @@ testthat::test_that(
   }
 )
 
-# bayes factor (paired t-test) ----------------------
+# bayes factor (independent samples t-test) ----------------------
+
+testthat::test_that(
+  desc = "bayes factor (independent samples t-test)",
+  code = {
+    testthat::skip_on_cran()
+
+    # from Bayes Factor
+    df <- suppressMessages(ggstatsplot::bf_extractor(
+      BayesFactor::ttestBF(
+        formula = len ~ supp,
+        data = as.data.frame(ToothGrowth),
+        rscale = 0.99,
+        paired = FALSE
+      )
+    ))
+
+    # extracting results from where this function is implemented
+    set.seed(123)
+    df_results <- ggstatsplot::bf_ttest(
+      data = ToothGrowth,
+      x = supp,
+      y = len,
+      paired = FALSE,
+      bf.prior = 0.99,
+      output = "results"
+    )
+
+    # check bayes factor values
+    testthat::expect_equal(df$log_e_bf10, -0.001119132, tolerance = 0.001)
+    testthat::expect_equal(df$log_e_bf10, -df$log_e_bf01, tolerance = 0.001)
+    testthat::expect_equal(df$log_10_bf10, -0.0004860328, tolerance = 0.001)
+    testthat::expect_equal(df$log_10_bf10, -df$log_10_bf01, tolerance = 0.001)
+
+    # checking if two usages of the function are producing the same results
+    testthat::expect_equal(df$bf10, df_results$bf10, tolerance = 0.001)
+    testthat::expect_equal(df$log_e_bf01, df_results$log_e_bf01, tolerance = 0.001)
+  }
+)
+
+# Bayes factor (paired t-test) ---------------------------------------------
 
 testthat::test_that(
   desc = "bayes factor (paired t-test)",
@@ -52,7 +92,7 @@ testthat::test_that(
 
     # extracting results from where this function is implemented
     set.seed(123)
-    df_results <- ggstatsplot::bf_two_sample_ttest(
+    df_results <- ggstatsplot::bf_ttest(
       data = dat_tidy,
       x = key,
       y = value,
@@ -74,10 +114,10 @@ testthat::test_that(
   }
 )
 
-# bayes factor (paired t-test) ----------------------
+# bayes factor (one sample t-test) ----------------------
 
 testthat::test_that(
-  desc = "bayes factor (paired t-test)",
+  desc = "bayes factor (one sample t-test)",
   code = {
     testthat::skip_on_cran()
 
@@ -93,14 +133,16 @@ testthat::test_that(
 
     # extracting results from where this function is implemented
     set.seed(123)
-    df_results <- ggstatsplot::bf_one_sample_ttest(
-      x = iris$Petal.Length,
+    df_results <- ggstatsplot::bf_ttest(
+      data = iris,
+      x = Petal.Length,
+      y = NULL,
       test.value = 5.5,
       bf.prior = 0.99,
       output = "results"
     )
 
-    # check bayes factor values
+    # check Bayes factor values
     testthat::expect_equal(df$bf10, 5.958171e+20, tolerance = 0.001)
     testthat::expect_equal(df$log_e_bf10, 47.83647, tolerance = 0.001)
     testthat::expect_equal(df$log_e_bf10, -df$log_e_bf01, tolerance = 0.001)
@@ -189,7 +231,7 @@ testthat::test_that(
           ") = ",
           "1.92",
           ", ",
-          italic("r")["Cauchy"],
+          italic("r")["Cauchy"]^"JZS",
           " = ",
           "0.88"
         )
@@ -207,7 +249,7 @@ testthat::test_that(
           ") = ",
           "-1.92",
           ", ",
-          italic("r")["Cauchy"],
+          italic("r")["Cauchy"]^"JZS",
           " = ",
           "0.88"
         )
@@ -216,7 +258,7 @@ testthat::test_that(
   }
 )
 
-# bayes factor (between-subjects - anova) ---------------------------------
+# bayes factor (within-subjects - anova) ---------------------------------
 
 testthat::test_that(
   desc = "bayes factor (within-subjects - anova)",
@@ -297,7 +339,7 @@ testthat::test_that(
           ") = ",
           "-1.9580",
           ", ",
-          italic("r")["Cauchy"],
+          italic("r")["Cauchy"]^"JZS",
           " = ",
           "0.8800"
         )
@@ -315,7 +357,7 @@ testthat::test_that(
           ") = ",
           "1.9580",
           ", ",
-          italic("r")["Cauchy"],
+          italic("r")["Cauchy"]^"JZS",
           " = ",
           "0.8800"
         )
@@ -324,7 +366,59 @@ testthat::test_that(
   }
 )
 
-# bayes factor (contingency tab) ----------------------
+
+# bayes factor (proportion test) --------------------------------------
+
+testthat::test_that(
+  desc = "bayes factor (proportion test)",
+  code = {
+    testthat::skip_on_cran()
+
+    # extracting results from where this function is implemented
+    set.seed(123)
+    df <- ggstatsplot::bf_contingency_tab(
+      data = mtcars,
+      main = am,
+      output = "results"
+    )
+
+    # check bayes factor values
+    testthat::expect_equal(df$bf10, 0.2465787, tolerance = 0.001)
+    testthat::expect_equal(df$log_e_bf10, -1.400074, tolerance = 0.001)
+    testthat::expect_equal(df$log_e_bf10, -df$log_e_bf01, tolerance = 0.001)
+    testthat::expect_equal(df$log_10_bf10, -0.6080444, tolerance = 0.001)
+    testthat::expect_equal(df$log_10_bf10, -df$log_10_bf01, tolerance = 0.001)
+
+    # caption
+    set.seed(123)
+    caption_text <- ggstatsplot::bf_contingency_tab(
+      data = mtcars,
+      main = cyl,
+      output = "alternative",
+      prior.concentration = 10
+    )
+
+    testthat::expect_identical(
+      caption_text,
+      ggplot2::expr(atop(
+        displaystyle(NULL),
+        expr = paste(
+          "In favor of alternative: ",
+          "log"["e"],
+          "(BF"["10"],
+          ") = ",
+          "-0.55",
+          ", ",
+          italic("a"),
+          " = ",
+          "10.00"
+        )
+      ))
+    )
+  }
+)
+
+# bayes factor (contingency tab) --------------------------------------
 
 testthat::test_that(
   desc = "bayes factor (contingency tab)",
@@ -362,6 +456,17 @@ testthat::test_that(
       output = "alternative"
     )
 
+    # with counts
+    caption_text2 <- ggstatsplot::bf_contingency_tab(
+      data = as.data.frame(Titanic),
+      main = Survived,
+      condition = Sex,
+      counts = "Freq",
+      sampling.plan = "jointMulti",
+      fixed.margin = "rows",
+      output = "alternative"
+    )
+
     # check bayes factor values
     testthat::expect_equal(df$bf10, 28.07349, tolerance = 0.001)
     testthat::expect_equal(df$log_e_bf10, 3.334826, tolerance = 0.001)
@@ -390,6 +495,26 @@ testthat::test_that(
         "1.00"
       )
     )))
+
+    testthat::expect_identical(
+      caption_text2,
+      ggplot2::expr(atop(
+        displaystyle(NULL),
+        expr = paste(
+          "In favor of alternative: ",
+          "log"["e"],
+          "(BF"["10"],
+          ") = ",
+          "214.25",
+          ", sampling = ",
+          "joint multinomial",
+          ", ",
+          italic("a"),
+          " = ",
+          "1.00"
+        )
+      ))
+    )
   }
 )
 
@@ -433,7 +558,7 @@ testthat::test_that(
           ") = ",
           "1.100",
           ", ",
-          italic("r")["Cauchy"],
+          italic("r")["Cauchy"]^"JZS",
           " = ",
           "0.880"
         )
@@ -453,7 +578,7 @@ testthat::test_that(
           ") = ",
           "-1.10",
           ", ",
-          italic("r")["Cauchy"],
+          italic("r")["Cauchy"]^"JZS",
           " = ",
           "0.88"
         )

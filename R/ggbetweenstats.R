@@ -177,6 +177,7 @@
 #'   data = datasets::morley,
 #'   x = Expt,
 #'   y = Speed,
+#'   type = "np",
 #'   plot.type = "box",
 #'   conf.level = 0.99,
 #'   xlab = "The experiment number",
@@ -273,12 +274,12 @@ ggbetweenstats <- function(data,
   # --------------------------------- data -----------------------------------
 
   # creating a dataframe
-  data <-
+  data %<>%
     dplyr::select(
-      .data = data,
-      x = !!rlang::enquo(x),
-      y = !!rlang::enquo(y),
-      outlier.label = !!rlang::enquo(outlier.label)
+      .data = .,
+      x = {{ x }},
+      y = {{ y }},
+      outlier.label = {{ outlier.label }}
     ) %>%
     tidyr::drop_na(data = .) %>%
     dplyr::mutate(.data = ., x = droplevels(as.factor(x))) %>%
@@ -286,8 +287,7 @@ ggbetweenstats <- function(data,
 
   # if outlier.label column is not present, just use the values from `y` column
   if (!"outlier.label" %in% names(data)) {
-    data %<>%
-      dplyr::mutate(.data = ., outlier.label = y)
+    data %<>% dplyr::mutate(.data = ., outlier.label = y)
   }
 
   # add a logical column indicating whether a point is or is not an outlier
@@ -432,38 +432,31 @@ ggbetweenstats <- function(data,
   # --------------------- subtitle/caption preparation ------------------------
 
   if (isTRUE(results.subtitle)) {
-
     # figuring out which effect size to use
     effsize.type <- effsize_type_switch(effsize.type)
 
     # preparing the bayes factor message
     if (type %in% c("parametric", "p") && isTRUE(bf.message)) {
-      # preparing the BF message for null
+      # choosing the appropriate test
       if (test == "t-test") {
-        caption <-
-          bf_two_sample_ttest(
-            data = data,
-            x = x,
-            y = y,
-            bf.prior = bf.prior,
-            caption = caption,
-            paired = FALSE,
-            output = "caption",
-            k = k
-          )
-      } else if (test == "anova") {
-        # preparing the BF message for null
-        caption <-
-          bf_oneway_anova(
-            data = data,
-            x = x,
-            y = y,
-            bf.prior = bf.prior,
-            caption = caption,
-            output = "caption",
-            k = k
-          )
+        .f <- bf_ttest
+      } else {
+        .f <- bf_oneway_anova
       }
+
+      # preparing the BF message for null
+      caption <-
+        rlang::exec(
+          .fn = .f,
+          data = data,
+          x = "x",
+          y = "y",
+          bf.prior = bf.prior,
+          caption = caption,
+          paired = FALSE,
+          output = "caption",
+          k = k
+        )
     }
 
     # extracting the subtitle using the switch function

@@ -139,7 +139,7 @@ testthat::test_that(
       y = brainwt,
       title = "mammalian sleep",
       caption = "From ggplot2 package",
-      xlab = "vorarephilia",
+      xlab = "vore",
       ylab = "brain weight",
       axes.range.restrict = TRUE,
       outlier.tagging = TRUE,
@@ -234,13 +234,13 @@ testthat::test_that(
           ") = ",
           "1.54274",
           ", ",
-          italic("r")["Cauchy"],
+          italic("r")["Cauchy"]^"JZS",
           " = ",
           "0.70700"
         )
       ))
     )
-    testthat::expect_identical(p$labels$x, "vorarephilia")
+    testthat::expect_identical(p$labels$x, "vore")
     testthat::expect_identical(p$labels$y, "brain weight")
   }
 )
@@ -280,25 +280,14 @@ testthat::test_that(
     testthat::expect_equal(dim(pb$data[[1]]), c(29L, 13L))
 
     # checking displayed mean labels
-    if (utils::packageVersion("skimr") != "2.0") {
-      testthat::expect_identical(
-        pb$data[[6]]$label,
-        c(
-          "2.290, 95% CI [1.907, 2.673]",
-          "3.120, 95% CI [2.787, 3.453]",
-          "4.000, 95% CI [3.561, 4.439]"
-        )
+    testthat::expect_identical(
+      pb$data[[6]]$label,
+      c(
+        "2.290, 95% CI [1.907, 2.673]",
+        "3.120, 95% CI [2.787, 3.453]",
+        "4.000, 95% CI [3.561, 4.439]"
       )
-    } else {
-      testthat::expect_identical(
-        pb$data[[6]]$label,
-        c(
-          "2.286, 95% CI [1.903, 2.668]",
-          "3.117, 95% CI [2.788, 3.447]",
-          "3.999, 95% CI [3.561, 4.438]"
-        )
-      )
-    }
+    )
 
     testthat::expect_identical(
       pb$data[[4]]$label,
@@ -319,6 +308,44 @@ testthat::test_that(
       pb$layout$panel_params[[1]]$y.labels,
       c("1", "2", "3", "4", "5", "6")
     )
+  }
+)
+
+# plot caption is correct --------------------------------------------------
+
+testthat::test_that(
+  desc = "checking mean labels are working",
+  code = {
+    testthat::skip_on_cran()
+
+    library(ggplot2)
+
+    # caption for the plot
+    set.seed(254)
+    plot_caption <-
+      ggstatsplot::ggbetweenstats(
+        data = msleep,
+        x = vore,
+        y = brainwt,
+        messages = FALSE,
+        bf.prior = 0.85,
+        k = 3,
+        return = "caption"
+      )
+
+    # function output
+    set.seed(254)
+    fun_output <-
+      bf_oneway_anova(
+        data = msleep,
+        x = vore,
+        y = brainwt,
+        bf.prior = 0.85,
+        k = 3
+      )
+
+    # these should be equal
+    testthat::expect_identical(plot_caption, fun_output)
   }
 )
 

@@ -1,3 +1,42 @@
+# ggstatsplot 0.0.12
+
+BUG FIXES
+
+  - Bayes Factor in `ggwithinstats` caption, displayed by default, was
+    incorrect. This has been fixed. This stemmed from a line of code which
+    should have been `paired = TRUE`, but was instead `paired = FALSE`.
+
+MAJOR CHANGES
+
+  - The effect size measure for Kruskal-Wallis test has been changed from the
+    more obscure H-based eta-squared statistic to more common and interpretable
+    epsilon-squared.
+
+MINOR CHANGES
+
+  - `ggcoefstats` defaults to `bf.message = TRUE` to be consistent with the rest
+    of the functions in the package.
+  - `ggcoefstats` supports the following class of objects: `epi.2by2`, `negbin`,
+    `emmGrid`, `lmrob`, `glmrob`, `glmmPQL`, `data.table`.
+  - `bf_ttest` is introduced as a general function. The previously exported
+    `bf_one_sample_ttest` and `bf_two_sample_ttest` become its aliases.
+  - `bf_meta_message` syntax changes to adapt to updates made to `metaBMA`
+    package (thanks to #259).
+
+BREAKING CHANGES
+
+  - The vestigial arguments `axis.text.x.margin.t`, `axis.text.x.margin.r`,
+    `axis.text.x.margin.b`, `axis.text.x.margin.l` for `ggcorrmat` have been
+    removed. The margins can be adjusted using `ggplot2::margin()`.
+  - `gghistostats` no longer allows `data` argument to be `NULL`. This is to
+    make this function's syntax consistent with rest of the functions in this
+    package (none of which allow `data` to be `NULL`). This also removes
+    confusion that arose for some users when `data` couldn't be `NULL` for its
+    `grouped_` cousin (`grouped_gghistostats`).
+  - `outlier_df` function is no longer exported since it was always meant to be
+    an internal function and was accidently exported during initial release and
+    was retained for a while for backward compatibility. 
+
 # ggstatsplot 0.0.11
  
 BREAKING CHANGES

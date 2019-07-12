@@ -24,10 +24,10 @@ be carried out) or between-subjects (in which case one-way Kruskal–Wallis H
 test will be carried out). The default is \code{FALSE}.}
 
 \item{effsize.type}{Type of effect size needed for \emph{parametric} tests. The
-argument can be \code{"biased"} (\code{"d"} for Cohen's \emph{d} for \strong{t-test};
-\code{"partial_eta"} for partial eta-squared for \strong{anova}) or \code{"unbiased"}
-(\code{"g"} Hedge's \emph{g} for \strong{t-test}; \code{"partial_omega"} for partial
-omega-squared for \strong{anova})).}
+argument can be \code{"biased"} (equivalent to \code{"d"} for Cohen's \emph{d} for
+\strong{t-test}; \code{"partial_eta"} for partial eta-squared for \strong{anova}) or
+\code{"unbiased"} (equivalent to \code{"g"} Hedge's \emph{g} for \strong{t-test};
+\code{"partial_omega"} for partial omega-squared for \strong{anova})).}
 
 \item{effsize.noncentral}{Logical indicating whether to use non-central
 \emph{t}-distributions for computing the confidence interval for Cohen's \emph{d}
@@ -64,15 +64,16 @@ standardized deviation.  By default Hedge's correction is applied
 are two possibilities implemented. If the \emph{t}-test did not make a
 homogeneity of variance assumption, (the Welch test), the variance term
 will mirror the Welch test, otherwise a pooled and weighted estimate is
-used. If a paired samples \emph{t}-test was requested, then effect size desired is
-based on the standard deviation of the differences.
+used. If a paired samples \emph{t}-test was requested, then effect size desired
+is based on the standard deviation of the differences.
 
 The computation of the confidence intervals defaults to a use of
 non-central Student-\emph{t} distributions (\code{effsize.noncentral = TRUE});
 otherwise a central distribution is used.
 
-When computing confidence intervals the variance of the effect size \emph{d} or \emph{g} is
-computed using the conversion formula reported in Cooper et al. (2009)
+When computing confidence intervals the variance of the effect size \emph{d} or
+\emph{g} is computed using the conversion formula reported in Cooper et al.
+(2009)
 \itemize{
 \item \code{((n1+n2)/(n1*n2) + .5*d^2/df) * ((n1+n2)/df)} (independent samples)
 \item \code{sqrt(((1 / n) + (d^2 / n)) * 2 * (1 - r))}  (paired case)

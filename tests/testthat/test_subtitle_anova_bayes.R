@@ -29,7 +29,7 @@ testthat::test_that(
           ") = ",
           "93.14228",
           ", ",
-          italic("r")["Cauchy"],
+          italic("r")["Cauchy"]^"JZS",
           " = ",
           "0.80000"
         )
@@ -69,7 +69,56 @@ testthat::test_that(
           ") = ",
           "2.115",
           ", ",
-          italic("r")["Cauchy"],
+          italic("r")["Cauchy"]^"JZS",
+          " = ",
+          "0.707"
+        )
+      ))
+
+    # testing overall call
+    testthat::expect_identical(using_function1, results1)
+  }
+)
+
+# subtitle_anova_bayes works (within-subjects) - with NA ----------------------
+
+testthat::test_that(
+  desc = "subtitle_anova_bayes works (within-subjects) - with NA",
+  code = {
+    testthat::skip_on_cran()
+
+    set.seed(123)
+    library(jmv, warn.conflicts = FALSE)
+    data("bugs", package = "jmv")
+
+    # proper exclusion of NAs
+    data_bugs <- bugs %>%
+      tibble::as_tibble(.) %>%
+      tidyr::gather(., key, value, LDLF:HDHF)
+
+    # ggstatsplot output
+    set.seed(123)
+    using_function1 <-
+      ggstatsplot::subtitle_anova_bayes(
+        data = data_bugs,
+        x = key,
+        y = value,
+        paired = TRUE,
+        k = 3
+      )
+
+    # expected output
+    results1 <-
+      ggplot2::expr(atop(
+        displaystyle(NULL),
+        expr = paste(
+          "In favor of alternative: ",
+          "log"["e"],
+          "(BF"["10"],
+          ") = ",
+          "21.040",
+          ", ",
+          italic("r")["Cauchy"]^"JZS",
           " = ",
           "0.707"
         )

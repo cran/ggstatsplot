@@ -52,10 +52,7 @@ cat_label_df <- function(data,
   # only raw counts
   if (label.content %in% c("counts", "n", "count", "N")) {
     data %<>%
-      dplyr::mutate(
-        .data = .,
-        !!label.col.name := paste0("n = ", counts)
-      )
+      dplyr::mutate(.data = ., !!label.col.name := paste0("n = ", counts))
   }
 
   # both raw counts and percentages
@@ -89,7 +86,7 @@ cat_label_df <- function(data,
 #'
 #' @importFrom rlang enquos !! quo_is_null
 #' @importFrom purrr discard
-#' @importFrom dplyr select group_by summarize n arrange if_else desc
+#' @importFrom dplyr select group_by summarize n arrange desc
 #' @importFrom dplyr mutate mutate_at mutate_if group_by_at
 #'
 #' @examples
@@ -113,6 +110,32 @@ cat_counter <- function(data, main, condition = NULL, ...) {
     dplyr::ungroup(x = .) %>%
     dplyr::arrange(.data = ., dplyr::desc(!!rlang::ensym(main))) %>%
     dplyr::filter(.data = ., counts != 0L)
+
+  # return the final dataframe
+  return(df)
+}
+
+#' @noRd
+#' @keywords internal
+
+df_facet_label <- function(data, x, y) {
+
+  # combine info about sample size plus
+  df <- data %>% {
+    dplyr::full_join(
+      x = dplyr::group_by(.data = ., {{ y }}) %>%
+        dplyr::summarize(.data = ., N = dplyr::n()) %>%
+        dplyr::mutate(.data = ., N = paste0("(n = ", N, ")", sep = "")) %>%
+        dplyr::ungroup(x = .),
+      y = groupedstats::grouped_proptest(
+        data = .,
+        grouping.vars = {{ y }},
+        measure = {{ x }}
+      ) %>%
+        dplyr::filter(.data = ., !is.na(significance)),
+      by = rlang::as_name(rlang::ensym(y))
+    )
+  }
 
   # return the final dataframe
   return(df)

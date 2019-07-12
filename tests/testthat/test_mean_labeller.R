@@ -28,35 +28,21 @@ testthat::test_that(
 
     # check that dropped factor level is not retained
     testthat::expect_equal(
-      object = length(levels(mean_dat$x)) + 1,
+      object = length(levels(mean_dat$cut)) + 1,
       expected = length(levels(diamonds_short$cut))
     )
 
-    if (utils::packageVersion("skimr") < "2.0") {
-      # check mean label for first factor level
-      testthat::expect_identical(
-        object = mean_dat$label[[1]],
-        expected = "3819.580, 95% CI [3140.804, 4498.356]"
-      )
+    # check mean label for first factor level
+    testthat::expect_identical(
+      object = mean_dat$label[[1]],
+      expected = "3819.580, 95% CI [3140.804, 4498.356]"
+    )
 
-      # check mean label for first factor level
-      testthat::expect_identical(
-        object = mean_dat$label[[4]],
-        expected = "4602.090, 95% CI [4274.733, 4929.447]"
-      )
-    } else {
-      # check mean label for first factor level
-      testthat::expect_identical(
-        object = mean_dat$label[[1]],
-        expected = "3759.200, 95% CI [3160.528, 4357.872]"
-      )
-
-      # check mean label for first factor level
-      testthat::expect_identical(
-        object = mean_dat$label[[4]],
-        expected = "4866.200, 95% CI [4527.173, 5205.227]"
-      )
-    }
+    # check mean label for first factor level
+    testthat::expect_identical(
+      object = mean_dat$label[[4]],
+      expected = "4602.090, 95% CI [4274.733, 4929.447]"
+    )
 
     # check sample size label for first factor level
     testthat::expect_identical(
@@ -75,15 +61,15 @@ testthat::test_that(
     set.seed(123)
     mean_dat2 <- ggstatsplot:::mean_labeller(
       data = ggplot2::msleep,
-      x = "vore",
-      y = "brainwt",
+      x = vore,
+      y = brainwt,
       mean.ci = TRUE,
       k = 3
     )
 
     # when factor level contains NAs
     testthat::expect_equal(
-      object = length(levels(mean_dat2$x)),
+      object = length(levels(mean_dat2$vore)),
       expected = length(levels(as.factor(
         ggplot2::msleep$vore
       )))

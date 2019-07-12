@@ -107,7 +107,8 @@ ggcoefstats_label_maker <- function(x,
     "data.frame",
     "grouped_df",
     "tbl",
-    "tbl_df"
+    "tbl_df",
+    "data.table"
   )
 
   # models for which statistic is t-value
@@ -121,6 +122,7 @@ ggcoefstats_label_maker <- function(x,
       "gam",
       "gamlss",
       "garch",
+      "glmmPQL",
       "gls",
       "gmm",
       "ivreg",
@@ -128,6 +130,7 @@ ggcoefstats_label_maker <- function(x,
       "lm.beta",
       "lmerMod",
       "lmRob",
+      "lmrob",
       "mlm",
       "multinom",
       "nlmerMod",
@@ -158,6 +161,7 @@ ggcoefstats_label_maker <- function(x,
       "lavaan",
       "mjoint",
       "mle2",
+      "negbin",
       "survreg"
     )
 
@@ -175,7 +179,8 @@ ggcoefstats_label_maker <- function(x,
   g.mods <- c(
     "glm",
     "glmerMod",
-    "glmRob"
+    "glmRob",
+    "glmrob"
   )
 
   # t-statistic
@@ -188,11 +193,8 @@ ggcoefstats_label_maker <- function(x,
     "inverse.gaussian"
   )
 
-  # z-statistic
-  g.z.mods <- c(
-    "binomial",
-    "poisson"
-  )
+  # for z-statistic, the families are going to be "binomial" and "poisson"
+  # but package-dependent; `robustbase` gives z for "Gamma" family, e.g.
 
   # ================================ dataframe ================================
 
@@ -244,7 +246,7 @@ ggcoefstats_label_maker <- function(x,
             statistic = "t",
             k = k
           )
-      } else if (summary(x)$family$family[[1]] %in% g.z.mods) {
+      } else {
         tidy_df %<>%
           tfz_labeller(
             tidy_df = .,
@@ -253,7 +255,10 @@ ggcoefstats_label_maker <- function(x,
             k = k
           )
       }
-    } else if (class(x)[[1]] == "glmerMod") {
+    }
+
+    if (class(x)[[1]] == "glmerMod") {
+      # models with t-statistic
       if (summary(x)$family[[1]] %in% g.t.mods) {
         tidy_df %<>%
           tfz_labeller(
@@ -262,7 +267,8 @@ ggcoefstats_label_maker <- function(x,
             statistic = "t",
             k = k
           )
-      } else if (summary(x)$family[[1]] %in% g.z.mods) {
+      } else {
+        # models with z-statistic
         tidy_df %<>%
           tfz_labeller(
             tidy_df = .,
@@ -271,17 +277,18 @@ ggcoefstats_label_maker <- function(x,
             k = k
           )
       }
-    } else if (class(x)[[1]] == "glmRob") {
+    }
+
+    # robust models (always going to be z-statistic)
+    if (class(x)[[1]] %in% c("glmRob", "glmrob")) {
       # only binomial and poisson families are implemented in `robust` package
-      if (x$family[[1]] %in% g.z.mods) {
-        tidy_df %<>%
-          tfz_labeller(
-            tidy_df = .,
-            glance_df = glance_df,
-            statistic = "z",
-            k = k
-          )
-      }
+      tidy_df %<>%
+        tfz_labeller(
+          tidy_df = .,
+          glance_df = glance_df,
+          statistic = "z",
+          k = k
+        )
     }
   }
 
@@ -350,9 +357,7 @@ tfz_labeller <- function(tidy_df,
       .data = .,
       p.value.formatted2 = dplyr::case_when(
         p.value.formatted == "< 0.001" ~ "<= 0.001",
-        p.value.formatted != "< 0.001" ~ paste("==", p.value.formatted,
-          sep = ""
-        )
+        TRUE ~ paste("==", p.value.formatted, sep = "")
       )
     )
 
@@ -360,10 +365,17 @@ tfz_labeller <- function(tidy_df,
 
   # if the statistic is t-value
   if (statistic %in% c("t", "t.value", "t-value", "T")) {
+    # if `df` column is in the tidy dataframe, rename it to `df.residual`
+    if ("df" %in% names(tidy_df)) {
+      tidy_df %<>%
+        dplyr::mutate(.data = ., df.residual = df)
+    }
+
+    # check if df info is available somewhere
     if ("df.residual" %in% names(glance_df) ||
       "df.residual" %in% names(tidy_df)) {
 
-      # if glance object is available, insert df.residual as a new column
+      # if glance object is available, use that `df.residual`
       if ("df.residual" %in% names(glance_df)) {
         tidy_df$df.residual <- glance_df$df.residual
       }
@@ -750,6 +762,17 @@ subtitle_meta_ggcoefstats <- function(data,
 #'
 #' @inheritParams subtitle_meta_ggcoefstats
 #' @inheritParams metaBMA::meta_random
+#' @param d the prior distribution of the average effect size \eqn{d} specified
+#'   either as the type of family (e.g., \code{"norm"}) or via
+#'   \code{\link[metaBMA]{prior}}.
+#' @param d.par prior parameters for \eqn{d} (only used if \code{d} specifies
+#'   the type of family).
+#' @param tau the prior distribution of the between-study heterogeneity
+#'   \eqn{\tau} specified either as a character value (e.g.,
+#'   \code{"halfcauchy"}) or via \code{\link[metaBMA]{prior}}.
+#' @param tau.par prior parameters for \eqn{\tau}  (only used if \code{tau}
+#'   specifies the type of family).
+#' @param iter number of MCMC iterations using Stan.
 #'
 #' @examples
 #'
@@ -782,12 +805,12 @@ subtitle_meta_ggcoefstats <- function(data,
 #'     class = c("tbl_df", "tbl", "data.frame")
 #'   ))
 #'
-#' # getting bayes factor in favor of null hypothesis
+#' # getting Bayes factor in favor of null hypothesis
 #' ggstatsplot::bf_meta_message(
 #'   data = df,
 #'   k = 3,
-#'   sample = 50,
-#'   messages = FALSE
+#'   iter = 1500,
+#'   messages = TRUE
 #' )
 #' }
 #'
@@ -797,11 +820,11 @@ subtitle_meta_ggcoefstats <- function(data,
 bf_meta_message <- function(data,
                             k = 2,
                             d = "norm",
-                            d.par = c(0, 0.3),
+                            d.par = c(mean = 0, sd = 0.3),
                             tau = "halfcauchy",
-                            tau.par = 0.5,
-                            sample = 10000,
-                            summarize = "integrate",
+                            tau.par = c(scale = 0.5),
+                            iter = 10000,
+                            summarize = "stan",
                             caption = NULL,
                             messages = TRUE,
                             ...) {
@@ -825,8 +848,29 @@ bf_meta_message <- function(data,
 
   if (!"term" %in% names(data)) {
     data %<>%
-      dplyr::mutate(.data = ., term = 1:nrow(.)) %>%
+      dplyr::mutate(.data = ., term = dplyr::row_number()) %>%
       dplyr::mutate(.data = ., term = as.character(term))
+  }
+
+  # check defintion of priors for d and tau
+  # Note: "d.par" and "tau.par" are deprecated in metaBMA (>= 0.6.1)
+  if (class(d) == "character") {
+    d <- metaBMA::prior(family = d, param = d.par)
+  } else if (!class(d) == "prior") {
+    stop(
+      "The argument 'd' must be ",
+      "\n  (A) a character such as 'norm' specifying the family of prior distribution",
+      "\n  (B) a prior distribution specified via metaBMA::prior()"
+    )
+  }
+  if (class(tau) == "character") {
+    tau <- metaBMA::prior(family = tau, param = tau.par)
+  } else if (!class(tau) == "prior") {
+    stop(
+      "The argument 'tau' must be ",
+      "\n  (A) a character such as 'halfcauchy' specifying the family of prior distribution",
+      "\n  (B) a non-negative prior distribution specified via metaBMA::prior()"
+    )
   }
 
   # extracting results from random-effects meta-analysis
@@ -835,12 +879,9 @@ bf_meta_message <- function(data,
     SE = data$std.error,
     labels = data$term,
     d = d,
-    d.par = d.par,
     tau = tau,
-    tau.par = tau.par,
-    sample = sample,
+    iter = iter,
     summarize = summarize,
-    method = "parallel",
     ...
   )
 
@@ -882,10 +923,10 @@ bf_meta_message <- function(data,
       ),
       env = list(
         top.text = caption,
-        bf = specify_decimal_p(x = -log(bf_meta$BF[[1]]), k = k),
-        d.pmean = specify_decimal_p(x = df_estimates$Mean[[1]], k = k),
-        d.pmean.LB = specify_decimal_p(x = df_estimates$HPD95lower[[1]], k = k),
-        d.pmean.UB = specify_decimal_p(x = df_estimates$HPD95upper[[1]], k = k)
+        bf = specify_decimal_p(x = log(bf_meta$BF["random_H0", "random_H1"]), k = k),
+        d.pmean = specify_decimal_p(x = df_estimates$mean[[1]], k = k),
+        d.pmean.LB = specify_decimal_p(x = df_estimates$hpd95_lower[[1]], k = k),
+        d.pmean.UB = specify_decimal_p(x = df_estimates$hpd95_upper[[1]], k = k)
       )
     )
 

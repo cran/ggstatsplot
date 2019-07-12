@@ -12,9 +12,10 @@ grouped_ggpiestats(data, main, condition = NULL, counts = NULL,
   label.fill.alpha = 1, bf.message = TRUE,
   sampling.plan = "indepMulti", fixed.margin = "rows",
   prior.concentration = 1, subtitle = NULL, caption = NULL,
-  conf.level = 0.95, nboot = 100, simulate.p.value = FALSE,
-  B = 2000, legend.title = NULL, facet.wrap.name = NULL, k = 2,
-  perc.k = 0, slice.label = "percentage", facet.proptest = TRUE,
+  conf.level = 0.95, bf.prior = 0.707, nboot = 100,
+  simulate.p.value = FALSE, B = 2000, bias.correct = FALSE,
+  legend.title = NULL, facet.wrap.name = NULL, k = 2, perc.k = 0,
+  slice.label = "percentage", facet.proptest = TRUE,
   ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
   package = "RColorBrewer", palette = "Dark2", direction = 1,
   ggplot.component = NULL, return = "plot", messages = TRUE, ...)
@@ -23,11 +24,12 @@ grouped_ggpiestats(data, main, condition = NULL, counts = NULL,
 \item{data}{A dataframe (or a tibble) from which variables specified are to
 be taken. A matrix or tables will \strong{not} be accepted.}
 
-\item{main}{The variable to use as the \strong{rows} in the
-contingency table.}
+\item{main}{The variable to use as the \strong{rows} in the contingency table.}
 
 \item{condition}{The variable to use as the \strong{columns} in the contingency
-table.}
+table. Default is \code{NULL}. If \code{NULL}, one-sample proportion test (a goodness
+of fit test) will be run for the \code{main} variable. Otherwise an appropriate
+association test will be run.}
 
 \item{counts}{A string naming a variable in data containing counts, or \code{NULL}
 if each row represents a single observation (Default).}
@@ -39,12 +41,16 @@ bare name \code{x} or as a string \code{"x"}).}
 plot title (name of each factor level) (Default: \code{NULL}). If \code{NULL}, the
 variable name entered for \code{grouping.var} will be used.}
 
-\item{ratio}{A vector of numbers: the expected proportions for the proportion
-test. Default is \code{NULL}, which means if there are two levels \code{ratio = c(1,1)}, etc.}
+\item{ratio}{A vector of proportions: the expected proportions for the
+proportion test (should sum to 1). Default is \code{NULL}, which means the null
+is equal theoretical proportions across the levels of the nominal variable.
+This means if there are two levels this will be \code{ratio = c(0.5,0.5)} or if
+there are four levels this will be \code{ratio = c(0.25,0.25,0.25,0.25)}, etc.}
 
-\item{paired}{Logical indicating whether data came from a within-subjects
-design study (Default: \code{FALSE}). If \code{TRUE}, McNemar test subtitle will be
-returned. If \code{FALSE}, Pearson's chi-square test will be returned.}
+\item{paired}{Logical indicating whether data came from a within-subjects or
+repeated measures design study (Default: \code{FALSE}). If \code{TRUE}, McNemar's
+test subtitle will be returned. If \code{FALSE}, Pearson's chi-square test will
+be returned.}
 
 \item{results.subtitle}{Decides whether the results of statistical tests are
 to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
@@ -101,6 +107,9 @@ hypothesis under the alternative, and corresponds to Gunel and Dickey's
 \item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
 \code{95\%} lower and upper confidence intervals (\code{0.95}).}
 
+\item{bf.prior}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
+width to use in calculating Bayes factors.}
+
 \item{nboot}{Number of bootstrap samples for computing confidence interval
 for the effect size (Default: \code{100}).}
 
@@ -109,6 +118,9 @@ for the effect size (Default: \code{100}).}
 
 \item{B}{an integer specifying the number of replicates used in the
     Monte Carlo test.}
+
+\item{bias.correct}{If \code{TRUE}, a bias correction will be applied to Cramer's
+\emph{V}.}
 
 \item{legend.title}{Title text for the legend.}
 
@@ -232,6 +244,7 @@ resulting plots using \code{ggstatsplot::combine_plots}.
 }
 \examples{
 
+\donttest{
 # grouped one-sample proportion tests
 ggstatsplot::grouped_ggpiestats(
   data = mtcars,
@@ -250,7 +263,6 @@ ggstatsplot::grouped_ggpiestats(
 )
 
 # the following will take slightly more amount of time
-\donttest{
 # for reproducibility
 set.seed(123)
 

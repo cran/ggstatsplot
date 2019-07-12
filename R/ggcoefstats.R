@@ -22,7 +22,7 @@
 #' @param bf.message Logical that decides whether results from running a
 #'   Bayesian meta-analysis assuming that the effect size *d* varies across
 #'   studies with standard deviation *t* (i.e., a random-effects analysis)
-#'   should be displayed in caption. Defaults to `FALSE`.
+#'   should be displayed in caption. Defaults to `TRUE`.
 #' @param xlab Label for `x` axis variable (Default: `"estimate"`).
 #' @param ylab Label for `y` axis variable (Default: `"term"`).
 #' @param subtitle The text for the plot subtitle. The input to this argument
@@ -169,9 +169,9 @@
 #' @importFrom broomExtra tidy glance augment
 #' @importFrom dplyr select bind_rows summarize mutate mutate_at mutate_if n
 #' @importFrom dplyr group_by arrange full_join vars matches desc everything
-#' @importFrom dplyr vars all_vars filter_at starts_with
+#' @importFrom dplyr vars all_vars filter_at starts_with row_number
 #' @importFrom purrrlyr by_row
-#' @importFrom stats as.formula lm confint qnorm
+#' @importFrom stats as.formula lm confint qnorm p.adjust
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom grid unit
 #' @importFrom sjstats p_value
@@ -276,7 +276,6 @@
 #'   x = df,
 #'   statistic = "t",
 #'   meta.analytic.effect = TRUE,
-#'   bf.message = TRUE,
 #'   k = 3
 #' )
 #' }
@@ -319,13 +318,13 @@ ggcoefstats <- function(x,
                         conf.method = "Wald",
                         conf.type = "Wald",
                         component = "survival",
-                        bf.message = FALSE,
+                        bf.message = TRUE,
                         d = "norm",
-                        d.par = c(0, 0.3),
+                        d.par = c(mean = 0, sd = 0.3),
                         tau = "halfcauchy",
-                        tau.par = 0.5,
-                        sample = 10000,
-                        summarize = "integrate",
+                        tau.par = c(scale = 0.5),
+                        iter = 5000,
+                        summarize = "stan",
                         p.kr = TRUE,
                         p.adjust.method = "none",
                         coefficient.type = c("beta", "location", "coefficient"),
@@ -394,6 +393,7 @@ ggcoefstats <- function(x,
   # dataframe objects
   df.mods <- c(
     "data.frame",
+    "data.table",
     "grouped_df",
     "tbl",
     "tbl_df",
@@ -408,6 +408,7 @@ ggcoefstats <- function(x,
       "gamlss",
       "glmmadmb",
       "glmerMod",
+      "glmmPQL",
       "glmmTMB",
       "gls",
       "lme",
@@ -422,50 +423,6 @@ ggcoefstats <- function(x,
       "stanreg",
       "TMB"
     )
-
-  # models which are currently not supported
-  unsupported.mods <-
-    c(
-      "acf",
-      "AUC",
-      "cv.glmnet",
-      "density",
-      "dist",
-      "durbinWatsonTest",
-      "elnet",
-      "emmGrid",
-      "ftable",
-      "glht",
-      "glmnet",
-      "kde",
-      "Kendall",
-      "kmeans",
-      "list",
-      "map",
-      "Mclust",
-      "mts",
-      "muhaz",
-      "optim",
-      "pam",
-      "poLCA",
-      "power.htest",
-      "prcomp",
-      "spec",
-      "survdiff",
-      "survexp",
-      "survfit",
-      "ts",
-      "zoo"
-    )
-
-  # objects for which p-value needs to be computed using `sjstats` package
-  p.mods <- c(
-    "lmerMod",
-    "nlmerMod",
-    "polr",
-    "rlm",
-    "svyolr"
-  )
 
   # =================== types of models =====================================
 
@@ -487,21 +444,24 @@ ggcoefstats <- function(x,
     "manova"
   )
 
-  # changing conf.method to something suitable for Bayesian models
+  # changing `conf.method` to something suitable for Bayesian models
   if (class(x)[[1]] %in% bayes.mods && conf.method == "Wald") {
     conf.method <- "quantile"
   }
 
   # =========================== checking if object is supported ==============
 
-  # glace is not supported for all models
-  if (class(x)[[1]] %in% unsupported.mods) {
+  # those objects won't be supported for which there either no tidier
+  # or they don't contain an estimate term, so there is nothing to plot
+  if (!class(x)[[1]] %in% c(df.mods, f.mods, bayes.mods, "gam")
+  && !("estimate" %in% names(broomExtra::tidy(x)))) {
     stop(message(cat(
       crayon::red("Note: "),
       crayon::blue(
-        "The object of class",
+        "The model object of class",
         crayon::yellow(class(x)[[1]]),
-        "aren't currently supported.\n"
+        "isn't currently supported-\n either because there is no tidier available",
+        "or because there is no `estimate` column present."
       ),
       sep = ""
     )),
@@ -509,7 +469,7 @@ ggcoefstats <- function(x,
     )
   }
 
-  # ============================= model and its summary ======================
+  # ============================= model summary ============================
 
   # creating glance dataframe
   glance_df <- broomExtra::glance(x)
@@ -559,15 +519,8 @@ ggcoefstats <- function(x,
       )
     }
 
-    # create a new term column if it's not present
-    if (!"term" %in% names(tidy_df)) {
-      tidy_df %<>%
-        dplyr::mutate(.data = ., term = 1:nrow(.)) %>%
-        dplyr::mutate(.data = ., term = as.character(term))
-    }
-
     # check that statistic is specified
-    if (purrr::is_null(statistic)) {
+    if (rlang::is_null(statistic)) {
       message(cat(
         crayon::red("Note"),
         crayon::blue(
@@ -627,7 +580,7 @@ ggcoefstats <- function(x,
       }
     }
     # ============ tidying robust models =====================================
-  } else if (class(x)[[1]] %in% c("lmRob", "glmRob")) {
+  } else if (class(x)[[1]] %in% c("lmRob", "glmRob", "lmrob", "glmrob")) {
     tidy_df <-
       broomExtra::tidy(
         x = x,
@@ -651,6 +604,14 @@ ggcoefstats <- function(x,
   }
 
   # =================== tidy dataframe cleanup ================================
+
+  # create a new term column if it's not present
+  if (!"term" %in% names(tidy_df)) {
+    tidy_df %<>%
+      dplyr::mutate(.data = ., term = dplyr::row_number()) %>%
+      dplyr::mutate(.data = ., term = as.character(term)) %>%
+      dplyr::mutate(.data = ., term = paste("term", term, sep = "_"))
+  }
 
   # selecting needed coefficients/parameters for ordinal regression models
   if (any(names(tidy_df) %in% c("coefficient_type", "coef.type"))) {
@@ -679,7 +640,7 @@ ggcoefstats <- function(x,
   # =================== check for duplicate terms ============================
 
   # for some class of objects, there are going to be duplicate terms
-  # create a new column by collapsing orignal `variable` and `term` columns
+  # create a new column by collapsing original `variable` and `term` columns
   if (class(x)[[1]] %in% c("gmm", "lmodel2", "gamlss", "drc", "mlm")) {
     tidy_df %<>%
       tidyr::unite(
@@ -695,9 +656,7 @@ ggcoefstats <- function(x,
   if (any(duplicated(dplyr::select(tidy_df, term)))) {
     message(cat(
       crayon::red("Error: "),
-      crayon::blue(
-        "All elements in the column `term` should be unique.\n"
-      ),
+      crayon::blue("All elements in the column `term` should be unique.\n"),
       sep = ""
     ))
     return(invisible(tidy_df))
@@ -705,27 +664,32 @@ ggcoefstats <- function(x,
 
   # =================== p-value computation ==================================
 
-  # p-values won't be computed by default for the lmer models
-  if (class(x)[[1]] %in% p.mods) {
-    # computing p-values
-    tidy_df %<>%
-      dplyr::full_join(
-        x = dplyr::mutate_at(
-          .tbl = .,
-          .vars = "term",
-          .funs = ~ as.character(x = .)
-        ),
-        y = sjstats::p_value(fit = x, p.kr = p.kr) %>%
-          dplyr::select(.data = ., -std.error) %>%
-          dplyr::mutate_at(
+  # p-values won't be computed by default for some of the models
+  if (!"p.value" %in% names(tidy_df)) {
+    # use `sjstats` S3 methods to add them to the tidy dataframe
+    tryCatch(
+      expr = tidy_df %<>%
+        dplyr::full_join(
+          x = dplyr::mutate_at(
             .tbl = .,
             .vars = "term",
             .funs = ~ as.character(x = .)
           ),
-        by = "term"
-      ) %>%
-      dplyr::filter(.data = ., !is.na(estimate)) %>%
-      tibble::as_tibble(x = .)
+          y = sjstats::p_value(fit = x, p.kr = p.kr) %>%
+            dplyr::select(.data = ., -std.error) %>%
+            dplyr::mutate_at(
+              .tbl = .,
+              .vars = "term",
+              .funs = ~ as.character(x = .)
+            ),
+          by = "term"
+        ) %>%
+        dplyr::filter(.data = ., !is.na(estimate)) %>%
+        tibble::as_tibble(x = .),
+      error = function(e) {
+        tidy_df
+      }
+    )
   }
 
   # ================== statistic and p-value check ===========================
@@ -895,7 +859,7 @@ ggcoefstats <- function(x,
 
   # running meta-analysis
   if (isTRUE(meta.analytic.effect)) {
-    # result
+    # results from frequentist random-effects meta-analysis
     subtitle <-
       subtitle_meta_ggcoefstats(
         data = tidy_df,
@@ -904,7 +868,7 @@ ggcoefstats <- function(x,
         output = "subtitle"
       )
 
-    # add Bayes factor caption
+    # results from Bayesian random-effects meta-analysis
     if (isTRUE(bf.message)) {
       caption <-
         bf_meta_message(
@@ -916,7 +880,7 @@ ggcoefstats <- function(x,
           d.par = d.par,
           tau = tau,
           tau.par = tau.par,
-          sample = sample,
+          iter = iter,
           summarize = summarize
         )
     }
@@ -1024,8 +988,7 @@ ggcoefstats <- function(x,
 
       # logarithmic scale for exponent of coefficients
       if (isTRUE(exponentiate)) {
-        plot <- plot +
-          ggplot2::scale_x_log10()
+        plot <- plot + ggplot2::scale_x_log10()
       }
     }
 

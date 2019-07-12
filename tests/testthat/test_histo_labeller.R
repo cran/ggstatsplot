@@ -5,8 +5,6 @@ context("histo_labeller")
 testthat::test_that(
   desc = "y coordinate for labeller works",
   code = {
-    testthat::skip_on_cran()
-
     set.seed(123)
     library(ggplot2)
 
@@ -23,7 +21,6 @@ testthat::test_that(
   }
 )
 
-
 # checking if labeling works ------------------------------------------------
 
 testthat::test_that(
@@ -35,7 +32,8 @@ testthat::test_that(
     library(ggplot2)
 
     # plot
-    plot <- ggplot(dplyr::starwars, aes(height, mass)) +
+    plot <-
+      ggplot(dplyr::starwars, aes(height, mass)) +
       geom_point(na.rm = TRUE)
 
     # y coordinates

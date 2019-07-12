@@ -15,7 +15,7 @@ testthat::test_that(
       main = vore,
       bf.message = TRUE,
       title = "mammalian sleep",
-      legend.title = "vorarephilia",
+      legend.title = "vore",
       caption = "From ggplot2 package",
       perc.k = 2,
       nboot = 25,
@@ -69,9 +69,27 @@ testthat::test_that(
     # checking plot labels
     testthat::expect_identical(p$labels$subtitle, p_subtitle)
     testthat::expect_identical(p$labels$title, "mammalian sleep")
-    testthat::expect_identical(p$labels$caption, "From ggplot2 package")
+    testthat::expect_identical(
+      p$labels$caption,
+      ggplot2::expr(atop(
+        displaystyle("From ggplot2 package"),
+        expr = paste(
+          "In favor of null: ",
+          "log"["e"],
+          "(BF"["01"],
+          ") = ",
+          "-3.65",
+          ", ",
+          italic("a"),
+          " = ",
+          "1.00"
+        )
+      ))
+    )
     testthat::expect_null(p$labels$x, NULL)
     testthat::expect_null(p$labels$y, NULL)
+    testthat::expect_identical(pb$plot$plot_env$legend.title, "vore")
+    testthat::expect_null(pb$plot$plot_env$facet.wrap.name, NULL)
 
     # checking layer data
     testthat::expect_equal(length(pb$data), 2L)
@@ -169,6 +187,75 @@ testthat::test_that(
       c("condition", "main", "counts", "perc", "slice.label")
     )
 
+    # checking layer data
+
+    # with facets
+    testthat::expect_equal(length(pb$data), 4L)
+    testthat::expect_equal(dim(pb$data[[1]]), c(6L, 13L))
+    testthat::expect_equal(dim(pb$data[[2]]), c(6L, 19L))
+    testthat::expect_equal(dim(pb$data[[3]]), c(3L, 18L))
+    testthat::expect_equal(dim(pb$data[[4]]), c(3L, 18L))
+
+    # without facets
+    testthat::expect_equal(length(pb1$data), 4L)
+    testthat::expect_equal(dim(pb1$data[[1]]), c(3L, 13L))
+    testthat::expect_equal(dim(pb1$data[[2]]), c(3L, 19L))
+    testthat::expect_equal(dim(pb1$data[[3]]), c(1L, 18L))
+    testthat::expect_equal(dim(pb1$data[[4]]), c(1L, 18L))
+
+    # check geoms
+    testthat::expect_equal(
+      pb$data[[2]]$y,
+      c(
+        0.136363636363636,
+        0.636363636363636,
+        0.285714285714286,
+        0.785714285714286,
+        0.428571428571429,
+        0.928571428571429
+      ),
+      tolerance = 0.001
+    )
+    testthat::expect_equal(
+      pb1$data[[2]]$y,
+      c(
+        0.07894737,
+        0.26315789,
+        0.68421053
+      ),
+      tolerance = 0.001
+    )
+    testthat::expect_equal(
+      unique(pb$data[[3]]$x),
+      unique(pb1$data[[3]]$x),
+      tolerance = 0.001
+    )
+    testthat::expect_equal(
+      unique(pb$data[[3]]$y),
+      unique(pb1$data[[3]]$y),
+      tolerance = 0.001
+    )
+    testthat::expect_equal(
+      unique(pb$data[[3]]$xmin),
+      unique(pb1$data[[3]]$xmin),
+      tolerance = 0.001
+    )
+    testthat::expect_equal(
+      unique(pb$data[[3]]$x),
+      unique(pb$data[[4]]$x),
+      tolerance = 0.001
+    )
+    testthat::expect_equal(
+      unique(pb$data[[3]]$y),
+      1,
+      tolerance = 0.001
+    )
+    testthat::expect_equal(
+      unique(pb1$data[[4]]$y),
+      0.5,
+      tolerance = 0.001
+    )
+
     # checking plot labels
     testthat::expect_identical(p$labels$subtitle, p_subtitle)
     testthat::expect_identical(pb$plot$plot_env$facet.wrap.name, "cylinders")
@@ -229,6 +316,10 @@ testthat::test_that(
         "#9A8822"
       )
     )
+    testthat::expect_identical(
+      pb1$data[[1]]$fill,
+      c("#7570B3", "#D95F02", "#1B9E77")
+    )
 
     # test layout
     df_layout <- tibble::as_tibble(pb$layout$layout)
@@ -255,6 +346,7 @@ testthat::test_that(
       bf.message = FALSE,
       counts = "Freq",
       perc.k = 2,
+      legend.title = NULL,
       ggtheme = ggplot2::theme_minimal(),
       conf.level = 0.95,
       messages = TRUE
@@ -271,6 +363,9 @@ testthat::test_that(
       conf.level = 0.95,
       messages = FALSE
     )
+
+    # build the plot
+    pb <- ggplot2::ggplot_build(p)
 
     # checking data used to create a plot
     dat <- p$data %>%
@@ -295,6 +390,14 @@ testthat::test_that(
     # checking plot labels
     testthat::expect_identical(p$labels$subtitle, p_subtitle)
     testthat::expect_null(p$labels$caption, NULL)
+    testthat::expect_identical(pb$plot$plot_env$facet.wrap.name, "Survived")
+    testthat::expect_identical(pb$plot$plot_env$legend.title, "Sex")
+
+    # checking geometric layers
+    testthat::expect_equal(pb$data[[1]]$y,
+      c(0.915436241610738, 1, 0.516174402250352, 1),
+      tolerance = 0.001
+    )
   }
 )
 
@@ -323,9 +426,13 @@ testthat::test_that(
       counts = Counts,
       nboot = 25,
       paired = TRUE,
+      facet.wrap.name = NULL,
       conf.level = 0.90,
       messages = FALSE
     )
+
+    # build the plot
+    pb <- ggplot2::ggplot_build(p)
 
     # subtitle
     set.seed(123)
@@ -342,6 +449,128 @@ testthat::test_that(
 
     # checking plot labels
     testthat::expect_identical(p$labels$subtitle, p_subtitle)
+    testthat::expect_identical(pb$plot$plot_env$facet.wrap.name, "2nd survey")
+    testthat::expect_identical(pb$plot$plot_env$legend.title, "1st survey")
+  }
+)
+
+# one sample prop test bf caption ---------------------------------------------
+
+testthat::test_that(
+  desc = "checking one sample prop test bf caption",
+  code = {
+    testthat::skip_on_cran()
+
+    # plots
+    set.seed(123)
+    p1 <-
+      ggstatsplot::ggpiestats(
+        data = mtcars,
+        main = am,
+        ratio = c(0.5, 0.5),
+        bf.prior = 0.8,
+        messages = FALSE
+      )
+
+    set.seed(123)
+    p2 <-
+      ggstatsplot::ggpiestats(
+        data = mtcars,
+        main = am,
+        ratio = c(0.6, 0.4),
+        caption = "dolore",
+        messages = FALSE
+      )
+
+    set.seed(123)
+    p3 <- ggstatsplot::ggpiestats(
+      data = mtcars,
+      main = cyl,
+      messages = FALSE
+    )
+
+    set.seed(123)
+    p4 <-
+      ggstatsplot::ggpiestats(
+        data = mtcars,
+        main = cyl,
+        ratio = c(0.3, 0.3, 0.4),
+        messages = FALSE
+      )
+
+
+    # testing overall call
+    testthat::expect_identical(
+      p1$labels$caption,
+      ggplot2::expr(atop(
+        displaystyle(NULL),
+        expr = paste(
+          "In favor of null: ",
+          "log"["e"],
+          "(BF"["01"],
+          ") = ",
+          "1.40",
+          ", ",
+          italic("a"),
+          " = ",
+          "1.00"
+        )
+      ))
+    )
+
+    testthat::expect_identical(
+      p2$labels$caption,
+      ggplot2::expr(atop(
+        displaystyle("dolore"),
+        expr = paste(
+          "In favor of null: ",
+          "log"["e"],
+          "(BF"["01"],
+          ") = ",
+          "1.40",
+          ", ",
+          italic("a"),
+          " = ",
+          "1.00"
+        )
+      ))
+    )
+
+    testthat::expect_identical(
+      p3$labels$caption,
+      ggplot2::expr(atop(
+        displaystyle(NULL),
+        expr = paste(
+          "In favor of null: ",
+          "log"["e"],
+          "(BF"["01"],
+          ") = ",
+          "2.81",
+          ", ",
+          italic("a"),
+          " = ",
+          "1.00"
+        )
+      ))
+    )
+
+    testthat::expect_identical(
+      p4$labels$caption,
+      ggplot2::expr(atop(
+        displaystyle(NULL),
+        expr = paste(
+          "In favor of null: ",
+          "log"["e"],
+          "(BF"["01"],
+          ") = ",
+          "2.81",
+          ", ",
+          italic("a"),
+          " = ",
+          "1.00"
+        )
+      ))
+    )
   }
 )
 
@@ -367,6 +596,7 @@ testthat::test_that(
 
     # testing overall call
     testthat::expect_identical(p1$labels$subtitle, p_subtitle1)
+    testthat::expect_null(p1$labels$caption, NULL)
     testthat::expect_error(ggstatsplot::ggpiestats(
       data = df,
       main = x,
@@ -408,7 +638,7 @@ testthat::test_that(
     testthat::expect_identical(p_sub, ggplot2::expr(
       paste(
         NULL,
-        italic(chi)^2,
+        chi["Pearson"]^2,
         "(",
         "8",
         ") = ",

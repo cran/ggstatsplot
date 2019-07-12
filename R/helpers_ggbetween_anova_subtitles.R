@@ -11,10 +11,10 @@
 #'   be carried out) or between-subjects (in which case one-way Kruskal–Wallis H
 #'   test will be carried out). The default is `FALSE`.
 #' @param effsize.type Type of effect size needed for *parametric* tests. The
-#'   argument can be `"biased"` (`"d"` for Cohen's *d* for **t-test**;
-#'   `"partial_eta"` for partial eta-squared for **anova**) or `"unbiased"`
-#'   (`"g"` Hedge's *g* for **t-test**; `"partial_omega"` for partial
-#'   omega-squared for **anova**)).
+#'   argument can be `"biased"` (equivalent to `"d"` for Cohen's *d* for
+#'   **t-test**; `"partial_eta"` for partial eta-squared for **anova**) or
+#'   `"unbiased"` (equivalent to `"g"` Hedge's *g* for **t-test**;
+#'   `"partial_omega"` for partial omega-squared for **anova**)).
 #' @param sphericity.correction Logical that decides whether to apply correction
 #'   to account for violation of sphericity in a repeated measures design ANOVA
 #'   (Default: `TRUE`).
@@ -31,7 +31,6 @@
 #' @importFrom dplyr select
 #' @importFrom rlang !! enquo
 #' @importFrom stats lm oneway.test na.omit
-#' @importFrom sjstats eta_sq omega_sq
 #' @importFrom ez ezANOVA
 #' @importFrom groupedstats lm_effsize_standardizer
 #'
@@ -95,16 +94,14 @@ subtitle_anova_parametric <- function(data,
   # for paired designs, variance is going to be equal across grouping levels
   if (isTRUE(paired)) {
     var.equal <- TRUE
+  } else {
+    sphericity.correction <- FALSE
   }
 
   # number of decimal places for degree of freedom
   if (isTRUE(var.equal)) {
-    if (isTRUE(paired)) {
-      if (isTRUE(sphericity.correction)) {
-        k.df2 <- k
-      } else {
-        k.df2 <- 0L
-      }
+    if (isTRUE(sphericity.correction)) {
+      k.df2 <- k
     } else {
       k.df2 <- 0L
     }
@@ -150,11 +147,7 @@ subtitle_anova_parametric <- function(data,
 
   # creating a dataframe
   data <-
-    dplyr::select(
-      .data = data,
-      x = !!rlang::enquo(x),
-      y = !!rlang::enquo(y)
-    ) %>%
+    dplyr::select(.data = data, x = {{ x }}, y = {{ y }}) %>%
     dplyr::mutate(.data = ., x = droplevels(as.factor(x))) %>%
     tibble::as_tibble(x = .)
 
@@ -184,9 +177,7 @@ subtitle_anova_parametric <- function(data,
       # inform the user
       message(cat(
         crayon::red("Warning: "),
-        crayon::blue(
-          "No. of factor levels is greater than number of observations per cell.\n"
-        ),
+        crayon::blue("No. of factor levels is greater than no. of observations per cell.\n"),
         crayon::blue("No sphericity correction applied. Interpret the results with caution.\n")
       ),
       sep = ""
@@ -306,7 +297,7 @@ subtitle_anova_parametric <- function(data,
 #'
 #' @description For paired designs, the effect size is Kendall's coefficient of
 #'   concordance (*W*), while for between-subjects designs, the effect size is
-#'   H-statistic based eta-squared.
+#'   epsilon-squared (for more, see `?rcompanion::epsilonSquared`).
 #'
 #' @inheritParams t1way_ci
 #' @inheritParams subtitle_anova_parametric
@@ -316,6 +307,7 @@ subtitle_anova_parametric <- function(data,
 #' @importFrom rlang !! enquo
 #' @importFrom stats friedman.test kruskal.test
 #' @importFrom broomExtra tidy
+#' @importFrom rcompanion epsilonSquared
 #'
 #' @examples
 #' # setup
@@ -338,6 +330,7 @@ subtitle_anova_parametric <- function(data,
 #'   x = key,
 #'   y = value,
 #'   paired = TRUE,
+#'   conf.level = 0.99,
 #'   k = 2
 #' )
 #'
@@ -348,7 +341,8 @@ subtitle_anova_parametric <- function(data,
 #'   x = vore,
 #'   y = sleep_rem,
 #'   paired = FALSE,
-#'   conf.level = 0.99
+#'   conf.level = 0.99,
+#'   conf.type = "perc"
 #' )
 #' @export
 
@@ -367,11 +361,7 @@ subtitle_anova_nonparametric <- function(data,
 
   # creating a dataframe
   data <-
-    dplyr::select(
-      .data = data,
-      x = !!rlang::enquo(x),
-      y = !!rlang::enquo(y)
-    ) %>%
+    dplyr::select(.data = data, x = {{ x }}, y = {{ y }}) %>%
     dplyr::mutate(.data = ., x = droplevels(as.factor(x))) %>%
     tibble::as_tibble(x = .)
 
@@ -400,12 +390,16 @@ subtitle_anova_nonparametric <- function(data,
       ))
 
     # calculating Kendall's W and its CI
-    effsize_df <- kendall_w_ci(
-      data = dplyr::select(long_to_wide_converter(data, x, y), -rowid),
-      nboot = nboot,
-      conf.type = conf.type,
-      conf.level = conf.level
-    )
+    effsize_df <-
+      kendall_w_ci(
+        data = dplyr::select(long_to_wide_converter(data, x, y), -rowid),
+        nboot = nboot,
+        conf.type = conf.type,
+        conf.level = conf.level
+      )
+
+    # text for effect size
+    effsize.text <- quote(italic("W")["Kendall"])
   } else {
     # remove NAs listwise for between-subjects design
     data %<>%
@@ -424,26 +418,32 @@ subtitle_anova_nonparametric <- function(data,
 
     # getting partial eta-squared based on H-statistic
     effsize_df <-
-      suppressWarnings(kw_eta_h_ci(
-        data = data,
-        x = x,
-        y = y,
-        nboot = nboot,
-        conf.level = conf.level,
-        conf.type = conf.type
-      ))
+      rcompanion::epsilonSquared(
+        x = data$y,
+        g = data$x,
+        group = "row",
+        ci = TRUE,
+        conf = conf.level,
+        type = conf.type,
+        R = nboot,
+        histogram = FALSE,
+        digits = 5
+      ) %>%
+      tibble::as_tibble(x = .) %>%
+      dplyr::rename(
+        .data = .,
+        estimate = epsilon.squared,
+        conf.low = lower.ci,
+        conf.high = upper.ci
+      )
+
+    # text for effect size
+    effsize.text <- quote(epsilon^2)
   }
 
   # message about effect size measure
   if (isTRUE(messages)) {
     effsize_ci_message(nboot = nboot, conf.level = conf.level)
-  }
-
-  # choosing the appropriate effect size text
-  if (isTRUE(paired)) {
-    effsize.text <- quote(italic("W")["Kendall"])
-  } else {
-    effsize.text <- quote(eta["H"]^2)
   }
 
   # preparing subtitle
@@ -537,11 +537,7 @@ subtitle_anova_robust <- function(data,
 
   # creating a dataframe
   data <-
-    dplyr::select(
-      .data = data,
-      x = !!rlang::enquo(x),
-      y = !!rlang::enquo(y)
-    ) %>%
+    dplyr::select(.data = data, x = {{ x }}, y = {{ y }}) %>%
     dplyr::mutate(.data = ., x = droplevels(as.factor(x))) %>%
     tibble::as_tibble(x = .)
 
@@ -661,7 +657,6 @@ subtitle_anova_robust <- function(data,
 #' @importFrom dplyr select
 #' @importFrom rlang !! enquo
 #' @importFrom stats lm oneway.test na.omit
-#' @importFrom sjstats eta_sq omega_sq
 #'
 #' @examples
 #' \donttest{
@@ -705,40 +700,35 @@ subtitle_anova_bayes <- function(data,
                                  ...) {
 
   # creating a dataframe
-  data <-
-    dplyr::select(
-      .data = data,
-      x = !!rlang::enquo(x),
-      y = !!rlang::enquo(y)
-    ) %>%
-    dplyr::mutate(.data = ., x = droplevels(as.factor(x))) %>%
+  data %<>%
+    dplyr::select(.data = ., {{ x }}, {{ y }}) %>%
+    dplyr::mutate(.data = ., {{ x }} := droplevels(as.factor({{ x }}))) %>%
     tibble::as_tibble(x = .)
 
   # properly removing NAs if it's a paired design
   if (isTRUE(paired)) {
     # converting to long format and then getting it back in wide so that the
     # rowid variable can be used as the block variable
-    data_within <-
+    data %<>%
       long_to_wide_converter(
-        data = data,
-        x = x,
-        y = y
+        data = .,
+        x = {{ x }},
+        y = {{ y }}
       ) %>%
       tidyr::gather(data = ., key, value, -rowid) %>%
-      dplyr::arrange(.data = ., rowid)
+      dplyr::arrange(.data = ., rowid) %>%
+      dplyr::rename(.data = ., {{ x }} := key, {{ y }} := value)
   } else {
-
     # remove NAs listwise for between-subjects design
-    data %<>%
-      tidyr::drop_na(data = .)
+    data %<>% tidyr::drop_na(data = .)
   }
 
   # bayes factor results
   subtitle <-
     bf_oneway_anova(
       data = data,
-      x = x,
-      y = y,
+      x = {{ x }},
+      y = {{ y }},
       paired = paired,
       bf.prior = bf.prior,
       k = k,

@@ -60,10 +60,10 @@ comparisons. Possible methods are: \code{"holm"} (default), \code{"hochberg"},
 \code{"hommel"}, \code{"bonferroni"}, \code{"BH"}, \code{"BY"}, \code{"fdr"}, \code{"none"}.}
 
 \item{effsize.type}{Type of effect size needed for \emph{parametric} tests. The
-argument can be \code{"biased"} (\code{"d"} for Cohen's \emph{d} for \strong{t-test};
-\code{"partial_eta"} for partial eta-squared for \strong{anova}) or \code{"unbiased"}
-(\code{"g"} Hedge's \emph{g} for \strong{t-test}; \code{"partial_omega"} for partial
-omega-squared for \strong{anova})).}
+argument can be \code{"biased"} (equivalent to \code{"d"} for Cohen's \emph{d} for
+\strong{t-test}; \code{"partial_eta"} for partial eta-squared for \strong{anova}) or
+\code{"unbiased"} (equivalent to \code{"g"} Hedge's \emph{g} for \strong{t-test};
+\code{"partial_omega"} for partial omega-squared for \strong{anova})).}
 
 \item{partial}{Logical that decides if partial eta-squared or omega-squared
 are returned (Default: \code{TRUE}). If \code{FALSE}, eta-squared or omega-squared
@@ -248,7 +248,7 @@ For independent measures designs, use \code{ggbetweenstats}.
 set.seed(123)
 library(ggstatsplot)
 
-# two groups (t-test)
+# two groups (*t*-test)
 ggstatsplot::ggwithinstats(
   data = VR_dilemma,
   x = modality,
@@ -264,7 +264,8 @@ ggstatsplot::ggwithinstats(
   data = tibble::as_tibble(WineTasting),
   x = Wine,
   y = Taste,
-  type = "r",
+  type = "np",
+  conf.level = 0.99,
   pairwise.comparisons = TRUE,
   outlier.tagging = TRUE,
   outlier.label = Taster

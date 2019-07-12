@@ -11,7 +11,7 @@ testthat::test_that(
     set.seed(123)
     using_function1 <-
       suppressWarnings(ggstatsplot::subtitle_contingency_tab(
-        data = Titanic_full,
+        data = ggstatsplot::Titanic_full,
         main = "Survived",
         condition = Class,
         stat.title = "Testing",
@@ -28,7 +28,7 @@ testthat::test_that(
       ggplot2::expr(
         paste(
           "Testing",
-          italic(chi)^2,
+          chi["Pearson"]^2,
           "(",
           "3",
           ") = ",
@@ -56,6 +56,49 @@ testthat::test_that(
 
     # testing overall call
     testthat::expect_identical(using_function1, results1)
+
+    # with counts
+    set.seed(123)
+    using_function2 <- ggstatsplot::subtitle_contingency_tab(
+      data = as.data.frame(Titanic),
+      main = Sex,
+      condition = Survived,
+      counts = "Freq",
+      messages = FALSE
+    )
+
+    results2 <-
+      ggplot2::expr(
+        paste(
+          NULL,
+          chi["Pearson"]^2,
+          "(",
+          "1",
+          ") = ",
+          "456.87",
+          ", ",
+          italic("p"),
+          " = ",
+          "< 0.001",
+          ", ",
+          italic("V")["Cramer"],
+          " = ",
+          "0.46",
+          ", CI"["95%"],
+          " [",
+          "0.42",
+          ", ",
+          "0.49",
+          "]",
+          ", ",
+          italic("n"),
+          " = ",
+          2201L
+        )
+      )
+
+    # testing overall call
+    testthat::expect_identical(using_function2, results2)
   }
 )
 
@@ -102,7 +145,7 @@ testthat::test_that(
       ggplot2::expr(
         paste(
           NULL,
-          italic(chi)^2,
+          chi["Pearson"]^2,
           "(",
           "NA",
           ") = ",

@@ -193,32 +193,20 @@ ggscatterstats <- function(data,
   #----------------------- dataframe --------------------------------------
 
   # preparing the dataframe
-  data <- dplyr::full_join(
-    # bizarre names like "x...internal" and "y...internal" are used to protect
-    # against the possibility that user has already used "x" and "y" as
-    # variable names, in which case the full_join() will create variable names
-    # that will create problems
-    x = data %>%
-      dplyr::select(
-        .data = .,
-        x...internal = !!rlang::enquo(x),
-        y...internal = !!rlang::enquo(y)
-      ) %>%
-      tibble::rowid_to_column(., var = "rowid"),
-    # dataframe where x and y retain their original names
-    y = data %>%
-      dplyr::select(
-        .data = .,
-        !!rlang::enquo(x),
-        !!rlang::enquo(y),
-        dplyr::everything()
-      ) %>%
-      tibble::rowid_to_column(., var = "rowid"),
-    by = "rowid"
-  ) %>%
-    dplyr::select(.data = ., -rowid) %>% # remove NAs only from x & y columns
-    dplyr::filter(.data = ., !is.na(x...internal), !is.na(y...internal)) %>%
-    tibble::as_tibble(x = .)
+  data %<>% {
+    dplyr::full_join(
+      # bizarre names like "x...internal" and "y...internal" are used to protect
+      # against the possibility that user has already used "x" and "y"
+      x = dplyr::select(.data = ., x...internal = {{ x }}, y...internal = {{ y }}) %>%
+        tibble::rowid_to_column(., var = "rowid"),
+      # dataframe where x and y retain their original names
+      y = tibble::rowid_to_column(., var = "rowid"),
+      by = "rowid"
+    ) %>%
+      dplyr::select(.data = ., -rowid) %>% # remove NAs only from x & y columns
+      dplyr::filter(.data = ., !is.na(x...internal), !is.na(y...internal)) %>%
+      tibble::as_tibble(x = .)
+  }
 
   #---------------------------- user expression -------------------------
 
@@ -310,7 +298,7 @@ ggscatterstats <- function(data,
     yfill <- colors[2]
   }
 
-  # preparing the scatterplotplot
+  # preparing the scatterplot
   plot <-
     ggplot2::ggplot(
       data = data,
@@ -351,9 +339,6 @@ ggscatterstats <- function(data,
 
   #----------------------- adding centrality parameters --------------------
 
-  # by default, if the input is NULL, then no centrality.para lines will be
-  # plotted
-
   # computing summary statistics needed for displaying labels
   x_mean <- mean(x = data$x...internal, na.rm = TRUE)
   x_median <- median(x = data$x...internal, na.rm = TRUE)
@@ -369,15 +354,32 @@ ggscatterstats <- function(data,
   )
 
   # adding vertical and horizontal lines and attaching labels
-  if (is.null(centrality.para)) {
-    plot <- plot
-  } else if (isTRUE(centrality.para) ||
-    centrality.para == "mean") {
+  if (!is.null(centrality.para) && !isFALSE(centrality.para)) {
+    # choosing the appropriate intercepts for the lines
+    if (centrality.para == "mean" || isTRUE(centrality.para)) {
+      x.intercept <- x_mean
+      y.intercept <- y_mean
+      x.vline <- x_mean
+      y.vline <- y_label_pos
+      x.hline <- x_label_pos
+      y.hline <- y_mean
+      label.text <- "mean"
+    } else {
+      x.intercept <- x_median
+      y.intercept <- y_median
+      x.vline <- x_median
+      y.vline <- y_label_pos
+      x.hline <- x_label_pos
+      y.hline <- y_median
+      label.text <- "median"
+    }
+
+    # adding lines
     plot <-
       plot +
       # vertical line
       ggplot2::geom_vline(
-        xintercept = x_mean,
+        xintercept = x.intercept,
         linetype = "dashed",
         color = xfill,
         size = 1.0,
@@ -385,77 +387,35 @@ ggscatterstats <- function(data,
       ) +
       # horizontal line
       ggplot2::geom_hline(
-        yintercept = y_mean,
+        yintercept = y.intercept,
         linetype = "dashed",
         color = yfill,
         size = 1.0,
         na.rm = TRUE
       )
 
-    # label for vertical line
+    # adding labels
+    # for vertical line
     plot <- line_labeller(
       plot = plot,
-      x = x_mean,
-      y = y_label_pos,
+      x = x.vline,
+      y = y.vline,
       k = 2,
       color = xfill,
-      label.text = "mean",
+      label.text = label.text,
       line.direction = "vline",
       jitter = 0.25
     )
 
-    # label for horizontal line
+    # for horizontal line
     plot <- line_labeller(
       plot = plot,
-      x = x_label_pos,
-      y = y_mean,
+      x = x.hline,
+      y = y.hline,
       k = 2,
       line.direction = "hline",
       color = yfill,
-      label.text = "mean",
-      jitter = 0.25
-    )
-  } else if (centrality.para == "median") {
-    plot <-
-      plot +
-      # vertical line
-      ggplot2::geom_vline(
-        xintercept = x_median,
-        linetype = "dashed",
-        color = xfill,
-        size = 1.0,
-        na.rm = TRUE
-      ) +
-      # horizontal line
-      ggplot2::geom_hline(
-        yintercept = y_median,
-        linetype = "dashed",
-        color = yfill,
-        size = 1.0,
-        na.rm = TRUE
-      )
-
-    # label for vertical line
-    plot <- line_labeller(
-      plot = plot,
-      x = x_median,
-      y = y_label_pos,
-      k = 2,
-      color = xfill,
-      label.text = "median",
-      line.direction = "vline",
-      jitter = 0.25
-    )
-
-    # label for horizontal line
-    plot <- line_labeller(
-      plot = plot,
-      x = x_label_pos,
-      y = y_median,
-      k = 2,
-      line.direction = "hline",
-      color = yfill,
-      label.text = "median",
+      label.text = label.text,
       jitter = 0.25
     )
   }
@@ -488,9 +448,7 @@ ggscatterstats <- function(data,
       plot +
       ggrepel::geom_label_repel(
         data = label_data,
-        mapping = ggplot2::aes_string(
-          label = label.var
-        ),
+        mapping = ggplot2::aes_string(label = label.var),
         fontface = "bold",
         color = "black",
         max.iter = 3e2,
@@ -511,9 +469,8 @@ ggscatterstats <- function(data,
 
   #------------------------- ggMarginal  ---------------------------------
 
-  # creating the ggMarginal plot of a given marginal.type
+  # creating the `ggMarginal` plot of a given `marginal.type`
   if (isTRUE(marginal)) {
-
     # adding marginals to plot
     plot <-
       ggExtra::ggMarginal(
