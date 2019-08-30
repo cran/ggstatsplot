@@ -5,15 +5,20 @@
 
 | Package                                                                                                                                                         | Status                                                                                                                                                                                       | Usage                                                                                                                                             | GitHub                                                                                                                                                         | References                                                                                                                                                      |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [![CRAN\_Release\_Badge](http://www.r-pkg.org/badges/version-ago/ggstatsplot)](https://CRAN.R-project.org/package=ggstatsplot)                                  | [![Travis Build Status](https://travis-ci.org/IndrajeetPatil/ggstatsplot.svg?branch=master)](https://travis-ci.org/IndrajeetPatil/ggstatsplot)                                               | [![Daily downloads badge](https://cranlogs.r-pkg.org/badges/last-day/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot)     | [![GitHub version](https://img.shields.io/badge/GitHub-0.0.12.9000-orange.svg?style=flat-square)](https://github.com/IndrajeetPatil/ggstatsplot/)              | [![Website](https://img.shields.io/badge/website-ggstatsplot-orange.svg?colorB=E91E63)](https://indrajeetpatil.github.io/ggstatsplot/)                          |
-| [![CRAN Checks](https://cranchecks.info/badges/summary/ggstatsplot)](https://cran.r-project.org/web/checks/check_results_ggstatsplot.html)                      | [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/IndrajeetPatil/ggstatsplot?branch=master&svg=true)](https://ci.appveyor.com/project/IndrajeetPatil/ggstatsplot) | [![Weekly downloads badge](https://cranlogs.r-pkg.org/badges/last-week/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot)   | [![Forks](https://img.shields.io/badge/forks-62-blue.svg)](https://github.com/IndrajeetPatil/ggstatsplot/)                                                     | [![Rdoc](https://www.rdocumentation.org/badges/version/ggstatsplot)](https://www.rdocumentation.org/packages/ggstatsplot)                                       |
-| [![minimal R version](https://img.shields.io/badge/R%3E%3D-3.5.0-6666ff.svg)](https://cran.r-project.org/)                                                      | [![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/)                                                                               | [![Monthly downloads badge](https://cranlogs.r-pkg.org/badges/last-month/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot) | [![Github Issues](https://img.shields.io/badge/issues-20-red.svg)](https://github.com/IndrajeetPatil/ggstatsplot/issues)                                       | [![vignettes](https://img.shields.io/badge/vignettes-0.0.12-orange.svg?colorB=FF5722)](https://CRAN.R-project.org/package=ggstatsplot/vignettes/)               |
+| [![CRAN\_Release\_Badge](http://www.r-pkg.org/badges/version-ago/ggstatsplot)](https://CRAN.R-project.org/package=ggstatsplot)                                  | [![Travis Build Status](https://travis-ci.org/IndrajeetPatil/ggstatsplot.svg?branch=master)](https://travis-ci.org/IndrajeetPatil/ggstatsplot)                                               | [![Daily downloads badge](https://cranlogs.r-pkg.org/badges/last-day/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot)     | [![GitHub version](https://img.shields.io/badge/GitHub-0.1.1.9000-orange.svg?style=flat-square)](https://github.com/IndrajeetPatil/ggstatsplot/)               | [![Website](https://img.shields.io/badge/website-ggstatsplot-orange.svg?colorB=E91E63)](https://indrajeetpatil.github.io/ggstatsplot/)                          |
+| [![CRAN Checks](https://cranchecks.info/badges/summary/ggstatsplot)](https://cran.r-project.org/web/checks/check_results_ggstatsplot.html)                      | [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/IndrajeetPatil/ggstatsplot?branch=master&svg=true)](https://ci.appveyor.com/project/IndrajeetPatil/ggstatsplot) | [![Weekly downloads badge](https://cranlogs.r-pkg.org/badges/last-week/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot)   | [![Forks](https://img.shields.io/badge/forks-71-blue.svg)](https://github.com/IndrajeetPatil/ggstatsplot/)                                                     | [![Rdoc](https://www.rdocumentation.org/badges/version/ggstatsplot)](https://www.rdocumentation.org/packages/ggstatsplot)                                       |
+| [![minimal R version](https://img.shields.io/badge/R%3E%3D-3.5.0-6666ff.svg)](https://cran.r-project.org/)                                                      | [![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/)                                                                               | [![Monthly downloads badge](https://cranlogs.r-pkg.org/badges/last-month/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot) | [![Github Issues](https://img.shields.io/badge/issues-17-red.svg)](https://github.com/IndrajeetPatil/ggstatsplot/issues)                                       | [![vignettes](https://img.shields.io/badge/vignettes-0.1.1-orange.svg?colorB=FF5722)](https://CRAN.R-project.org/package=ggstatsplot/vignettes/)                |
 | [![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/IndrajeetPatil/ggstatsplot.svg)](https://github.com/IndrajeetPatil/ggstatsplot) | [![Coverage Status](https://coveralls.io/repos/github/IndrajeetPatil/ggstatsplot/badge.svg?branch=master)](https://coveralls.io/github/IndrajeetPatil/ggstatsplot?branch=master)             | [![Total downloads badge](https://cranlogs.r-pkg.org/badges/grand-total/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot)  | [![Github Stars](https://img.shields.io/github/stars/IndrajeetPatil/ggstatsplot.svg?style=social&label=Github)](https://github.com/IndrajeetPatil/ggstatsplot) | [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2074621.svg)](https://doi.org/10.5281/zenodo.2074621)                                                       |
-| [![Licence](https://img.shields.io/badge/licence-GPL--3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)                                                | [![Codecov test coverage](https://codecov.io/gh/IndrajeetPatil/ggstatsplot/branch/master/graph/badge.svg)](https://codecov.io/gh/IndrajeetPatil/ggstatsplot?branch=master)                   | [![HitCount](http://hits.dwyl.io/IndrajeetPatil/ggstatsplot.svg)](http://hits.dwyl.io/IndrajeetPatil/ggstatsplot)                                 | [![Last-changedate](https://img.shields.io/badge/last%20change-2019--07--12-yellowgreen.svg)](https://github.com/IndrajeetPatil/ggstatsplot/commits/master)    | [![GitHub last commit](https://img.shields.io/github/last-commit/IndrajeetPatil/ggstatsplot.svg)](https://github.com/IndrajeetPatil/ggstatsplot/commits/master) |
-| [![status](https://tinyverse.netlify.com/badge/ggstatsplot)](https://CRAN.R-project.org/package=ggstatsplot)                                                    | [![Covrpage Summary](https://img.shields.io/badge/covrpage-Last_Build_2019_07_12-yellowgreen.svg)](https://github.com/IndrajeetPatil/ggstatsplot/blob/master/tests/README.md)                | [![saythanks](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/IndrajeetPatil)                                    | [![Project Status](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)                                                     | [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/IndrajeetPatil/ggstatsplot/issues) |
-| [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/ggstatsplot/community)                                                         | [![Dependency Status](https://dependencyci.com/github/IndrajeetPatil/ggstatsplot/badge)](https://dependencyci.com/github/IndrajeetPatil/ggstatsplot)                                         |                                                                                                                                                   |                                                                                                                                                                |                                                                                                                                                                 |
+| [![Licence](https://img.shields.io/badge/licence-GPL--3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)                                                | [![Codecov test coverage](https://codecov.io/gh/IndrajeetPatil/ggstatsplot/branch/master/graph/badge.svg)](https://codecov.io/gh/IndrajeetPatil/ggstatsplot?branch=master)                   | [![HitCount](http://hits.dwyl.io/IndrajeetPatil/ggstatsplot.svg)](http://hits.dwyl.io/IndrajeetPatil/ggstatsplot)                                 | [![Last-changedate](https://img.shields.io/badge/last%20change-2019--08--30-yellowgreen.svg)](https://github.com/IndrajeetPatil/ggstatsplot/commits/master)    | [![GitHub last commit](https://img.shields.io/github/last-commit/IndrajeetPatil/ggstatsplot.svg)](https://github.com/IndrajeetPatil/ggstatsplot/commits/master) |
+| [![status](https://tinyverse.netlify.com/badge/ggstatsplot)](https://CRAN.R-project.org/package=ggstatsplot)                                                    | [![Covrpage Summary](https://img.shields.io/badge/covrpage-Last_Build_2019_08_16-yellowgreen.svg)](https://github.com/IndrajeetPatil/ggstatsplot/blob/master/tests/README.md)                | [![saythanks](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/IndrajeetPatil)                                    | [![Project Status](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)                                                     | [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/IndrajeetPatil/ggstatsplot/issues) |
+| [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/ggstatsplot/community)                                                         |                                                                                                                                                                                              |                                                                                                                                                   |                                                                                                                                                                |                                                                                                                                                                 |
 
-# Overview
+# Raison d’être
+
+> “What is to be sought in designs for the display of information is the
+> clear portrayal of complexity. Not the complication of the simple;
+> rather … the revelation of the complex.”  
+> \- Edward R. Tufte
 
 [`ggstatsplot`](https://indrajeetpatil.github.io/ggstatsplot/) is an
 extension of [`ggplot2`](https://github.com/tidyverse/ggplot2) package
@@ -23,9 +28,30 @@ community to provide a one-line code to produce information-rich plots.
 In a typical exploratory data analysis workflow, data visualization and
 statistical modeling are two different phases: visualization informs
 modeling, and modeling in its turn can suggest a different visualization
-method, and so on and so forth. The central idea of *ggstatsplot* is
+method, and so on and so forth. The central idea of `ggstatsplot` is
 simple: combine these two phases into one in the form of graphics with
 statistical details, which makes data exploration simpler and faster.
+
+# Summary of available plots
+
+It, therefore, produces a limited kinds of plots for the supported
+analyses:
+
+| Function         | Plot                      | Description                                     |
+| ---------------- | ------------------------- | ----------------------------------------------- |
+| `ggbetweenstats` | **violin plots**          | for comparisons *between* groups/conditions     |
+| `ggwithinstats`  | **violin plots**          | for comparisons *within* groups/conditions      |
+| `gghistostats`   | **histograms**            | for distribution about numeric variable         |
+| `ggdotplotstats` | **dot plots/charts**      | for distribution about labeled numeric variable |
+| `ggpiestats`     | **pie charts**            | for categorical data                            |
+| `ggbarstats`     | **bar charts**            | for categorical data                            |
+| `ggscatterstats` | **scatterplots**          | for correlations between two variables          |
+| `ggcorrmat`      | **correlation matrices**  | for correlations between multiple variables     |
+| `ggcoefstats`    | **dot-and-whisker plots** | for regression models                           |
+
+In addition to these basic plots, `ggstatsplot` also provides
+**`grouped_`** versions (see below) that makes it easy to repeat the
+same analysis for any grouping variable.
 
 # Summary of types of statistical analyses
 
@@ -33,25 +59,6 @@ Currently, it supports only the most common types of statistical tests:
 **parametric**, **nonparametric**, **robust**, and **bayesian** versions
 of **t-test**/**anova**, **correlation** analyses, **contingency table**
 analysis, and **regression** analyses.
-
-It, therefore, produces a limited kinds of plots for the supported
-analyses:
-
-  - **violin plots** (for comparisons *between* groups or conditions),
-  - **pie charts** and **bar charts** (for categorical data),
-  - **scatterplots** (for correlations between two variables),
-  - **correlation matrices** (for correlations between multiple
-    variables),
-  - **histograms** and **dot plots/charts** (for hypothesis about
-    distributions),
-  - **dot-and-whisker plots** (for regression models).
-
-In addition to these basic plots, `ggstatsplot` also provides
-**`grouped_`** versions for most functions that makes it easy to repeat
-the same analysis for any grouping variable.
-
-Future versions will include other types of statistical analyses and
-plots as well.
 
 The table below summarizes all the different types of analyses currently
 supported in this package-
@@ -81,36 +88,34 @@ from Yuen’s test for trimmed means (robust *t*-test):
 Here is a summary table of all the statistical tests currently supported
 across various functions:
 
-| Functions                       | Type           | Test                                                                                                                                                                                       | Effect size                                                                                                                                                                                           | 95% CI available?                                                                                          |
-| ------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `ggbetweenstats`                | Parametric     | Student’s and Welch’s *t*-test                                                                                                                                                             | Cohen’s *d*, Hedge’s *g*                                                                                                                                                                              | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
-| `ggbetweenstats`                | Parametric     | Fisher’s and Welch’s one-way ANOVA                                                                                                                                                         | ![\\eta^2, \\eta^2\_p, \\omega^2, \\omega^2\_p](https://latex.codecogs.com/png.latex?%5Ceta%5E2%2C%20%5Ceta%5E2_p%2C%20%5Comega%5E2%2C%20%5Comega%5E2_p "\\eta^2, \\eta^2_p, \\omega^2, \\omega^2_p") | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
-| `ggbetweenstats`                | Non-parametric | Mann-Whitney *U*-test                                                                                                                                                                      | *r*                                                                                                                                                                                                   | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
-| `ggbetweenstats`                | Non-parametric | Kruskal-Wallis Rank Sum Test                                                                                                                                                               | ![\\epsilon^2](https://latex.codecogs.com/png.latex?%5Cepsilon%5E2 "\\epsilon^2")                                                                                                                     | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
-| `ggbetweenstats`                | Robust         | Yuen’s test for trimmed means                                                                                                                                                              | ![\\xi](https://latex.codecogs.com/png.latex?%5Cxi "\\xi")                                                                                                                                            | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
-| `ggbetweenstats`                | Robust         | Heteroscedastic one-way ANOVA for trimmed means                                                                                                                                            | ![\\xi](https://latex.codecogs.com/png.latex?%5Cxi "\\xi")                                                                                                                                            | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
-| `ggwithinstats`                 | Parametric     | Student’s *t*-test                                                                                                                                                                         | Cohen’s *d*, Hedge’s *g*                                                                                                                                                                              | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
-| `ggwithinstats`                 | Parametric     | Fisher’s one-way repeated measures ANOVA                                                                                                                                                   | ![\\eta^2\_p, \\omega^2](https://latex.codecogs.com/png.latex?%5Ceta%5E2_p%2C%20%5Comega%5E2 "\\eta^2_p, \\omega^2")                                                                                  | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
-| `ggwithinstats`                 | Non-parametric | Wilcoxon signed-rank test                                                                                                                                                                  | *r*                                                                                                                                                                                                   | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
-| `ggwithinstats`                 | Non-parametric | Friedman test                                                                                                                                                                              | ![W\_{Kendall}](https://latex.codecogs.com/png.latex?W_%7BKendall%7D "W_{Kendall}")                                                                                                                   | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
-| `ggwithinstats`                 | Robust         | Yuen’s test on trimmed means for dependent samples                                                                                                                                         | ![\\xi](https://latex.codecogs.com/png.latex?%5Cxi "\\xi")                                                                                                                                            | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
-| `ggwithinstats`                 | Robust         | Heteroscedastic one-way repeated measures ANOVA for trimmed means                                                                                                                          | <font color="red">![\\times](https://latex.codecogs.com/png.latex?%5Ctimes "\\times")</font>                                                                                                          | <font color="red">![\\times](https://latex.codecogs.com/png.latex?%5Ctimes "\\times")</font>               |
-| `ggpiestats`                    | Parametric     | ![\\text{Pearson's}\~ \\chi^2 \~\\text{test}](https://latex.codecogs.com/png.latex?%5Ctext%7BPearson%27s%7D~%20%5Cchi%5E2%20~%5Ctext%7Btest%7D "\\text{Pearson's}~ \\chi^2 ~\\text{test}") | Cramér’s *V*                                                                                                                                                                                          | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
-| `ggpiestats`                    | Parametric     | McNemar’s test                                                                                                                                                                             | Cohen’s *g*                                                                                                                                                                                           | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
-| `ggpiestats`                    | Parametric     | One-sample proportion test                                                                                                                                                                 | Cramér’s *V*                                                                                                                                                                                          | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
-| `ggscatterstats`/`ggcorrmat`    | Parametric     | Pearson’s *r*                                                                                                                                                                              | *r*                                                                                                                                                                                                   | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
-| `ggscatterstats`/`ggcorrmat`    | Non-parametric | ![\\text{Spearman's}\~ \\rho](https://latex.codecogs.com/png.latex?%5Ctext%7BSpearman%27s%7D~%20%5Crho "\\text{Spearman's}~ \\rho")                                                        | ![\\rho](https://latex.codecogs.com/png.latex?%5Crho "\\rho")                                                                                                                                         | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
-| `ggscatterstats`/`ggcorrmat`    | Robust         | Percentage bend correlation                                                                                                                                                                | *r*                                                                                                                                                                                                   | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
-| `gghistostats`/`ggdotplotstats` | Parametric     | One-sample *t*-test                                                                                                                                                                        | Cohen’s *d*, Hedge’s *g*                                                                                                                                                                              | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
-| `gghistostats`                  | Non-parametric | One-sample Wilcoxon signed rank test                                                                                                                                                       | *r*                                                                                                                                                                                                   | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
-| `gghistostats`/`ggdotplotstats` | Robust         | One-sample percentile bootstrap                                                                                                                                                            | robust estimator                                                                                                                                                                                      | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
-| `gghistostats`/`ggdotplotstats` | Parametric     | Regression models                                                                                                                                                                          | ![\\beta](https://latex.codecogs.com/png.latex?%5Cbeta "\\beta")                                                                                                                                      | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
-
-Work is in progress to add some of the currently missing functionality.
+| Functions                                | Type           | Test                                                                                                                                                                                       | Effect size                                                                                                                                                                                           | 95% CI available?                                                                                          |
+| ---------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `ggbetweenstats` (2 groups)              | Parametric     | Student’s and Welch’s *t*-test                                                                                                                                                             | Cohen’s *d*, Hedge’s *g*                                                                                                                                                                              | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
+| `ggbetweenstats` (\> 2 groups)           | Parametric     | Fisher’s and Welch’s one-way ANOVA                                                                                                                                                         | ![\\eta^2, \\eta^2\_p, \\omega^2, \\omega^2\_p](https://latex.codecogs.com/png.latex?%5Ceta%5E2%2C%20%5Ceta%5E2_p%2C%20%5Comega%5E2%2C%20%5Comega%5E2_p "\\eta^2, \\eta^2_p, \\omega^2, \\omega^2_p") | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
+| `ggbetweenstats` (2 groups)              | Non-parametric | Mann-Whitney *U*-test                                                                                                                                                                      | *r*                                                                                                                                                                                                   | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
+| `ggbetweenstats` (\> 2 groups)           | Non-parametric | Kruskal-Wallis Rank Sum Test                                                                                                                                                               | ![\\epsilon^2](https://latex.codecogs.com/png.latex?%5Cepsilon%5E2 "\\epsilon^2")                                                                                                                     | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
+| `ggbetweenstats` (2 groups)              | Robust         | Yuen’s test for trimmed means                                                                                                                                                              | ![\\xi](https://latex.codecogs.com/png.latex?%5Cxi "\\xi")                                                                                                                                            | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
+| `ggbetweenstats` (\> 2 groups)           | Robust         | Heteroscedastic one-way ANOVA for trimmed means                                                                                                                                            | ![\\xi](https://latex.codecogs.com/png.latex?%5Cxi "\\xi")                                                                                                                                            | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
+| `ggwithinstats` (2 groups)               | Parametric     | Student’s *t*-test                                                                                                                                                                         | Cohen’s *d*, Hedge’s *g*                                                                                                                                                                              | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
+| `ggwithinstats` (\> 2 groups)            | Parametric     | Fisher’s one-way repeated measures ANOVA                                                                                                                                                   | ![\\eta^2\_p, \\omega^2](https://latex.codecogs.com/png.latex?%5Ceta%5E2_p%2C%20%5Comega%5E2 "\\eta^2_p, \\omega^2")                                                                                  | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
+| `ggwithinstats` (2 groups)               | Non-parametric | Wilcoxon signed-rank test                                                                                                                                                                  | *r*                                                                                                                                                                                                   | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
+| `ggwithinstats` (\> 2 groups)            | Non-parametric | Friedman rank sum test                                                                                                                                                                     | ![W\_{Kendall}](https://latex.codecogs.com/png.latex?W_%7BKendall%7D "W_{Kendall}")                                                                                                                   | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
+| `ggwithinstats` (2 groups)               | Robust         | Yuen’s test on trimmed means for dependent samples                                                                                                                                         | ![\\xi](https://latex.codecogs.com/png.latex?%5Cxi "\\xi")                                                                                                                                            | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
+| `ggwithinstats` (\> 2 groups)            | Robust         | Heteroscedastic one-way repeated measures ANOVA for trimmed means                                                                                                                          | <font color="red">![\\times](https://latex.codecogs.com/png.latex?%5Ctimes "\\times")</font>                                                                                                          | <font color="red">![\\times](https://latex.codecogs.com/png.latex?%5Ctimes "\\times")</font>               |
+| `ggpiestats` and `ggbarstats` (unpaired) | Parametric     | ![\\text{Pearson's}\~ \\chi^2 \~\\text{test}](https://latex.codecogs.com/png.latex?%5Ctext%7BPearson%27s%7D~%20%5Cchi%5E2%20~%5Ctext%7Btest%7D "\\text{Pearson's}~ \\chi^2 ~\\text{test}") | Cramér’s *V*                                                                                                                                                                                          | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
+| `ggpiestats` and `ggbarstats` (paired)   | Parametric     | McNemar’s test                                                                                                                                                                             | Cohen’s *g*                                                                                                                                                                                           | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
+| `ggpiestats`                             | Parametric     | One-sample proportion test                                                                                                                                                                 | Cramér’s *V*                                                                                                                                                                                          | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
+| `ggscatterstats` and `ggcorrmat`         | Parametric     | Pearson’s *r*                                                                                                                                                                              | *r*                                                                                                                                                                                                   | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
+| `ggscatterstats` and `ggcorrmat`         | Non-parametric | ![\\text{Spearman's}\~ \\rho](https://latex.codecogs.com/png.latex?%5Ctext%7BSpearman%27s%7D~%20%5Crho "\\text{Spearman's}~ \\rho")                                                        | ![\\rho](https://latex.codecogs.com/png.latex?%5Crho "\\rho")                                                                                                                                         | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
+| `ggscatterstats`and `ggcorrmat`          | Robust         | Percentage bend correlation                                                                                                                                                                | *r*                                                                                                                                                                                                   | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
+| `gghistostats` and `ggdotplotstats`      | Parametric     | One-sample *t*-test                                                                                                                                                                        | Cohen’s *d*, Hedge’s *g*                                                                                                                                                                              | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
+| `gghistostats`                           | Non-parametric | One-sample Wilcoxon signed rank test                                                                                                                                                       | *r*                                                                                                                                                                                                   | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
+| `gghistostats` and `ggdotplotstats`      | Robust         | One-sample percentile bootstrap                                                                                                                                                            | robust estimator                                                                                                                                                                                      | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
+| `ggcoefstats`                            | Parametric     | Regression models                                                                                                                                                                          | ![\\beta](https://latex.codecogs.com/png.latex?%5Cbeta "\\beta")                                                                                                                                      | <font color="green">![\\checkmark](https://latex.codecogs.com/png.latex?%5Ccheckmark "\\checkmark")</font> |
 
 # Installation
 
-To get the latest, stable `CRAN` release (`0.0.12`):
+To get the latest, stable `CRAN` release (`0.1.1`):
 
 ``` r
 utils::install.packages(pkgs = "ggstatsplot")
@@ -121,7 +126,7 @@ libraries installed (specifically, `libx11`, `mesa` and Mesa OpenGL
 Utility library - `glu`) for the dependency package `rgl` to work.
 
 You can get the **development** version of the package from GitHub
-(`0.0.12.9000`). To see what new changes (and bug fixes) have been made
+(`0.1.1.9000`). To see what new changes (and bug fixes) have been made
 to the package since the last release on `CRAN`, you can check the
 detailed log of changes here:
 <https://indrajeetpatil.github.io/ggstatsplot/news/index.html>
@@ -211,13 +216,9 @@ just type the name of the function without the parentheses:
 # function to convert class of any object to `ggplot` class
 ggstatsplot::ggplot_converter
 #> function(plot) {
-#>   # convert the saved plot
-#>   p <- cowplot::ggdraw() +
-#>     cowplot::draw_grob(grid::grobTree(plot))
-#> 
-#>   # returning the converted plot
-#>   return(p)
+#>   cowplot::ggdraw() + cowplot::draw_grob(grid::grobTree(plot))
 #> }
+#> <bytecode: 0x000000002d165480>
 #> <environment: namespace:ggstatsplot>
 ```
 
@@ -227,42 +228,6 @@ relies a lot on, you can check out these links-
 
   - <http://r-pkgs.had.co.nz/namespace.html>
   - <http://r4ds.had.co.nz/pipes.html>
-
-# Usage and syntax
-
-`ggstatsplot` relies on non-standard evaluation (NSE), i.e., rather than
-looking at the values of arguments (`x`, `y`), it instead looks at their
-expressions. This means that you **shouldn’t** enter arguments with the
-`$` operator and set `data = NULL` (e.g., `data = NULL, x = data$x, y =
-data$y`). You **must** always specify the `data` argument for all
-functions. On the plus side, you can enter arguments either as a string
-(`x = "x", y = "y"`) or as a bare expression (`x = x, y = y`) and it
-wouldn’t matter. To read more about NSE, see-
-<http://adv-r.had.co.nz/Computing-on-the-language.html>
-
-`ggstatsplot` is a very chatty package and will by default print helpful
-notes on assumptions about statistical tests, warnings, etc. If you
-don’t want your console to be cluttered with such messages, they can
-be turned off by setting argument `messages = FALSE` in the function
-call.
-
-Most functions share a `type` (of test) argument that is helpful to
-specify the type of statistical analysis:
-
-  - `"p"` (for **parametric**)
-  - `"np"` (for **non-parametric**)
-  - `"r"` (for **robust**)
-  - `"bf"` (for **Bayes Factor**)
-
-All relevant functions in `ggstatsplot` have a `return` argument which
-can be used to not only return plots (which is the default), but also to
-return a `subtitle` or `caption`, which are objects of type `call` and
-can be used to display statistical details in conjunction with a custom
-plot and at a custom location in the plot.
-
-Additionally, all functions share the `ggtheme` and `palette` arguments
-that can be used to specify your favorite `ggplot` theme and color
-palette.
 
 # Primary functions
 
@@ -303,8 +268,14 @@ ggstatsplot::ggbetweenstats(
 
 <img src="man/figures/README-ggbetweenstats1-1.png" width="100%" />
 
-Note that this function returns a `ggplot2` object and thus any of the
-graphics layers can be further modified.
+Note that this function returns object of class `ggplot` and thus can be
+further modified using `ggplot2` functions.
+
+A number of other arguments can be specified to make this plot even more
+informative or change some of the default options. Additionally, this
+time we will use a grouping variable that has only two levels. The
+function will automatically switch from carrying out an ANOVA analysis
+to a *t*-test.
 
 The `type` (of test) argument also accepts the following abbreviations:
 `"p"` (for *parametric*) or `"np"` (for *nonparametric*) or `"r"` (for
@@ -326,11 +297,7 @@ iris2 <- dplyr::filter(.data = iris, Species != "setosa")
 
 # let's change the levels of our factors, a common routine in data analysis
 # pipeline, to see if this function respects the new factor levels
-iris2$Species <-
-  base::factor(
-    x = iris2$Species,
-    levels = c("virginica", "versicolor")
-  )
+iris2$Species <- factor(x = iris2$Species, levels = c("virginica", "versicolor"))
 
 # plot
 ggstatsplot::ggbetweenstats(
@@ -341,7 +308,7 @@ ggstatsplot::ggbetweenstats(
   mean.plotting = TRUE, # whether mean for each group is to be displayed
   mean.ci = TRUE, # whether to display confidence interval for means
   mean.label.size = 2.5, # size of the label for mean
-  type = "p", # which type of test is to be run
+  type = "parametric", # which type of test is to be run
   k = 3, # number of decimal places for statistical results
   outlier.tagging = TRUE, # whether outliers need to be tagged
   outlier.label = Sepal.Width, # variable to be used for the outlier tag
@@ -424,10 +391,10 @@ analyses-
 
 | Type           | No. of groups | Test                                            |
 | -------------- | ------------- | ----------------------------------------------- |
-| Parametric     | \> 2          | Student’s or Welch’s one-way ANOVA              |
+| Parametric     | \> 2          | Fisher’s or Welch’s one-way ANOVA               |
 | Non-parametric | \> 2          | Kruskal–Wallis one-way ANOVA                    |
 | Robust         | \> 2          | Heteroscedastic one-way ANOVA for trimmed means |
-| Bayes Factor   | \> 2          | Student’s ANOVA                                 |
+| Bayes Factor   | \> 2          | Fisher’s ANOVA                                  |
 | Parametric     | 2             | Student’s or Welch’s *t*-test                   |
 | Non-parametric | 2             | Mann–Whitney *U* test                           |
 | Robust         | 2             | Yuen’s test for trimmed means                   |
@@ -491,25 +458,21 @@ measurements-
 ``` r
 # common setup
 set.seed(123)
-library(jmv)
-data("bugs", package = "jmv")
 
 # getting data in tidy format
-data_bugs <- bugs %>%
-  tibble::as_tibble(x = .) %>%
-  tidyr::gather(data = ., key, value, LDLF:HDHF) %>%
-  dplyr::filter(.data = ., Region %in% c("Europe", "North America"))
+data_bugs <- ggstatsplot::bugs_long %>%
+  dplyr::filter(.data = ., region %in% c("Europe", "North America"))
 
 # plot
 ggstatsplot::grouped_ggwithinstats(
-  data = dplyr::filter(data_bugs, key %in% c("LDLF", "LDHF")),
-  x = key,
-  y = value,
+  data = dplyr::filter(data_bugs, condition %in% c("LDLF", "LDHF")),
+  x = condition,
+  y = desire,
   xlab = "Condition",
   ylab = "Desire to kill an artrhopod",
-  grouping.var = Region,
+  grouping.var = region,
   outlier.tagging = TRUE,
-  outlier.label = Education,
+  outlier.label = education,
   ggtheme = hrbrthemes::theme_ipsum_tw(),
   ggstatsplot.layer = FALSE,
   messages = FALSE
@@ -632,6 +595,8 @@ ggstatsplot::grouped_ggscatterstats(
   ),
   x = rating,
   y = length,
+  label.var = title,
+  label.expression = length > 200,
   conf.level = 0.99,
   k = 3, # no. of decimal places in the results
   xfill = "#E69F00",
@@ -650,32 +615,6 @@ ggstatsplot::grouped_ggscatterstats(
 ```
 
 <img src="man/figures/README-ggscatterstats3-1.png" width="100%" />
-
-**Using `ggscatterstats()` in R Notebooks or R Markdown**
-
-If you include a `ggscatterstats()` plot inside an `R Notebook` or `R
-Markdown` code chunk, you will notice that running the chunk doesn’t
-return any output nor does it give any error. In order to get a
-`ggscatterstats()` to show up in these contexts, you need to save the
-`ggscatterstats` plot as a variable in one code chunk, and explicitly
-print it using the `grid` package in another chunk, like this:
-
-``` r
-# include the following code in your code chunk inside R Notebook or Markdown
-grid::grid.newpage()
-grid::grid.draw(
-  ggstatsplot::ggscatterstats(
-    data = ggstatsplot::movies_wide,
-    x = budget,
-    y = rating,
-    marginal = TRUE,
-    messages = FALSE
-  )
-)
-```
-
-Another option - or rather a compromise - is not to include marginal
-distribution at all by setting `marginal = FALSE`.
 
 ### Summary of tests
 
@@ -716,7 +655,7 @@ set.seed(123)
 # plot
 ggstatsplot::ggpiestats(
   data = ggplot2::msleep,
-  main = vore,
+  x = vore,
   title = "Composition of vore types among mammals",
   messages = FALSE
 )
@@ -734,13 +673,13 @@ set.seed(123)
 # plot
 ggstatsplot::ggpiestats(
   data = mtcars,
-  main = am,
-  condition = cyl,
+  x = am,
+  y = cyl,
   conf.level = 0.99, # confidence interval for effect size measure
   title = "Dataset: Motor Trend Car Road Tests", # title for the plot
   stat.title = "interaction: ", # title for the results
   legend.title = "Transmission", # title for the legend
-  factor.levels = c("1 = manual", "0 = automatic"), # renaming the factor level names (`main`)
+  factor.levels = c("1 = manual", "0 = automatic"), # renaming the factor level names (`x`)
   facet.wrap.name = "No. of cylinders", # name for the facetting variable
   slice.label = "counts", # show counts data instead of percentages
   package = "ggsci", # package from which color palette is to be taken
@@ -774,45 +713,27 @@ survey.data <- data.frame(
 # plot
 ggstatsplot::ggpiestats(
   data = survey.data,
-  main = `1st survey`,
-  condition = `2nd survey`,
+  x = `1st survey`,
+  y = `2nd survey`,
   counts = Counts,
   paired = TRUE, # within-subjects design
   conf.level = 0.99, # confidence interval for effect size measure
-  stat.title = "McNemar's Test: ",
   package = "wesanderson",
   palette = "Royal1"
 )
 #> Note: 99% CI for effect size estimate was computed with 100 bootstrap samples.
-#> Note: Results from one-sample proportion tests for each level of the variable
-#> 2nd survey testing for equal proportions of the variable 1st survey.
-#> # A tibble: 2 x 8
-#>   condition N     Approve Disapprove `Chi-squared`    df `p-value`
-#>   <fct>     <chr> <chr>   <chr>              <dbl> <dbl>     <dbl>
-#> 1 Approve   (n =~ 90.23%  9.77%               570.     1         0
-#> 2 Disappro~ (n =~ 20.83%  79.17%              245      1         0
-#> # ... with 1 more variable: significance <chr>
+#> # A tibble: 2 x 11
+#>   `2nd survey` counts  perc N         Approve Disapprove statistic
+#>   <fct>         <int> <dbl> <chr>     <chr>   <chr>          <dbl>
+#> 1 Disapprove      720   45  (n = 720) 20.83%  79.17%          245 
+#> 2 Approve         880   55. (n = 880) 90.23%  9.77%           570.
+#>     p.value parameter method                                   significance
+#>       <dbl>     <dbl> <chr>                                    <chr>       
+#> 1 3.20e- 55         1 Chi-squared test for given probabilities ***         
+#> 2 6.80e-126         1 Chi-squared test for given probabilities ***
 ```
 
 <img src="man/figures/README-ggpiestats3-1.png" width="100%" />
-
-Note that when a two-way table is present (i.e., when both `main` and
-`condition` arguments are specified), *p*-values for results from
-one-sample proportion tests are displayed in each facet in the form of
-asterisks with the following convention: <br>
-
-  - ![\*\*\*](https://latex.codecogs.com/png.latex?%2A%2A%2A "***"): ![p
-    \< 0.001](https://latex.codecogs.com/png.latex?p%20%3C%200.001
-    "p \< 0.001")
-  - ![\*\*](https://latex.codecogs.com/png.latex?%2A%2A "**"): ![p
-    \< 0.01](https://latex.codecogs.com/png.latex?p%20%3C%200.01
-    "p \< 0.01")
-  - ![\*](https://latex.codecogs.com/png.latex?%2A "*"): ![p
-    \< 0.05](https://latex.codecogs.com/png.latex?p%20%3C%200.05
-    "p \< 0.05")
-  - ![ns](https://latex.codecogs.com/png.latex?ns "ns"): ![p
-    \> 0.05](https://latex.codecogs.com/png.latex?p%20%3E%200.05
-    "p \> 0.05")
 
 Additionally, there is also a `grouped_` variant of this function that
 makes it easy to repeat the same operation across a **single** grouping
@@ -828,7 +749,7 @@ ggstatsplot::grouped_ggpiestats(
     .data = ggstatsplot::movies_long,
     genre %in% c("Action", "Action Comedy", "Action Drama", "Comedy")
   ),
-  main = mpaa,
+  x = mpaa,
   grouping.var = genre, # grouping variable
   title.prefix = "Movie genre", # prefix for the facetted title
   label.text.size = 3, # text size for slice labels
@@ -859,9 +780,9 @@ each type of test-
 
 | Type                       | Effect size  | CI?                           |
 | -------------------------- | ------------ | ----------------------------- |
-| Pearson’s chi-squared test | Cramer’s *V* | <font color="green">Yes<font> |
-| McNemar’s test             | *g*          | <font color="green">Yes<font> |
-| Goodness of fit            | *V*          | <font color="green">Yes<font> |
+| Pearson’s chi-squared test | Cramér’s *V* | <font color="green">Yes<font> |
+| McNemar’s test             | Cohen’s *g*  | <font color="green">Yes<font> |
+| Goodness of fit            | Cramér’s *V* | <font color="green">Yes<font> |
 
 For more, see the `ggpiestats` vignette:
 <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html>
@@ -878,8 +799,8 @@ set.seed(123)
 # plot
 ggstatsplot::ggbarstats(
   data = ggstatsplot::movies_long,
-  main = mpaa,
-  condition = genre,
+  x = mpaa,
+  y = genre,
   sampling.plan = "jointMulti",
   title = "MPAA Ratings by Genre",
   xlab = "movie genre",
@@ -895,37 +816,50 @@ ggstatsplot::ggbarstats(
 
 <img src="man/figures/README-ggbarstats1-1.png" width="100%" />
 
+Note that *p*-values for results from one-sample proportion tests are
+displayed for each bar in the form of asterisks with the following
+convention: <br>
+
+  - ![\*\*\*](https://latex.codecogs.com/png.latex?%2A%2A%2A "***"): ![p
+    \< 0.001](https://latex.codecogs.com/png.latex?p%20%3C%200.001
+    "p \< 0.001")
+  - ![\*\*](https://latex.codecogs.com/png.latex?%2A%2A "**"): ![p
+    \< 0.01](https://latex.codecogs.com/png.latex?p%20%3C%200.01
+    "p \< 0.01")
+  - ![\*](https://latex.codecogs.com/png.latex?%2A "*"): ![p
+    \< 0.05](https://latex.codecogs.com/png.latex?p%20%3C%200.05
+    "p \< 0.05")
+  - ![ns](https://latex.codecogs.com/png.latex?ns "ns"): ![p
+    \> 0.05](https://latex.codecogs.com/png.latex?p%20%3E%200.05
+    "p \> 0.05")
+
 And, needless to say, there is also a `grouped_` variant of this
 function-
 
 ``` r
 # setup
-library(ggstatsplot)
 set.seed(123)
 
-# let's create a smaller dataframe
-diamonds_short <- ggplot2::diamonds %>%
-  dplyr::filter(.data = ., cut %in% c("Very Good", "Ideal")) %>%
-  dplyr::filter(.data = ., clarity %in% c("SI1", "SI2", "VS1", "VS2", "VVS1")) %>%
-  dplyr::sample_frac(tbl = ., size = 0.05)
+# smaller dataset
+df <- dplyr::filter(
+  .data = forcats::gss_cat,
+  race %in% c("Black", "White"),
+  relig %in% c("Protestant", "Catholic", "None"),
+  !partyid %in% c("No answer", "Don't know", "Other party")
+)
 
 # plot
 ggstatsplot::grouped_ggbarstats(
-  data = diamonds_short,
-  main = color,
-  condition = clarity,
-  grouping.var = cut,
-  sampling.plan = "poisson",
-  title.prefix = "Quality",
-  data.label = "both",
-  label.text.size = 3,
-  perc.k = 1,
-  package = "palettetown",
-  palette = "charizard",
+  data = df,
+  x = relig,
+  y = partyid,
+  grouping.var = race,
+  title.prefix = "Race",
+  xlab = "Party affiliation",
   ggtheme = ggthemes::theme_tufte(base_size = 12),
   ggstatsplot.layer = FALSE,
   messages = FALSE,
-  title.text = "Diamond quality and color combination",
+  title.text = "Race, religion, and political affiliation",
   nrow = 2
 )
 ```
@@ -938,19 +872,20 @@ This is identical to the `ggpiestats` function summary of tests.
 
 ## `gghistostats`
 
-In case you would like to see the distribution of a single variable and
-check if it is significantly different from a specified value with a one
-sample test, this function will let you do that.
+To visualize the distribution of a single variable and check if its mean
+is significantly different from a specified value with a one-sample
+test, `gghistostats` can be used.
 
 ``` r
 ggstatsplot::gghistostats(
   data = ToothGrowth, # dataframe from which variable is to be taken
   x = len, # numeric variable whose distribution is of interest
-  title = "Distribution of Sepal.Length", # title for the plot
+  xlab = "Tooth length", # `x`-axis label
+  title = "Distribution of Tooth Length", # title for the plot
   fill.gradient = TRUE, # use color gradient
-  test.value = 10, # the comparison value for t-test
+  test.value = 10, # the comparison value for one-sample test
   test.value.line = TRUE, # display a vertical line at test value
-  type = "bf", # bayes factor for one sample t-test
+  type = "bayes", # bayes factor for one sample t-test
   bf.prior = 0.8, # prior width for calculating the bayes factor
   messages = FALSE # turn off the messages
 )
@@ -969,7 +904,7 @@ ggstatsplot::gghistostats(
   data = iris, # dataframe from which variable is to be taken
   x = Sepal.Length, # numeric variable whose distribution is of interest
   title = "Distribution of Iris sepal length", # title for the plot
-  caption = substitute(paste(italic("Source:", "Ronald Fisher's Iris data set"))),
+  caption = substitute(paste(italic("Source:"), "Ronald Fisher's Iris data set")),
   type = "parametric", # one sample t-test
   conf.level = 0.99, # changing confidence level for effect size
   bar.measure = "mix", # what does the bar length denote
@@ -1035,6 +970,16 @@ Following tests are carried out for each type of analyses-
 | Robust         | One-sample percentile bootstrap |
 | Bayes Factor   | One-sample Student’s *t*-test   |
 
+Following effect sizes (and confidence intervals/CI) are available for
+each type of test-
+
+| Type           | Effect size                                                                                                                    | CI?                           |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------- |
+| Parametric     | Cohen’s *d*, Hedge’s *g* (central-and noncentral-*t* distribution based)                                                       | <font color="green">Yes<font> |
+| Non-parametric | *r* (computed as ![Z/\\sqrt{N\_{obs}}](https://latex.codecogs.com/png.latex?Z%2F%5Csqrt%7BN_%7Bobs%7D%7D "Z/\\sqrt{N_{obs}}")) | <font color="green">Yes<font> |
+| Robust         | ![M\_{robust}](https://latex.codecogs.com/png.latex?M_%7Brobust%7D "M_{robust}") (Robust location measure)                     | <font color="green">Yes<font> |
+| Bayes Factor   | <font color="red">No<font>                                                                                                     | <font color="red">No<font>    |
+
 For more, including information about the variant of this function
 `grouped_gghistostats`, see the `gghistostats` vignette:
 <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/gghistostats.html>
@@ -1091,7 +1036,7 @@ ggstatsplot::grouped_ggdotplotstats(
   y = manufacturer,
   xlab = "city miles per gallon",
   ylab = "car manufacturer",
-  type = "np", # non-parametric test
+  type = "nonparametric", # non-parametric test
   grouping.var = cyl, # grouping variable
   test.value = 15.5,
   title.prefix = "cylinder count",
@@ -1184,20 +1129,28 @@ ggstatsplot::ggcorrmat(
   p.adjust.method = "holm"
 )
 #> # A tibble: 6 x 7
-#>   variable  sleep_total sleep_rem sleep_cycle     awake   brainwt    bodywt
-#>   <chr>           <dbl>     <dbl>       <dbl>     <dbl>     <dbl>     <dbl>
-#> 1 sleep_to~   0.        5.291e-12   9.138e- 3 0.        3.170e- 5 2.568e- 6
-#> 2 sleep_rem   4.070e-13 0.          1.978e- 2 5.291e-12 9.698e- 3 3.762e- 3
-#> 3 sleep_cy~   2.285e- 3 1.978e- 2   0.        9.138e- 3 1.637e- 9 1.696e- 5
-#> 4 awake       0.        4.070e-13   2.285e- 3 0.        3.170e- 5 2.568e- 6
-#> 5 brainwt     4.528e- 6 4.849e- 3   1.488e-10 4.528e- 6 0.        4.509e-17
-#> 6 bodywt      2.568e- 7 7.524e- 4   2.120e- 6 2.568e- 7 3.221e-18 0.
+#>   variable    sleep_total sleep_rem sleep_cycle     awake   brainwt
+#>   <chr>             <dbl>     <dbl>       <dbl>     <dbl>     <dbl>
+#> 1 sleep_total   0.        5.291e-12   9.138e- 3 0.        3.170e- 5
+#> 2 sleep_rem     4.070e-13 0.          1.978e- 2 5.291e-12 9.698e- 3
+#> 3 sleep_cycle   2.285e- 3 1.978e- 2   0.        9.138e- 3 1.637e- 9
+#> 4 awake         0.        4.070e-13   2.285e- 3 0.        3.170e- 5
+#> 5 brainwt       4.528e- 6 4.849e- 3   1.488e-10 4.528e- 6 0.       
+#> 6 bodywt        2.568e- 7 7.524e- 4   2.120e- 6 2.568e- 7 3.221e-18
+#>      bodywt
+#>       <dbl>
+#> 1 2.568e- 6
+#> 2 3.762e- 3
+#> 3 1.696e- 5
+#> 4 2.568e- 6
+#> 5 4.509e-17
+#> 6 0.
 
 # getting the confidence intervals for correlations
 ggstatsplot::ggcorrmat(
   data = ggplot2::msleep,
   cor.vars = sleep_total:bodywt,
-  corr.method = "kendall",
+  corr.method = "spearman",
   output = "ci",
   p.adjust.method = "holm"
 )
@@ -1205,23 +1158,40 @@ ggstatsplot::ggcorrmat(
 #> the upper triangle: p-values adjusted for multiple comparisons
 #> the lower triangle: unadjusted p-values.
 #> # A tibble: 15 x 7
-#>    pair                 r     lower     upper         p lower.adj upper.adj
-#>    <chr>            <dbl>     <dbl>     <dbl>     <dbl>     <dbl>     <dbl>
-#>  1 sleep_total-s~  0.5922  4.000e-1  7.345e-1 4.981e- 7   0.3027    0.7817 
-#>  2 sleep_total-s~ -0.3481 -6.214e-1  6.818e-4 5.090e- 2  -0.6789    0.1002 
-#>  3 sleep_total-a~ -1      -1.000e+0 -1.000e+0 0.         -1        -1      
-#>  4 sleep_total-b~ -0.4293 -6.220e-1 -1.875e-1 9.621e- 4  -0.6858   -0.07796
-#>  5 sleep_total-b~ -0.3851 -5.547e-1 -1.847e-1 3.247e- 4  -0.6050   -0.1106 
-#>  6 sleep_rem-sle~ -0.2066 -5.180e-1  1.531e-1 2.566e- 1  -0.5180    0.1531 
-#>  7 sleep_rem-awa~ -0.5922 -7.345e-1 -4.000e-1 4.981e- 7  -0.7832   -0.2990 
-#>  8 sleep_rem-bra~ -0.2636 -5.096e-1  2.217e-2 7.022e- 2  -0.5400    0.06404
-#>  9 sleep_rem-bod~ -0.3163 -5.262e-1 -7.004e-2 1.302e- 2  -0.5662   -0.01317
-#> 10 sleep_cycle-a~  0.3481 -6.818e-4  6.214e-1 5.090e- 2  -0.1145    0.6867 
-#> 11 sleep_cycle-b~  0.7125  4.739e-1  8.536e-1 1.001e- 5   0.3239    0.8954 
-#> 12 sleep_cycle-b~  0.6545  3.962e-1  8.168e-1 4.834e- 5   0.2459    0.8656 
-#> 13 awake-brainwt   0.4293  1.875e-1  6.220e-1 9.621e- 4   0.08322   0.6829 
-#> 14 awake-bodywt    0.3851  1.847e-1  5.547e-1 3.247e- 4   0.1049    0.6087 
-#> 15 brainwt-bodywt  0.8378  7.373e-1  9.020e-1 8.181e-16   0.6716    0.9238
+#>    pair                          r   lower    upper         p lower.adj
+#>    <chr>                     <dbl>   <dbl>    <dbl>     <dbl>     <dbl>
+#>  1 sleep_total-sleep_rem    0.7641  0.6344  0.8520  7.806e-13   0.5632 
+#>  2 sleep_total-sleep_cycle -0.4888 -0.7155 -0.1689  4.530e- 3  -0.7609 
+#>  3 sleep_total-awake       -1      -1      -1       0.         -1      
+#>  4 sleep_total-brainwt     -0.5935 -0.7408 -0.3918  1.426e- 6  -0.7852 
+#>  5 sleep_total-bodywt      -0.5346 -0.6727 -0.3605  1.931e- 7  -0.7121 
+#>  6 sleep_rem-sleep_cycle   -0.3344 -0.6118  0.01617 6.139e- 2  -0.6118 
+#>  7 sleep_rem-awake         -0.7641 -0.8520 -0.6344  7.806e-13  -0.8807 
+#>  8 sleep_rem-brainwt       -0.4139 -0.6246 -0.1471  3.451e- 3  -0.6495 
+#>  9 sleep_rem-bodywt        -0.4517 -0.6317 -0.2255  2.580e- 4  -0.6647 
+#> 10 sleep_cycle-awake        0.4888  0.1689  0.7155  4.530e- 3   0.05610
+#> 11 sleep_cycle-brainwt      0.8727  0.7474  0.9380  3.250e-10   0.6573 
+#> 12 sleep_cycle-bodywt       0.8464  0.7061  0.9228  1.040e- 9   0.6115 
+#> 13 awake-brainwt            0.5935  0.3918  0.7408  1.426e- 6   0.2934 
+#> 14 awake-bodywt             0.5346  0.3605  0.6727  1.931e- 7   0.2875 
+#> 15 brainwt-bodywt           0.9572  0.9277  0.9748  9.694e-31   0.9071 
+#>    upper.adj
+#>        <dbl>
+#>  1   0.8798 
+#>  2  -0.07055
+#>  3  -1      
+#>  4  -0.2982 
+#>  5  -0.2928 
+#>  6   0.01617
+#>  7  -0.5605 
+#>  8  -0.1058 
+#>  9  -0.1708 
+#> 10   0.7669 
+#> 11   0.9563 
+#> 12   0.9442 
+#> 13   0.7872 
+#> 14   0.7150 
+#> 15   0.9805
 
 # getting the sample sizes for all pairs
 ggstatsplot::ggcorrmat(
@@ -1289,8 +1259,32 @@ For examples and more information, see the `ggcorrmat` vignette:
 
 ## `ggcoefstats`
 
-`ggcoefstats` creates a dot-and-whisker plot point estimates for
-regression coefficients as dots with confidence intervals as whiskers.
+`ggcoefstats` creates a dot-and-whisker plot for regression models.
+Although the statistical models displayed in the plot may differ based
+on the class of models being investigated, there are few aspects of the
+plot that will be invariant across models:
+
+  - The dot-whisker plot contains a dot representing the **estimate**
+    and their **confidence intervals** (`95%` is the default). The
+    estimate can either be effect sizes (for tests that depend on the
+    `F` statistic) or regression coefficients (for tests with `t` and
+    `z` statistic), etc. The function will, by default, display a
+    helpful `x`-axis label that should clear up what estimates are being
+    displayed. The confidence intervals can sometimes be asymmetric if
+    bootstrapping was used.
+
+  - The caption will always contain diagnostic information, if
+    available, about models that can be useful for model selection: The
+    smaller the Akaike’s Information Criterion (**AIC**) and the
+    Bayesian Information Criterion (**BIC**) values, the “better” the
+    model is. Additionally, the higher the **log-likelihood** value the
+    “better” is the model fit.
+
+  - The output of this function will be a `ggplot2` object and, thus, it
+    can be further modified (e.g., change themes, etc.) with `ggplot2`
+    functions.
+
+<!-- end list -->
 
 ``` r
 # for reproducibility
@@ -1309,8 +1303,7 @@ ggstatsplot::ggcoefstats(x = mod)
 <img src="man/figures/README-ggcoefstats1-1.png" width="100%" />
 
 This default plot can be further modified to one’s liking with
-additional arguments (also, let’s use a robust linear model instead of a
-simple linear model now):
+additional arguments (also, let’s use a different model now):
 
 ``` r
 # for reproducibility
@@ -1338,10 +1331,7 @@ ggstatsplot::ggcoefstats(
 ) + # further modification with the ggplot2 commands
   # note the order in which the labels are entered
   ggplot2::scale_y_discrete(labels = c("transmission", "cylinders", "interaction")) +
-  ggplot2::labs(
-    x = "regression coefficient",
-    y = NULL
-  )
+  ggplot2::labs(x = "regression coefficient", y = NULL)
 ```
 
 <img src="man/figures/README-ggcoefstats2-1.png" width="100%" />
@@ -1350,16 +1340,17 @@ Most of the regression models that are supported in the `broom` and
 `broom.mixed` packages with `tidy` and `glance` methods are also
 supported by `ggcoefstats`. For example-
 
-`aareg`, `anova`, `aov`, `aovlist`, `Arima`, `bigglm`, `biglm`,
-`brmsfit`, `btergm`, `cch`, `clm`, `clmm`, `confusionMatrix`, `coxph`,
-`drc`, `emmGrid`, `epi.2by2`, `ergm`, `felm`, `fitdistr`, `glmerMod`,
-`glmmTMB`, `gls`, `gam`, `Gam`, `gamlss`, `garch`, `glm`, `glmmadmb`,
-`glmmPQL`, `glmmTMB`, `glmRob`, `glmrob`, `gmm`, `ivreg`, `lm`,
-`lm.beta`, `lmerMod`, `lmodel2`, `lmRob`, `lmrob`, `mcmc`, `MCMCglmm`,
-`mediate`, `mjoint`, `mle2`, `mlm`, `multinom`, `negbin`, `nlmerMod`,
-`nlrq`, `nls`, `orcutt`, `plm`, `polr`, `ridgelm`, `rjags`, `rlm`,
-`rlmerMod`, `rq`, `speedglm`, `speedlm`, `stanreg`, `survreg`, `svyglm`,
-`svyolr`, `svyglm`, etc.
+`aareg`, `anova`, `aov`, `aovlist`, `Arima`, `bglmerMod`, `bigglm`,
+`biglm`, `blmerMod`, `brmsfit`, `btergm`, `cch`, `clm`, `clmm`,
+`confusionMatrix`, `coxph`, `drc`, `emmGrid`, `epi.2by2`, `ergm`,
+`felm`, `fitdistr`, `glmerMod`, `glmmTMB`, `gls`, `gam`, `Gam`,
+`gamlss`, `garch`, `glm`, `glmmadmb`, `glmmPQL`, `glmmTMB`, `glmRob`,
+`glmrob`, `gmm`, `ivreg`, `lm`, `lm.beta`, `lmerMod`, `lmodel2`,
+`lmRob`, `lmrob`, `mcmc`, `MCMCglmm`, `mclogit`, `mmclogit`, `mediate`,
+`mjoint`, `mle2`, `mlm`, `multinom`, `negbin`, `nlmerMod`, `nlrq`,
+`nls`, `orcutt`, `plm`, `polr`, `ridgelm`, `rjags`, `rlm`, `rlmerMod`,
+`rq`, `speedglm`, `speedlm`, `stanreg`, `survreg`, `svyglm`, `svyolr`,
+`svyglm`, `tobit`, `wblm`, etc.
 
 Although not shown here, this function can also be used to carry out
 both frequentist and Bayesian random-effects meta-analysis.
@@ -1441,43 +1432,101 @@ For more on how to modify it, see the associated vignette-
 
 ## Using `ggstatsplot` statistical details with custom plots
 
-Sometimes you may not like the defaults in a plot produced by
-`ggstatsplot`. In such cases, you can use other custom plots (from
-`ggplot2` or other plotting packages) and still use `ggstatsplot`
-functions to display results from relevant statistical test.
+Sometimes you may not like the default plots produced by `ggstatsplot`.
+In such cases, you can use other **custom** plots (from `ggplot2` or
+other plotting packages) and still use `ggstatsplot` functions to
+display results from relevant statistical test.
 
-For example, in the following chunk, we will create plot (*pirateplot*)
-using `yarrr` package and use `ggstatsplot` function for extracting
+For example, in the following chunk, we will create plot (*ridgeplot*)
+using `ggridges` package and use `ggstatsplot` function for extracting
 results.
 
 ``` r
-# for reproducibility
 set.seed(123)
 
 # loading the needed libraries
-library(yarrr)
+library(ggridges)
+library(ggplot2)
 library(ggstatsplot)
 
 # using `ggstatsplot` to get call with statistical results
 stats_results <-
   ggstatsplot::ggbetweenstats(
-    data = ChickWeight,
-    x = Time,
-    y = weight,
+    data = morley,
+    x = Expt,
+    y = Speed,
     return = "subtitle",
     messages = FALSE
   )
 
-# using `yarrr` to create plot
-yarrr::pirateplot(
-  formula = weight ~ Time,
-  data = ChickWeight,
-  theme = 1,
-  main = stats_results
-)
+# using `ggridges` to create plot
+ggplot(morley, aes(x = Speed, y = as.factor(Expt), fill = as.factor(Expt))) +
+  geom_density_ridges(
+    jittered_points = TRUE,
+    quantile_lines = TRUE,
+    scale = 0.9,
+    alpha = 0.7,
+    vline_size = 1,
+    vline_color = "red",
+    point_size = 0.4,
+    point_alpha = 1,
+    position = position_raincloud(adjust_vlines = TRUE)
+  ) + # adding annotations
+  labs(
+    title = "Michelson-Morley experiments",
+    subtitle = stats_results,
+    x = "Speed of light",
+    y = "Experiment number"
+  ) + # remove the legend
+  theme(legend.position = "none")
 ```
 
-<img src="man/figures/README-pirateplot-1.png" width="100%" />
+<img src="man/figures/README-ridgeplot-1.png" width="100%" />
+
+# Usage and syntax simplicity
+
+As seen from these examples, `ggstatsplot` relies on non-standard
+evaluation (NSE) - implemented via `rlang` - i.e., rather than looking
+at the values of arguments (`x`, `y`), it instead looks at their
+expressions. Therefore, the syntax is simpler and follows the following
+principles-
+
+  - When a given function depends on variables in a dataframe, `data`
+    argument must always be specified.
+  - The `$` operator cannot be used to specify variables in a dataframe.
+  - All functions accept both quoted (`x = "var1"`) and unquoted (`x =
+    var1`) arguments.
+
+These set principles combined with the fact that almost all functions
+produce publication-ready plots that require very few arguments if one
+finds the aesthetic and statistical defaults satisfying make the syntax
+much less cognitively demanding and easy to remember/reconstruct.
+
+<img src='man/figures/arguments.png' align="center"/>
+
+<br> `ggstatsplot` is a very chatty package and will by default print
+helpful notes on assumptions about statistical tests, warnings, etc. If
+you don’t want your console to be cluttered with such messages, they can
+be turned off by setting argument `messages = FALSE` in the function
+call.
+
+Most functions share a `type` (of test) argument that is helpful to
+specify the type of statistical analysis:
+
+  - `"p"` (for **parametric**)
+  - `"np"` (for **non-parametric**)
+  - `"r"` (for **robust**)
+  - `"bf"` (for **Bayes Factor**)
+
+All relevant functions in `ggstatsplot` have a `return` argument which
+can be used to not only return plots (which is the default), but also to
+return a `subtitle` or `caption`, which are objects of type `call` and
+can be used to display statistical details in conjunction with a custom
+plot and at a custom location in the plot.
+
+Additionally, all functions share the `ggtheme` and `palette` arguments
+that can be used to specify your favorite `ggplot` theme and color
+palette.
 
 # Code coverage
 
@@ -1512,6 +1561,6 @@ By participating in this project you agree to abide by its terms.
 
 # Session Information
 
-For details about the session information in which this `README` file
-was rendered, see-
+For reproducibility purposes, the details about the session information
+in which this document was rendered, see-
 <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/session_info.html>

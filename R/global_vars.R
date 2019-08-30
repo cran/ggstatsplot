@@ -201,7 +201,9 @@ utils::globalVariables(
     "epsilon.squared",
     "condition",
     "main",
-    "pair1"
+    "pair1",
+    "W",
+    "Parameter"
   ),
   package = "ggstatsplot",
   add = FALSE

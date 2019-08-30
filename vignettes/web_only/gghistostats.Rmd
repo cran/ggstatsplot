@@ -120,10 +120,7 @@ that this sample is different.
 
 ## Grouped analysis with `grouped_gghistostats`
 
-What if we want to do the same analysis separately for each gender? In
-that case, we will have to either write a `for` loop or use `purrr`, none of
-which seem like an exciting prospect.
-
+What if we want to do the same analysis separately for each gender? 
 `ggstatsplot` provides a special helper function for such instances:
 `grouped_gghistostats`. This is merely a wrapper function around
 `ggstatsplot::combine_plots`. It applies `gghistostats` across all **levels** of
@@ -197,9 +194,10 @@ of test-
 Type | Effect size | CI?
 ----------- | ------------------------- | --- 
 Parametric | Cohen's *d*, Hedge's *g* (central-and noncentral-*t* distribution based) | <font color="green">Yes<font>
-Non-parametric | *r* (computed as $Z/\sqrt{N}$) | <font color="green">Yes<font>
+Non-parametric | *r* (computed as $Z/\sqrt{N_{obs}}$) | <font color="green">Yes<font>
 Robust | $M_{robust}$ (Robust location measure) | <font color="green">Yes<font>
 Bayes Factor | <font color="red">No<font> | <font color="red">No<font>
+
 
 ## Effect size interpretation
 

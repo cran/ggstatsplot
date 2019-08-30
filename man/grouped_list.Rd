@@ -4,7 +4,7 @@
 \alias{grouped_list}
 \title{Split dataframe into a list by grouping variable.}
 \usage{
-grouped_list(data, grouping.var)
+grouped_list(data, grouping.var = NULL)
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
@@ -22,6 +22,6 @@ element of the list will be a tibble.
 ggstatsplot:::grouped_list(data = ggplot2::msleep, grouping.var = vore)
 }
 \author{
-Indrajeet Patil
+\href{https://github.com/IndrajeetPatil}{Indrajeet Patil}
 }
 \keyword{internal}

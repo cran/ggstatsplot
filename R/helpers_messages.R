@@ -2,7 +2,7 @@
 #' @name normality_message
 #' @description A note to the user about the validity of assumptions for the
 #'   default linear model.
-#' @author Indrajeet Patil
+#' @author \href{https://github.com/IndrajeetPatil}{Indrajeet Patil}
 #'
 #' @param x A numeric vector.
 #' @param lab A character describing label for the variable. If `NULL`, a
@@ -46,34 +46,27 @@ normality_message <- function(x,
   ellipsis::check_dots_used()
 
   # if label is not provided, use generic "x" variable
-  if (is.null(lab)) {
-    lab <- "x"
-  }
+  if (is.null(lab)) lab <- "x"
 
   # works only if sample size is greater than 3 and less than 5000
   if (length(x) > 3 && length(x) < 5000) {
-
     # test object
     sw_norm <- stats::shapiro.test(x)
+    p_value <- sw_norm$p.value[[1]]
 
     # what object to return?
     if (output == "message") {
-
       # exact message
       message(cat(
         crayon::green("Note: "),
-        crayon::blue(
-          "Shapiro-Wilk Normality Test for",
-          crayon::yellow(lab),
-          ": p-value = "
-        ),
-        crayon::yellow(
-          specify_decimal_p(x = sw_norm$p.value[[1]], k = k, p.value = TRUE)
-        ),
+        crayon::blue("Shapiro-Wilk Normality Test for "),
+        crayon::yellow(lab),
+        crayon::blue(": p-value = "),
+        crayon::yellow(specify_decimal_p(x = p_value, k = k, p.value = TRUE)),
         "\n",
         sep = ""
       ))
-    } else if (output %in% c("stats", "tidy")) {
+    } else {
       return(broomExtra::tidy(sw_norm))
     }
   }
@@ -83,7 +76,7 @@ normality_message <- function(x,
 #' @name bartlett_message
 #' @description A note to the user about the validity of assumptions for the
 #'   default linear model.
-#' @author Indrajeet Patil
+#' @author \href{https://github.com/IndrajeetPatil}{Indrajeet Patil}
 #'
 #' @param lab A character describing label for the variable. If `NULL`, variable
 #'   name will be used.
@@ -127,19 +120,21 @@ bartlett_message <- function(data,
                              k = 2,
                              output = "message",
                              ...) {
+  # make sure both quoted and unquoted arguments are supported
+  x <- rlang::ensym(x)
+  y <- rlang::ensym(y)
   ellipsis::check_dots_used()
 
   # if `lab` is not provided, use the variable `x` name
-  if (is.null(lab)) {
-    lab <- rlang::as_name(rlang::ensym(x))
-  }
+  if (is.null(lab)) lab <- rlang::as_name(x)
 
   # running the test
   bartlett <- stats::bartlett.test(
-    formula = rlang::new_formula(rlang::ensym(y), rlang::ensym(x)),
+    formula = rlang::new_formula(y, x),
     data = data,
     na.action = na.omit
   )
+  p_value <- bartlett$p.value[[1]]
 
   # preparing message
   if (output == "message") {
@@ -149,20 +144,18 @@ bartlett_message <- function(data,
       crayon::blue("Bartlett's test for homogeneity of variances for factor "),
       crayon::yellow(lab),
       crayon::blue(": p-value = "),
-      crayon::yellow(
-        specify_decimal_p(x = bartlett$p.value[[1]], k = k, p.value = TRUE)
-      ),
+      crayon::yellow(specify_decimal_p(x = p_value, k = k, p.value = TRUE)),
       "\n",
       sep = ""
     ))
-  } else if (output %in% c("stats", "tidy")) {
+  } else {
     return(broomExtra::tidy(bartlett))
   }
 }
 
 #' @title grouped_message
 #' @description A note to the user about the class of the output object.
-#' @author Indrajeet Patil
+#' @author \href{https://github.com/IndrajeetPatil}{Indrajeet Patil}
 #'
 #' @seealso \code{\link{grouped_ggbetweenstats}},
 #'   \code{\link{grouped_gghistostats}}, \code{\link{grouped_ggscatterstats}},
@@ -184,7 +177,7 @@ grouped_message <- function() {
 
 #' @title Message if palette doesn't have enough number of colors.
 #' @name palette_message
-#' @author Indrajeet Patil
+#' @author \href{https://github.com/IndrajeetPatil}{Indrajeet Patil}
 #' @description A note to the user about not using the default color palette
 #'   when the number of factor levels is greater than 8, the maximum number of
 #'   colors allowed by `"Dark2"` palette from the `RColorBrewer` package.
@@ -208,9 +201,7 @@ grouped_message <- function() {
 #' @keywords internal
 
 # function body
-palette_message <- function(package,
-                            palette,
-                            min_length) {
+palette_message <- function(package, palette, min_length) {
   # computing the number of colors in a given palette
   palette_df <-
     tibble::as_tibble(paletteer::palettes_d_names) %>%
@@ -251,57 +242,4 @@ ggcorrmat_matrix_message <- function() {
       sep = ""
     )
   )
-}
-
-
-#' @title Message to display when bootstrapped confidence intervals are shown
-#'   for effect size measure.
-#' @name effsize_ci_message
-#' @author Indrajeet Patil
-#'
-#' @inheritParams t1way_ci
-#' @family helper_messages
-#' @keywords internal
-
-# displaying message about bootstrap
-effsize_ci_message <- function(nboot = 100, conf.level = 0.95) {
-  message(cat(
-    crayon::green("Note: "),
-    crayon::blue(
-      crayon::yellow(paste(conf.level * 100, "%", sep = "")),
-      "CI for effect size estimate was computed with",
-      crayon::yellow(nboot),
-      "bootstrap samples.\n"
-    ),
-    sep = ""
-  ))
-}
-
-
-#' @title Message about results from a single-sample proportion test.
-#' @name proptest_message
-#' @author Indrajeet Patil
-#'
-#' @param main,condition Character specifying names of variables used for
-#'   contingency table analyses.
-#'
-#' @examples
-#' \donttest{
-#' ggstatsplot:::proptest_message(main = "am", condition = "cyl")
-#' }
-#'
-#' @keywords internal
-
-# function body
-proptest_message <- function(main, condition) {
-  # tell the user what these results are
-  message(cat(
-    crayon::green("Note: "),
-    crayon::blue("Results from one-sample proportion tests for each level of the variable\n"),
-    crayon::yellow(condition),
-    crayon::blue(" testing for equal proportions of the variable "),
-    crayon::yellow(main),
-    crayon::blue(".\n"),
-    sep = ""
-  ))
 }

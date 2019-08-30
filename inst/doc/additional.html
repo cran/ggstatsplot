@@ -13,7 +13,7 @@
 
 <meta name="author" content="Indrajeet Patil" />
 
-<meta name="date" content="2019-07-12" />
+<meta name="date" content="2019-08-30" />
 
 <title>additional vignettes</title>
 
@@ -218,7 +218,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 
 <h1 class="title toc-ignore">additional vignettes</h1>
 <h4 class="author">Indrajeet Patil</h4>
-<h4 class="date">2019-07-12</h4>
+<h4 class="date">2019-08-30</h4>
 
 
 <div id="TOC">
@@ -228,13 +228,16 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <li><a href="#general-vignettes">General vignettes</a></li>
 </ul></li>
 <li><a href="#presentation">Presentation</a></li>
+<li><a href="#components-of-ggstatsplot">Components of <code>ggstatsplot</code></a><ul>
+<li><a href="#statsexpressions"><code>statsExpressions</code></a></li>
+</ul></li>
 <li><a href="#suggestions">Suggestions</a></li>
 </ul>
 </div>
 
 <div id="additional-vignettes" class="section level1">
 <h1>Additional vignettes</h1>
-<p>Due to constraints on the size of the <code>R</code> package, all available vignettes are not included in the package and thus can’t be accessed on <code>CRAN</code>. There are few additional vignettes that are only available on the website for this package:</p>
+<p>Due to constraints on the size of the <code>R</code> package, all available vignettes are only available on the website for this package: <br> <a href="https://indrajeetpatil.github.io/ggstatsplot/articles/" class="uri">https://indrajeetpatil.github.io/ggstatsplot/articles/</a></p>
 <div id="vignettes-for-individual-functions" class="section level2">
 <h2>Vignettes for individual functions</h2>
 <ul>
@@ -242,6 +245,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <li><p><code>ggwithinstats</code>: (<a href="https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggwithinstats.html" class="uri">https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggwithinstats.html</a>)</p></li>
 <li><p><code>ggcorrmat</code>: (<a href="https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html" class="uri">https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html</a>)</p></li>
 <li><p><code>gghistostats</code>: (<a href="https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/gghistostats.html" class="uri">https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/gghistostats.html</a>)</p></li>
+<li><p><code>ggdotplotstats</code>: (<a href="https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggdotplotstats.html" class="uri">https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggdotplotstats.html</a>)</p></li>
 <li><p><code>ggpiestats</code>: (<a href="https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html" class="uri">https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html</a>)</p></li>
 <li><p><code>ggscatterstats</code>: (<a href="https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggscatterstats.html" class="uri">https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggscatterstats.html</a>)</p></li>
 <li><p><code>ggcoefstats</code>: (<a href="https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcoefstats.html" class="uri">https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcoefstats.html</a>)</p></li>
@@ -252,7 +256,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <div id="general-vignettes" class="section level2">
 <h2>General vignettes</h2>
 <ul>
-<li><p>Introduction to <code>ggstatsplot</code> (publication describing philosophy and principles behind this package): (<a href="https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggstatsplot_paper.html" class="uri">https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggstatsplot_paper.html</a>)</p></li>
+<li><p>Introduction to <code>ggstatsplot</code> (publication describing philosophy and principles behind this package): (<a href="https://github.com/IndrajeetPatil/ggstatsplot/blob/master/paper/paper.pdf" class="uri">https://github.com/IndrajeetPatil/ggstatsplot/blob/master/paper/paper.pdf</a>)</p></li>
 <li><p>Interpreting effect sizes for different tests: (<a href="https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/effsize_interpretation.html" class="uri">https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/effsize_interpretation.html</a>)</p></li>
 <li><p>Gallery of <code>ggstatsplot</code> examples (shows how <code>ggstatsplot</code> can be further modified using <code>ggplot2</code> functions): (<a href="https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/gallery.html" class="uri">https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/gallery.html</a>)</p></li>
 <li><p>Examples illustrating how to use functional programming package like <code>purrr</code> to extend <code>ggstatsplot</code> functionality- (<a href="https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/purrr_examples.html" class="uri">https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/purrr_examples.html</a>)</p></li>
@@ -264,6 +268,14 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <div id="presentation" class="section level1">
 <h1>Presentation</h1>
 <p>In addition to these vignettes, another quick way to get an overview of this package is to go through the following slides: <a href="https://indrajeetpatil.github.io/ggstatsplot_slides/slides/ggstatsplot_presentation.html#1" class="uri">https://indrajeetpatil.github.io/ggstatsplot_slides/slides/ggstatsplot_presentation.html#1</a></p>
+</div>
+<div id="components-of-ggstatsplot" class="section level1">
+<h1>Components of <code>ggstatsplot</code></h1>
+<p>To make the maintenance and development of <code>ggstatsplot</code> more manageable, it is being broken into smaller pieces.</p>
+<div id="statsexpressions" class="section level2">
+<h2><code>statsExpressions</code></h2>
+<p>The statistical backend that processes data and creates expressions containing results from statistical tests is <code>statsExpressions</code>. For more exhaustive documentation for this package, see: <a href="https://indrajeetpatil.github.io/statsExpressions/" class="uri">https://indrajeetpatil.github.io/statsExpressions/</a></p>
+</div>
 </div>
 <div id="suggestions" class="section level1">
 <h1>Suggestions</h1>

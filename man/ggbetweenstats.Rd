@@ -7,7 +7,7 @@ between-subjects designs.}
 \usage{
 ggbetweenstats(data, x, y, plot.type = "boxviolin",
   type = "parametric", pairwise.comparisons = FALSE,
-  pairwise.annotation = "asterisk", pairwise.display = "significant",
+  pairwise.annotation = "p.value", pairwise.display = "significant",
   p.adjust.method = "holm", effsize.type = "unbiased",
   partial = TRUE, effsize.noncentral = TRUE, bf.prior = 0.707,
   bf.message = TRUE, results.subtitle = TRUE, xlab = NULL,
@@ -46,12 +46,12 @@ or \code{"robust"} or \code{"bayes"}).Corresponding abbreviations are also accep
 \code{"bf"}resp.}
 
 \item{pairwise.comparisons}{Logical that decides whether pairwise comparisons
-are to be displayed. \strong{Only significant comparisons} will be shown by
-default. (default: \code{FALSE}). To change this behavior, select appropriate
-option with \code{pairwise.display} argument.}
+are to be displayed (default: \code{FALSE}). Please note that \strong{only significant
+comparisons} will be shown by default. To change this behavior, select
+appropriate option with \code{pairwise.display} argument.}
 
 \item{pairwise.annotation}{Character that decides the annotations to use for
-pairwise comparisons. Either \code{"p.value"} or \code{"asterisk"} (default).}
+pairwise comparisons. Either \code{"p.value"} (default) or \code{"asterisk"}.}
 
 \item{pairwise.display}{Decides which pairwise comparisons to display.
 Available options are \code{"significant"} (abbreviation accepted: \code{"s"}) or
@@ -164,11 +164,12 @@ of line to draw box plots (Default: \code{"solid"}). Alternatively, the numbers
 \code{FALSE}).}
 
 \item{outlier.shape}{Hiding the outliers can be achieved by setting
-outlier.shape = NA. Importantly, this does not remove the outliers,
-it only hides them, so the range calculated for the y-axis will be
+\code{outlier.shape = NA}. Importantly, this does not remove the outliers,
+it only hides them, so the range calculated for the \code{y}-axis will be
 the same with outliers shown and outliers hidden.}
 
-\item{outlier.label}{Label to put on the outliers that have been tagged.}
+\item{outlier.label}{Label to put on the outliers that have been tagged. This
+\strong{can't} be the same as \code{x} argument.}
 
 \item{outlier.label.color}{Color for the label to to put on the outliers that
 have been tagged (Default: \code{"black"}).}
@@ -183,8 +184,8 @@ Quartile) \code{outlier.coef} times the Inter-Quartile Range (IQR) (Default:
 \item{mean.plotting}{Logical that decides whether mean is to be highlighted
 and its value to be displayed (Default: \code{TRUE}).}
 
-\item{mean.ci}{Logical that decides whether 95% confidence interval for mean
-is to be displayed (Default: \code{FALSE}).}
+\item{mean.ci}{Logical that decides whether \code{95\%} confidence interval for
+mean is to be displayed (Default: \code{FALSE}).}
 
 \item{mean.size}{Point size for the data point corresponding to mean
 (Default: \code{5}).}
@@ -208,7 +209,8 @@ extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
 
 \item{ggstatsplot.layer}{Logical that decides whether \code{theme_ggstatsplot}
 theme elements are to be displayed along with the selected \code{ggtheme}
-(Default: \code{TRUE}).}
+(Default: \code{TRUE}). \code{theme_ggstatsplot} is an opinionated theme layer that
+override some aspects of the selected \code{ggtheme}.}
 
 \item{package}{Name of package from which the palette is desired as string
 or symbol.}
@@ -223,16 +225,16 @@ type. Default palette is \code{"Dark2"}.}
 by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
 of the current function. Default is \code{NULL}. The argument should be entered
 as a function. If the given function has an argument \code{axes.range.restrict}
-and if it has been set to \code{TRUE}, the added ggplot component \emph{might} not
+and if it has been set to \code{TRUE}, the added \code{ggplot} component \emph{might} not
 work as expected.}
 
 \item{return}{Character that describes what is to be returned: can be
 \code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
-\code{"subtitle"} will return the expression containing statistical results,
-which will be a \code{NULL} if you set \code{results.subtitle = FALSE}. Setting this
-to \code{"caption"} will return the expression containing details about Bayes
-Factor analysis, but valid only when \code{type = "p"} and \code{bf.message = TRUE},
-otherwise this will return a \code{NULL}.}
+\code{"subtitle"} will return the expression containing statistical results. If
+you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
+Setting this to \code{"caption"} will return the expression containing details
+about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
+\code{bf.message = TRUE}, otherwise this will return a \code{NULL}.}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
@@ -264,7 +266,7 @@ their confidence intervals are computed, see \code{?rcompanion::wilcoxonR}.
 For repeated measures designs, use \code{ggwithinstats}.
 }
 \examples{
-
+\donttest{
 # to get reproducible results from bootstrapping
 set.seed(123)
 library(ggstatsplot)
@@ -277,7 +279,7 @@ ggstatsplot::ggbetweenstats(
   title = "Fuel efficiency by type of car transmission",
   caption = "Transmission (0 = automatic, 1 = manual)"
 )
-\donttest{
+
 # more detailed function call
 ggstatsplot::ggbetweenstats(
   data = datasets::morley,
@@ -304,8 +306,8 @@ ggstatsplot::ggbetweenstats(
 }
 \seealso{
 \code{\link{grouped_ggbetweenstats}}, \code{\link{ggwithinstats}},
-\code{\link{grouped_ggwithinstats}}, \code{\link{pairwise_p}}
+\code{\link{grouped_ggwithinstats}}
 }
 \author{
-Indrajeet Patil
+\href{https://github.com/IndrajeetPatil}{Indrajeet Patil}
 }

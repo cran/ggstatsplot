@@ -20,7 +20,7 @@ grouped_ggbarstats(data, main, condition, counts = NULL, grouping.var,
   bar.proptest = TRUE, ggtheme = ggplot2::theme_bw(),
   ggstatsplot.layer = TRUE, package = "RColorBrewer",
   palette = "Dark2", direction = 1, ggplot.component = NULL,
-  return = "plot", messages = TRUE, ...)
+  return = "plot", messages = TRUE, x = NULL, y = NULL, ...)
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
@@ -30,7 +30,7 @@ be taken. A matrix or tables will \strong{not} be accepted.}
 
 \item{condition}{The variable to use as the \strong{columns} in the contingency
 table. Default is \code{NULL}. If \code{NULL}, one-sample proportion test (a goodness
-of fit test) will be run for the \code{main} variable. Otherwise an appropriate
+of fit test) will be run for the \code{x} variable. Otherwise an appropriate
 association test will be run.}
 
 \item{counts}{A string naming a variable in data containing counts, or \code{NULL}
@@ -59,7 +59,7 @@ to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, on
 the plot will be returned.}
 
 \item{labels.legend}{A character vector with custom labels for levels of
-the \code{main} variable displayed in the legend.}
+the \code{x} variable displayed in the legend.}
 
 \item{stat.title}{Title for the effect being investigated with the chi-square
 test. The default is \code{NULL}, i.e. no title will be added to describe the
@@ -67,7 +67,7 @@ effect being shown. An example of a \code{stat.title} argument will be something
 like \code{"main x condition"} or \code{"interaction"}.}
 
 \item{sample.size.label}{Logical that decides whether sample size information
-should be displayed for each level of the grouping variable \code{condition}
+should be displayed for each level of the grouping variable \code{y}
 (Default: \code{TRUE}).}
 
 \item{label.separator}{If \code{"both"} counts and proportion information is to be
@@ -88,7 +88,7 @@ labels (Default: \code{white}).}
 \code{"black"}).}
 
 \item{bf.message}{Logical that decides whether to display a caption with
-results from bayes factor test in favor of the null hypothesis (default:
+results from Bayes Factor test in favor of the null hypothesis (default:
 \code{FALSE}).}
 
 \item{sampling.plan}{Character describing the sampling plan. Possible options
@@ -134,7 +134,7 @@ for the effect size (Default: \code{100}).}
 \item{legend.title}{Title text for the legend.}
 
 \item{xlab}{Custom text for the \code{x} axis label (Default: \code{NULL}, which
-will cause the \code{x} axis label to be the \code{main} variable).}
+will cause the \code{x} axis label to be the \code{x} variable).}
 
 \item{ylab}{Custom text for the \code{y} axis label (Default: \code{"percent"}).}
 
@@ -153,7 +153,7 @@ displayed on the label in each pie slice. Possible options are
 \code{"percentage"} (default), \code{"counts"}, \code{"both"}.}
 
 \item{bar.proptest}{Decides whether proportion test for \code{main} variable is
-to be carried out for each level of \code{condition} (Default: \code{TRUE}).}
+to be carried out for each level of \code{y} (Default: \code{TRUE}).}
 
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
 \code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
@@ -162,7 +162,8 @@ extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
 
 \item{ggstatsplot.layer}{Logical that decides whether \code{theme_ggstatsplot}
 theme elements are to be displayed along with the selected \code{ggtheme}
-(Default: \code{TRUE}).}
+(Default: \code{TRUE}). \code{theme_ggstatsplot} is an opinionated theme layer that
+override some aspects of the selected \code{ggtheme}.}
 
 \item{package}{Name of package from which the palette is desired as string
 or symbol.}
@@ -177,19 +178,26 @@ type. Default palette is \code{"Dark2"}.}
 by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
 of the current function. Default is \code{NULL}. The argument should be entered
 as a function. If the given function has an argument \code{axes.range.restrict}
-and if it has been set to \code{TRUE}, the added ggplot component \emph{might} not
+and if it has been set to \code{TRUE}, the added \code{ggplot} component \emph{might} not
 work as expected.}
 
 \item{return}{Character that describes what is to be returned: can be
 \code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
-\code{"subtitle"} will return the expression containing statistical results,
-which will be a \code{NULL} if you set \code{results.subtitle = FALSE}. Setting this
-to \code{"caption"} will return the expression containing details about Bayes
-Factor analysis, but valid only when \code{type = "p"} and \code{bf.message = TRUE},
-otherwise this will return a \code{NULL}.}
+\code{"subtitle"} will return the expression containing statistical results. If
+you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
+Setting this to \code{"caption"} will return the expression containing details
+about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
+\code{bf.message = TRUE}, otherwise this will return a \code{NULL}.}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
+
+\item{x}{The variable to use as the \strong{rows} in the contingency table.}
+
+\item{y}{The variable to use as the \strong{columns} in the contingency
+table. Default is \code{NULL}. If \code{NULL}, one-sample proportion test (a goodness
+of fit test) will be run for the \code{x} variable. Otherwise an appropriate
+association test will be run.}
 
 \item{...}{Arguments passed on to \code{combine_plots}
 \describe{
@@ -266,8 +274,8 @@ library(jmv)
 
 ggstatsplot::grouped_ggbarstats(
   data = as.data.frame(HairEyeColor),
-  main = Hair,
-  condition = Eye,
+  x = Hair,
+  y = Eye,
   counts = Freq,
   grouping.var = Sex
 )
@@ -285,8 +293,8 @@ diamonds_short <- ggplot2::diamonds \%>\%
 # plot
 ggstatsplot::grouped_ggbarstats(
   data = diamonds_short,
-  main = color,
-  condition = clarity,
+  x = color,
+  y = clarity,
   grouping.var = cut,
   sampling.plan = "poisson",
   title.prefix = "Quality",

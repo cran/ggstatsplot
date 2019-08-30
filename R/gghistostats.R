@@ -31,7 +31,7 @@
 #'   and explore multiple widths to find the best to illustrate the stories in
 #'   your data.
 #' @inheritParams theme_ggstatsplot
-#' @inheritParams subtitle_t_onesample
+#' @inheritParams statsExpressions::expr_t_onesample
 #' @inheritParams histo_labeller
 #' @inheritParams ggbetweenstats
 #'
@@ -46,6 +46,10 @@
 #' @importFrom scales percent percent_format
 #' @importFrom stats dnorm
 #' @importFrom crayon green blue yellow red
+#' @importFrom statsExpressions expr_t_onesample bf_ttest
+#'
+#' @references
+#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/gghistostats.html}
 #'
 #' @examples
 #'
@@ -71,9 +75,6 @@
 #'   binwidth = 0.10,
 #'   bar.fill = "grey50"
 #' )
-#' @references
-#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/gghistostats.html}
-#'
 #' @export
 
 # function body
@@ -130,15 +131,21 @@ gghistostats <- function(data,
     xlab <- rlang::as_name(rlang::ensym(x))
   }
 
+  # to ensure that x will be read irrespective of whether it is quoted or unquoted
+  x <- rlang::ensym(x)
+
   # if dataframe is provided
-  data <-
-    dplyr::select(.data = data, x = {{ x }}) %>%
+  df <-
+    dplyr::select(.data = data, {{ x }}) %>%
     tidyr::drop_na(data = .) %>%
     tibble::as_tibble(x = .)
 
+  # column as a vector
+  x_vec <- df %>% dplyr::pull({{ x }})
+
   # Adding some binwidth sanity checking
   if (is.null(binwidth)) {
-    binwidth <- (max(data$x) - min(data$x)) / sqrt(length(data$x))
+    binwidth <- (max(x_vec) - min(x_vec)) / sqrt(length(x_vec))
   }
 
   # ================ stats labels ==========================================
@@ -147,9 +154,9 @@ gghistostats <- function(data,
     # preparing the BF message for NULL
     if (isTRUE(bf.message)) {
       bf.caption.text <-
-        bf_ttest(
-          data = data,
-          x = x,
+        statsExpressions::bf_ttest(
+          data = df,
+          x = {{ x }},
           y = NULL,
           test.value = test.value,
           bf.prior = bf.prior,
@@ -161,9 +168,9 @@ gghistostats <- function(data,
 
     # preparing the subtitle with statistical results
     subtitle <-
-      subtitle_t_onesample(
-        data = data,
-        x = x,
+      statsExpressions::expr_t_onesample(
+        data = df,
+        x = {{ x }},
         type = type,
         test.value = test.value,
         bf.prior = bf.prior,
@@ -179,10 +186,15 @@ gghistostats <- function(data,
       )
   }
 
+  # quit early if only subtitle is needed
+  if (return == "subtitle") {
+    return(subtitle)
+  }
+
   # ============================= plot ====================================
 
   # if no color fill is to be displayed, set low and high color to white
-  if (!isTRUE(fill.gradient)) {
+  if (isFALSE(fill.gradient)) {
     low.color <- bar.fill
     high.color <- bar.fill
   }
@@ -192,10 +204,8 @@ gghistostats <- function(data,
 
   # only counts
   if (bar.measure %in% c("counts", "n", "count", "N")) {
-    plot <- ggplot2::ggplot(
-      data = data,
-      mapping = ggplot2::aes(x = x)
-    ) +
+    plot <-
+      ggplot2::ggplot(data = df, mapping = ggplot2::aes(x = {{ x }})) +
       ggplot2::stat_bin(
         col = "black",
         alpha = 0.7,
@@ -215,10 +225,8 @@ gghistostats <- function(data,
 
   # only proportion
   if (bar.measure %in% c("percentage", "perc", "proportion", "prop", "%")) {
-    plot <- ggplot2::ggplot(
-      data = data,
-      mapping = ggplot2::aes(x = x)
-    ) +
+    plot <-
+      ggplot2::ggplot(data = df, mapping = ggplot2::aes(x = {{ x }})) +
       ggplot2::stat_bin(
         col = "black",
         alpha = 0.7,
@@ -241,10 +249,8 @@ gghistostats <- function(data,
 
   # only density
   if (bar.measure == "density") {
-    plot <- ggplot2::ggplot(
-      data = data,
-      mapping = ggplot2::aes(x = x)
-    ) +
+    plot <-
+      ggplot2::ggplot(data = df, mapping = ggplot2::aes(x = {{ x }})) +
       ggplot2::stat_bin(
         col = "black",
         alpha = 0.7,
@@ -264,10 +270,8 @@ gghistostats <- function(data,
 
   # all things combined
   if (bar.measure %in% c("both", "mix", "all", "everything")) {
-    plot <- ggplot2::ggplot(
-      data = data,
-      mapping = ggplot2::aes(x = x)
-    ) +
+    plot <-
+      ggplot2::ggplot(data = df, mapping = ggplot2::aes(x = {{ x }})) +
       ggplot2::stat_bin(
         col = "black",
         alpha = 0.7,
@@ -285,7 +289,7 @@ gghistostats <- function(data,
       ) +
       ggplot2::scale_y_continuous(
         sec.axis = ggplot2::sec_axis(
-          trans = ~ . / nrow(data),
+          trans = ~ . / nrow(df),
           labels = scales::percent_format(accuracy = 1),
           name = "proportion"
         )
@@ -307,7 +311,7 @@ gghistostats <- function(data,
           color = normal.curve.color,
           size = normal.curve.size,
           na.rm = TRUE,
-          args = list(mean = mean(data$x), sd = sd(data$x))
+          args = list(mean = mean(x_vec), sd = sd(x_vec))
         )
     }
 
@@ -323,9 +327,9 @@ gghistostats <- function(data,
           size = normal.curve.size,
           na.rm = TRUE,
           args = c(
-            mean = mean(data$x),
-            sd = sd(data$x),
-            n = length(data$x),
+            mean = mean(x_vec),
+            sd = sd(x_vec),
+            n = length(x_vec),
             bw = binwidth
           )
         )
@@ -343,9 +347,9 @@ gghistostats <- function(data,
           size = normal.curve.size,
           na.rm = TRUE,
           args = c(
-            mean = mean(data$x),
-            sd = sd(data$x),
-            n = length(data$x),
+            mean = mean(x_vec),
+            sd = sd(x_vec),
+            n = length(x_vec),
             bw = binwidth
           )
         )
@@ -382,7 +386,7 @@ gghistostats <- function(data,
   # using custom function for adding labels
   plot <- histo_labeller(
     plot = plot,
-    x = data$x,
+    x = x_vec,
     y.label.position = y_label_pos,
     centrality.para = centrality.para,
     centrality.color = centrality.color,
@@ -400,7 +404,7 @@ gghistostats <- function(data,
   )
 
   # if no color fill gradient is used, then remove the legend
-  if (!isTRUE(fill.gradient)) {
+  if (isFALSE(fill.gradient)) {
     plot <- plot + ggplot2::theme(legend.position = "none")
   }
 
@@ -415,7 +419,7 @@ gghistostats <- function(data,
   # display normality test result as a message
   if (isTRUE(messages)) {
     normality_message(
-      x = data$x,
+      x = x_vec,
       lab = xlab,
       k = k,
       output = "message"

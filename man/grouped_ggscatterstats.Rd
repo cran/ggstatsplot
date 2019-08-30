@@ -5,9 +5,9 @@
 \title{Scatterplot with marginal distributions for all levels of a grouping
 variable}
 \usage{
-grouped_ggscatterstats(data, x, y, type = "pearson", conf.level = 0.95,
-  bf.prior = 0.707, bf.message = TRUE, label.var = NULL,
-  label.expression = NULL, grouping.var, title.prefix = NULL,
+grouped_ggscatterstats(data, x, y, grouping.var, type = "pearson",
+  conf.level = 0.95, bf.prior = 0.707, bf.message = TRUE,
+  label.var = NULL, label.expression = NULL, title.prefix = NULL,
   xlab = NULL, ylab = NULL, method = "lm", method.args = list(),
   formula = y ~ x, point.color = "black", point.size = 3,
   point.alpha = 0.4, line.size = 1.5, point.width.jitter = 0,
@@ -27,12 +27,15 @@ grouped_ggscatterstats(data, x, y, type = "pearson", conf.level = 0.95,
 be taken. A matrix or tables will \strong{not} be accepted.}
 
 \item{x}{The column in \code{data} containing the explanatory variable to be
-plotted on the x axis. Can be entered either as
-a character string (e.g., \code{"x"}) or as a bare expression (e.g, \code{x}).}
+plotted on the \code{x}-axis. Can be entered either as a character string (e.g.,
+\code{"x"}) or as a bare expression (e.g, \code{x}).}
 
 \item{y}{The column in \code{data} containing the response (outcome) variable to
-be plotted on the y axis. Can be entered either as
-a character string (e.g., \code{"y"}) or as a bare expression (e.g, \code{y}).}
+be plotted on the \code{y}-axis. Can be entered either as a character string
+(e.g., \code{"y"}) or as a bare expression (e.g, \code{y}).}
+
+\item{grouping.var}{A single grouping variable (can be entered either as a
+bare name \code{x} or as a string \code{"x"}).}
 
 \item{type}{Type of association between paired samples required
 ("\code{"parametric"}: Pearson's product moment correlation coefficient" or
@@ -45,8 +48,8 @@ parametric/pearson's), \code{"np"} (nonparametric/spearman), \code{"r"} (robust)
 \item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
 \code{95\%} lower and upper confidence intervals (\code{0.95}).}
 
-\item{bf.prior}{A number between 0.5 and 2 (default \code{0.707}), the prior width
-to use in calculating Bayes factors.}
+\item{bf.prior}{A numeric value between \code{0.5} and \code{2} (default \code{0.707}), the
+prior width to use in calculating Bayes Factors.}
 
 \item{bf.message}{Logical that decides whether to display Bayes Factor in
 favor of the \emph{null} hypothesis. This argument is relevant only \strong{for
@@ -59,9 +62,6 @@ a character string (e.g., \code{"var1"}) or as a bare expression (e.g, \code{var
 determines the subset of data points to label. This argument can be entered
 either as a character string (e.g., \code{"y < 4 & z < 20"}) or as a bare
 expression (e.g., \code{y < 4 & z < 20}).}
-
-\item{grouping.var}{A single grouping variable (can be entered either as a
-bare name \code{x} or as a string \code{"x"}).}
 
 \item{title.prefix}{Character string specifying the prefix text for the fixed
 plot title (name of each factor level) (Default: \code{NULL}). If \code{NULL}, the
@@ -78,7 +78,7 @@ e.g. \code{"auto"}, \code{"lm"}, \code{"glm"}, \code{"gam"}, \code{"loess"} or a
 \code{MASS::rlm} or \code{mgcv::gam}, \code{stats::lm}, or \code{stats::loess}.
 
 For \code{method = "auto"} the smoothing method is chosen based on the
-size of the largest group (across all panels). \code{\link[=loess]{loess()}} is
+size of the largest group (across all panels). \code{\link[stats:loess]{stats::loess()}} is
 used for less than 1,000 observations; otherwise \code{\link[mgcv:gam]{mgcv::gam()}} is
 used with \code{formula = y ~ s(x, bs = "cs")}. Somewhat anecdotally,
 \code{loess} gives a better appearance, but is \eqn{O(N^{2})}{O(N^2)} in memory,
@@ -196,22 +196,23 @@ extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
 
 \item{ggstatsplot.layer}{Logical that decides whether \code{theme_ggstatsplot}
 theme elements are to be displayed along with the selected \code{ggtheme}
-(Default: \code{TRUE}).}
+(Default: \code{TRUE}). \code{theme_ggstatsplot} is an opinionated theme layer that
+override some aspects of the selected \code{ggtheme}.}
 
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
 by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
 of the current function. Default is \code{NULL}. The argument should be entered
 as a function. If the given function has an argument \code{axes.range.restrict}
-and if it has been set to \code{TRUE}, the added ggplot component \emph{might} not
+and if it has been set to \code{TRUE}, the added \code{ggplot} component \emph{might} not
 work as expected.}
 
 \item{return}{Character that describes what is to be returned: can be
 \code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
-\code{"subtitle"} will return the expression containing statistical results,
-which will be a \code{NULL} if you set \code{results.subtitle = FALSE}. Setting this
-to \code{"caption"} will return the expression containing details about Bayes
-Factor analysis, but valid only when \code{type = "p"} and \code{bf.message = TRUE},
-otherwise this will return a \code{NULL}.}
+\code{"subtitle"} will return the expression containing statistical results. If
+you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
+Setting this to \code{"caption"} will return the expression containing details
+about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
+\code{bf.message = TRUE}, otherwise this will return a \code{NULL}.}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
@@ -271,7 +272,6 @@ histograms/boxplots/density plots with statistical details added as a
 subtitle.
 }
 \examples{
-
 \donttest{
 # to ensure reproducibility
 set.seed(123)
@@ -335,5 +335,5 @@ ggstatsplot::grouped_ggscatterstats(
 \code{\link{grouped_ggcorrmat}}
 }
 \author{
-Indrajeet Patil, Chuck Powell
+Indrajeet Patil
 }

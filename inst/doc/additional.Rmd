@@ -32,8 +32,8 @@ knitr::opts_chunk$set(
 # Additional vignettes
 
 Due to constraints on the size of the `R` package, all available vignettes are
-not included in the package and thus can't be accessed on `CRAN`. There are few
-additional vignettes that are only available on the website for this package:
+only available on the website for this package: <br>
+<https://indrajeetpatil.github.io/ggstatsplot/articles/>
 
 ## Vignettes for individual functions
 
@@ -47,7 +47,10 @@ additional vignettes that are only available on the website for this package:
     (<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html>)
     
   - `gghistostats`:
-    (<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/gghistostats.html>)    
+    (<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/gghistostats.html>)  
+  
+  - `ggdotplotstats`:
+    (<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggdotplotstats.html>)    
 
   - `ggpiestats`:
     (<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html>)
@@ -70,7 +73,7 @@ additional vignettes that are only available on the website for this package:
 
   - Introduction to `ggstatsplot` (publication describing philosophy and
     principles behind this package):
-    (<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggstatsplot_paper.html>)
+    (<https://github.com/IndrajeetPatil/ggstatsplot/blob/master/paper/paper.pdf>)
     
   - Interpreting effect sizes for different tests:
     (<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/effsize_interpretation.html>)
@@ -95,6 +98,18 @@ additional vignettes that are only available on the website for this package:
 In addition to these vignettes, another quick way to get an overview of this
 package is to go through the following slides:
 <https://indrajeetpatil.github.io/ggstatsplot_slides/slides/ggstatsplot_presentation.html#1>
+
+# Components of `ggstatsplot`
+
+To make the maintenance and development of `ggstatsplot` more manageable, it is
+being broken into smaller pieces.
+
+## `statsExpressions`
+
+The statistical backend that processes data and creates expressions containing
+results from statistical tests is `statsExpressions`. For more exhaustive
+documentation for this package, see:
+<https://indrajeetpatil.github.io/statsExpressions/>
 
 # Suggestions
 

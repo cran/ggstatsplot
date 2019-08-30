@@ -5,12 +5,11 @@
 #'   grouping variable.
 #' @author Indrajeet Patil, Chuck Powell
 #'
-#' @param grouping.var A single grouping variable (can be entered either as a
-#'   bare name `x` or as a string `"x"`).
 #' @param title.prefix Character string specifying the prefix text for the fixed
 #'   plot title (name of each factor level) (Default: `NULL`). If `NULL`, the
 #'   variable name entered for `grouping.var` will be used.
 #' @inheritParams ggbetweenstats
+#' @inheritParams grouped_list
 #' @inheritDotParams combine_plots
 #'
 #' @import ggplot2
@@ -18,7 +17,6 @@
 #' @importFrom dplyr select bind_rows summarize mutate mutate_at mutate_if
 #' @importFrom dplyr group_by n arrange
 #' @importFrom rlang !! enquo quo_name ensym
-#' @importFrom glue glue
 #' @importFrom purrr pmap
 #'
 #' @seealso \code{\link{ggbetweenstats}}, \code{\link{ggwithinstats}},
@@ -28,7 +26,7 @@
 #' @inherit ggbetweenstats return details
 #'
 #' @examples
-#'
+#' \donttest{
 #' # to get reproducible results from bootstrapping
 #' set.seed(123)
 #'
@@ -40,7 +38,7 @@
 #'   grouping.var = drv,
 #'   conf.level = 0.99
 #' )
-#' \donttest{
+#'
 #' # modifying individual plots using `ggplot.component` argument
 #' ggstatsplot::grouped_ggbetweenstats(
 #'   data = dplyr::filter(
@@ -68,7 +66,7 @@ grouped_ggbetweenstats <- function(data,
                                    plot.type = "boxviolin",
                                    type = "parametric",
                                    pairwise.comparisons = FALSE,
-                                   pairwise.annotation = "asterisk",
+                                   pairwise.annotation = "p.value",
                                    pairwise.display = "significant",
                                    p.adjust.method = "holm",
                                    effsize.type = "unbiased",
@@ -145,12 +143,15 @@ grouped_ggbetweenstats <- function(data,
   }
 
   # ensure the grouping variable works quoted or unquoted
+  x <- rlang::ensym(x)
+  y <- rlang::ensym(y)
   grouping.var <- rlang::ensym(grouping.var)
+  outlier.label <- if (!rlang::quo_is_null(rlang::enquo(outlier.label))) {
+    rlang::ensym(outlier.label)
+  }
 
   # if `title.prefix` is not provided, use the variable `grouping.var` name
-  if (is.null(title.prefix)) {
-    title.prefix <- rlang::as_name(grouping.var)
-  }
+  if (is.null(title.prefix)) title.prefix <- rlang::as_name(grouping.var)
 
   # ======================== preparing dataframe ==========================
 
@@ -167,45 +168,16 @@ grouped_ggbetweenstats <- function(data,
     tidyr::drop_na(data = .) %>% # creating a list for grouped analysis
     grouped_list(data = ., grouping.var = {{ grouping.var }})
 
-  # ============== build pmap list based on conditions =====================
-
-  if (!"outlier.tagging" %in% names(param_list) || isFALSE(outlier.tagging)) {
-    flexiblelist <- list(
-      data = df,
-      x = rlang::quo_text(rlang::ensym(x)),
-      y = rlang::quo_text(rlang::ensym(y)),
-      title = glue::glue("{title.prefix}: {names(df)}")
-    )
-  }
-
-  if (isTRUE(outlier.tagging) && !"outlier.label" %in% names(param_list)) {
-    flexiblelist <- list(
-      data = df,
-      x = rlang::quo_text(rlang::ensym(x)),
-      y = rlang::quo_text(rlang::ensym(y)),
-      outlier.tagging = TRUE,
-      title = glue::glue("{title.prefix}: {names(df)}")
-    )
-  }
-
-  if (isTRUE(outlier.tagging) && "outlier.label" %in% names(param_list)) {
-    flexiblelist <- list(
-      data = df,
-      x = rlang::quo_text(rlang::ensym(x)),
-      y = rlang::quo_text(rlang::ensym(y)),
-      outlier.label = rlang::quo_text(rlang::ensym(outlier.label)),
-      outlier.tagging = TRUE,
-      title = glue::glue("{title.prefix}: {names(df)}")
-    )
-  }
-
   # ============== creating a list of plots using `pmap`=======================
 
   plotlist_purrr <-
     purrr::pmap(
-      .l = flexiblelist,
+      .l = list(data = df, title = paste(title.prefix, ": ", names(df), sep = "")),
       .f = ggstatsplot::ggbetweenstats,
       # put common parameters here
+      x = {{ x }},
+      y = {{ y }},
+      outlier.label = {{ outlier.label }},
       plot.type = plot.type,
       type = type,
       pairwise.comparisons = pairwise.comparisons,
@@ -239,6 +211,7 @@ grouped_ggbetweenstats <- function(data,
       notchwidth = notchwidth,
       linetype = linetype,
       outlier.label.color = outlier.label.color,
+      outlier.tagging = outlier.tagging,
       outlier.color = outlier.color,
       outlier.shape = outlier.shape,
       outlier.coef = outlier.coef,
@@ -260,21 +233,11 @@ grouped_ggbetweenstats <- function(data,
     )
 
   # combining the list of plots into a single plot
+  # inform user this can't be modified further with ggplot commands
   if (return == "plot") {
-    combined_object <-
-      ggstatsplot::combine_plots(
-        plotlist = plotlist_purrr,
-        ...
-      )
-
-    # inform user this can't be modified further with ggplot commands
-    if (isTRUE(messages)) {
-      grouped_message()
-    }
+    if (isTRUE(messages)) grouped_message()
+    return(ggstatsplot::combine_plots(plotlist = plotlist_purrr, ...))
   } else {
-    combined_object <- plotlist_purrr
+    return(plotlist_purrr)
   }
-
-  # return the combined plot
-  return(combined_object)
 }

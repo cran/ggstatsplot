@@ -12,9 +12,8 @@
 #'
 #' @importFrom dplyr select bind_rows summarize mutate mutate_at mutate_if
 #' @importFrom dplyr group_by n arrange
-#' @importFrom rlang !! enquo quo_name ensym
-#' @importFrom glue glue
-#' @importFrom purrr map set_names %||%
+#' @importFrom rlang !! enquo quo_name ensym %||%
+#' @importFrom purrr map
 #'
 #' @seealso \code{\link{ggcorrmat}}, \code{\link{ggscatterstats}},
 #'   \code{\link{grouped_ggscatterstats}}
@@ -23,7 +22,7 @@
 #' @inherit ggcorrmat return details
 #'
 #' @examples
-#'
+#' \donttest{
 #' # for reproducibility
 #' set.seed(123)
 #'
@@ -65,6 +64,7 @@
 #'   cor.vars = Sepal.Length:Petal.Width,
 #'   output = "ci"
 #' )
+#' }
 #' @export
 
 # defining the function
@@ -126,37 +126,27 @@ grouped_ggcorrmat <- function(data,
   grouping.var <- rlang::ensym(grouping.var)
 
   # if `title.prefix` is not provided, use the variable `grouping.var` name
-  if (is.null(title.prefix)) {
-    title.prefix <- rlang::as_name(grouping.var)
-  }
+  if (is.null(title.prefix)) title.prefix <- rlang::as_name(grouping.var)
 
   # getting the dataframe ready
   if ("cor.vars" %in% names(param_list)) {
-    df <- dplyr::select(.data = data, {{ grouping.var }}, {{ cor.vars }})
-  } else {
-    df <- data
+    data %<>% dplyr::select(.data = ., {{ grouping.var }}, {{ cor.vars }})
   }
 
   # creating a list for grouped analysis
-  df %<>%
-    grouped_list(data = ., grouping.var = {{ grouping.var }})
-
-  # list with basic arguments
-  flexiblelist <- list(
-    data = df,
-    title = glue::glue("{title.prefix}: {names(df)}")
-  )
+  df <- grouped_list(data = data, grouping.var = {{ grouping.var }})
 
   # ===================== grouped analysis ===================================
 
   # see which method was used to specify type of correlation
   corr.method <- type %||% corr.method
   digits <- k %||% digits
+  output <- return %||% output
 
   # creating a list of results
   plotlist_purrr <-
     purrr::pmap(
-      .l = flexiblelist,
+      .l = list(data = df, title = paste(title.prefix, ": ", names(df), sep = "")),
       .f = ggstatsplot::ggcorrmat,
       cor.vars.names = cor.vars.names,
       output = output,
@@ -198,25 +188,12 @@ grouped_ggcorrmat <- function(data,
 
   # ===================== combining results ===================================
 
+  # combining the list of plots into a single plot
+  # inform user this can't be modified further with ggplot commands
   if (output == "plot") {
-    # combining the list of plots into a single plot
-    combined_object <-
-      ggstatsplot::combine_plots(
-        plotlist = plotlist_purrr,
-        ...
-      )
-
-    # show the note about grouped_ variant producing object which is not of
-    # class ggplot
-    if (isTRUE(messages)) {
-      grouped_message()
-    }
+    if (isTRUE(messages)) grouped_message()
+    return(ggstatsplot::combine_plots(plotlist = plotlist_purrr, ...))
   } else {
-    # combining all
-    combined_object <-
-      dplyr::bind_rows(plotlist_purrr, .id = title.prefix)
+    return(dplyr::bind_rows(plotlist_purrr, .id = title.prefix))
   }
-
-  # return the datafrmae
-  return(combined_object)
 }

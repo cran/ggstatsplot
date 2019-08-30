@@ -1,9 +1,9 @@
-#' @title Model coefficients for fitted models with the model summary as a
-#'   caption.
+#' @title Dot-and-whisker plots for regression analyses
 #' @name ggcoefstats
-#' @author Indrajeet Patil
+#' @author \href{https://github.com/IndrajeetPatil}{Indrajeet Patil}
 #' @return Plot with the regression coefficients' point estimates as dots with
-#'   confidence interval whiskers.
+#'   confidence interval whiskers and other statistical details included as
+#'   labels.
 #'
 #' @param x A model object to be tidied with `broom::tidy`, or a tidy data frame
 #'   containing results. If a data frame is to be plotted, it *must* contain
@@ -23,21 +23,10 @@
 #'   Bayesian meta-analysis assuming that the effect size *d* varies across
 #'   studies with standard deviation *t* (i.e., a random-effects analysis)
 #'   should be displayed in caption. Defaults to `TRUE`.
-#' @param xlab Label for `x` axis variable (Default: `"estimate"`).
+#' @param xlab Label for `x` axis variable (Default: `"regression coefficient"`).
 #' @param ylab Label for `y` axis variable (Default: `"term"`).
 #' @param subtitle The text for the plot subtitle. The input to this argument
 #'   will be ignored if `meta.analytic.effect` is set to `TRUE`.
-#' @param conf.method Character describing method for computing confidence
-#'   intervals (for more, see `?lme4::confint.merMod` and
-#'   `?broom.mixed::tidy.brmsfit`). This argument has different defaults
-#'   depending on the model object. For the `merMod` class model objects
-#'   (`lmer`, `glmer`, `nlmer`, etc.), the default is `"Wald"` (other options
-#'   are: `"profile"`, `"boot"`). For MCMC or brms fit model objects (Stan,
-#'   JAGS, etc.), the default is `"quantile"`, while the only other options is
-#'   `"HPDinterval"`.
-#' @param p.kr Logical, if `TRUE`, the computation of *p*-values for `lmer` is
-#'   based on conditional F-tests with Kenward-Roger approximation for the df.
-#'   For details, see `?sjstats::p_value`.
 #' @param p.adjust.method Adjustment method for *p*-values for multiple
 #'   comparisons. Possible methods are: `"holm"`, `"hochberg"`, `"hommel"`,
 #'   `"bonferroni"`, `"BH"`, `"BY"`, `"fdr"`, `"none"`. Default is no correction
@@ -149,9 +138,9 @@
 #'   overlaps. Defaults to `2000`.
 #' @param label.nudge.x,label.nudge.y Horizontal and vertical adjustments to
 #'   nudge the starting position of each text label. Defaults to `0`.
-#' @param label.xlim,label.ylim Limits for the x and y axes. Text labels will be
-#'   constrained to these limits. By default, text labels are constrained to the
-#'   entire plot area. Defaults to `c(NA, NA)`.
+#' @param label.xlim,label.ylim Limits for the `x` and `y` axes. Text labels
+#'   will be constrained to these limits. By default, text labels are
+#'   constrained to the entire plot area. Defaults to `c(NA, NA)`.
 #' @param label.direction Character (`"both"`, `"x"`, or `"y"`) -- direction in
 #'   which to adjust position of labels (Default: `"y"`).
 #' @param ... Additional arguments to tidying method.
@@ -183,6 +172,7 @@
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcoefstats.html}
 #'
 #' @examples
+#' \donttest{
 #' # for reproducibility
 #' set.seed(123)
 #'
@@ -204,7 +194,7 @@
 #' ggstatsplot::ggcoefstats(x = mod, output = "augment")
 #'
 #' # -------------- with custom dataframe -----------------------------------
-#' \donttest{
+#'
 #' # creating a dataframe
 #' df <-
 #'   structure(
@@ -315,8 +305,6 @@ ggcoefstats <- function(x,
                         output = "plot",
                         statistic = NULL,
                         scales = NULL,
-                        conf.method = "Wald",
-                        conf.type = "Wald",
                         component = "survival",
                         bf.message = TRUE,
                         d = "norm",
@@ -325,7 +313,6 @@ ggcoefstats <- function(x,
                         tau.par = c(scale = 0.5),
                         iter = 5000,
                         summarize = "stan",
-                        p.kr = TRUE,
                         p.adjust.method = "none",
                         coefficient.type = c("beta", "location", "coefficient"),
                         by.class = FALSE,
@@ -397,13 +384,16 @@ ggcoefstats <- function(x,
     "grouped_df",
     "tbl",
     "tbl_df",
-    "spec_tbl_df"
+    "spec_tbl_df",
+    "resampled_df"
   )
 
   # creating a list of objects which will have fixed and random "effects"
   # only fixed effects will be selected
   mixed.mods <-
     c(
+      "bglmerMod",
+      "blmerMod",
       "brmsfit",
       "gamlss",
       "glmmadmb",
@@ -421,53 +411,22 @@ ggcoefstats <- function(x,
       "rlmerMod",
       "stanfit",
       "stanreg",
-      "TMB"
+      "stanmvreg",
+      "TMB",
+      "wblm"
     )
 
   # =================== types of models =====================================
 
-  # bayesian models (default `conf.method` won't work for these)
-  bayes.mods <- c(
-    "brmsfit",
-    "mcmc",
-    "MCMCglmm",
-    "rjags",
-    "stanreg"
-  )
-
   # models for which statistic is F-value
-  f.mods <- c(
-    "aov",
-    "aovlist",
-    "anova",
-    "Gam",
-    "manova"
-  )
-
-  # changing `conf.method` to something suitable for Bayesian models
-  if (class(x)[[1]] %in% bayes.mods && conf.method == "Wald") {
-    conf.method <- "quantile"
-  }
-
-  # =========================== checking if object is supported ==============
-
-  # those objects won't be supported for which there either no tidier
-  # or they don't contain an estimate term, so there is nothing to plot
-  if (!class(x)[[1]] %in% c(df.mods, f.mods, bayes.mods, "gam")
-  && !("estimate" %in% names(broomExtra::tidy(x)))) {
-    stop(message(cat(
-      crayon::red("Note: "),
-      crayon::blue(
-        "The model object of class",
-        crayon::yellow(class(x)[[1]]),
-        "isn't currently supported-\n either because there is no tidier available",
-        "or because there is no `estimate` column present."
-      ),
-      sep = ""
-    )),
-    call. = FALSE
+  f.mods <-
+    c(
+      "aov",
+      "aovlist",
+      "anova",
+      "Gam",
+      "manova"
     )
-  }
 
   # ============================= model summary ============================
 
@@ -504,21 +463,6 @@ ggcoefstats <- function(x,
     # set tidy_df to entered dataframe
     tidy_df <- tibble::as_tibble(x)
 
-    # check for the two necessary columns
-    if (!"estimate" %in% names(tidy_df)) {
-      stop(message(cat(
-        crayon::red("Error: "),
-        crayon::blue(
-          "The object of class",
-          crayon::yellow(class(x)[[1]]),
-          "*must* contain the following column: 'estimate'.\n"
-        ),
-        sep = ""
-      )),
-      call. = FALSE
-      )
-    }
-
     # check that statistic is specified
     if (rlang::is_null(statistic)) {
       message(cat(
@@ -535,20 +479,17 @@ ggcoefstats <- function(x,
       # skip labels
       stats.labels <- FALSE
     }
-
     # =========================== broom.mixed tidiers =======================
   } else if (class(x)[[1]] %in% mixed.mods) {
-
     # getting tidy output using `broom.mixed`
     tidy_df <-
       broomExtra::tidy(
         x = x,
-        conf.int = TRUE,
+        conf.int = conf.int,
         # exponentiate = exponentiate,
         conf.level = conf.level,
         effects = "fixed",
         scales = scales,
-        conf.method = conf.method,
         ...
       )
 
@@ -572,44 +513,51 @@ ggcoefstats <- function(x,
       } else {
         xlab <- "eta-squared"
       }
-    } else if (effsize == "omega") {
+    }
+
+    if (effsize == "omega") {
       if (isTRUE(partial)) {
         xlab <- "partial omega-squared"
       } else {
         xlab <- "omega-squared"
       }
     }
-    # ============ tidying robust models =====================================
-  } else if (class(x)[[1]] %in% c("lmRob", "glmRob", "lmrob", "glmrob")) {
-    tidy_df <-
-      broomExtra::tidy(
-        x = x,
-        ...
-      )
     # ==================== tidying everything else ===========================
   } else {
     tidy_df <-
       broomExtra::tidy(
         x = x,
-        conf.int = TRUE,
+        conf.int = conf.int,
         conf.level = conf.level,
         se.type = se.type,
         by_class = by.class,
-        conf.type = conf.type,
         component = component,
         # exponentiate = exponentiate,
-        parametric = TRUE,
+        parametric = TRUE, # relevant for `gam` objects
         ...
       )
   }
 
   # =================== tidy dataframe cleanup ================================
 
+  # check for the one necessary column
+  if (rlang::is_null(tidy_df) || !"estimate" %in% names(tidy_df)) {
+    stop(message(cat(
+      crayon::red("Error: "),
+      crayon::blue("The object of class "),
+      crayon::yellow(class(x)[[1]]),
+      crayon::blue(" *must* contain column called 'estimate' in tidy output.\n"),
+      crayon::blue("Check the tidy output using `broomExtra::tidy(x)`."),
+      sep = ""
+    )),
+    call. = FALSE
+    )
+  }
+
   # create a new term column if it's not present
   if (!"term" %in% names(tidy_df)) {
     tidy_df %<>%
       dplyr::mutate(.data = ., term = dplyr::row_number()) %>%
-      dplyr::mutate(.data = ., term = as.character(term)) %>%
       dplyr::mutate(.data = ., term = paste("term", term, sep = "_"))
   }
 
@@ -665,7 +613,7 @@ ggcoefstats <- function(x,
   # =================== p-value computation ==================================
 
   # p-values won't be computed by default for some of the models
-  if (!"p.value" %in% names(tidy_df)) {
+  if (!class(x)[[1]] %in% df.mods && !"p.value" %in% names(tidy_df)) {
     # use `sjstats` S3 methods to add them to the tidy dataframe
     tryCatch(
       expr = tidy_df %<>%
@@ -675,7 +623,7 @@ ggcoefstats <- function(x,
             .vars = "term",
             .funs = ~ as.character(x = .)
           ),
-          y = sjstats::p_value(fit = x, p.kr = p.kr) %>%
+          y = sjstats::p_value(x) %>%
             dplyr::select(.data = ., -std.error) %>%
             dplyr::mutate_at(
               .tbl = .,
@@ -686,9 +634,7 @@ ggcoefstats <- function(x,
         ) %>%
         dplyr::filter(.data = ., !is.na(estimate)) %>%
         tibble::as_tibble(x = .),
-      error = function(e) {
-        tidy_df
-      }
+      error = function(e) tidy_df
     )
   }
 
@@ -732,7 +678,6 @@ ggcoefstats <- function(x,
           conf.high = estimate + stats::qnorm(prob) * std.error
         )
     } else {
-
       # add NAs so that only dots will be shown
       tidy_df %<>%
         dplyr::mutate(
@@ -776,11 +721,7 @@ ggcoefstats <- function(x,
     tidy_df %<>%
       dplyr::filter(
         .data = .,
-        !grepl(
-          pattern = "(Intercept)",
-          x = term,
-          ignore.case = TRUE
-        )
+        !grepl(pattern = "(Intercept)", x = term, ignore.case = TRUE)
       )
   }
 
@@ -810,8 +751,7 @@ ggcoefstats <- function(x,
     # adjust the p-values based on the adjustment used
     tidy_df %<>%
       dplyr::mutate(
-        .data = .,
-        p.value = stats::p.adjust(p = p.value, method = p.adjust.method)
+        .data = ., p.value = stats::p.adjust(p = p.value, method = p.adjust.method)
       )
   }
 
@@ -819,10 +759,8 @@ ggcoefstats <- function(x,
 
   # adding a column with labels to be used with `ggrepel`
   if (isTRUE(stats.labels)) {
-    if (class(x)[[1]] %in% df.mods) {
-      # in case a dataframe was entered, `x` and `tidy_df` are going to be same
-      x <- tidy_df
-    }
+    # in case a dataframe was entered, `x` and `tidy_df` are going to be same
+    if (class(x)[[1]] %in% df.mods) x <- tidy_df
 
     # adding a column with labels using custom function
     tidy_df %<>%
@@ -955,11 +893,10 @@ ggcoefstats <- function(x,
   tidy_df$term <- factor(x = tidy_df$term, levels = tidy_df$term[new_order])
   tidy_df %<>% dplyr::select(.data = ., -rowid)
 
+  # ========================== basic plot ===================================
+
   # palette check is necessary only if output is a plot
   if (output == "plot") {
-
-    # ========================== basic plot ===================================
-
     # setting up the basic architecture
     plot <-
       ggplot2::ggplot(
@@ -1045,9 +982,7 @@ ggcoefstats <- function(x,
         dplyr::select(.data = ., length)
 
       # if insufficient number of colors are available in a given palette
-      if (palette_df$length[[1]] < count_term) {
-        stats.label.color <- "black"
-      }
+      if (palette_df$length[[1]] < count_term) stats.label.color <- "black"
 
       # if user has not specified colors, then use a color palette
       if (is.null(stats.label.color)) {

@@ -132,7 +132,8 @@ extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
 
 \item{ggstatsplot.layer}{Logical that decides whether \code{theme_ggstatsplot}
 theme elements are to be displayed along with the selected \code{ggtheme}
-(Default: \code{TRUE}).}
+(Default: \code{TRUE}). \code{theme_ggstatsplot} is an opinionated theme layer that
+override some aspects of the selected \code{ggtheme}.}
 
 \item{subtitle}{The text for the plot subtitle.}
 
@@ -242,7 +243,7 @@ function across multiple levels of a given factor and combining the
 resulting plots using \code{ggstatsplot::combine_plots}.
 }
 \examples{
-
+\donttest{
 # for reproducibility
 set.seed(123)
 
@@ -284,6 +285,7 @@ ggstatsplot::grouped_ggcorrmat(
   cor.vars = Sepal.Length:Petal.Width,
   output = "ci"
 )
+}
 }
 \references{
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html}

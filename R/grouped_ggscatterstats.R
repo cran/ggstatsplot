@@ -2,7 +2,7 @@
 #'   variable
 #' @name grouped_ggscatterstats
 #' @aliases grouped_ggscatterstats
-#' @author Indrajeet Patil, Chuck Powell
+#' @author Indrajeet Patil
 #' @description Grouped scatterplots from `ggplot2` combined with marginal
 #'   histograms/boxplots/density plots with statistical details added as a
 #'   subtitle.
@@ -15,9 +15,8 @@
 #'
 #' @importFrom dplyr select bind_rows summarize mutate mutate_at mutate_if
 #' @importFrom dplyr group_by n arrange
-#' @importFrom rlang !! enquo quo_name ensym as_quosure parse_expr quo_text
-#' @importFrom glue glue
-#' @importFrom purrr map set_names pmap
+#' @importFrom rlang !! enquo enexpr ensym
+#' @importFrom purrr pmap
 #'
 #' @seealso \code{\link{ggscatterstats}}, \code{\link{ggcorrmat}},
 #' \code{\link{grouped_ggcorrmat}}
@@ -26,7 +25,6 @@
 #' @inherit ggscatterstats return details
 #'
 #' @examples
-#'
 #' \donttest{
 #' # to ensure reproducibility
 #' set.seed(123)
@@ -87,13 +85,13 @@
 grouped_ggscatterstats <- function(data,
                                    x,
                                    y,
+                                   grouping.var,
                                    type = "pearson",
                                    conf.level = 0.95,
                                    bf.prior = 0.707,
                                    bf.message = TRUE,
                                    label.var = NULL,
                                    label.expression = NULL,
-                                   grouping.var,
                                    title.prefix = NULL,
                                    xlab = NULL,
                                    ylab = NULL,
@@ -136,147 +134,37 @@ grouped_ggscatterstats <- function(data,
                                    messages = TRUE,
                                    ...) {
 
-  # create a list of function call to check for label.expression
-  param_list <- as.list(match.call())
-
   # check that there is a grouping.var
-  if (!"grouping.var" %in% names(param_list)) {
+  if (!"grouping.var" %in% names(as.list(match.call()))) {
     stop("You must specify a grouping variable")
   }
 
-  # check that label.var and grouping.var are different
-  if ("label.var" %in% names(param_list)) {
-    if (as.character(param_list$label.var) == as.character(param_list$grouping.var)) {
-      message(cat(
-        crayon::red("\nError: "),
-        crayon::blue(
-          "Identical variable (",
-          crayon::yellow(param_list$label.var),
-          ") was used for both grouping and labeling, which is not allowed.\n"
-        ),
-        sep = ""
-      ))
-      return(invisible(param_list$label.var))
-    }
-  }
-
-  # check if labeling variable has been specified
-  if ("label.var" %in% names(param_list)) {
-    labelvar.present <- TRUE
-    label.var <- rlang::ensym(label.var)
-    label.var <- deparse(substitute(label.var))
-  } else {
-    labelvar.present <- FALSE
-  }
-
-  # check if labeling expression has been specified
-  if ("label.expression" %in% names(param_list)) {
-    expression.present <- TRUE
-  } else {
-    expression.present <- FALSE
-  }
+  # ensure the grouping variable works quoted or unquoted
+  grouping.var <- rlang::ensym(grouping.var)
+  x <- rlang::ensym(x)
+  y <- rlang::ensym(y)
+  label.var <- if (!rlang::quo_is_null(rlang::enquo(label.var))) rlang::ensym(label.var)
 
   # ======================== preparing dataframe =============================
 
-  # ensure the grouping variable works quoted or unquoted
-  grouping.var <- rlang::ensym(grouping.var)
-
   # if `title.prefix` is not provided, use the variable `grouping.var` name
-  if (is.null(title.prefix)) {
-    title.prefix <- rlang::as_name(grouping.var)
-  }
+  if (is.null(title.prefix)) title.prefix <- rlang::as_name(grouping.var)
 
   # getting the dataframe ready
-  # note that `dplyr::everything` is used because point labelling can involve
-  # any of the data columns
-  # creating a dataframe
-  df <-
-    data %>%
-    dplyr::select(
-      .data = .,
-      {{ grouping.var }},
-      {{ x }},
-      {{ y }},
-      dplyr::everything()
-    ) %>%
-    grouped_list(data = ., grouping.var = {{ grouping.var }})
-
-  # if labeling expression has been specified, format the arguments accordingly
-  if (isTRUE(expression.present)) {
-    if (typeof(param_list$label.expression) == "language") {
-      # unquoted case
-      label.expression <- rlang::enquo(label.expression)
-    } else {
-      # quoted case
-      label.expression <- rlang::parse_expr(x = label.expression)
-      # the environment is essential
-      label.expression <- rlang::as_quosure(
-        x = label.expression,
-        env = sys.frame(which = 0)
-      )
-    }
-  }
-
-  # unquoted case
-  if (typeof(param_list$x) == "symbol") {
-    x <- deparse(substitute(x))
-  }
-
-  # unquoted case
-  if (typeof(param_list$y) == "symbol") {
-    y <- deparse(substitute(y))
-  }
-
-  # ============== build pmap list based on conditions =====================
-
-  if (isTRUE(expression.present) && isTRUE(labelvar.present)) {
-    flexiblelist <- list(
-      data = df,
-      x = x,
-      y = y,
-      title = glue::glue("{title.prefix}: {names(df)}"),
-      label.var = label.var,
-      label.expression = rlang::quo_text(label.expression)
-    )
-  }
-
-  if (isTRUE(expression.present) && isFALSE(labelvar.present)) {
-    flexiblelist <- list(
-      data = df,
-      x = x,
-      y = y,
-      title = glue::glue("{title.prefix}: {names(df)}"),
-      label.expression = rlang::quo_text(label.expression)
-    )
-  }
-
-  if (isFALSE(expression.present) && isTRUE(labelvar.present)) {
-    flexiblelist <- list(
-      data = df,
-      x = x,
-      y = y,
-      title = glue::glue("{title.prefix}: {names(df)}"),
-      label.var = label.var
-    )
-  }
-
-  if (isFALSE(expression.present) && isFALSE(labelvar.present)) {
-    flexiblelist <- list(
-      data = df,
-      x = x,
-      y = y,
-      title = glue::glue("{title.prefix}: {names(df)}")
-    )
-  }
+  df <- grouped_list(data = data, grouping.var = {{ grouping.var }})
 
   # ==================== creating a list of plots =======================
 
   # creating a list of plots using `pmap`
   plotlist_purrr <-
     purrr::pmap(
-      .l = flexiblelist,
+      .l = list(data = df, title = paste(title.prefix, ": ", names(df), sep = "")),
       .f = ggstatsplot::ggscatterstats,
       # put common parameters here
+      x = {{ x }},
+      y = {{ y }},
+      label.var = {{ label.var }},
+      label.expression = !!rlang::enexpr(label.expression),
       type = type,
       conf.level = conf.level,
       bf.prior = bf.prior,
@@ -323,21 +211,11 @@ grouped_ggscatterstats <- function(data,
     )
 
   # combining the list of plots into a single plot
+  # inform user this can't be modified further with ggplot commands
   if (return == "plot") {
-    combined_object <-
-      ggstatsplot::combine_plots(
-        plotlist = plotlist_purrr,
-        ...
-      )
-
-    # inform user this can't be modified further with ggplot commands
-    if (isTRUE(messages)) {
-      grouped_message()
-    }
+    if (isTRUE(messages)) grouped_message()
+    return(ggstatsplot::combine_plots(plotlist = plotlist_purrr, ...))
   } else {
-    combined_object <- plotlist_purrr
+    return(plotlist_purrr)
   }
-
-  # return the combined plot
-  return(combined_object)
 }
