@@ -1,6 +1,5 @@
 #' @title Scatterplot with marginal distributions and statistical results
 #' @name ggscatterstats
-#' @author Indrajeet Patil, Chuck Powell
 #' @description Scatterplots from `ggplot2` combined with marginal
 #'   histograms/boxplots/density plots with statistical details added as a
 #'   subtitle.
@@ -35,7 +34,8 @@
 #'   `0.7`).
 #' @param centrality.para Decides *which* measure of central tendency (`"mean"`
 #'   or `"median"`) is to be displayed as vertical (for `x`) and horizontal (for
-#'   `y`) lines.
+#'   `y`) lines. Note that mean values corresponds to arithmetic mean and not
+#'   geometric mean.
 #' @param point.width.jitter,point.height.jitter Degree of jitter in `x` and `y`
 #'   direction, respectively. Defaults to `0` (0%) of the resolution of the
 #'   data.

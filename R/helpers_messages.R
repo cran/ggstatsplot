@@ -2,7 +2,6 @@
 #' @name normality_message
 #' @description A note to the user about the validity of assumptions for the
 #'   default linear model.
-#' @author \href{https://github.com/IndrajeetPatil}{Indrajeet Patil}
 #'
 #' @param x A numeric vector.
 #' @param lab A character describing label for the variable. If `NULL`, a
@@ -43,7 +42,6 @@ normality_message <- function(x,
                               k = 2,
                               output = "message",
                               ...) {
-  ellipsis::check_dots_used()
 
   # if label is not provided, use generic "x" variable
   if (is.null(lab)) lab <- "x"
@@ -76,7 +74,6 @@ normality_message <- function(x,
 #' @name bartlett_message
 #' @description A note to the user about the validity of assumptions for the
 #'   default linear model.
-#' @author \href{https://github.com/IndrajeetPatil}{Indrajeet Patil}
 #'
 #' @param lab A character describing label for the variable. If `NULL`, variable
 #'   name will be used.
@@ -123,7 +120,6 @@ bartlett_message <- function(data,
   # make sure both quoted and unquoted arguments are supported
   x <- rlang::ensym(x)
   y <- rlang::ensym(y)
-  ellipsis::check_dots_used()
 
   # if `lab` is not provided, use the variable `x` name
   if (is.null(lab)) lab <- rlang::as_name(x)
@@ -155,15 +151,7 @@ bartlett_message <- function(data,
 
 #' @title grouped_message
 #' @description A note to the user about the class of the output object.
-#' @author \href{https://github.com/IndrajeetPatil}{Indrajeet Patil}
-#'
-#' @seealso \code{\link{grouped_ggbetweenstats}},
-#'   \code{\link{grouped_gghistostats}}, \code{\link{grouped_ggscatterstats}},
-#'   \code{\link{grouped_ggpiestats}}, \code{\link{grouped_ggcorrmat}}
-#'
-#' @family helper_messages
-#'
-#' @keywords internal
+#' @noRd
 
 # function body
 grouped_message <- function() {
@@ -177,7 +165,6 @@ grouped_message <- function() {
 
 #' @title Message if palette doesn't have enough number of colors.
 #' @name palette_message
-#' @author \href{https://github.com/IndrajeetPatil}{Indrajeet Patil}
 #' @description A note to the user about not using the default color palette
 #'   when the number of factor levels is greater than 8, the maximum number of
 #'   colors allowed by `"Dark2"` palette from the `RColorBrewer` package.
@@ -190,15 +177,7 @@ grouped_message <- function() {
 #' @importFrom crayon green blue yellow red
 #' @importFrom rlang !! enquo
 #'
-#' @family helper_messages
-#'
-#' @examples
-#' ggstatsplot:::palette_message(
-#'   package = "RColorBrewer",
-#'   palette = "Dark2",
-#'   min_length = 20
-#' )
-#' @keywords internal
+#' @noRd
 
 # function body
 palette_message <- function(package, palette, min_length) {
@@ -225,11 +204,7 @@ palette_message <- function(package, palette, min_length) {
 #' @title Message to display when adjusted p-values are displayed in correlation
 #'   matrix.
 #' @name ggcorrmat_matrix_message
-#' @author Indrajeet Patil
-#'
-#' @family helper_messages
-#'
-#' @keywords internal
+#' @noRd
 
 # function body
 ggcorrmat_matrix_message <- function() {

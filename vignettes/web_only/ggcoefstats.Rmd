@@ -20,12 +20,14 @@ vignette: >
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  message = FALSE,
+  warning = FALSE
 )
 ```
 
 The function `ggstatsplot::ggcoefstats` generates **dot-and-whisker plots** for
-regression models saved in tidy data frames (produced with the `broom` package
+regression models saved in a tidy data frame (produced with the `broom` package
 and its mixed-effects modeling variant `broom.mixed` package).
 
 By default, the plot displays `95%` confidence intervals for the regression
@@ -207,7 +209,8 @@ mod <- stats::lm(
 # plotting estimates
 ggstatsplot::ggcoefstats(
   x = car::Anova(mod, type = "III"),
-  title = "analysis of variance (`car` package)"
+  title = "analysis of variance (`car` package)",
+  conf.level = 0.99
 )
 ```
 
@@ -355,7 +358,8 @@ roblmm.mod <- robustlmm::rlmer(
 # plot
 ggstatsplot::ggcoefstats(
   x = roblmm.mod,
-  title = "robust estimation of linear mixed-effects model"
+  title = "robust estimation of linear mixed-effects model",
+  conf.level = 0.90
 )
 ```
 
@@ -1326,7 +1330,7 @@ ggstatsplot::ggcoefstats(
 
 ## mixed conditional logit models (`mmclogit`)
 
-```{r mmclogit, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 4}
+```{r mmclogit, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6}
 # setup
 set.seed(123)
 library(mclogit)
@@ -1448,7 +1452,7 @@ ggstatsplot::ggcoefstats(
 
 ## bounded memory linear regression (`biglm`)
 
-```{r biglm, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 4}
+```{r biglm, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 6}
 # setup
 set.seed(123)
 library(biglm)
@@ -1469,7 +1473,7 @@ ggstatsplot::ggcoefstats(
 
 ## bounded memory general linear regression (`bigglm`)
 
-```{r bigglm, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 4}
+```{r bigglm, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 6}
 # setup
 set.seed(123)
 library(biglm)
@@ -1689,7 +1693,7 @@ The `nlme` package provides a function to fit a linear model using generalized
 least squares. The errors are allowed to be correlated and/or have unequal
 variances. 
 
-```{r gls, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+```{r gls, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 6}
 # for reproducibility
 set.seed(123)
 library(nlme)
@@ -2189,7 +2193,7 @@ ggstatsplot::ggcoefstats(
 )
 ```
 
-## Dose-Response Curves (`drc`)
+## dose-response models/curves (`drc`)
 
 ```{r drc, warning = FALSE, message = FALSE, fig.height = 7, fig.width = 5}
 # setup
@@ -2240,7 +2244,7 @@ ggstatsplot::ggcoefstats(
 
 ## summary measures for count data (`epi.2by2`)
 
-```{r epi.2by2, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 4}
+```{r epi.2by2, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 6}
 # setup
 set.seed(123)
 library(epiR)

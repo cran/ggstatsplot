@@ -3,7 +3,6 @@
 #' @name grouped_ggbetweenstats
 #' @description A combined plot of comparison plot created for levels of a
 #'   grouping variable.
-#' @author Indrajeet Patil, Chuck Powell
 #'
 #' @param title.prefix Character string specifying the prefix text for the fixed
 #'   plot title (name of each factor level) (Default: `NULL`). If `NULL`, the
@@ -50,7 +49,10 @@
 #'   y = rating,
 #'   grouping.var = mpaa,
 #'   results.subtitle = FALSE,
-#'   ggplot.component = ggplot2::scale_y_continuous(breaks = seq(1, 9, 1)),
+#'   ggplot.component = ggplot2::scale_y_continuous(
+#'     breaks = seq(1, 9, 1),
+#'     limits = (c(1, 9))
+#'   ),
 #'   messages = FALSE
 #' )
 #' }

@@ -5,7 +5,7 @@
 \title{Create a dataframe with mean per group and a formatted label for
 display in \code{ggbetweenstats} plot.}
 \usage{
-mean_labeller(data, x, y, mean.ci = FALSE, k = 3, ...)
+mean_labeller(data, x, y, mean.ci = FALSE, k = 3L, ...)
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
@@ -16,7 +16,7 @@ be taken. A matrix or tables will \strong{not} be accepted.}
 \item{y}{The response (a.k.a. outcome or dependent) variable from the
 dataframe \code{data}.}
 
-\item{mean.ci}{Logical that decides whether \code{95\%} confidence interval for
+\item{mean.ci}{Logical that decides whether \verb{95\%} confidence interval for
 mean is to be displayed (Default: \code{FALSE}).}
 
 \item{k}{Number of digits after decimal point (should be an integer)
@@ -39,8 +39,5 @@ ggstatsplot:::mean_labeller(
 )
 }
 
-}
-\author{
-\href{https://github.com/IndrajeetPatil}{Indrajeet Patil}
 }
 \keyword{internal}

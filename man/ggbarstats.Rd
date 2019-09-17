@@ -65,7 +65,7 @@ should be displayed for each level of the grouping variable \code{y}
 \item{label.separator}{If \code{"both"} counts and proportion information is to be
 displayed in a label, this argument decides whether these two pieces of
 information are going to be on the same line (\code{" "}) or on separate lines
-(\code{"\n"}).}
+(\code{"\\n"}).}
 
 \item{label.text.size}{Numeric that decides text size for slice/bar labels
 (Default: \code{4}).}
@@ -235,7 +235,4 @@ ggstatsplot::ggbarstats(
 \seealso{
 \code{\link{grouped_ggbarstats}}, \code{\link{ggpiestats}},
 \code{\link{grouped_ggpiestats}}
-}
-\author{
-Chuck Powell, \href{https://github.com/IndrajeetPatil}{Indrajeet Patil}
 }

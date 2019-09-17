@@ -4,7 +4,6 @@
 #' @description A combination of box and violin plots along with jittered data
 #'   points for between-subjects designs with statistical details included in
 #'   the plot as a subtitle.
-#' @author \href{https://github.com/IndrajeetPatil}{Indrajeet Patil}
 #'
 #' @param plot.type Character describing the *type* of plot. Currently supported
 #'   plots are `"box"` (for pure boxplots), `"violin"` (for pure violin plots),
@@ -252,7 +251,7 @@ ggbetweenstats <- function(data,
                            return = "plot",
                            messages = TRUE) {
 
-  # no pairwise comparisons are available for bayesian t-tests
+  # no pairwise comparisons are available for Bayesian t-tests
   if (type %in% c("bf", "bayes") && isTRUE(pairwise.comparisons)) {
     pairwise.comparisons <- FALSE
   }
@@ -553,18 +552,19 @@ ggbetweenstats <- function(data,
       )
 
     # display the results if needed
-    if (isTRUE(messages)) print(dplyr::select(df_pairwise, -p.value.label))
+    if (isTRUE(messages)) print(dplyr::select(df_pairwise, -label))
 
     # adding the layer for pairwise comparisons
-    plot <- ggsignif_adder(
-      plot = plot,
-      df_pairwise = df_pairwise,
-      data = data,
-      x = {{ x }},
-      y = {{ y }},
-      pairwise.annotation = pairwise.annotation,
-      pairwise.display = pairwise.display
-    )
+    plot <-
+      ggsignif_adder(
+        plot = plot,
+        df_pairwise = df_pairwise,
+        data = data,
+        x = {{ x }},
+        y = {{ y }},
+        pairwise.annotation = pairwise.annotation,
+        pairwise.display = pairwise.display
+      )
 
     # preparing the caption for pairwise comparisons test
     caption <-

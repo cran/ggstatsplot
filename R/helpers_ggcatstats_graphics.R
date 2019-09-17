@@ -2,7 +2,6 @@
 #' @name cat_label_df
 #' @description Creating a dataframe with an added column corresponding to
 #'   summary for categorical variables.
-#' @author Indrajeet Patil
 #'
 #' @param data A dataframe containing summaries for categorical variables.
 #'   Should contain columns named either `"perc"` or `"counts"` or both.
@@ -76,7 +75,6 @@ cat_label_df <- function(data,
 
 #' @title Counts and percentages across grouping variables.
 #' @name cat_counter
-#' @author Indrajeet Patil
 #'
 #' @param ... Additional grouping variables.
 #' @inheritParams ggpiestats
@@ -128,24 +126,31 @@ df_facet_label <- function(data, x, y, k = 3L) {
       by = rlang::as_name(rlang::ensym(y))
     ) %>%
       p_value_formatter(df = ., k = k) %>%
-      purrrlyr::by_row(
-        .d = .,
-        ..f = ~ paste(
-          "list(~chi['gof']^2~",
-          "(",
-          .$parameter,
-          ")==",
-          specify_decimal_p(x = .$statistic, k = k),
-          ", ~italic(p)",
-          .$p.value.formatted,
-          ")",
-          sep = " "
-        ),
-        .collate = "rows",
-        .to = "label",
-        .labels = TRUE
+      dplyr::mutate(.data = ., rowid = dplyr::row_number()) %>%
+      dplyr::group_nest(.tbl = ., rowid) %>%
+      dplyr::mutate(
+        .data = .,
+        label = data %>%
+          purrr::map(
+            .x = .,
+            .f = ~ paste(
+              "list(~chi['gof']^2~",
+              "(",
+              .$parameter,
+              ")==",
+              specify_decimal_p(x = .$statistic, k = k),
+              ", ~italic(p)",
+              .$p.value.formatted,
+              ")",
+              sep = " "
+            ),
+            .collate = "rows",
+            .to = "label",
+            .labels = TRUE
+          )
       ) %>%
-      dplyr::select(.data = ., -dplyr::matches("p.value.formatted"))
+      tidyr::unnest(data = ., c(label, data)) %>%
+      dplyr::select(.data = ., -rowid, -dplyr::matches("p.value.formatted"))
   }
 }
 
@@ -155,18 +160,23 @@ df_facet_label <- function(data, x, y, k = 3L) {
 
 p_value_formatter <- function(df, k = 3L) {
   df %>%
-    purrrlyr::by_row(
-      .d = .,
-      ..f = ~ specify_decimal_p(x = .$p.value, k = k, p.value = TRUE),
-      .collate = "rows",
-      .to = "p.value.formatted",
-      .labels = TRUE
+    dplyr::mutate(.data = ., rowid = dplyr::row_number()) %>%
+    dplyr::group_nest(.tbl = ., rowid) %>%
+    dplyr::mutate(
+      .data = .,
+      p.value.formatted = data %>%
+        purrr::map(
+          .x = .,
+          .f = ~ specify_decimal_p(x = .$p.value, k = k, p.value = TRUE)
+        )
     ) %>%
+    tidyr::unnest(data = ., cols = c(p.value.formatted, data)) %>%
     dplyr::mutate(
       .data = .,
       p.value.formatted = dplyr::case_when(
         p.value.formatted == "< 0.001" ~ "<= 0.001",
         TRUE ~ paste("==", p.value.formatted, sep = " ")
       )
-    )
+    ) %>%
+    dplyr::select(.data = ., -rowid)
 }

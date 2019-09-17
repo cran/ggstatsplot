@@ -164,7 +164,7 @@ the label displaying mean. Defaults: \code{3}, \code{"bold"},\code{"black"}, res
 displayed. If \code{TRUE}, a notched box plot will be used. Notches are used to
 compare groups; if the notches of two boxes do not overlap, this suggests
 that the medians are significantly different. In a notched box plot, the
-notches extend \code{1.58 * IQR / sqrt(n)}. This gives a roughly \code{95\%}
+notches extend \code{1.58 * IQR / sqrt(n)}. This gives a roughly \verb{95\%}
 confidence interval for comparing medians. IQR: Inter-Quartile Range.}
 
 \item{notchwidth}{For a notched box plot, width of the notch relative to the
@@ -199,7 +199,7 @@ Quartile) \code{outlier.coef} times the Inter-Quartile Range (IQR) (Default:
 \item{mean.plotting}{Logical that decides whether mean is to be highlighted
 and its value to be displayed (Default: \code{TRUE}).}
 
-\item{mean.ci}{Logical that decides whether \code{95\%} confidence interval for
+\item{mean.ci}{Logical that decides whether \verb{95\%} confidence interval for
 mean is to be displayed (Default: \code{FALSE}).}
 
 \item{mean.size}{Point size for the data point corresponding to mean
@@ -209,7 +209,7 @@ mean is to be displayed (Default: \code{FALSE}).}
 \code{"darkred"}).}
 
 \item{point.jitter.width}{Numeric specifying the degree of jitter in \code{x}
-direction. Defaults to \code{40\%} of the resolution of the data.}
+direction. Defaults to \verb{40\%} of the resolution of the data.}
 
 \item{point.jitter.height}{Numeric specifying the degree of jitter in \code{y}
 direction. Defaults to \code{0.1}.}
@@ -254,54 +254,55 @@ about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
 
-\item{...}{Arguments passed on to \code{combine_plots}
-\describe{
-  \item{title.text}{String or plotmath expression to be drawn as title for the
+\item{...}{
+  Arguments passed on to \code{\link[=combine_plots]{combine_plots}}
+  \describe{
+    \item{\code{title.text}}{String or plotmath expression to be drawn as title for the
 \emph{combined plot}.}
-  \item{title.color}{Text color for title.}
-  \item{title.size}{Point size of title text.}
-  \item{title.vjust}{Vertical justification for title. Default = \code{0.5}
+    \item{\code{title.color}}{Text color for title.}
+    \item{\code{title.size}}{Point size of title text.}
+    \item{\code{title.vjust}}{Vertical justification for title. Default = \code{0.5}
 (centered on \code{y}). \code{0} = baseline at \code{y}, \code{1} = ascender at \code{y}.}
-  \item{title.hjust}{Horizontal justification for title. Default = \code{0.5}
+    \item{\code{title.hjust}}{Horizontal justification for title. Default = \code{0.5}
 (centered on \code{x}). \code{0} = flush-left at x, \code{1} = flush-right.}
-  \item{title.fontface}{The font face (\code{"plain"}, \code{"bold"} (default),
+    \item{\code{title.fontface}}{The font face (\code{"plain"}, \code{"bold"} (default),
 \code{"italic"}, \code{"bold.italic"}) for title.}
-  \item{caption.text}{String or plotmath expression to be drawn as the caption
+    \item{\code{caption.text}}{String or plotmath expression to be drawn as the caption
 for the \emph{combined plot}.}
-  \item{caption.color}{Text color for caption.}
-  \item{caption.size}{Point size of title text.}
-  \item{caption.vjust}{Vertical justification for caption. Default = \code{0.5}
+    \item{\code{caption.color}}{Text color for caption.}
+    \item{\code{caption.size}}{Point size of title text.}
+    \item{\code{caption.vjust}}{Vertical justification for caption. Default = \code{0.5}
 (centered on y). \code{0} = baseline at y, \code{1} = ascender at y.}
-  \item{caption.hjust}{Horizontal justification for caption. Default = \code{0.5}
+    \item{\code{caption.hjust}}{Horizontal justification for caption. Default = \code{0.5}
 (centered on x). \code{0} = flush-left at x, \code{1} = flush-right.}
-  \item{caption.fontface}{The font face (\code{"plain"} (default), \code{"bold"},
+    \item{\code{caption.fontface}}{The font face (\code{"plain"} (default), \code{"bold"},
 \code{"italic"}, \code{"bold.italic"}) for caption.}
-  \item{sub.text}{The label with which the \emph{combined plot} should be annotated.
+    \item{\code{sub.text}}{The label with which the \emph{combined plot} should be annotated.
 Can be a plotmath expression.}
-  \item{sub.color}{Text color for annotation label (Default: \code{"black"}).}
-  \item{sub.size}{Point size of annotation text (Default: \code{12}).}
-  \item{sub.x}{The x position of annotation label (Default: \code{0.5}).}
-  \item{sub.y}{The y position of annotation label (Default: \code{0.5}).}
-  \item{sub.hjust}{Horizontal justification for annotation label (Default:
+    \item{\code{sub.color}}{Text color for annotation label (Default: \code{"black"}).}
+    \item{\code{sub.size}}{Point size of annotation text (Default: \code{12}).}
+    \item{\code{sub.x}}{The x position of annotation label (Default: \code{0.5}).}
+    \item{\code{sub.y}}{The y position of annotation label (Default: \code{0.5}).}
+    \item{\code{sub.hjust}}{Horizontal justification for annotation label (Default:
 \code{0.5}).}
-  \item{sub.vjust}{Vertical justification for annotation label (Default:
+    \item{\code{sub.vjust}}{Vertical justification for annotation label (Default:
 \code{0.5}).}
-  \item{sub.vpadding}{Vertical padding. The total vertical space added to the
+    \item{\code{sub.vpadding}}{Vertical padding. The total vertical space added to the
 label, given in grid units. By default, this is added equally above and
 below the label. However, by changing the y and vjust parameters, this can
 be changed (Default: \code{grid::unit(1, "lines")}).}
-  \item{sub.fontface}{The font face (\code{"plain"} (default), \code{"bold"}, \code{"italic"},
+    \item{\code{sub.fontface}}{The font face (\code{"plain"} (default), \code{"bold"}, \code{"italic"},
 \code{"bold.italic"}) for the annotation label.}
-  \item{sub.angle}{Angle at which annotation label is to be drawn (Default:
+    \item{\code{sub.angle}}{Angle at which annotation label is to be drawn (Default:
 \code{0}).}
-  \item{sub.lineheight}{Line height of annotation label.}
-  \item{title.caption.rel.heights}{Numerical vector of relative columns heights
+    \item{\code{sub.lineheight}}{Line height of annotation label.}
+    \item{\code{title.caption.rel.heights}}{Numerical vector of relative columns heights
 while combining (title, plot, caption).}
-  \item{title.rel.heights}{Numerical vector of relative columns heights while
+    \item{\code{title.rel.heights}}{Numerical vector of relative columns heights while
 combining (title, plot).}
-  \item{caption.rel.heights}{Numerical vector of relative columns heights while
+    \item{\code{caption.rel.heights}}{Numerical vector of relative columns heights while
 combining (plot, caption).}
-}}
+  }}
 }
 \description{
 A combined plot of comparison plot created for levels of a
@@ -353,7 +354,10 @@ ggstatsplot::grouped_ggbetweenstats(
   y = rating,
   grouping.var = mpaa,
   results.subtitle = FALSE,
-  ggplot.component = ggplot2::scale_y_continuous(breaks = seq(1, 9, 1)),
+  ggplot.component = ggplot2::scale_y_continuous(
+    breaks = seq(1, 9, 1),
+    limits = (c(1, 9))
+  ),
   messages = FALSE
 )
 }
@@ -365,7 +369,4 @@ ggstatsplot::grouped_ggbetweenstats(
 \seealso{
 \code{\link{ggbetweenstats}}, \code{\link{ggwithinstats}},
 \code{\link{grouped_ggwithinstats}}
-}
-\author{
-Indrajeet Patil, Chuck Powell
 }

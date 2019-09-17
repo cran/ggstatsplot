@@ -1,7 +1,6 @@
 #' @name mean_labeller
 #' @title Create a dataframe with mean per group and a formatted label for
 #'   display in `ggbetweenstats` plot.
-#' @author \href{https://github.com/IndrajeetPatil}{Indrajeet Patil}
 #'
 #' @inheritParams ggbetweenstats
 #' @param ... Currently ignored.
@@ -31,7 +30,7 @@ mean_labeller <- function(data,
                           x,
                           y,
                           mean.ci = FALSE,
-                          k = 3,
+                          k = 3L,
                           ...) {
 
   # creating the dataframe
@@ -88,13 +87,8 @@ mean_labeller <- function(data,
     )
 
   # adding sample size labels and arranging by original factor levels
-  if (utils::packageVersion("tidyr") <= "0.8.9") {
-    mean_dat %<>% tidyr::unnest(.)
-  } else {
-    mean_dat %<>% tidyr::unnest(., cols = c(data, label))
-  }
-
   mean_dat %<>%
+    tidyr::unnest(., cols = c(data, label)) %>%
     dplyr::mutate(.data = ., n_label = paste0({{ x }}, "\n(n = ", n, ")", sep = "")) %>%
     dplyr::arrange(.data = ., {{ x }})
 
@@ -105,7 +99,6 @@ mean_labeller <- function(data,
 
 #' @title Adding labels for mean values.
 #' @name mean_ggrepel
-#' @author \href{https://github.com/IndrajeetPatil}{Indrajeet Patil}
 #'
 #' @param mean.data A dataframe containing means for each level of the factor.
 #'   The columns should be titled `x`, `y`, and `label`.
@@ -115,8 +108,7 @@ mean_labeller <- function(data,
 #' @inheritParams ggrepel::geom_label_repel
 #'
 #' @importFrom ggrepel geom_label_repel
-#' @importFrom rlang !! enquo
-#' @importFrom ellipsis check_dots_used
+#' @importFrom rlang !! enquo ensym
 #'
 #' @examples
 #'
@@ -159,10 +151,6 @@ mean_ggrepel <- function(plot,
                          mean.label.color = "black",
                          inherit.aes = TRUE,
                          ...) {
-
-  # check any misspecified arguments
-  ellipsis::check_dots_used()
-
   # highlight the mean of each group
   if (isTRUE(inherit.aes)) {
     plot <- plot +
@@ -214,7 +202,6 @@ mean_ggrepel <- function(plot,
 #' @title Finding the outliers in the dataframe using Tukey's interquartile
 #'   range rule
 #' @name check_outlier
-#' @author \href{https://github.com/IndrajeetPatil}{Indrajeet Patil}
 #' @description Returns a logical vector
 #'
 #' @param var A numeric vector.
@@ -241,7 +228,6 @@ check_outlier <- function(var, coef = 1.5) {
 
 #' @title Adding a column to dataframe describing outlier status
 #' @name outlier_df
-#' @author \href{https://github.com/IndrajeetPatil}{Indrajeet Patil}
 #'
 #' @inheritParams ggbetweenstats
 #' @param ... Additional arguments.
@@ -272,7 +258,6 @@ outlier_df <- function(data,
   x <- rlang::ensym(x)
   y <- rlang::ensym(y)
   outlier.label <- rlang::ensym(outlier.label)
-  ellipsis::check_dots_used()
 
   # add a logical column indicating whether a point is or is not an outlier
   data %<>%
@@ -302,7 +287,6 @@ outlier_df <- function(data,
 
 #' @title Adding `geom_signif` to `ggplot`
 #' @name ggsignif_adder
-#' @author \href{https://github.com/IndrajeetPatil}{Indrajeet Patil}
 #'
 #' @param plot A `ggplot` object on which `geom_signif` needed to be added.
 #' @param df_pairwise A dataframe containing results from pairwise comparisons
@@ -364,13 +348,14 @@ ggsignif_adder <- function(plot,
     # deciding what needs to be displayed
     if (pairwise.annotation %in% c("p", "p-value", "p.value")) {
       # if p-values are to be displayed
-      df_pairwise %<>% dplyr::rename(.data = ., label = p.value.label)
       textsize <- 3
       vjust <- 0
       parse <- TRUE
     } else {
       # otherwise just show the asterisks
-      df_pairwise %<>% dplyr::rename(.data = ., label = significance)
+      df_pairwise %<>%
+        dplyr::select(.data = ., -label) %>%
+        dplyr::rename(.data = ., label = significance)
       textsize <- 4
       vjust <- 0.2
       parse <- FALSE
@@ -380,11 +365,8 @@ ggsignif_adder <- function(plot,
     df_pairwise %<>% dplyr::arrange(.data = ., group1)
 
     # computing y coordinates for ggsignif bars
-    ggsignif_y_position <-
-      ggsignif_position_calculator(
-        x = data %>% dplyr::pull({{ x }}),
-        y = data %>% dplyr::pull({{ y }})
-      )
+    ggsignif_coords <-
+      ggsignif_xy(data %>% dplyr::pull({{ x }}), data %>% dplyr::pull({{ y }}))
 
     # adding ggsignif comparisons to the plot
     plot <- plot +
@@ -394,7 +376,7 @@ ggsignif_adder <- function(plot,
         textsize = textsize,
         tip_length = 0.01,
         vjust = vjust,
-        y_position = ggsignif_y_position,
+        y_position = ggsignif_coords,
         annotations = df_pairwise$label,
         test = NULL,
         na.rm = TRUE,
@@ -406,7 +388,7 @@ ggsignif_adder <- function(plot,
   return(plot)
 }
 
-#' @name ggsignif_position_calculator
+#' @name ggsignif_xy
 #' @importFrom utils combn
 #'
 #' @inheritParams ggbetweenstats
@@ -414,11 +396,11 @@ ggsignif_adder <- function(plot,
 #' @keywords internal
 #' @noRd
 
-ggsignif_position_calculator <- function(x, y) {
+ggsignif_xy <- function(x, y) {
   # number of comparisons
   n_comparions <- length(utils::combn(x = unique(x), m = 2L, simplify = FALSE))
 
-  # start position on y-axis for the ggsignif lines
+  # start position on `y`-axis for the `ggsignif` lines
   y_start <- max(y, na.rm = TRUE) * (1 + 0.025)
 
   # steps in which the y values need to increase
@@ -441,7 +423,6 @@ ggsignif_position_calculator <- function(x, y) {
 #'
 #' @importFrom forcats fct_reorder
 #' @importFrom dplyr mutate
-#' @importFrom ellipsis check_dots_used
 #'
 #' @inheritParams ggbetweenstats
 #'
@@ -459,7 +440,6 @@ sort_xy <- function(data,
   # make sure both quoted and unquoted arguments are allowed
   x <- rlang::ensym(x)
   y <- rlang::ensym(y)
-  ellipsis::check_dots_used()
 
   # decide the needed order
   if (sort == "ascending") {
@@ -487,7 +467,6 @@ sort_xy <- function(data,
 
 #' @title Making aesthetic modifications to the plot
 #' @name aesthetic_addon
-#' @author \href{https://github.com/IndrajeetPatil}{Indrajeet Patil}
 #'
 #' @param plot Plot to be aesthetically modified.
 #' @param x A numeric vector for `x` axis.
@@ -510,7 +489,6 @@ aesthetic_addon <- function(plot,
                             direction = 1,
                             ggplot.component = NULL,
                             ...) {
-  ellipsis::check_dots_used()
 
   # if no. of factor levels is greater than the default palette color count
   palette_message(
@@ -547,10 +525,6 @@ aesthetic_addon <- function(plot,
 
   # ---------------- adding ggplot component ---------------------------------
 
-  # if any additional modification needs to be made to the plot
-  # this is primarily useful for grouped_ variant of this function
-  plot <- plot + ggplot.component
-
-  # return the changed plot
-  return(plot)
+  # return with any additional modification that needs to be made to the plot
+  return(plot + ggplot.component)
 }

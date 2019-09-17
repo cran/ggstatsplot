@@ -89,7 +89,7 @@ function defined by \code{method}.}
 (defaults: \code{point.color = "black"}, \code{point.size = 3},\code{point.alpha = 0.4}).}
 
 \item{point.width.jitter, point.height.jitter}{Degree of jitter in \code{x} and \code{y}
-direction, respectively. Defaults to \code{0} (0%) of the resolution of the
+direction, respectively. Defaults to \code{0} (0\%) of the resolution of the
 data.}
 
 \item{line.size}{Size for the regression line.}
@@ -130,7 +130,8 @@ default is \code{1} for both axes.}
 
 \item{centrality.para}{Decides \emph{which} measure of central tendency (\code{"mean"}
 or \code{"median"}) is to be displayed as vertical (for \code{x}) and horizontal (for
-\code{y}) lines.}
+\code{y}) lines. Note that mean values corresponds to arithmetic mean and not
+geometric mean.}
 
 \item{results.subtitle}{Decides whether the results of statistical tests are
 to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
@@ -228,7 +229,4 @@ ggstatsplot::ggscatterstats(
 \seealso{
 \code{\link{grouped_ggscatterstats}}, \code{\link{ggcorrmat}},
 \code{\link{grouped_ggcorrmat}}
-}
-\author{
-Indrajeet Patil, Chuck Powell
 }
