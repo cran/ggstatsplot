@@ -5,20 +5,51 @@
 \title{Visualization of a correlalogram (or correlation matrix) for all
 levels of a grouping variable}
 \usage{
-grouped_ggcorrmat(data, cor.vars = NULL, cor.vars.names = NULL,
-  grouping.var, title.prefix = NULL, output = "plot",
-  matrix.type = "full", method = "square", corr.method = "pearson",
-  type = NULL, exact = FALSE, continuity = TRUE, beta = 0.1,
-  digits = 2, k = NULL, sig.level = 0.05, conf.level = 0.95,
-  p.adjust.method = "none", hc.order = FALSE, hc.method = "complete",
-  lab = TRUE, package = "RColorBrewer", palette = "Dark2",
-  direction = 1, colors = c("#E69F00", "white", "#009E73"),
-  outline.color = "black", ggtheme = ggplot2::theme_bw(),
-  ggstatsplot.layer = TRUE, subtitle = NULL, caption = NULL,
-  caption.default = TRUE, lab.col = "black", lab.size = 5,
-  insig = "pch", pch = 4, pch.col = "black", pch.cex = 11,
-  tl.cex = 12, tl.col = "black", tl.srt = 45, messages = TRUE,
-  return = NULL, ...)
+grouped_ggcorrmat(
+  data,
+  cor.vars = NULL,
+  cor.vars.names = NULL,
+  grouping.var,
+  title.prefix = NULL,
+  output = "plot",
+  matrix.type = "full",
+  method = "square",
+  corr.method = "pearson",
+  type = NULL,
+  exact = FALSE,
+  continuity = TRUE,
+  beta = 0.1,
+  digits = 2,
+  k = NULL,
+  sig.level = 0.05,
+  conf.level = 0.95,
+  p.adjust.method = "none",
+  hc.order = FALSE,
+  hc.method = "complete",
+  lab = TRUE,
+  package = "RColorBrewer",
+  palette = "Dark2",
+  direction = 1,
+  colors = c("#E69F00", "white", "#009E73"),
+  outline.color = "black",
+  ggtheme = ggplot2::theme_bw(),
+  ggstatsplot.layer = TRUE,
+  subtitle = NULL,
+  caption = NULL,
+  caption.default = TRUE,
+  lab.col = "black",
+  lab.size = 5,
+  insig = "pch",
+  pch = 4,
+  pch.col = "black",
+  pch.cex = 11,
+  tl.cex = 12,
+  tl.col = "black",
+  tl.srt = 45,
+  messages = TRUE,
+  return = NULL,
+  ...
+)
 }
 \arguments{
 \item{data}{Dataframe from which variables specified are preferentially to be
@@ -91,7 +122,7 @@ correlation coefficient is regarded as insignificant and flagged as such in
 the plot. This argument is relevant only when \code{output = "plot"}.}
 
 \item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
-\code{95\%} lower and upper confidence intervals (\code{0.95}).}
+\verb{95\%} lower and upper confidence intervals (\code{0.95}).}
 
 \item{p.adjust.method}{What adjustment for multiple tests should be used?
 (\code{"holm"}, \code{"hochberg"}, \code{"hommel"}, \code{"bonferroni"}, \code{"BH"}, \code{"BY"},
@@ -220,7 +251,7 @@ Can be a plotmath expression.}
     \item{\code{sub.vpadding}}{Vertical padding. The total vertical space added to the
 label, given in grid units. By default, this is added equally above and
 below the label. However, by changing the y and vjust parameters, this can
-be changed (Default: \code{grid::unit(1, "lines")}).}
+be changed (Default: \code{ggplot2::unit(1, "lines")}).}
     \item{\code{sub.fontface}}{The font face (\code{"plain"} (default), \code{"bold"}, \code{"italic"},
 \code{"bold.italic"}) for the annotation label.}
     \item{\code{sub.angle}}{Angle at which annotation label is to be drawn (Default:
@@ -249,7 +280,7 @@ resulting plots using \code{ggstatsplot::combine_plots}.
 set.seed(123)
 
 # for plot
-# (without specifiying needed variables; all numeric variables will be used)
+# (without specifying needed variables; all numeric variables will be used)
 ggstatsplot::grouped_ggcorrmat(
   data = ggplot2::msleep,
   grouping.var = vore

@@ -5,26 +5,64 @@
 \title{Violin plots for group or condition comparisons in within-subjects
 designs repeated across all levels of a grouping variable.}
 \usage{
-grouped_ggwithinstats(data, x, y, grouping.var, title.prefix = NULL,
-  type = "parametric", pairwise.comparisons = FALSE,
-  pairwise.annotation = "p.value", pairwise.display = "significant",
-  p.adjust.method = "holm", effsize.type = "unbiased",
-  partial = TRUE, effsize.noncentral = TRUE, bf.prior = 0.707,
-  bf.message = TRUE, sphericity.correction = TRUE,
-  results.subtitle = TRUE, xlab = NULL, ylab = NULL,
-  subtitle = NULL, caption = NULL, sample.size.label = TRUE, k = 2,
-  conf.level = 0.95, nboot = 100, tr = 0.1, path.point = TRUE,
-  path.mean = TRUE, sort = "none", sort.fun = mean,
-  axes.range.restrict = FALSE, mean.label.size = 3,
-  mean.label.fontface = "bold", mean.label.color = "black",
-  notch = FALSE, notchwidth = 0.5, linetype = "solid",
-  outlier.tagging = FALSE, outlier.label = NULL,
-  outlier.label.color = "black", outlier.color = "black",
-  outlier.shape = 19, outlier.coef = 1.5, mean.plotting = TRUE,
-  mean.ci = FALSE, mean.size = 5, mean.color = "darkred",
-  ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
-  package = "RColorBrewer", palette = "Dark2", direction = 1,
-  ggplot.component = NULL, return = "plot", messages = TRUE, ...)
+grouped_ggwithinstats(
+  data,
+  x,
+  y,
+  grouping.var,
+  title.prefix = NULL,
+  type = "parametric",
+  pairwise.comparisons = FALSE,
+  pairwise.annotation = "p.value",
+  pairwise.display = "significant",
+  p.adjust.method = "holm",
+  effsize.type = "unbiased",
+  partial = TRUE,
+  effsize.noncentral = TRUE,
+  bf.prior = 0.707,
+  bf.message = TRUE,
+  sphericity.correction = TRUE,
+  results.subtitle = TRUE,
+  xlab = NULL,
+  ylab = NULL,
+  subtitle = NULL,
+  caption = NULL,
+  sample.size.label = TRUE,
+  k = 2,
+  conf.level = 0.95,
+  nboot = 100,
+  tr = 0.1,
+  path.point = TRUE,
+  path.mean = TRUE,
+  sort = "none",
+  sort.fun = mean,
+  axes.range.restrict = FALSE,
+  mean.label.size = 3,
+  mean.label.fontface = "bold",
+  mean.label.color = "black",
+  notch = FALSE,
+  notchwidth = 0.5,
+  linetype = "solid",
+  outlier.tagging = FALSE,
+  outlier.label = NULL,
+  outlier.label.color = "black",
+  outlier.color = "black",
+  outlier.shape = 19,
+  outlier.coef = 1.5,
+  mean.plotting = TRUE,
+  mean.ci = FALSE,
+  mean.size = 5,
+  mean.color = "darkred",
+  ggtheme = ggplot2::theme_bw(),
+  ggstatsplot.layer = TRUE,
+  package = "RColorBrewer",
+  palette = "Dark2",
+  direction = 1,
+  ggplot.component = NULL,
+  return = "plot",
+  messages = TRUE,
+  ...
+)
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
@@ -116,7 +154,7 @@ should be displayed for each level of the grouping variable \code{x} (Default:
 (Default: \code{k = 2}).}
 
 \item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
-\code{95\%} lower and upper confidence intervals (\code{0.95}).}
+\verb{95\%} lower and upper confidence intervals (\code{0.95}).}
 
 \item{nboot}{Number of bootstrap samples for computing confidence interval
 for the effect size (Default: \code{100}).}
@@ -282,7 +320,7 @@ Can be a plotmath expression.}
     \item{\code{sub.vpadding}}{Vertical padding. The total vertical space added to the
 label, given in grid units. By default, this is added equally above and
 below the label. However, by changing the y and vjust parameters, this can
-be changed (Default: \code{grid::unit(1, "lines")}).}
+be changed (Default: \code{ggplot2::unit(1, "lines")}).}
     \item{\code{sub.fontface}}{The font face (\code{"plain"} (default), \code{"bold"}, \code{"italic"},
 \code{"bold.italic"}) for the annotation label.}
     \item{\code{sub.angle}}{Angle at which annotation label is to be drawn (Default:
@@ -318,6 +356,10 @@ ggstatsplot::grouped_ggwithinstats(
   x = modality,
   y = score,
   grouping.var = order,
+  ggplot.component = ggplot2::scale_y_continuous(
+    breaks = seq(0, 1, 0.1),
+    limits = c(0, 1)
+  ),
   messages = TRUE
 )
 }

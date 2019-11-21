@@ -4,21 +4,57 @@
 \alias{ggscatterstats}
 \title{Scatterplot with marginal distributions and statistical results}
 \usage{
-ggscatterstats(data, x, y, type = "pearson", conf.level = 0.95,
-  bf.prior = 0.707, bf.message = TRUE, label.var = NULL,
-  label.expression = NULL, xlab = NULL, ylab = NULL, method = "lm",
-  method.args = list(), formula = y ~ x, point.color = "black",
-  point.size = 3, point.alpha = 0.4, point.width.jitter = 0,
-  point.height.jitter = 0, line.size = 1.5, line.color = "blue",
-  marginal = TRUE, marginal.type = "histogram", marginal.size = 5,
-  margins = c("both", "x", "y"), package = "wesanderson",
-  palette = "Royal1", direction = 1, xfill = "#009E73",
-  yfill = "#D55E00", xalpha = 1, yalpha = 1, xsize = 0.7,
-  ysize = 0.7, centrality.para = NULL, results.subtitle = TRUE,
-  stat.title = NULL, title = NULL, subtitle = NULL, caption = NULL,
-  nboot = 100, beta = 0.1, k = 2, axes.range.restrict = FALSE,
-  ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
-  ggplot.component = NULL, return = "plot", messages = TRUE)
+ggscatterstats(
+  data,
+  x,
+  y,
+  type = "pearson",
+  conf.level = 0.95,
+  bf.prior = 0.707,
+  bf.message = TRUE,
+  label.var = NULL,
+  label.expression = NULL,
+  xlab = NULL,
+  ylab = NULL,
+  method = "lm",
+  method.args = list(),
+  formula = y ~ x,
+  point.color = "black",
+  point.size = 3,
+  point.alpha = 0.4,
+  point.width.jitter = 0,
+  point.height.jitter = 0,
+  line.size = 1.5,
+  line.color = "blue",
+  marginal = TRUE,
+  marginal.type = "histogram",
+  marginal.size = 5,
+  margins = c("both", "x", "y"),
+  package = "wesanderson",
+  palette = "Royal1",
+  direction = 1,
+  xfill = "#009E73",
+  yfill = "#D55E00",
+  xalpha = 1,
+  yalpha = 1,
+  xsize = 0.7,
+  ysize = 0.7,
+  centrality.para = NULL,
+  results.subtitle = TRUE,
+  stat.title = NULL,
+  title = NULL,
+  subtitle = NULL,
+  caption = NULL,
+  nboot = 100,
+  beta = 0.1,
+  k = 2,
+  axes.range.restrict = FALSE,
+  ggtheme = ggplot2::theme_bw(),
+  ggstatsplot.layer = TRUE,
+  ggplot.component = NULL,
+  return = "plot",
+  messages = TRUE
+)
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
@@ -41,7 +77,7 @@ parametric/pearson's), \code{"np"} (nonparametric/spearman), \code{"r"} (robust)
 \code{"bf"} (for bayes factor), resp.}
 
 \item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
-\code{95\%} lower and upper confidence intervals (\code{0.95}).}
+\verb{95\%} lower and upper confidence intervals (\code{0.95}).}
 
 \item{bf.prior}{A numeric value between \code{0.5} and \code{2} (default \code{0.707}), the
 prior width to use in calculating Bayes Factors.}
@@ -201,7 +237,7 @@ times will slow down massively (and the plot file will grow in size) if you
 have a lot of labels that overlap.
 }
 \examples{
-
+\donttest{
 # to get reproducible results from bootstrapping
 set.seed(123)
 
@@ -222,6 +258,7 @@ ggstatsplot::ggscatterstats(
   centrality.para = "median",
   xfill = NULL
 )
+}
 }
 \references{
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggscatterstats.html}

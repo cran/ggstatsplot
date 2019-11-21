@@ -69,7 +69,7 @@
 #' have a lot of labels that overlap.
 #'
 #' @examples
-#'
+#' \donttest{
 #' # to get reproducible results from bootstrapping
 #' set.seed(123)
 #'
@@ -90,6 +90,7 @@
 #'   centrality.para = "median",
 #'   xfill = NULL
 #' )
+#' }
 #' @export
 
 # defining the function
@@ -468,7 +469,7 @@ ggscatterstats <- function(data,
 
   #------------------------- messages  ------------------------------------
 
-  # display warning that this function doesn't produce a ggplot2 object
+  # display warning that this function doesn't produce a `ggplot2` object
   if (isTRUE(marginal) && isTRUE(messages)) {
     message(cat(
       crayon::red("Warning: "),

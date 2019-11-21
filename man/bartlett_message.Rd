@@ -4,8 +4,7 @@
 \alias{bartlett_message}
 \title{Display homogeneity of variance test as a message}
 \usage{
-bartlett_message(data, x, y, lab = NULL, k = 2, output = "message",
-  ...)
+bartlett_message(data, x, y, lab = NULL, k = 2, output = "message", ...)
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
@@ -62,6 +61,7 @@ ggstatsplot::bartlett_message(
 \seealso{
 \code{\link{ggbetweenstats}}
 
-Other helper_messages: \code{\link{normality_message}()}
+Other helper_messages: 
+\code{\link{normality_message}()}
 }
 \concept{helper_messages}

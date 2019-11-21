@@ -4,32 +4,65 @@
 \alias{ggcoefstats}
 \title{Dot-and-whisker plots for regression analyses}
 \usage{
-ggcoefstats(x, output = "plot", statistic = NULL, scales = NULL,
-  component = "survival", bf.message = TRUE, d = "norm",
-  d.par = c(mean = 0, sd = 0.3), tau = "halfcauchy",
-  tau.par = c(scale = 0.5), iter = 5000, summarize = "stan",
-  p.adjust.method = "none", coefficient.type = c("beta", "location",
-  "coefficient"), by.class = FALSE, effsize = "eta", partial = TRUE,
-  nboot = 500, meta.analytic.effect = FALSE, point.color = "blue",
-  point.size = 3, point.shape = 16, conf.int = TRUE,
-  conf.level = 0.95, se.type = "nid", k = 2, k.caption.summary = 0,
-  exclude.intercept = TRUE, exponentiate = FALSE,
-  errorbar.color = "black", errorbar.height = 0,
-  errorbar.linetype = "solid", errorbar.size = 0.5, vline = TRUE,
-  vline.color = "black", vline.linetype = "dashed", vline.size = 1,
-  sort = "none", xlab = "regression coefficient", ylab = "term",
-  title = NULL, subtitle = NULL, stats.labels = TRUE,
-  caption = NULL, caption.summary = TRUE, stats.label.size = 3,
-  stats.label.fontface = "bold", stats.label.color = NULL,
-  label.r = 0.15, label.size = 0.25, label.box.padding = 1,
-  label.label.padding = 0.25, label.point.padding = 0.5,
-  label.segment.color = "grey50", label.segment.size = 0.5,
-  label.segment.alpha = NULL, label.min.segment.length = 0.5,
-  label.force = 1, label.max.iter = 2000, label.nudge.x = 0,
-  label.nudge.y = 0, label.xlim = c(NA, NA), label.ylim = c(NA, NA),
-  label.direction = "y", package = "RColorBrewer", palette = "Dark2",
-  direction = 1, ggtheme = ggplot2::theme_bw(),
-  ggstatsplot.layer = TRUE, messages = FALSE, return = NULL, ...)
+ggcoefstats(
+  x,
+  output = "plot",
+  statistic = NULL,
+  scales = NULL,
+  component = "survival",
+  bf.message = TRUE,
+  d = "norm",
+  d.par = c(mean = 0, sd = 0.3),
+  tau = "halfcauchy",
+  tau.par = c(scale = 0.5),
+  iter = 5000,
+  summarize = "stan",
+  p.adjust.method = "none",
+  coefficient.type = c("beta", "location", "coefficient"),
+  by.class = FALSE,
+  effsize = "eta",
+  partial = TRUE,
+  nboot = 500,
+  meta.analytic.effect = FALSE,
+  point.color = "blue",
+  point.size = 3,
+  point.shape = 16,
+  conf.int = TRUE,
+  conf.level = 0.95,
+  se.type = "nid",
+  k = 2,
+  k.caption.summary = 0,
+  exclude.intercept = TRUE,
+  exponentiate = FALSE,
+  errorbar.color = "black",
+  errorbar.height = 0,
+  errorbar.linetype = "solid",
+  errorbar.size = 0.5,
+  vline = TRUE,
+  vline.color = "black",
+  vline.linetype = "dashed",
+  vline.size = 1,
+  sort = "none",
+  xlab = "regression coefficient",
+  ylab = "term",
+  title = NULL,
+  subtitle = NULL,
+  stats.labels = TRUE,
+  only.significant = FALSE,
+  caption = NULL,
+  caption.summary = TRUE,
+  stats.label.color = NULL,
+  stats.label.args = list(size = 3, fontface = "bold", segment.color = "grey50",
+    direction = "y"),
+  package = "RColorBrewer",
+  palette = "Dark2",
+  direction = 1,
+  ggtheme = ggplot2::theme_bw(),
+  ggstatsplot.layer = TRUE,
+  messages = FALSE,
+  return = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{A model object to be tidied with \code{broom::tidy}, or a tidy data frame
@@ -194,9 +227,14 @@ coefficient value.}
 \item{subtitle}{The text for the plot subtitle. The input to this argument
 will be ignored if \code{meta.analytic.effect} is set to \code{TRUE}.}
 
-\item{stats.labels}{Logical. Decides whether the statistic and p-values for
+\item{stats.labels}{Logical. Decides whether the statistic and \emph{p}-values for
 each coefficient are to be attached to each dot as a text label using
 \code{ggrepel} (Default: \code{TRUE}).}
+
+\item{only.significant}{If \code{TRUE}, only stats labels for significant effects
+is shown (Default: \code{FALSE}). This can be helpful when a large number of
+regression coefficients are to be displayed in a single plot. Relevant only
+when the \code{output} is a plot.}
 
 \item{caption}{The text for the plot caption.}
 
@@ -204,51 +242,12 @@ each coefficient are to be attached to each dot as a text label using
 displayed as a cation to the plot (Default: \code{TRUE}). Color of the line
 segment. Defaults to the same color as the text.}
 
-\item{stats.label.size, stats.label.fontface, stats.label.color}{Aesthetics for
-the labels. Defaults: \code{3}, \code{"bold"},\code{NULL}, resp. If \code{stats.label.color} is
+\item{stats.label.color}{Color for the labels. If \code{stats.label.color} is
 \code{NULL}, colors will be chosen from the specified \code{package} (Default:
 \code{"RColorBrewer"}) and \code{palette} (Default: \code{"Dark2"}).}
 
-\item{label.r, }{Radius of rounded corners, as unit or number. Defaults to
-\code{0.15}. (Default unit is lines).}
-
-\item{label.size}{Size of label border, in mm. Defaults to \code{0.25}.}
-
-\item{label.box.padding}{Amount of padding around bounding box, as number.
-Defaults to \code{1}. (Default unit is lines).}
-
-\item{label.label.padding}{Amount of padding around label, as number.
-Defaults to \code{0.25}. (Default unit is lines).}
-
-\item{label.point.padding}{Amount of padding around labeled point, as
-number. Defaults to \code{0}. (Default unit is lines).}
-
-\item{label.segment.color}{Color of the line segment (Default: \code{"grey50"}).}
-
-\item{label.segment.size}{Width of line segment connecting the data point to
-the text label, in mm. Defaults to \code{0.5}.}
-
-\item{label.segment.alpha}{Transparency of the line segment. Defaults to the
-same transparency as the text.}
-
-\item{label.min.segment.length}{Skip drawing segments shorter than this.
-Defaults to \code{0.5}. (Default unit is lines).}
-
-\item{label.force}{Force of repulsion between overlapping text labels.
-Defaults to \code{1}.}
-
-\item{label.max.iter}{Maximum number of iterations to try to resolve
-overlaps. Defaults to \code{2000}.}
-
-\item{label.nudge.x, label.nudge.y}{Horizontal and vertical adjustments to
-nudge the starting position of each text label. Defaults to \code{0}.}
-
-\item{label.xlim, label.ylim}{Limits for the \code{x} and \code{y} axes. Text labels
-will be constrained to these limits. By default, text labels are
-constrained to the entire plot area. Defaults to \code{c(NA, NA)}.}
-
-\item{label.direction}{Character (\code{"both"}, \code{"x"}, or \code{"y"}) -- direction in
-which to adjust position of labels (Default: \code{"y"}).}
+\item{stats.label.args}{Additional arguments that will be passed to \verb{ggrepel geom_label_repel} geom. Please see documentation for that function to know
+more about these arguments.}
 
 \item{package}{Name of package from which the palette is desired as string
 or symbol.}
@@ -377,7 +376,7 @@ ggstatsplot::ggcoefstats(
   meta.analytic.effect = TRUE,
   k = 3
 )
-}
+
 # -------------- getting model summary ------------------------------
 
 # model
@@ -407,6 +406,7 @@ ggstatsplot::ggcoefstats(
   output = "augment",
   type.predict = "risk"
 )
+}
 }
 \references{
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcoefstats.html}

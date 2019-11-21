@@ -4,23 +4,57 @@
 \alias{grouped_ggbarstats}
 \title{Grouped bar (column) charts with statistical tests}
 \usage{
-grouped_ggbarstats(data, main, condition, counts = NULL, grouping.var,
-  title.prefix = NULL, ratio = NULL, paired = FALSE,
-  results.subtitle = TRUE, labels.legend = NULL, stat.title = NULL,
-  sample.size.label = TRUE, label.separator = " ",
-  label.text.size = 4, label.fill.color = "white",
-  label.fill.alpha = 1, bar.outline.color = "black",
-  bf.message = TRUE, sampling.plan = "indepMulti",
-  fixed.margin = "rows", prior.concentration = 1, subtitle = NULL,
-  caption = NULL, legend.position = "right",
-  x.axis.orientation = NULL, conf.level = 0.95, nboot = 100,
-  simulate.p.value = FALSE, B = 2000, bias.correct = FALSE,
-  legend.title = NULL, xlab = NULL, ylab = "Percent", k = 2,
-  perc.k = 0, bar.label = "percentage", data.label = NULL,
-  bar.proptest = TRUE, ggtheme = ggplot2::theme_bw(),
-  ggstatsplot.layer = TRUE, package = "RColorBrewer",
-  palette = "Dark2", direction = 1, ggplot.component = NULL,
-  return = "plot", messages = TRUE, x = NULL, y = NULL, ...)
+grouped_ggbarstats(
+  data,
+  main,
+  condition,
+  counts = NULL,
+  grouping.var,
+  title.prefix = NULL,
+  ratio = NULL,
+  paired = FALSE,
+  results.subtitle = TRUE,
+  labels.legend = NULL,
+  stat.title = NULL,
+  sample.size.label = TRUE,
+  label.separator = " ",
+  label.text.size = 4,
+  label.fill.color = "white",
+  label.fill.alpha = 1,
+  bar.outline.color = "black",
+  bf.message = TRUE,
+  sampling.plan = "indepMulti",
+  fixed.margin = "rows",
+  prior.concentration = 1,
+  subtitle = NULL,
+  caption = NULL,
+  legend.position = "right",
+  x.axis.orientation = NULL,
+  conf.level = 0.95,
+  nboot = 100,
+  simulate.p.value = FALSE,
+  B = 2000,
+  bias.correct = FALSE,
+  legend.title = NULL,
+  xlab = NULL,
+  ylab = "Percent",
+  k = 2,
+  perc.k = 0,
+  bar.label = "percentage",
+  data.label = NULL,
+  bar.proptest = TRUE,
+  ggtheme = ggplot2::theme_bw(),
+  ggstatsplot.layer = TRUE,
+  package = "RColorBrewer",
+  palette = "Dark2",
+  direction = 1,
+  ggplot.component = NULL,
+  return = "plot",
+  messages = TRUE,
+  x = NULL,
+  y = NULL,
+  ...
+)
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
@@ -31,7 +65,8 @@ be taken. A matrix or tables will \strong{not} be accepted.}
 \item{condition}{The variable to use as the \strong{columns} in the contingency
 table. Default is \code{NULL}. If \code{NULL}, one-sample proportion test (a goodness
 of fit test) will be run for the \code{x} variable. Otherwise an appropriate
-association test will be run.}
+association test will be run. This argument can not be \code{NULL} for
+\code{ggbarstats} function.}
 
 \item{counts}{A string naming a variable in data containing counts, or \code{NULL}
 if each row represents a single observation (Default).}
@@ -117,7 +152,7 @@ hypothesis under the alternative, and corresponds to Gunel and Dickey's
 orientation (Default: \code{NULL} which is horizontal).}
 
 \item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
-\code{95\%} lower and upper confidence intervals (\code{0.95}).}
+\verb{95\%} lower and upper confidence intervals (\code{0.95}).}
 
 \item{nboot}{Number of bootstrap samples for computing confidence interval
 for the effect size (Default: \code{100}).}
@@ -197,7 +232,8 @@ to be displayed (Default: \code{TRUE}).}
 \item{y}{The variable to use as the \strong{columns} in the contingency
 table. Default is \code{NULL}. If \code{NULL}, one-sample proportion test (a goodness
 of fit test) will be run for the \code{x} variable. Otherwise an appropriate
-association test will be run.}
+association test will be run. This argument can not be \code{NULL} for
+\code{ggbarstats} function.}
 
 \item{...}{
   Arguments passed on to \code{\link[=combine_plots]{combine_plots}}
@@ -235,7 +271,7 @@ Can be a plotmath expression.}
     \item{\code{sub.vpadding}}{Vertical padding. The total vertical space added to the
 label, given in grid units. By default, this is added equally above and
 below the label. However, by changing the y and vjust parameters, this can
-be changed (Default: \code{grid::unit(1, "lines")}).}
+be changed (Default: \code{ggplot2::unit(1, "lines")}).}
     \item{\code{sub.fontface}}{The font face (\code{"plain"} (default), \code{"bold"}, \code{"italic"},
 \code{"bold.italic"}) for the annotation label.}
     \item{\code{sub.angle}}{Angle at which annotation label is to be drawn (Default:
@@ -268,7 +304,6 @@ function across multiple levels of a given factor and combining the
 resulting plots using \code{ggstatsplot::combine_plots}.
 }
 \examples{
-
 \donttest{
 # with condition and with count data
 library(jmv)

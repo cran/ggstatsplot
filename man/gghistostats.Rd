@@ -4,23 +4,53 @@
 \alias{gghistostats}
 \title{Histogram for distribution of a numeric variable}
 \usage{
-gghistostats(data, x, binwidth = NULL, bar.measure = "count",
-  xlab = NULL, stat.title = NULL, title = NULL, subtitle = NULL,
-  caption = NULL, type = "parametric", test.value = 0,
-  bf.prior = 0.707, bf.message = TRUE, robust.estimator = "onestep",
-  effsize.type = "g", effsize.noncentral = TRUE, conf.level = 0.95,
-  nboot = 100, k = 2, ggtheme = ggplot2::theme_bw(),
-  ggstatsplot.layer = TRUE, fill.gradient = FALSE,
-  low.color = "#0072B2", high.color = "#D55E00", bar.fill = "grey50",
-  results.subtitle = TRUE, centrality.para = "mean",
-  centrality.color = "blue", centrality.size = 1,
-  centrality.linetype = "dashed", centrality.line.labeller = TRUE,
-  centrality.k = 2, test.value.line = FALSE,
-  test.value.color = "black", test.value.size = 1,
-  test.value.linetype = "dashed", test.line.labeller = TRUE,
-  test.k = 0, normal.curve = FALSE, normal.curve.color = "black",
-  normal.curve.linetype = "solid", normal.curve.size = 1,
-  ggplot.component = NULL, return = "plot", messages = TRUE)
+gghistostats(
+  data,
+  x,
+  binwidth = NULL,
+  bar.measure = "count",
+  xlab = NULL,
+  stat.title = NULL,
+  title = NULL,
+  subtitle = NULL,
+  caption = NULL,
+  type = "parametric",
+  test.value = 0,
+  bf.prior = 0.707,
+  bf.message = TRUE,
+  robust.estimator = "onestep",
+  effsize.type = "g",
+  effsize.noncentral = TRUE,
+  conf.level = 0.95,
+  nboot = 100,
+  k = 2,
+  ggtheme = ggplot2::theme_bw(),
+  ggstatsplot.layer = TRUE,
+  fill.gradient = FALSE,
+  low.color = "#0072B2",
+  high.color = "#D55E00",
+  bar.fill = "grey50",
+  results.subtitle = TRUE,
+  centrality.para = "mean",
+  centrality.color = "blue",
+  centrality.size = 1,
+  centrality.linetype = "dashed",
+  centrality.line.labeller = TRUE,
+  centrality.k = 2,
+  test.value.line = FALSE,
+  test.value.color = "black",
+  test.value.size = 1,
+  test.value.linetype = "dashed",
+  test.line.labeller = TRUE,
+  test.k = 0,
+  normal.curve = FALSE,
+  normal.curve.color = "black",
+  normal.curve.linetype = "solid",
+  normal.curve.size = 1,
+  ggplot.component = NULL,
+  return = "plot",
+  messages = TRUE
+)
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
@@ -83,7 +113,7 @@ argument can be \code{"biased"} (\code{"d"} for Cohen's \emph{d}) or \code{"unbi
 or Hedge's \emph{g} (Default: \code{TRUE}).}
 
 \item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
-\code{95\%} lower and upper confidence intervals (\code{0.95}).}
+\verb{95\%} lower and upper confidence intervals (\code{0.95}).}
 
 \item{nboot}{Number of bootstrap samples for computing confidence interval
 for the effect size (Default: \code{100}).}
@@ -183,7 +213,7 @@ Histogram with statistical details from one-sample test included
 in the plot as a subtitle.
 }
 \examples{
-
+\donttest{
 # most basic function call with the defaults
 # this is the **only** function where data argument can be `NULL`
 ggstatsplot::gghistostats(
@@ -206,6 +236,7 @@ ggstatsplot::gghistostats(
   binwidth = 0.10,
   bar.fill = "grey50"
 )
+}
 }
 \references{
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/gghistostats.html}

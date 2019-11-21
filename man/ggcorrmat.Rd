@@ -4,20 +4,49 @@
 \alias{ggcorrmat}
 \title{Visualization of a correlation matrix}
 \usage{
-ggcorrmat(data, cor.vars = NULL, cor.vars.names = NULL,
-  output = "plot", matrix.type = "full", method = "square",
-  corr.method = "pearson", type = NULL, exact = FALSE,
-  continuity = TRUE, beta = 0.1, digits = 2, k = NULL,
-  sig.level = 0.05, conf.level = 0.95, p.adjust.method = "none",
-  hc.order = FALSE, hc.method = "complete", lab = TRUE,
-  package = "RColorBrewer", palette = "Dark2", direction = 1,
-  colors = c("#E69F00", "white", "#009E73"), outline.color = "black",
-  ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
-  title = NULL, subtitle = NULL, caption = NULL,
-  caption.default = TRUE, lab.col = "black", lab.size = 5,
-  insig = "pch", pch = 4, pch.col = "black", pch.cex = 11,
-  tl.cex = 12, tl.col = "black", tl.srt = 45, messages = TRUE,
-  return = NULL)
+ggcorrmat(
+  data,
+  cor.vars = NULL,
+  cor.vars.names = NULL,
+  output = "plot",
+  matrix.type = "full",
+  method = "square",
+  corr.method = "pearson",
+  type = NULL,
+  exact = FALSE,
+  continuity = TRUE,
+  beta = 0.1,
+  digits = 2,
+  k = NULL,
+  sig.level = 0.05,
+  conf.level = 0.95,
+  p.adjust.method = "none",
+  hc.order = FALSE,
+  hc.method = "complete",
+  lab = TRUE,
+  package = "RColorBrewer",
+  palette = "Dark2",
+  direction = 1,
+  colors = c("#E69F00", "white", "#009E73"),
+  outline.color = "black",
+  ggtheme = ggplot2::theme_bw(),
+  ggstatsplot.layer = TRUE,
+  title = NULL,
+  subtitle = NULL,
+  caption = NULL,
+  caption.default = TRUE,
+  lab.col = "black",
+  lab.size = 5,
+  insig = "pch",
+  pch = 4,
+  pch.col = "black",
+  pch.cex = 11,
+  tl.cex = 12,
+  tl.col = "black",
+  tl.srt = 45,
+  messages = TRUE,
+  return = NULL
+)
 }
 \arguments{
 \item{data}{Dataframe from which variables specified are preferentially to be
@@ -72,7 +101,7 @@ correlation coefficient is regarded as insignificant and flagged as such in
 the plot. This argument is relevant only when \code{output = "plot"}.}
 
 \item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
-\code{95\%} lower and upper confidence intervals (\code{0.95}).}
+\verb{95\%} lower and upper confidence intervals (\code{0.95}).}
 
 \item{p.adjust.method}{What adjustment for multiple tests should be used?
 (\code{"holm"}, \code{"hochberg"}, \code{"hommel"}, \code{"bonferroni"}, \code{"BH"}, \code{"BY"},
@@ -158,7 +187,7 @@ of \emph{p}-values.
 Visualization of a correlation matrix
 }
 \examples{
-
+\donttest{
 # for reproducibility
 set.seed(123)
 
@@ -211,6 +240,7 @@ ggstatsplot::ggcorrmat(
   outline.col = "white",
   title = "Dataset: Iris"
 )
+}
 }
 \references{
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html}

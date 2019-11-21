@@ -135,7 +135,6 @@ line_labeler <- line_labeller
 #'   test.value.line = TRUE
 #' )
 #' }
-#'
 #' @keywords internal
 
 # function body

@@ -20,7 +20,6 @@
 #' @inherit ggpiestats return return
 #'
 #' @examples
-#'
 #' \donttest{
 #' # grouped one-sample proportion tests
 #' ggstatsplot::grouped_ggpiestats(

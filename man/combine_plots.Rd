@@ -4,17 +4,35 @@
 \alias{combine_plots}
 \title{Combining and arranging multiple plots in a grid}
 \usage{
-combine_plots(..., title.text = NULL, title.color = "black",
-  title.size = 16, title.vjust = 0.5, title.hjust = 0.5,
-  title.fontface = "bold", caption.text = NULL,
-  caption.color = "black", caption.size = 10, caption.vjust = 0.5,
-  caption.hjust = 0.5, caption.fontface = "plain", sub.text = NULL,
-  sub.color = "black", sub.size = 12, sub.vjust = 0.5,
-  sub.hjust = 0.5, sub.fontface = "plain", sub.x = 0.5,
-  sub.y = 0.5, sub.vpadding = grid::unit(1, "lines"), sub.angle = 0,
-  sub.lineheight = 0.9, title.rel.heights = c(0.1, 1.2),
-  caption.rel.heights = c(1.2, 0.1), title.caption.rel.heights = c(0.1,
-  1.2, 0.1))
+combine_plots(
+  ...,
+  title.text = NULL,
+  title.color = "black",
+  title.size = 16,
+  title.vjust = 0.5,
+  title.hjust = 0.5,
+  title.fontface = "bold",
+  caption.text = NULL,
+  caption.color = "black",
+  caption.size = 10,
+  caption.vjust = 0.5,
+  caption.hjust = 0.5,
+  caption.fontface = "plain",
+  sub.text = NULL,
+  sub.color = "black",
+  sub.size = 12,
+  sub.vjust = 0.5,
+  sub.hjust = 0.5,
+  sub.fontface = "plain",
+  sub.x = 0.5,
+  sub.y = 0.5,
+  sub.vpadding = ggplot2::unit(1, "lines"),
+  sub.angle = 0,
+  sub.lineheight = 0.9,
+  title.rel.heights = c(0.1, 1.2),
+  caption.rel.heights = c(1.2, 0.1),
+  title.caption.rel.heights = c(0.1, 1.2, 0.1)
+)
 }
 \arguments{
 \item{...}{
@@ -26,7 +44,7 @@ individually as the first n arguments of the function plot_grid (see examples).}
 vertically ("v") aligned. Options are "none" (default), "hv" (align in both directions), "h", and "v".}
     \item{\code{axis}}{(optional) Specifies whether graphs should be aligned by the left ("l"), right ("r"), top ("t"), or bottom ("b")
 margins. Options are "none" (default), or a string of any combination of l, r, t, and b in any order (e.g. "tblr" or "rlbt" for aligning all margins).
-Must be specified if any of the graphs are complex (e.g. faceted) and alignment is specified and desired. See \code{\link[=align_plots]{align_plots()}} for details.}
+Must be specified if any of the graphs are complex (e.g. faceted) and alignment is specified and desired. See \code{\link[cowplot:align_plots]{align_plots()}} for details.}
     \item{\code{nrow}}{(optional) Number of rows in the plot grid.}
     \item{\code{ncol}}{(optional) Number of columns in the plot grid.}
     \item{\code{rel_widths}}{(optional) Numerical vector of relative columns widths. For example, in a two-column
@@ -53,7 +71,7 @@ down on the plot canvas. Can be a single value (applied to all labels) or a vect
     \item{\code{scale}}{Individual number or vector of numbers greater than 0. Enables you to scale the size of all or
 select plots. Usually it's preferable to set margins instead of using \code{scale}, but \code{scale} can
 sometimes be more powerful.}
-    \item{\code{greedy}}{(optional) How should margins be adjusted during alignment. See \code{\link[=align_plots]{align_plots()}} for details.}
+    \item{\code{greedy}}{(optional) How should margins be adjusted during alignment. See \code{\link[cowplot:align_plots]{align_plots()}} for details.}
     \item{\code{cols}}{Deprecated. Use \code{ncol}.}
     \item{\code{rows}}{Deprecated. Use \code{nrow}.}
   }}
@@ -113,7 +131,7 @@ Can be a plotmath expression.}
 \item{sub.vpadding}{Vertical padding. The total vertical space added to the
 label, given in grid units. By default, this is added equally above and
 below the label. However, by changing the y and vjust parameters, this can
-be changed (Default: \code{grid::unit(1, "lines")}).}
+be changed (Default: \code{ggplot2::unit(1, "lines")}).}
 
 \item{sub.angle}{Angle at which annotation label is to be drawn (Default:
 \code{0}).}

@@ -1,3 +1,29 @@
+# ggstatsplot 0.1.3
+
+MAJOR CHANGES
+
+  - To avoid excessive arguments to function, most arguments relevant for
+    `ggrepel` in `ggcoefstats` function have been removed. The users can instead
+    provide all such arguments in a list to `stats.labels.args` argument.  
+
+BUG FIXES
+
+  - `ggbetweenstats` and `ggwithinstats` no longer produce incorrect label if
+    the dataframe already contains a variable named `n` (#317) or variables
+    with pattern `mean` (#322).
+  - `ggbetweenstats` and `ggwithinstats` mean labels respect `k` argument (#331).
+
+MINOR
+
+  - `ggcoefstats` now uses `parameters::p_value` instead of `sjstats::p_value`,
+    as requested by the maintainer of that package. This might lead to
+    differences in *p*-values for `lmer` models.
+  - More models supported in `ggcoefstats`: `blavaan`, `bracl`, `brglm2`,
+    `glmc`, `lavaan`, `nlreg`, `slm`, `wbgee`.
+  - `ggcoefstats` gains `only.significant` argument to only display display
+    stats labels for significant effects. This can be helpful when a large
+    number of regression coefficients are to be displayed in a single plot.
+
 # ggstatsplot 0.1.2
 
 MINOR

@@ -56,7 +56,6 @@
 #'   messages = FALSE
 #' )
 #' }
-#'
 #' @export
 
 # defining the function

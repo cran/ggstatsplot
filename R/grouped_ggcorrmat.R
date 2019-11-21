@@ -26,7 +26,7 @@
 #' set.seed(123)
 #'
 #' # for plot
-#' # (without specifiying needed variables; all numeric variables will be used)
+#' # (without specifying needed variables; all numeric variables will be used)
 #' ggstatsplot::grouped_ggcorrmat(
 #'   data = ggplot2::msleep,
 #'   grouping.var = vore

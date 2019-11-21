@@ -4,22 +4,51 @@
 \alias{ggpiestats}
 \title{Pie charts with statistical tests}
 \usage{
-ggpiestats(data, main, condition = NULL, counts = NULL, ratio = NULL,
-  paired = FALSE, results.subtitle = TRUE, factor.levels = NULL,
-  stat.title = NULL, sample.size.label = TRUE,
-  label.separator = "\\n", label.text.size = 4,
-  label.fill.color = "white", label.fill.alpha = 1,
-  bf.message = TRUE, sampling.plan = "indepMulti",
-  fixed.margin = "rows", prior.concentration = 1, title = NULL,
-  subtitle = NULL, caption = NULL, conf.level = 0.95,
-  bf.prior = 0.707, nboot = 100, simulate.p.value = FALSE,
-  B = 2000, bias.correct = FALSE, legend.title = NULL,
-  facet.wrap.name = NULL, k = 2, perc.k = 0,
-  slice.label = "percentage", facet.proptest = TRUE,
-  ggtheme = ggplot2::theme_bw(), ggstatsplot.layer = TRUE,
-  package = "RColorBrewer", palette = "Dark2", direction = 1,
-  ggplot.component = NULL, return = "plot", messages = TRUE,
-  x = NULL, y = NULL)
+ggpiestats(
+  data,
+  main,
+  condition = NULL,
+  counts = NULL,
+  ratio = NULL,
+  paired = FALSE,
+  results.subtitle = TRUE,
+  factor.levels = NULL,
+  stat.title = NULL,
+  sample.size.label = TRUE,
+  label.separator = "\\n",
+  label.text.size = 4,
+  label.fill.color = "white",
+  label.fill.alpha = 1,
+  bf.message = TRUE,
+  sampling.plan = "indepMulti",
+  fixed.margin = "rows",
+  prior.concentration = 1,
+  title = NULL,
+  subtitle = NULL,
+  caption = NULL,
+  conf.level = 0.95,
+  bf.prior = 0.707,
+  nboot = 100,
+  simulate.p.value = FALSE,
+  B = 2000,
+  bias.correct = FALSE,
+  legend.title = NULL,
+  facet.wrap.name = NULL,
+  k = 2,
+  perc.k = 0,
+  slice.label = "percentage",
+  facet.proptest = TRUE,
+  ggtheme = ggplot2::theme_bw(),
+  ggstatsplot.layer = TRUE,
+  package = "RColorBrewer",
+  palette = "Dark2",
+  direction = 1,
+  ggplot.component = NULL,
+  return = "plot",
+  messages = TRUE,
+  x = NULL,
+  y = NULL
+)
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
@@ -94,7 +123,7 @@ hypothesis under the alternative, and corresponds to Gunel and Dickey's
 \item{caption}{The text for the plot caption.}
 
 \item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
-\code{95\%} lower and upper confidence intervals (\code{0.95}).}
+\verb{95\%} lower and upper confidence intervals (\code{0.95}).}
 
 \item{bf.prior}{A numeric value between \code{0.5} and \code{2} (default \code{0.707}), the
 prior width to use in calculating Bayes Factors.}
@@ -170,7 +199,8 @@ to be displayed (Default: \code{TRUE}).}
 \item{y, condition}{The variable to use as the \strong{columns} in the contingency
 table. Default is \code{NULL}. If \code{NULL}, one-sample proportion test (a goodness
 of fit test) will be run for the \code{x} variable. Otherwise an appropriate
-association test will be run.}
+association test will be run. This argument can not be \code{NULL} for
+\code{ggbarstats} function.}
 }
 \value{
 Unlike a number of statistical softwares, \code{ggstatsplot} doesn't
@@ -190,7 +220,6 @@ Pie charts for categorical data with statistical details
 included in the plot as a subtitle.
 }
 \examples{
-\donttest{
 # for reproducibility
 set.seed(123)
 
@@ -222,7 +251,6 @@ ggstatsplot::ggpiestats(
   x = Eye,
   counts = Freq
 )
-}
 }
 \references{
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html}
