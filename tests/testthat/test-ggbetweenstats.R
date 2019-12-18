@@ -1,10 +1,10 @@
-context(desc = "ggbetweenstats")
 
 # outlier labeling works ----------------------------------------------------
 
 testthat::test_that(
   desc = "outlier.labeling works across vector types",
   code = {
+    testthat::skip_on_cran()
 
     # `outlier.label` is numeric
     set.seed(123)
@@ -310,7 +310,7 @@ testthat::test_that(
 
     testthat::expect_identical(
       pb$data[[6]]$label,
-      c("list(~italic(mu)== 0.98 )", "list(~italic(mu)== 1.39 )")
+      c("list(~italic(widehat(mu))== 0.98 )", "list(~italic(widehat(mu))== 1.39 )")
     )
   }
 )
@@ -406,45 +406,48 @@ testthat::test_that(
     # tests for labels
     testthat::expect_null(pb1$plot$labels$subtitle, NULL)
     testthat::expect_null(pb1$plot$labels$caption, NULL)
-    testthat::expect_identical(pb2$plot$labels$subtitle, ggplot2::expr(
-      paste(
-        NULL,
-        italic("t"),
-        "(",
-        "55.31",
-        ") = ",
-        "1.92",
-        ", ",
-        italic("p"),
-        " = ",
-        "0.061",
-        ", ",
-        italic("g"),
-        " = ",
-        "0.49",
-        ", CI"["95%"],
-        " [",
-        "-0.04",
-        ", ",
-        "1.01",
-        "]",
-        ", ",
-        italic("n")["obs"],
-        " = ",
-        60L
+    testthat::expect_identical(
+      pb2$plot$labels$subtitle,
+      ggplot2::expr(
+        paste(
+          NULL,
+          italic("t"),
+          "(",
+          "55.31",
+          ") = ",
+          "1.92",
+          ", ",
+          italic("p"),
+          " = ",
+          "0.061",
+          ", ",
+          widehat(italic("g")),
+          " = ",
+          "0.49",
+          ", CI"["95%"],
+          " [",
+          "-0.04",
+          ", ",
+          "1.01",
+          "]",
+          ", ",
+          italic("n")["obs"],
+          " = ",
+          60L
+        )
       )
-    ))
+    )
     testthat::expect_null(pb2$plot$labels$caption, NULL)
     testthat::expect_identical(length(pb1$data), 5L)
     testthat::expect_identical(length(pb1$data), 5L)
     testthat::expect_identical(length(pb2$data), 4L)
     testthat::expect_identical(
       unique(pb1$data[[1]]$colour),
-      c("#1B9E77", "#D95F02")
+      c("#1B9E77FF", "#D95F02FF")
     )
     testthat::expect_identical(
       unique(pb2$data[[1]]$colour),
-      c("#899DA4", "#C93312")
+      c("#899DA4FF", "#C93312FF")
     )
     testthat::expect_identical(
       pb2$layout$panel_params[[1]]$x.labels,
@@ -463,7 +466,7 @@ testthat::test_that(
     # testthat::expect_equal(dim(pb1$data[[5]]), c(2L, 15L))
     testthat::expect_equal(pb1$data[[4]]$x, c(1L, 2L))
     testthat::expect_identical(
-      c("list(~italic(mu)== 20.66 )", "list(~italic(mu)== 16.96 )"),
+      c("list(~italic(widehat(mu))== 20.66 )", "list(~italic(widehat(mu))== 16.96 )"),
       pb1$data[[5]]$label
     )
     testthat::expect_equal(dim(pb1$data[[2]]), c(2L, 25L))
@@ -557,7 +560,7 @@ testthat::test_that(
         " = ",
         "< 0.001",
         ", ",
-        omega["p"]^2,
+        widehat(omega["p"]^2),
         " = ",
         "0.61",
         ", CI"["95%"],
@@ -588,7 +591,7 @@ testthat::test_that(
           " = ",
           "0.001",
           ", ",
-          italic("g"),
+          widehat(italic("g")),
           " = ",
           "-1.38",
           ", CI"["95%"],

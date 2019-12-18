@@ -53,7 +53,7 @@ mean_labeller <- function(data,
     dplyr::select(.data = ., {{ x }}, {{ y }}, dplyr::contains("...")) %>%
     dplyr::mutate_at(
       .tbl = .,
-      .vars = dplyr::vars(dplyr::matches("mean...|mean.conf")),
+      .vars = dplyr::vars(dplyr::matches("^mean\\.\\.\\.|^mean\\.conf")),
       .funs = ~ specify_decimal_p(x = ., k = k)
     ) %>%
     dplyr::group_nest(.tbl = ., {{ x }})
@@ -67,22 +67,22 @@ mean_labeller <- function(data,
           purrr::map(
             .x = .,
             .f = ~ paste(
-              "list(~italic(mu)==",
+              "list(~italic(widehat(mu))==",
               .$`mean...summary`,
               ",",
               "CI[95*'%']",
-              "(",
+              "*'['*",
               .$`mean.conf.low...summary`,
               ",",
               .$`mean.conf.high...summary`,
-              "))",
+              "*']')",
               sep = ""
             )
           )
         } else {
           purrr::map(
             .x = .,
-            .f = ~ paste("list(~italic(mu)==", .$`mean...summary`, ")", sep = " ")
+            .f = ~ paste("list(~italic(widehat(mu))==", .$`mean...summary`, ")", sep = " ")
           )
         }
       }
@@ -446,13 +446,6 @@ sort_xy <- function(data,
   x <- rlang::ensym(x)
   y <- rlang::ensym(y)
 
-  # decide the needed order
-  if (sort == "ascending") {
-    .desc <- FALSE
-  } else {
-    .desc <- TRUE
-  }
-
   # reordering `x` based on its mean values
   return(
     data %<>%
@@ -463,7 +456,7 @@ sort_xy <- function(data,
           .x = {{ y }},
           .fun = sort.fun,
           na.rm = TRUE,
-          .desc = .desc
+          .desc = ifelse(sort == "ascending", FALSE, TRUE)
         )
       )
   )
@@ -518,13 +511,11 @@ aesthetic_addon <- function(plot,
     ) +
     ggplot2::theme(legend.position = "none") +
     paletteer::scale_color_paletteer_d(
-      package = !!package,
-      palette = !!palette,
+      palette = paste0(package, "::", palette),
       direction = direction
     ) +
     paletteer::scale_fill_paletteer_d(
-      package = !!package,
-      palette = !!palette,
+      palette = paste0(package, "::", palette),
       direction = direction
     )
 

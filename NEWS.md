@@ -1,3 +1,25 @@
+# ggstatsplot 0.1.4
+
+BUG FIXES
+
+  - `ggbetweenstats` and `ggwithinstats` no longer produce error with variables
+    with pattern `mean` (#336).
+
+MAJOR CHANGES
+
+  - `pairwise_p` has been reintroduced as a number of users found it useful to
+    call the function from `ggstatsplot` itself rather than using
+    `pairwiseComparisons` package.
+
+MINOR CHANGES
+
+  - `ggbetweenstats` and `ggwithinstats` use `[` instead of `(` to display
+    confidence intervals. Additionally, $$\mu$$ denoted sample mean, but was
+    confused with population mean by some users. So these functions instead
+    display $$\hat{\mu}$$.
+  - More models supported in `ggcoefstats`: `bmlm`, `coeftest`
+  - Adapts to the new syntax provided in `paletteer` package.
+
 # ggstatsplot 0.1.3
 
 MAJOR CHANGES
