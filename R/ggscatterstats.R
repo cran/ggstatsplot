@@ -77,9 +77,7 @@
 #' set.seed(123)
 #'
 #' # creating dataframe with rownames converted to a new column
-#' mtcars_new <- mtcars %>%
-#'   tibble::rownames_to_column(., var = "car") %>%
-#'   tibble::as_tibble(x = .)
+#' mtcars_new <- tibble::as_tibble(mtcars, rownames = "car")
 #'
 #' # simple function call with the defaults
 #' ggstatsplot::ggscatterstats(
@@ -269,8 +267,7 @@ ggscatterstats <- function(data,
   # creating jittered positions
   pos <- ggplot2::position_jitter(
     width = point.width.jitter,
-    height = point.height.jitter,
-    seed = 123
+    height = point.height.jitter
   )
 
   # if user has not specified colors, then use a color palette
@@ -309,7 +306,7 @@ ggscatterstats <- function(data,
       na.rm = TRUE,
       level = conf.level
     ) +
-    ggstatsplot::theme_mprl(
+    ggstatsplot::theme_ggstatsplot(
       ggtheme = ggtheme,
       ggstatsplot.layer = ggstatsplot.layer
     ) +
@@ -377,30 +374,31 @@ ggscatterstats <- function(data,
         na.rm = TRUE
       )
 
-    # adding labels
-    # for vertical line
-    plot <- line_labeller(
-      plot = plot,
-      x = x.vline,
-      y = y.vline,
-      k = 2,
-      color = xfill,
-      label.text = label.text,
-      line.direction = "vline",
-      jitter = 0.25
-    )
+    # adding labels for *vertical* line
+    plot <-
+      line_labeller(
+        plot = plot,
+        x = x.vline,
+        y = y.vline,
+        k = 2,
+        color = xfill,
+        label.text = label.text,
+        line.direction = "vline",
+        jitter = 0.25
+      )
 
-    # for horizontal line
-    plot <- line_labeller(
-      plot = plot,
-      x = x.hline,
-      y = y.hline,
-      k = 2,
-      line.direction = "hline",
-      color = yfill,
-      label.text = label.text,
-      jitter = 0.25
-    )
+    # adding labels for *horizontal* line
+    plot <-
+      line_labeller(
+        plot = plot,
+        x = x.hline,
+        y = y.hline,
+        k = 2,
+        line.direction = "hline",
+        color = yfill,
+        label.text = label.text,
+        jitter = 0.25
+      )
   }
 
   #---------------------- range restriction -------------------------------
@@ -449,24 +447,25 @@ ggscatterstats <- function(data,
   # creating the `ggMarginal` plot of a given `marginal.type`
   if (isTRUE(marginal)) {
     # adding marginals to plot
-    plot <- ggExtra::ggMarginal(
-      p = plot,
-      type = marginal.type,
-      margins = margins,
-      size = marginal.size,
-      xparams = list(
-        fill = xfill,
-        alpha = xalpha,
-        size = xsize,
-        col = "black"
-      ),
-      yparams = list(
-        fill = yfill,
-        alpha = yalpha,
-        size = ysize,
-        col = "black"
+    plot <-
+      ggExtra::ggMarginal(
+        p = plot,
+        type = marginal.type,
+        margins = margins,
+        size = marginal.size,
+        xparams = list(
+          fill = xfill,
+          alpha = xalpha,
+          size = xsize,
+          col = "black"
+        ),
+        yparams = list(
+          fill = yfill,
+          alpha = yalpha,
+          size = ysize,
+          col = "black"
+        )
       )
-    )
   }
 
   #------------------------- messages  ------------------------------------

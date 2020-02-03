@@ -97,15 +97,6 @@
 #'   factor.levels = c("0 = V-shaped", "1 = straight"),
 #'   legend.title = "Engine"
 #' )
-#'
-#' # using `counts` argument
-#' library(jmv, warn.conflicts = FALSE)
-#'
-#' ggstatsplot::ggpiestats(
-#'   data = as.data.frame(HairEyeColor),
-#'   x = Eye,
-#'   counts = Freq
-#' )
 #' @export
 
 # defining the function
@@ -131,11 +122,8 @@ ggpiestats <- function(data,
                        subtitle = NULL,
                        caption = NULL,
                        conf.level = 0.95,
-                       bf.prior = 0.707,
                        nboot = 100,
-                       simulate.p.value = FALSE,
-                       B = 2000,
-                       bias.correct = FALSE,
+                       bias.correct = TRUE,
                        legend.title = NULL,
                        facet.wrap.name = NULL,
                        k = 2,
@@ -328,8 +316,6 @@ ggpiestats <- function(data,
           conf.level = conf.level,
           conf.type = "norm",
           bias.correct = bias.correct,
-          simulate.p.value = simulate.p.value,
-          B = B,
           k = k,
           messages = messages
         ),

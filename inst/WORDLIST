@@ -26,6 +26,7 @@ codecov
 Codecov
 codesize
 colorbar
+compositional
 Conover
 correlalogram
 couter
@@ -49,6 +50,7 @@ DOI
 ds
 Durbin
 Dwass
+easystats
 effectSize
 effsize
 eg
@@ -90,7 +92,9 @@ glyphs
 gof
 Gunel
 hc
+hdhf
 HDHF
+hdlf
 HDLF
 HFHD
 HitCount
@@ -108,12 +112,15 @@ io
 issuecomment
 jitter
 js
+JZS
 Kass
 labelled
 labeller
 Lakens
 Larntz
+ldhf
 LDHF
+ldlf
 LDLF
 Leys
 LFHD
@@ -204,7 +211,6 @@ vcov
 versicolor
 virginica
 vjust
-warmup
 Welch
 Welch's
 Welch’s

@@ -188,15 +188,14 @@ mean_ggrepel <- function(plot,
       fontface = mean.label.fontface,
       color = mean.label.color,
       direction = "both",
-      max.iter = 3e2,
+      min.segment.length = 0,
       box.padding = 0.35,
       point.padding = 0.5,
       segment.color = "black",
       force = 2,
       inherit.aes = FALSE,
       parse = TRUE,
-      na.rm = TRUE,
-      seed = 123
+      na.rm = TRUE
     )
 
   # return the plot with labels
@@ -307,7 +306,8 @@ outlier_df <- function(data,
 #' library(ggplot2)
 #'
 #' # plot
-#' p <- ggplot(iris, aes(Species, Sepal.Length)) + geom_boxplot()
+#' p <- ggplot(iris, aes(Species, Sepal.Length)) +
+#'   geom_boxplot()
 #'
 #' # dataframe with pairwise comparison test results
 #' df_pair <- pairwiseComparisons::pairwise_comparisons(
@@ -392,6 +392,29 @@ ggsignif_adder <- function(plot,
   # return the plot
   return(plot)
 }
+
+#' @name pairwise_caption
+#' @noRd
+
+pairwise_caption <- function(caption, test.description, p.adjust.method) {
+  substitute(
+    atop(
+      displaystyle(top.text),
+      expr = paste(
+        "Pairwise comparisons: ",
+        bold(test.description),
+        "; Adjustment (p-value): ",
+        bold(p.adjust.method.text)
+      )
+    ),
+    env = list(
+      top.text = caption,
+      test.description = test.description,
+      p.adjust.method.text = p_adjust_text(p.adjust.method)
+    )
+  )
+}
+
 
 #' @name ggsignif_xy
 #' @importFrom utils combn

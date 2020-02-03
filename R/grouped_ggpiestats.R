@@ -28,16 +28,6 @@
 #'   x = cyl
 #' )
 #'
-#' # without condition and with count data
-#' library(jmv)
-#'
-#' ggstatsplot::grouped_ggpiestats(
-#'   data = as.data.frame(HairEyeColor),
-#'   x = Hair,
-#'   counts = Freq,
-#'   grouping.var = Sex
-#' )
-#'
 #' # the following will take slightly more amount of time
 #' # for reproducibility
 #' set.seed(123)
@@ -88,11 +78,8 @@ grouped_ggpiestats <- function(data,
                                subtitle = NULL,
                                caption = NULL,
                                conf.level = 0.95,
-                               bf.prior = 0.707,
                                nboot = 100,
-                               simulate.p.value = FALSE,
-                               B = 2000,
-                               bias.correct = FALSE,
+                               bias.correct = TRUE,
                                legend.title = NULL,
                                facet.wrap.name = NULL,
                                k = 2,
@@ -185,11 +172,8 @@ grouped_ggpiestats <- function(data,
       prior.concentration = prior.concentration,
       subtitle = subtitle,
       caption = caption,
-      bf.prior = bf.prior,
       conf.level = conf.level,
       nboot = nboot,
-      simulate.p.value = simulate.p.value,
-      B = B,
       bias.correct = bias.correct,
       legend.title = legend.title,
       facet.wrap.name = facet.wrap.name,

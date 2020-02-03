@@ -86,12 +86,11 @@ testthat::test_that(
     testthat::expect_identical(
       as.character(unique(data_signif$annotation)),
       c(
-        "list(~italic(p)['unadjusted']== 0.079 )",
-        "list(~italic(p)['unadjusted']== 0.139 )",
-        "list(~italic(p)['unadjusted']== 0.825 )"
+        "list(~italic(p)[ unadjusted ]== 0.079 )",
+        "list(~italic(p)[ unadjusted ]== 0.139 )",
+        "list(~italic(p)[ unadjusted ]== 0.825 )"
       )
     )
-    testthat::expect_equal(data_dims, c(3L, 9L))
 
     # checking comparison groups and labels
     testthat::expect_identical(dat$group1, c("PG-13", "PG-13", "R"))
@@ -99,9 +98,9 @@ testthat::test_that(
     testthat::expect_identical(
       dat$label,
       c(
-        "list(~italic(p)['unadjusted']== 0.079 )",
-        "list(~italic(p)['unadjusted']== 0.139 )",
-        "list(~italic(p)['unadjusted']== 0.825 )"
+        "list(~italic(p)[ unadjusted ]== 0.079 )",
+        "list(~italic(p)[ unadjusted ]== 0.139 )",
+        "list(~italic(p)[ unadjusted ]== 0.825 )"
       )
     )
     testthat::expect_identical(
@@ -190,9 +189,9 @@ testthat::test_that(
     testthat::expect_identical(
       dat$label,
       c(
-        "list(~italic(p)['adjusted']== 0.915 )",
-        "list(~italic(p)['adjusted']== 0.003 )",
-        "list(~italic(p)['adjusted']== 0.001 )"
+        "list(~italic(p)[ adjusted ]== 0.915 )",
+        "list(~italic(p)[ adjusted ]== 0.003 )",
+        "list(~italic(p)[ adjusted ]== 0.001 )"
       )
     )
     testthat::expect_identical(
@@ -274,7 +273,6 @@ testthat::test_that(
     data_signif <- tibble::as_tibble(pb$data[[7]])
 
     # checking comparison groups and labels
-    testthat::expect_equal(data_dims, c(3L, 8L))
     testthat::expect_identical(dat$group1, c("4", "4", "f"))
     testthat::expect_identical(dat$group2, c("f", "r", "r"))
     testthat::expect_identical(dat$significance, c("***", "ns", "***"))
@@ -307,8 +305,8 @@ testthat::test_that(
     testthat::expect_equal(
       ggsignif_stat$annotations,
       c(
-        "list(~italic(p)['adjusted']<= 0.001 )",
-        "list(~italic(p)['adjusted']<= 0.001 )"
+        "list(~italic(p)[ adjusted ]<= 0.001 )",
+        "list(~italic(p)[ adjusted ]<= 0.001 )"
       )
     )
   }
@@ -354,8 +352,7 @@ testthat::test_that(
     # data for geom_signif layer
     data_signif <- tibble::as_tibble(pb$data[[7]])
 
-    # checking comparison groups and labels
-    testthat::expect_equal(data_dims, c(3L, 6L))
+    # checking comparison groups and labels)
     testthat::expect_identical(dat$group1, c("4", "4", "6"))
     testthat::expect_identical(dat$group2, c("6", "8", "8"))
     testthat::expect_identical(dat$significance, c("*", "***", "*"))
@@ -387,9 +384,9 @@ testthat::test_that(
     testthat::expect_equal(
       ggsignif_stat$annotations,
       c(
-        "list(~italic(p)['adjusted']== 0.032 )",
-        "list(~italic(p)['adjusted']<= 0.001 )",
-        "list(~italic(p)['adjusted']== 0.015 )"
+        "list(~italic(p)[ adjusted ]== 0.032 )",
+        "list(~italic(p)[ adjusted ]<= 0.001 )",
+        "list(~italic(p)[ adjusted ]== 0.015 )"
       )
     )
 

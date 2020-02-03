@@ -192,25 +192,29 @@ testthat::test_that(
 
     # subtitle return
     set.seed(123)
-    p_sub <- ggstatsplot::ggbarstats(
-      data = dplyr::sample_frac(tbl = forcats::gss_cat, size = 0.1),
-      main = race,
-      condition = marital,
-      return = "subtitle",
-      k = 4,
-      messages = FALSE
-    )
+    p_sub <-
+      ggstatsplot::ggbarstats(
+        data = dplyr::sample_frac(tbl = forcats::gss_cat, size = 0.1),
+        main = race,
+        bias.correct = FALSE,
+        condition = marital,
+        return = "subtitle",
+        k = 4,
+        messages = FALSE
+      )
 
     # caption return
     set.seed(123)
-    p_cap <- ggstatsplot::ggbarstats(
-      data = dplyr::sample_frac(tbl = forcats::gss_cat, size = 0.1),
-      main = race,
-      condition = marital,
-      return = "caption",
-      k = 4,
-      messages = FALSE
-    )
+    p_cap <-
+      ggstatsplot::ggbarstats(
+        data = dplyr::sample_frac(tbl = forcats::gss_cat, size = 0.1),
+        main = race,
+        condition = marital,
+        return = "caption",
+        k = 4,
+        bias.correct = FALSE,
+        messages = FALSE
+      )
 
     # tests
     testthat::expect_identical(
@@ -228,7 +232,7 @@ testthat::test_that(
           " = ",
           "< 0.001",
           ", ",
-          widehat(italic("V")["Cramer"]),
+          widehat(italic("V"))["Cramer"],
           " = ",
           "0.1594",
           ", CI"["95%"],
@@ -282,7 +286,7 @@ testthat::test_that(
     )
 
     # should not work
-    testthat::expect_error(
+    testthat::expect_output(
       suppressWarnings(ggstatsplot::ggbarstats(
         data = df,
         main = x,

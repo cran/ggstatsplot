@@ -24,18 +24,6 @@
 #'
 #' @examples
 #' \donttest{
-#' # with condition and with count data
-#' library(jmv)
-#'
-#' ggstatsplot::grouped_ggbarstats(
-#'   data = as.data.frame(HairEyeColor),
-#'   x = Hair,
-#'   y = Eye,
-#'   counts = Freq,
-#'   grouping.var = Sex
-#' )
-#'
-#' # the following will take slightly more amount of time
 #' # for reproducibility
 #' set.seed(123)
 #'
@@ -51,11 +39,8 @@
 #'   x = color,
 #'   y = clarity,
 #'   grouping.var = cut,
-#'   sampling.plan = "poisson",
 #'   title.prefix = "Quality",
 #'   bar.label = "both",
-#'   messages = FALSE,
-#'   perc.k = 1,
 #'   nrow = 2
 #' )
 #' }
@@ -89,9 +74,7 @@ grouped_ggbarstats <- function(data,
                                x.axis.orientation = NULL,
                                conf.level = 0.95,
                                nboot = 100,
-                               simulate.p.value = FALSE,
-                               B = 2000,
-                               bias.correct = FALSE,
+                               bias.correct = TRUE,
                                legend.title = NULL,
                                xlab = NULL,
                                ylab = "Percent",
@@ -186,8 +169,6 @@ grouped_ggbarstats <- function(data,
       x.axis.orientation = x.axis.orientation,
       conf.level = conf.level,
       nboot = nboot,
-      simulate.p.value = simulate.p.value,
-      B = B,
       bias.correct = bias.correct,
       legend.title = legend.title,
       xlab = xlab,

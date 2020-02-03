@@ -11,12 +11,6 @@ ggcoefstats(
   scales = NULL,
   component = "survival",
   bf.message = TRUE,
-  d = "norm",
-  d.par = c(mean = 0, sd = 0.3),
-  tau = "halfcauchy",
-  tau.par = c(scale = 0.5),
-  iter = 5000,
-  summarize = "stan",
   p.adjust.method = "none",
   coefficient.type = c("beta", "location", "coefficient"),
   by.class = FALSE,
@@ -24,9 +18,7 @@ ggcoefstats(
   partial = TRUE,
   nboot = 500,
   meta.analytic.effect = FALSE,
-  point.color = "blue",
-  point.size = 3,
-  point.shape = 16,
+  meta.type = "parametric",
   conf.int = TRUE,
   conf.level = 0.95,
   se.type = "nid",
@@ -34,25 +26,23 @@ ggcoefstats(
   k.caption.summary = 0,
   exclude.intercept = TRUE,
   exponentiate = FALSE,
-  errorbar.color = "black",
-  errorbar.height = 0,
-  errorbar.linetype = "solid",
-  errorbar.size = 0.5,
-  vline = TRUE,
-  vline.color = "black",
-  vline.linetype = "dashed",
-  vline.size = 1,
   sort = "none",
   xlab = "regression coefficient",
   ylab = "term",
   title = NULL,
   subtitle = NULL,
-  stats.labels = TRUE,
   only.significant = FALSE,
   caption = NULL,
   caption.summary = TRUE,
+  point.color = "blue",
+  point.size = 3,
+  point.shape = 16,
+  errorbar.args = list(height = 0),
+  vline = TRUE,
+  vline.args = list(size = 1, linetype = "dashed"),
+  stats.labels = TRUE,
   stats.label.color = NULL,
-  stats.label.args = list(size = 3, fontface = "bold", segment.color = "grey50",
+  stats.label.args = list(size = 3, min.segment.length = 0, segment.color = "grey50",
     direction = "y"),
   package = "RColorBrewer",
   palette = "Dark2",
@@ -92,26 +82,6 @@ the longitudinal component of the model. Must be either \code{"survival"} or
 Bayesian meta-analysis assuming that the effect size \emph{d} varies across
 studies with standard deviation \emph{t} (i.e., a random-effects analysis)
 should be displayed in caption. Defaults to \code{TRUE}.}
-
-\item{d}{the prior distribution of the average effect size \eqn{d} specified
-either as the type of family (e.g., \code{"norm"}) or via
-\code{\link[metaBMA]{prior}}.}
-
-\item{d.par}{prior parameters for \eqn{d} (only used if \code{d} specifies
-the type of family).}
-
-\item{tau}{the prior distribution of the between-study heterogeneity
-\eqn{\tau} specified either as a character value (e.g.,
-\code{"halfcauchy"}) or via \code{\link[metaBMA]{prior}}.}
-
-\item{tau.par}{prior parameters for \eqn{\tau}  (only used if \code{tau}
-specifies the type of family).}
-
-\item{iter}{number of MCMC iterations using Stan.}
-
-\item{summarize}{how to estimate parameter summaries (mean, median, SD,
-etc.): Either by numerical integration (\code{summarize = "integrate"}) or
-based on MCMC/Stan samples (\code{summarize = "stan"}).}
 
 \item{p.adjust.method}{Adjustment method for \emph{p}-values for multiple
 comparisons. Possible methods are: \code{"holm"}, \code{"hochberg"}, \code{"hommel"},
@@ -155,25 +125,21 @@ eta-squared and omega-squared (Default: \code{500}). This argument is relevant
 only for models objects of class \code{aov}, \code{anova}, and \code{aovlist}.}
 
 \item{meta.analytic.effect}{Logical that decides whether subtitle for
-meta-analysis via linear (mixed-effects) models - as implemented in the
-\code{metafor} package - is to be displayed (default: \code{FALSE}). If \code{TRUE}, input
-to argument \code{subtitle} will be ignored. This will be mostly relevant if a
-data frame with estimates and their standard errors is entered as input to
-\code{x} argument.}
+meta-analysis via linear (mixed-effects) models (default: \code{FALSE}). If
+\code{TRUE}, input to argument \code{subtitle} will be ignored. This will be mostly
+relevant if a data frame with estimates and their standard errors is
+entered as input to \code{x} argument.}
 
-\item{point.color}{Character describing color for the point (Default:
-\code{"blue"}).}
-
-\item{point.size}{Numeric specifying size for the point (Default: \code{3}).}
-
-\item{point.shape}{Numeric specifying shape to draw the points (Default: \code{16}
-(\strong{a dot})).}
+\item{meta.type}{Type of statistics used to carry out random-effects
+meta-analysis. If \code{"parametric"} (default), \code{metafor::rma} function will be
+used. If \code{"robust"}, \code{metaplus::metaplus} function will be used. If
+\code{"bayes"}, \code{metaBMA::meta_random} function will be used.}
 
 \item{conf.int}{Logical. Decides whether to display confidence intervals as
 error bars (Default: \code{TRUE}).}
 
 \item{conf.level}{Numeric deciding level of confidence intervals (Default:
-\code{0.95}). For MCMC model objects (Stan, JAGS, etc.), this will be
+\code{0.95}). For \code{MCMC} model objects (\code{Stan}, \code{JAGS}, etc.), this will be
 probability level for CI.}
 
 \item{se.type}{Character specifying the method used to compute standard
@@ -192,28 +158,6 @@ excluded from the plot (Default: \code{TRUE}).}
 \item{exponentiate}{If \code{TRUE}, the \code{x}-axis will be logarithmic (Default:
 \code{FALSE}).}
 
-\item{errorbar.color}{Character deciding color of the error bars (Default:
-\code{"black"}).}
-
-\item{errorbar.height}{Numeric specifying the height of the error bars
-(Default: \code{0}).}
-
-\item{errorbar.linetype}{Line type of the error bars (Default: \code{"solid"}).}
-
-\item{errorbar.size}{Numeric specifying the size of the error bars (Default:
-\code{0.5}).}
-
-\item{vline}{Decides whether to display a vertical line (Default: \code{"TRUE"}).}
-
-\item{vline.color}{Character specifying color of the vertical line (Default:
-\code{"black"}).}
-
-\item{vline.linetype}{Character specifying line type of the vertical line
-(Default: \code{"dashed"}).}
-
-\item{vline.size}{Numeric specifying the size of the vertical line (Default:
-\code{1}).}
-
 \item{sort}{If \code{"none"} (default) do not sort, \code{"ascending"} sort by
 increasing coefficient value, or \code{"descending"} sort by decreasing
 coefficient value.}
@@ -227,27 +171,47 @@ coefficient value.}
 \item{subtitle}{The text for the plot subtitle. The input to this argument
 will be ignored if \code{meta.analytic.effect} is set to \code{TRUE}.}
 
-\item{stats.labels}{Logical. Decides whether the statistic and \emph{p}-values for
-each coefficient are to be attached to each dot as a text label using
-\code{ggrepel} (Default: \code{TRUE}).}
-
 \item{only.significant}{If \code{TRUE}, only stats labels for significant effects
 is shown (Default: \code{FALSE}). This can be helpful when a large number of
 regression coefficients are to be displayed in a single plot. Relevant only
 when the \code{output} is a plot.}
 
-\item{caption}{The text for the plot caption.}
+\item{caption}{Text to display as caption. This argument is relevant only
+when \code{output = "caption"}.}
 
 \item{caption.summary}{Logical. Decides whether the model summary should be
 displayed as a cation to the plot (Default: \code{TRUE}). Color of the line
 segment. Defaults to the same color as the text.}
 
+\item{point.color}{Character describing color for the point (Default:
+\code{"blue"}).}
+
+\item{point.size}{Numeric specifying size for the point (Default: \code{3}).}
+
+\item{point.shape}{Numeric specifying shape to draw the points (Default: \code{16}
+(\strong{a dot})).}
+
+\item{errorbar.args}{Additional arguments that will be passed to
+\code{ggplot2::geom_errorbarh} geom. Please see documentation for that function
+to know more about these arguments.}
+
+\item{vline}{Decides whether to display a vertical line (Default: \code{"TRUE"}).}
+
+\item{vline.args}{Additional arguments that will be passed to
+\code{ggplot2::geom_vline} geom. Please see documentation for that function to
+know more about these arguments.}
+
+\item{stats.labels}{Logical. Decides whether the statistic and \emph{p}-values for
+each coefficient are to be attached to each dot as a text label using
+\code{ggrepel} (Default: \code{TRUE}).}
+
 \item{stats.label.color}{Color for the labels. If \code{stats.label.color} is
 \code{NULL}, colors will be chosen from the specified \code{package} (Default:
 \code{"RColorBrewer"}) and \code{palette} (Default: \code{"Dark2"}).}
 
-\item{stats.label.args}{Additional arguments that will be passed to \verb{ggrepel geom_label_repel} geom. Please see documentation for that function to know
-more about these arguments.}
+\item{stats.label.args}{Additional arguments that will be passed to
+\code{ggrepel::geom_label_repel} geom. Please see documentation for that
+function to know more about these arguments.}
 
 \item{package}{Name of package from which the palette is desired as string
 or symbol.}

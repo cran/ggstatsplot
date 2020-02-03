@@ -129,7 +129,7 @@
 #' @importFrom paletteer scale_color_paletteer_d scale_fill_paletteer_d
 #' @importFrom ggsignif geom_signif
 #' @importFrom statsExpressions bf_ttest bf_oneway_anova
-#' @importFrom pairwiseComparisons pairwise_comparisons pairwise_comparisons_caption
+#' @importFrom pairwiseComparisons pairwise_comparisons
 #'
 #' @seealso \code{\link{grouped_ggbetweenstats}}, \code{\link{ggwithinstats}},
 #'  \code{\link{grouped_ggwithinstats}}
@@ -254,10 +254,11 @@ ggbetweenstats <- function(data,
                            return = "plot",
                            messages = TRUE) {
 
+  # convert entered stats type to a standard notation
+  type <- stats_type_switch(type)
+
   # no pairwise comparisons are available for Bayesian t-tests
-  if (type %in% c("bf", "bayes") && isTRUE(pairwise.comparisons)) {
-    pairwise.comparisons <- FALSE
-  }
+  if (type == "bayes" && isTRUE(pairwise.comparisons)) pairwise.comparisons <- FALSE
 
   # ------------------------------ variable names ----------------------------
 
@@ -298,7 +299,7 @@ ggbetweenstats <- function(data,
 
   # figure out which test to run based on the number of levels of the
   # independent variables
-  test <- ifelse(nlevels(data %>% dplyr::pull({{ x }}))[[1]] < 3, "t-test", "anova")
+  test <- ifelse(nlevels(data %>% dplyr::pull({{ x }}))[[1]] < 3, "t", "anova")
 
   # --------------------------------- sorting --------------------------------
 
@@ -419,20 +420,11 @@ ggbetweenstats <- function(data,
   # --------------------- subtitle/caption preparation ------------------------
 
   if (isTRUE(results.subtitle)) {
-
     # preparing the Bayes factor message
-    if (type %in% c("parametric", "p") && isTRUE(bf.message)) {
-      # choosing the appropriate test
-      if (test == "t-test") {
-        .f <- statsExpressions::bf_ttest
-      } else {
-        .f <- statsExpressions::bf_oneway_anova
-      }
-
-      # preparing the BF message for null
+    if (type == "parametric" && isTRUE(bf.message)) {
       caption <-
-        rlang::exec(
-          .fn = .f,
+        caption_function_switch(
+          test = test,
           data = data,
           x = rlang::as_string(x),
           y = rlang::as_string(y),
@@ -446,7 +438,7 @@ ggbetweenstats <- function(data,
 
     # extracting the subtitle using the switch function
     subtitle <-
-      ggbetweenstats_switch(
+      subtitle_function_switch(
         # switch based on
         type = type,
         test = test,
@@ -566,14 +558,7 @@ ggbetweenstats <- function(data,
       )
 
     # preparing the caption for pairwise comparisons test
-    caption <-
-      pairwiseComparisons::pairwise_comparisons_caption(
-        type = type,
-        var.equal = var.equal,
-        paired = FALSE,
-        p.adjust.method = p.adjust.method,
-        caption = caption
-      )
+    caption <- pairwise_caption(caption, unique(df_pairwise$test.details), p.adjust.method)
   }
 
   # ------------------------ annotations and themes -------------------------

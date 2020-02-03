@@ -16,8 +16,6 @@ grouped_ggcorrmat(
   method = "square",
   corr.method = "pearson",
   type = NULL,
-  exact = FALSE,
-  continuity = TRUE,
   beta = 0.1,
   digits = 2,
   k = NULL,
@@ -99,13 +97,6 @@ is set to either \code{"correlations"} or \code{"p-values"}. The robust correlat
 used is percentage bend correlation (see \code{?WRS2::pball}). Abbreviations
 will also work: \code{"p"} (for parametric/Pearson's \emph{r}), \code{"np"}
 (nonparametric/Spearman's \emph{rho}), \code{"r"} (robust).}
-
-\item{exact}{A logical indicating whether an exact \emph{p}-value should be
-computed. Used for Spearman's \emph{rho}. For more details, see
-\code{?stats::cor.test}.}
-
-\item{continuity}{A logical. If \code{TRUE}, a continuity correction is used for
-Spearman's \emph{rho} when not computed exactly (Default: \code{TRUE}).}
 
 \item{beta}{A numeric bending constant for percentage bend robust correlation
 coefficient (Default: \code{0.1}).}
@@ -305,17 +296,6 @@ ggstatsplot::grouped_ggcorrmat(
   grouping.var = vore,
   cor.vars = sleep_total:bodywt,
   output = "correlations"
-)
-
-# for getting confidence intervals
-# confidence intervals are not available for **robust** correlation
-ggstatsplot::grouped_ggcorrmat(
-  data = datasets::iris,
-  grouping.var = Species,
-  corr.method = "r",
-  p.adjust.method = "holm",
-  cor.vars = Sepal.Length:Petal.Width,
-  output = "ci"
 )
 }
 }

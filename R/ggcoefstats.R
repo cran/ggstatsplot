@@ -41,7 +41,7 @@
 #' @param conf.int Logical. Decides whether to display confidence intervals as
 #'   error bars (Default: `TRUE`).
 #' @param conf.level Numeric deciding level of confidence intervals (Default:
-#'   `0.95`). For MCMC model objects (Stan, JAGS, etc.), this will be
+#'   `0.95`). For `MCMC` model objects (`Stan`, `JAGS`, etc.), this will be
 #'   probability level for CI.
 #' @param coefficient.type Relevant only for ordinal regression models (`clm` ,
 #'   `clmm`, `"svyolr"`, and `polr`), this argument decides which parameters are
@@ -75,11 +75,14 @@
 #'   will be returned. Valid only for objects of class `aov`, `anova`, or
 #'   `aovlist`.
 #' @param meta.analytic.effect Logical that decides whether subtitle for
-#'   meta-analysis via linear (mixed-effects) models - as implemented in the
-#'   `metafor` package - is to be displayed (default: `FALSE`). If `TRUE`, input
-#'   to argument `subtitle` will be ignored. This will be mostly relevant if a
-#'   data frame with estimates and their standard errors is entered as input to
-#'   `x` argument.
+#'   meta-analysis via linear (mixed-effects) models (default: `FALSE`). If
+#'   `TRUE`, input to argument `subtitle` will be ignored. This will be mostly
+#'   relevant if a data frame with estimates and their standard errors is
+#'   entered as input to `x` argument.
+#' @param meta.type Type of statistics used to carry out random-effects
+#'   meta-analysis. If `"parametric"` (default), `metafor::rma` function will be
+#'   used. If `"robust"`, `metaplus::metaplus` function will be used. If
+#'   `"bayes"`, `metaBMA::meta_random` function will be used.
 #' @param k Number of decimal places expected for results displayed in labels
 #'   (Default : `k = 2`).
 #' @param k.caption.summary Number of decimal places expected for results
@@ -88,20 +91,13 @@
 #'   excluded from the plot (Default: `TRUE`).
 #' @param exponentiate If `TRUE`, the `x`-axis will be logarithmic (Default:
 #'   `FALSE`).
-#' @param errorbar.color Character deciding color of the error bars (Default:
-#'   `"black"`).
-#' @param errorbar.height Numeric specifying the height of the error bars
-#'   (Default: `0`).
-#' @param errorbar.linetype Line type of the error bars (Default: `"solid"`).
-#' @param errorbar.size Numeric specifying the size of the error bars (Default:
-#'   `0.5`).
+#' @param errorbar.args Additional arguments that will be passed to
+#'   `ggplot2::geom_errorbarh` geom. Please see documentation for that function
+#'   to know more about these arguments.
 #' @param vline Decides whether to display a vertical line (Default: `"TRUE"`).
-#' @param vline.color Character specifying color of the vertical line (Default:
-#'   `"black"`).
-#' @param vline.linetype Character specifying line type of the vertical line
-#'   (Default: `"dashed"`).
-#' @param vline.size Numeric specifying the size of the vertical line (Default:
-#'   `1`).
+#' @param vline.args Additional arguments that will be passed to
+#'   `ggplot2::geom_vline` geom. Please see documentation for that function to
+#'   know more about these arguments.
 #' @param sort If `"none"` (default) do not sort, `"ascending"` sort by
 #'   increasing coefficient value, or `"descending"` sort by decreasing
 #'   coefficient value.
@@ -111,9 +107,9 @@
 #' @param stats.label.color Color for the labels. If `stats.label.color` is
 #'   `NULL`, colors will be chosen from the specified `package` (Default:
 #'   `"RColorBrewer"`) and `palette` (Default: `"Dark2"`).
-#' @param stats.label.args Additional arguments that will be passed to `ggrepel
-#'   geom_label_repel` geom. Please see documentation for that function to know
-#'   more about these arguments.
+#' @param stats.label.args Additional arguments that will be passed to
+#'   `ggrepel::geom_label_repel` geom. Please see documentation for that
+#'   function to know more about these arguments.
 #' @param package Name of package from which the palette is desired as string
 #' or symbol.
 #' @param palette Name of palette as string or symbol.
@@ -126,13 +122,13 @@
 #'   displayed as a cation to the plot (Default: `TRUE`). Color of the line
 #'   segment. Defaults to the same color as the text.
 #' @param ... Additional arguments to tidying method.
-#' @inheritParams bf_meta_message
+#' @inheritParams statsExpressions::bf_meta
 #' @inheritParams broom.mixed::tidy.merMod
 #' @inheritParams broom::tidy.clm
 #' @inheritParams broom::tidy.polr
 #' @inheritParams broom::tidy.mjoint
 #' @inheritParams theme_ggstatsplot
-#' @inheritParams subtitle_meta_ggcoefstats
+#' @inheritParams statsExpressions::expr_meta_parametric
 #' @inheritParams ggbetweenstats
 #'
 #' @import ggplot2
@@ -148,6 +144,8 @@
 #' @importFrom tidyr unite
 #' @importFrom groupedstats lm_effsize_standardizer
 #' @importFrom insight is_model
+#' @importFrom performance model_performance
+#' @importFrom statsExpressions expr_meta_parametric bf_meta
 #'
 #' @references
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcoefstats.html}
@@ -289,12 +287,6 @@ ggcoefstats <- function(x,
                         scales = NULL,
                         component = "survival",
                         bf.message = TRUE,
-                        d = "norm",
-                        d.par = c(mean = 0, sd = 0.3),
-                        tau = "halfcauchy",
-                        tau.par = c(scale = 0.5),
-                        iter = 5000,
-                        summarize = "stan",
                         p.adjust.method = "none",
                         coefficient.type = c("beta", "location", "coefficient"),
                         by.class = FALSE,
@@ -302,9 +294,7 @@ ggcoefstats <- function(x,
                         partial = TRUE,
                         nboot = 500,
                         meta.analytic.effect = FALSE,
-                        point.color = "blue",
-                        point.size = 3,
-                        point.shape = 16,
+                        meta.type = "parametric",
                         conf.int = TRUE,
                         conf.level = 0.95,
                         se.type = "nid",
@@ -312,27 +302,25 @@ ggcoefstats <- function(x,
                         k.caption.summary = 0,
                         exclude.intercept = TRUE,
                         exponentiate = FALSE,
-                        errorbar.color = "black",
-                        errorbar.height = 0,
-                        errorbar.linetype = "solid",
-                        errorbar.size = 0.5,
-                        vline = TRUE,
-                        vline.color = "black",
-                        vline.linetype = "dashed",
-                        vline.size = 1,
                         sort = "none",
                         xlab = "regression coefficient",
                         ylab = "term",
                         title = NULL,
                         subtitle = NULL,
-                        stats.labels = TRUE,
                         only.significant = FALSE,
                         caption = NULL,
                         caption.summary = TRUE,
+                        point.color = "blue",
+                        point.size = 3,
+                        point.shape = 16,
+                        errorbar.args = list(height = 0),
+                        vline = TRUE,
+                        vline.args = list(size = 1, linetype = "dashed"),
+                        stats.labels = TRUE,
                         stats.label.color = NULL,
                         stats.label.args = list(
                           size = 3,
-                          fontface = "bold",
+                          min.segment.length = 0,
                           segment.color = "grey50",
                           direction = "y"
                         ),
@@ -352,48 +340,34 @@ ggcoefstats <- function(x,
   # only fixed effects will be selected
   mixed.mods <-
     c(
-      "bglmerMod",
-      "blmerMod",
-      "brmsfit",
-      "brmsfit_multiple",
-      "glmmadmb",
-      "glmerMod",
-      "glmmPQL",
-      "glmmTMB",
-      "lme",
-      "lmerMod",
-      "mcmc",
-      "MCMCglmm",
-      "merMod",
-      "nlmerMod",
-      "rjags",
-      "rlmerMod",
-      "stanreg",
-      "stanmvreg",
-      "TMB"
+      "glmmadmb", "glmerMod", "glmmPQL", "glmmTMB",
+      "bglmerMod", "blmerMod", "lme", "lmerMod", "merMod", "nlmerMod", "rlmerMod", "TMB",
+      "brmsfit", "brmsfit_multiple", "mcmc", "MCMCglmm", "rjags", "stanreg", "stanmvreg"
     )
 
   # =================== types of models =====================================
 
   # models for which statistic is F-value
-  f.mods <-
-    c(
-      "aov",
-      "aovlist",
-      "anova",
-      "Gam",
-      "manova"
-    )
+  f.mods <- c("aov", "aovlist", "anova", "Gam", "manova")
 
   # ============================= model summary ============================
 
   # creating glance dataframe
   glance_df <- broomExtra::glance(x)
 
+  # if `NULL`, try with `performance`
+  if (is.null(glance_df)) {
+    glance_df <-
+      tryCatch(
+        expr = tibble::as_tibble(performance::model_performance(x)),
+        error = function(e) NULL
+      )
+  }
+
   # if the object is not a dataframe, check if summary caption is to be displayed
   if (isTRUE(insight::is_model(x))) {
     # if glance is not available, inform the user
-    if (is.null(glance_df) || !all(c("logLik", "AIC", "BIC") %in% names(glance_df))) {
+    if (is.null(glance_df) || !all(c("AIC", "BIC") %in% names(glance_df))) {
       # inform the user
       message(cat(
         crayon::green("Note: "),
@@ -488,11 +462,9 @@ ggcoefstats <- function(x,
     }
   }
 
-  # oddball cases that might falter with additional tidier arguments
-  # e.g., `lavaan` can't handle `parametric = FALSE`, etc.
-  if (rlang::is_null(tidy_df)) {
-    tidy_df <- broomExtra::tidy(x, ...)
-  }
+  # try again with `broomExtra` and `easystats`
+  if (rlang::is_null(tidy_df)) tidy_df <- broomExtra::tidy(x, ...)
+  if (rlang::is_null(tidy_df)) tidy_df <- parameters_tidy(x, ci = conf.level, ...)
 
   # =================== tidy dataframe cleanup ================================
 
@@ -503,7 +475,7 @@ ggcoefstats <- function(x,
       crayon::blue("The object of class "),
       crayon::yellow(class(x)[[1]]),
       crayon::blue(" *must* contain column called 'estimate' in tidy output.\n"),
-      crayon::blue("Check the tidy output using `broomExtra::tidy(x)`."),
+      crayon::blue("Check the tidy output using argument `return = 'tidy'`."),
       sep = ""
     )),
     call. = FALSE
@@ -574,19 +546,10 @@ ggcoefstats <- function(x,
     tryCatch(
       expr = tidy_df %<>%
         dplyr::full_join(
-          x = dplyr::mutate_at(
-            .tbl = .,
-            .vars = "term",
-            .funs = ~ as.character(x = .)
-          ),
+          x = .,
           y = parameters::p_value(model = x, method = "wald", component = "all") %>%
-            dplyr::rename(.data = ., term = Parameter, p.value = p) %>%
-            dplyr::mutate_at(
-              .tbl = .,
-              .vars = "term",
-              .funs = ~ as.character(x = .)
-            ),
-          by = "term"
+            dplyr::rename(.data = ., p.value = p),
+          by = c("term" = "Parameter")
         ) %>%
         dplyr::filter(.data = ., !is.na(estimate)) %>%
         tibble::as_tibble(x = .),
@@ -607,7 +570,7 @@ ggcoefstats <- function(x,
       message(cat(
         crayon::green("Note: "),
         crayon::blue("No p-values and/or statistic available for the model object;"),
-        crayon::blue("\nskipping labels with stats.\n"),
+        crayon::blue("\nskipping labels with statistical details.\n"),
         sep = ""
       ))
     }
@@ -666,8 +629,7 @@ ggcoefstats <- function(x,
   if (isTRUE(exclude.intercept)) {
     tidy_df %<>%
       dplyr::filter(
-        .data = .,
-        !grepl(pattern = "(Intercept)", x = term, ignore.case = TRUE)
+        .data = ., !grepl(pattern = "(Intercept)", x = term, ignore.case = TRUE)
       )
   }
 
@@ -678,25 +640,14 @@ ggcoefstats <- function(x,
       dplyr::mutate_at(
         .tbl = .,
         .vars = dplyr::vars(dplyr::matches(match = "estimate|conf", ignore.case = TRUE)),
-        .funs = ~ exp(x = .)
+        .funs = exp
       )
   }
 
-  # ========================== p-value adjustment ===========================
-
-  # clean up the p-value column
+  # # adjust the p-values based on the adjustment used
   if ("p.value" %in% names(tidy_df)) {
-    # if p-value column is not numeric
-    if (!purrr::is_bare_numeric(tidy_df$p.value)) {
-      tidy_df %<>%
-        dplyr::mutate(.data = ., p.value = as.numeric(as.character(p.value)))
-    }
-
     # adjust the p-values based on the adjustment used
-    tidy_df %<>%
-      dplyr::mutate(
-        .data = ., p.value = stats::p.adjust(p = p.value, method = p.adjust.method)
-      )
+    tidy_df %<>% dplyr::mutate(p.value = stats::p.adjust(p.value, p.adjust.method))
   }
 
   # ========================== preparing label ================================
@@ -704,9 +655,7 @@ ggcoefstats <- function(x,
   # adding a column with labels to be used with `ggrepel`
   if (isTRUE(stats.labels)) {
     # in case a dataframe was entered, `x` and `tidy_df` are going to be same
-    if (isFALSE(insight::is_model(x))) {
-      x <- tidy_df
-    }
+    if (isFALSE(insight::is_model(x))) x <- tidy_df
 
     # adding a column with labels using custom function
     tidy_df %<>%
@@ -741,41 +690,43 @@ ggcoefstats <- function(x,
 
   # running meta-analysis
   if (isTRUE(meta.analytic.effect)) {
+    # standardizing type of statistics name
+    meta.type <- stats_type_switch(meta.type)
+
     # results from frequentist random-effects meta-analysis
     subtitle <-
-      subtitle_meta_ggcoefstats(
+      subtitle_function_switch(
+        test = "meta",
+        type = meta.type,
         data = tidy_df,
         k = k,
-        messages = messages,
-        output = "subtitle"
+        messages = messages
       )
 
     # results from Bayesian random-effects meta-analysis
-    if (isTRUE(bf.message)) {
+    if (isTRUE(bf.message) && meta.type == "parametric") {
       caption <-
-        bf_meta_message(
+        statsExpressions::bf_meta(
           caption = caption,
           data = tidy_df,
           k = k,
-          messages = messages,
-          d = d,
-          d.par = d.par,
-          tau = tau,
-          tau.par = tau.par,
-          iter = iter,
-          summarize = summarize
+          messages = messages
         )
     }
 
-    # model summary
-    caption.meta <-
-      subtitle_meta_ggcoefstats(
-        data = tidy_df,
-        k = k,
-        caption = caption,
-        messages = FALSE,
-        output = "caption"
-      )
+    # model summary (detailed only for parametric statistics)
+    if (meta.type == "parametric") {
+      caption.meta <-
+        statsExpressions::expr_meta_parametric(
+          data = tidy_df,
+          k = k,
+          caption = caption,
+          messages = FALSE,
+          output = "caption"
+        )
+    } else {
+      caption.meta <- caption
+    }
   }
 
   # ========================== summary caption ================================
@@ -792,22 +743,14 @@ ggcoefstats <- function(x,
       # preparing caption with model diagnostics
       caption <-
         substitute(
-          atop(displaystyle(top.text),
-            expr =
-              paste(
-                "AIC = ",
-                AIC,
-                ", BIC = ",
-                BIC,
-                ", log-likelihood = ",
-                LL
-              )
+          atop(
+            displaystyle(top.text),
+            expr = paste("AIC = ", AIC, ", BIC = ", BIC)
           ),
           env = list(
             top.text = caption,
             AIC = specify_decimal_p(x = glance_df$AIC[[1]], k = k.caption.summary),
-            BIC = specify_decimal_p(x = glance_df$BIC[[1]], k = k.caption.summary),
-            LL = specify_decimal_p(x = glance_df$logLik[[1]], k = k.caption.summary)
+            BIC = specify_decimal_p(x = glance_df$BIC[[1]], k = k.caption.summary)
           )
         )
     }
@@ -851,30 +794,26 @@ ggcoefstats <- function(x,
 
       # adding the line geom
       plot <- plot +
-        ggplot2::geom_vline(
+        rlang::exec(
+          .fn = ggplot2::geom_vline,
           xintercept = xintercept,
-          color = vline.color,
-          linetype = vline.linetype,
-          size = vline.size,
-          na.rm = TRUE
+          na.rm = TRUE,
+          !!!vline.args
         )
 
       # logarithmic scale for exponent of coefficients
-      if (isTRUE(exponentiate)) {
-        plot <- plot + ggplot2::scale_x_log10()
-      }
+      if (isTRUE(exponentiate)) plot <- plot + ggplot2::scale_x_log10()
     }
 
     # if the confidence intervals are to be displayed on the plot
     if (isTRUE(conf.int)) {
       plot <- plot +
-        ggplot2::geom_errorbarh(
-          ggplot2::aes_string(xmin = "conf.low", xmax = "conf.high"),
-          color = errorbar.color,
-          height = errorbar.height,
-          linetype = errorbar.linetype,
-          size = errorbar.size,
-          na.rm = TRUE
+        rlang::exec(
+          .fn = ggplot2::geom_errorbarh,
+          data = tidy_df,
+          mapping = ggplot2::aes_string(xmin = "conf.low", xmax = "conf.high"),
+          na.rm = TRUE,
+          !!!errorbar.args
         )
     }
 
@@ -899,38 +838,6 @@ ggcoefstats <- function(x,
           .vars_predicate = dplyr::all_vars(!is.na(.))
         )
 
-      # ========================== palette check =================================
-
-      # counting the number of terms in the tidy dataframe
-      count_term <- length(tidy_df$term)
-
-      # if no. of factor levels is greater than the default palette color count
-      palette_message(
-        package = package,
-        palette = palette,
-        min_length = count_term
-      )
-
-      # computing the number of colors in a given palette
-      palette_df <-
-        tibble::as_tibble(x = paletteer::palettes_d_names) %>%
-        dplyr::filter(.data = ., package == !!package, palette == !!palette) %>%
-        dplyr::select(.data = ., length)
-
-      # if insufficient number of colors are available in a given palette
-      if (palette_df$length[[1]] < count_term) stats.label.color <- "black"
-
-      # if user has not specified colors, then use a color palette
-      if (is.null(stats.label.color)) {
-        stats.label.color <-
-          paletteer::paletteer_d(
-            palette = paste0(package, "::", palette),
-            n = count_term,
-            direction = direction,
-            type = "discrete"
-          )
-      }
-
       # only significant p-value labels are shown
       if (isTRUE(only.significant) && "significance" %in% names(tidy_df)) {
         tidy_df %<>%
@@ -943,16 +850,40 @@ ggcoefstats <- function(x,
           )
       }
 
+      # ========================== palette check =================================
+
+      # if no. of factor levels is greater than the default palette color count
+      palette_message(package, palette, length(tidy_df$term))
+
+      # computing the number of colors in a given palette
+      palette_df <-
+        tibble::as_tibble(x = paletteer::palettes_d_names) %>%
+        dplyr::filter(.data = ., package == !!package, palette == !!palette) %>%
+        dplyr::select(.data = ., length)
+
+      # if insufficient number of colors are available in a given palette
+      if (palette_df$length[[1]] < length(tidy_df$term)) stats.label.color <- "black"
+
+      # if user has not specified colors, then use a color palette
+      if (is.null(stats.label.color)) {
+        stats.label.color <-
+          paletteer::paletteer_d(
+            palette = paste0(package, "::", palette),
+            n = length(tidy_df$term),
+            direction = direction,
+            type = "discrete"
+          )
+      }
+
       # adding labels
       plot <- plot +
         rlang::exec(
-          ggrepel::geom_label_repel,
+          .fn = ggrepel::geom_label_repel,
           data = tidy_df,
           mapping = ggplot2::aes(x = estimate, y = term, label = label),
           na.rm = TRUE,
           show.legend = FALSE,
           parse = TRUE,
-          seed = 123,
           color = stats.label.color,
           !!!stats.label.args
         )
@@ -969,7 +900,7 @@ ggcoefstats <- function(x,
         subtitle = subtitle,
         title = title
       ) +
-      ggstatsplot::theme_mprl(
+      ggstatsplot::theme_ggstatsplot(
         ggtheme = ggtheme,
         ggstatsplot.layer = ggstatsplot.layer
       ) +

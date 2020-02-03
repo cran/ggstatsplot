@@ -46,21 +46,11 @@
 #' # association test (or contingency table analysis)
 #' ggstatsplot::ggbarstats(
 #'   data = mtcars,
-#'   main = vs,
-#'   condition = cyl,
+#'   x = vs,
+#'   y = cyl,
 #'   nboot = 10,
 #'   labels.legend = c("0 = V-shaped", "1 = straight"),
 #'   legend.title = "Engine"
-#' )
-#'
-#' # using `counts` argument
-#' library(jmv)
-#'
-#' ggstatsplot::ggbarstats(
-#'   data = as.data.frame(HairEyeColor),
-#'   x = Eye,
-#'   y = Hair,
-#'   counts = Freq
 #' )
 #' @export
 
@@ -91,9 +81,7 @@ ggbarstats <- function(data,
                        x.axis.orientation = NULL,
                        conf.level = 0.95,
                        nboot = 100,
-                       simulate.p.value = FALSE,
-                       B = 2000,
-                       bias.correct = FALSE,
+                       bias.correct = TRUE,
                        legend.title = NULL,
                        xlab = NULL,
                        ylab = "Percent",
@@ -230,7 +218,7 @@ ggbarstats <- function(data,
         alpha = label.fill.alpha,
         na.rm = TRUE
       ) +
-      ggstatsplot::theme_mprl(
+      ggstatsplot::theme_ggstatsplot(
         ggtheme = ggtheme,
         ggstatsplot.layer = ggstatsplot.layer
       ) +
@@ -266,8 +254,6 @@ ggbarstats <- function(data,
           conf.level = conf.level,
           conf.type = "norm",
           bias.correct = bias.correct,
-          simulate.p.value = simulate.p.value,
-          B = B,
           k = k,
           messages = messages
         ),

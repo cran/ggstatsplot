@@ -52,17 +52,6 @@
 #'   cor.vars = sleep_total:bodywt,
 #'   output = "correlations"
 #' )
-#'
-#' # for getting confidence intervals
-#' # confidence intervals are not available for **robust** correlation
-#' ggstatsplot::grouped_ggcorrmat(
-#'   data = datasets::iris,
-#'   grouping.var = Species,
-#'   corr.method = "r",
-#'   p.adjust.method = "holm",
-#'   cor.vars = Sepal.Length:Petal.Width,
-#'   output = "ci"
-#' )
 #' }
 #' @export
 
@@ -77,8 +66,6 @@ grouped_ggcorrmat <- function(data,
                               method = "square",
                               corr.method = "pearson",
                               type = NULL,
-                              exact = FALSE,
-                              continuity = TRUE,
                               beta = 0.1,
                               digits = 2,
                               k = NULL,
@@ -152,8 +139,6 @@ grouped_ggcorrmat <- function(data,
       matrix.type = matrix.type,
       method = method,
       corr.method = corr.method,
-      exact = exact,
-      continuity = continuity,
       beta = beta,
       digits = digits,
       sig.level = sig.level,

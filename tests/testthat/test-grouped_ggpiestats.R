@@ -3,7 +3,6 @@ context("grouped_ggpiestats")
 testthat::test_that(
   desc = "grouped_ggpiestats works",
   code = {
-
     testthat::skip_on_cran()
 
     #--------------------- only main variable -------------------------------
@@ -13,8 +12,6 @@ testthat::test_that(
       ggstatsplot::grouped_ggpiestats(
         data = mtcars,
         main = cyl,
-        simulate.p.value = TRUE,
-        B = 3000,
         messages = FALSE
       )
     )
@@ -28,26 +25,6 @@ testthat::test_that(
         data = mtcars,
         grouping.var = am,
         main = "cyl",
-        simulate.p.value = TRUE,
-        B = 3000,
-        messages = FALSE
-      )
-    ),
-    what = "gg"
-    ))
-
-    ## with counts
-
-    library(jmv)
-
-    # when arguments are entered as bare expressions
-    set.seed(123)
-    testthat::expect_true(inherits(suppressWarnings(
-      ggstatsplot::grouped_ggpiestats(
-        data = as.data.frame(HairEyeColor),
-        main = "Hair",
-        counts = Freq,
-        grouping.var = "Sex",
         messages = FALSE
       )
     ),
