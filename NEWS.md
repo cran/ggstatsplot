@@ -1,3 +1,89 @@
+# ggstatsplot 0.3.0
+
+BREAKING CHANGES
+
+To give users more flexibility in terms of modifying the aesthetic defaults for
+**all** `geoms` included in the `ggstatsplot` plots (each plot typically has
+multiple geoms), the package now uses a new form of syntax. Previously, each
+`geom` had a separate argument to specify each aesthetic (e.g., `geom_point`
+would get arguments like `point.size`, `point.color`, etc.), which resulted in
+functions with a massive number of arguments and was unsustainable in the long
+run. Instead, `ggstatsplot` functions now expect a list of such arguments for
+the respective geom (e.g., `geom_point` will have `point.args` argument where a
+list of arguments `list(size = 5, color = "darkgreen", alpha = 0.8)` can be
+supplied).
+
+  - All `grouped_` functions have been refactored to reduce the number of
+    arguments. These functions now internally use the new `combine_plots2`
+    instead of `combine_plots`. The additional arguments to primary functions
+    can be provided through `...`. These changes will not necessarily break the
+    existing code but will lead to some minor graphical changes (e.g., if you
+    were providing `labels` argument explicitly, it will be ignored).
+    
+  - All functions lose the `return` argument, which was supposed to be
+    alternative to enter `output`. But this was just leading to more confusion
+    on the user's part. The biggest user-visible impact this is going to have is
+    that `ggcorrmat` will no longer be backward-compatible. The older scripts
+    will still work but if the `return` argument was anything except `"plot"`,
+    it will just be ignored.
+    
+  - `ggcorrmat` no longer has `corr.method` argument. To be consistent with rest
+    of the functions in this package, the type of statistics should be specified
+    using `type` argument. Additional, it gains a new argument
+    `ggcorrplot.args`, which can be used to pass additional arguments to the
+    underlying plotting function (`ggcorrplot::ggcorrplot`).
+    
+  - Both `gghistostats` and `ggdotplotstats` now use the following arguments to
+    modify `geom`s corresponding to the lines and labels:
+    `test.value.line.args`, `test.value.label.args`, `centrality.line.args`,
+    `centrality.label.args`. This helps avoid specifying millions of arguments.
+    
+  - Removes the vestigial `ggplot_converter` function.
+  
+  - `ggpiestats` and `ggbarstats` remove the following vestigial arguments:
+    `facet.wrap.name`, `bias.correct`, `bar.outline.color`. The `bar.proptest`
+    and `facet.proptest` arguments were difficult to remember and confusing and
+    are replaced by a common `proportion.test` argument. Additionally, the
+    following arguments have all been removed and replaced by `label` argument:
+    `slice.label`, `bar.label`, `data.label`. These plethora of options was a
+    headache to remember.
+    
+  - `gghistostats` loses the following arguments: `fill.gradient`, `low.color`,
+    `high.color`. It made no sense to add a color gradient to this plot when the
+    Y-axis already displayed the information about what the bar represented.
+    
+  - `ggscatterstats` loses the following arguments: `palette` and `package`.
+    Since this function requires only two colors, it didn't make much sense to
+    use color palettes to specify this. They can be instead specified using
+    `xfill` and `yfill`. You can always use `paletteer::paletteer_d` to get a
+    vector of color values and then provide values of your choosing to `xfill`
+    and `yfill`.
+    
+  - Removes sorting options in `ggbetweenstats` and `ggwithinstats` functions.
+    This is something the users can easily do before entering the data in these
+    functions.
+  
+MAJOR CHANGES
+
+  - `ggcorrmat` was never supposed to work with Kendall's correlation coefficient
+    but it accidentally did. This is no longer the case.
+    
+  - `ggstatsplot` now has a logo, thanks to Sarah! :)
+  
+  - The default `theme_ggstatsplot` changes slightly. The biggest change is that
+    the title and the subtitle for plots are now aligned to the left of the
+    plot. This change also forced the legend for `ggpiestats` to be displayed
+    on the right side of the plot rather than at the bottom.
+
+MINOR CHANGES
+
+  - More models supported in `ggcoefstats`: `BBreg`, `bcplm`, `bife`, `cglm`,
+    `crch`, `DirichReg`, `LORgee`, `zcpglm`, `zeroinfl`.
+    
+  - Following functions are now re-exported from `ipmisc`: `bartlett_message`,
+    `normality_message`. A few other internal data wrangling functions now
+    reside in `ipmisc`.
+
 # ggstatsplot 0.2.0
 
 BREAKING CHANGES

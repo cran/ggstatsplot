@@ -1,11 +1,13 @@
 #' @title Dot plot/chart for labeled numeric data.
 #' @name ggdotplotstats
-#' @description A dot chart with statistical details from one-sample test
-#'   included in the plot as a subtitle.
+#' @description A dot chart (as described by William S. Cleveland) with
+#'   statistical details from one-sample test included in the plot as a
+#'   subtitle.
 #'
+#' @param ... Currently ignored.
 #' @param y Label or grouping variable.
-#' @param point.color Character describing color for the point (Default:
-#'   `"black"`).
+#' @param point.args A list of additional aesthetic arguments passed to
+#'   `geom_point`.
 #' @inheritParams histo_labeller
 #' @inheritParams gghistostats
 #' @inheritParams ggcoefstats
@@ -33,8 +35,7 @@
 #'   test.value = 15,
 #'   test.value.line = TRUE,
 #'   test.line.labeller = TRUE,
-#'   test.value.color = "red",
-#'   centrality.para = "median",
+#'   centrality.parameter = "median",
 #'   centrality.k = 0,
 #'   title = "Fuel economy data",
 #'   xlab = "city miles per gallon",
@@ -59,33 +60,30 @@ ggdotplotstats <- function(data,
                            test.value = 0,
                            bf.prior = 0.707,
                            bf.message = TRUE,
-                           robust.estimator = "onestep",
                            effsize.type = "g",
                            effsize.noncentral = TRUE,
                            conf.level = 0.95,
                            nboot = 100,
                            k = 2,
                            results.subtitle = TRUE,
+                           point.args = list(color = "black", size = 3, shape = 16),
+                           test.k = 0,
+                           test.value.line = FALSE,
+                           test.value.line.args = list(size = 1),
+                           test.value.label.args = list(size = 3),
+                           centrality.parameter = "mean",
+                           centrality.k = 2,
+                           centrality.line.args = list(color = "blue", size = 1),
+                           centrality.label.args = list(color = "blue", size = 3),
+                           ggplot.component = NULL,
                            ggtheme = ggplot2::theme_bw(),
                            ggstatsplot.layer = TRUE,
-                           point.color = "black",
-                           point.size = 3,
-                           point.shape = 16,
-                           centrality.para = "mean",
-                           centrality.color = "blue",
-                           centrality.size = 1.0,
-                           centrality.linetype = "dashed",
-                           centrality.line.labeller = TRUE,
-                           centrality.k = 2,
-                           test.value.line = FALSE,
-                           test.value.color = "black",
-                           test.value.size = 1.0,
-                           test.value.linetype = "dashed",
-                           test.line.labeller = TRUE,
-                           test.k = 0,
-                           ggplot.component = NULL,
-                           return = "plot",
-                           messages = TRUE) {
+                           output = "plot",
+                           messages = TRUE,
+                           ...) {
+
+  # convert entered stats type to a standard notation
+  type <- stats_type_switch(type)
 
   # ------------------------------ variable names ----------------------------
 
@@ -113,13 +111,13 @@ ggdotplotstats <- function(data,
       percent_rank = dplyr::percent_rank({{ x }}),
       rank = dplyr::row_number()
     ) %>%
-    tibble::as_tibble(x = .)
+    as_tibble(.)
 
   # ================ stats labels ==========================================
 
   if (isTRUE(results.subtitle)) {
     # preparing the BF message for NULL
-    if (isTRUE(bf.message) && type %in% c("parametric", "p")) {
+    if (isTRUE(bf.message) && type == "parametric") {
       caption <-
         statsExpressions::bf_ttest(
           data = data,
@@ -140,7 +138,7 @@ ggdotplotstats <- function(data,
         type = type,
         test.value = test.value,
         bf.prior = bf.prior,
-        robust.estimator = robust.estimator,
+        robust.estimator = "onestep",
         effsize.type = effsize.type,
         effsize.noncentral = effsize.noncentral,
         conf.type = "norm",
@@ -152,15 +150,24 @@ ggdotplotstats <- function(data,
       )
   }
 
+  # quit early if only subtitle is needed
+  if (output %in% c("subtitle", "caption")) {
+    return(switch(
+      EXPR = output,
+      "subtitle" = subtitle,
+      "caption" = caption
+    ))
+  }
+
   # ------------------------------ basic plot ----------------------------
 
   # creating the basic plot
-  plot <- ggplot2::ggplot(data = data, mapping = ggplot2::aes(x = {{ x }}, y = rank)) +
-    ggplot2::geom_point(
-      color = point.color,
-      size = point.size,
-      shape = point.shape,
-      na.rm = TRUE
+  plot <-
+    ggplot2::ggplot(data = data, mapping = ggplot2::aes(x = {{ x }}, y = rank)) +
+    rlang::exec(
+      .fn = ggplot2::geom_point,
+      na.rm = TRUE,
+      !!!point.args
     ) +
     ggplot2::scale_y_continuous(
       name = ylab,
@@ -168,11 +175,7 @@ ggdotplotstats <- function(data,
       breaks = data$rank,
       sec.axis = ggplot2::dup_axis(
         name = "percentile",
-        breaks = seq(
-          from = 1,
-          to = nrow(data),
-          by = (nrow(data) - 1) / 4
-        ),
+        breaks = seq(1, nrow(data), (nrow(data) - 1) / 4),
         labels = 25 * 0:4
       )
     ) +
@@ -187,24 +190,21 @@ ggdotplotstats <- function(data,
   y_label_pos <- median(ggplot2::layer_scales(plot)$y$range$range, na.rm = TRUE)
 
   # using custom function for adding labels
-  plot <- histo_labeller(
-    plot = plot,
-    x = data %>% dplyr::pull({{ x }}),
-    y.label.position = y_label_pos,
-    centrality.para = centrality.para,
-    centrality.color = centrality.color,
-    centrality.size = centrality.size,
-    centrality.linetype = centrality.linetype,
-    centrality.line.labeller = centrality.line.labeller,
-    centrality.k = centrality.k,
-    test.value = test.value,
-    test.value.line = test.value.line,
-    test.value.color = test.value.color,
-    test.value.size = test.value.size,
-    test.value.linetype = test.value.linetype,
-    test.line.labeller = test.line.labeller,
-    test.k = test.k
-  )
+  plot <-
+    histo_labeller(
+      plot = plot,
+      x = data %>% dplyr::pull({{ x }}),
+      y.label.position = y_label_pos,
+      test.value = test.value,
+      test.k = test.k,
+      test.value.line = test.value.line,
+      test.value.line.args = test.value.line.args,
+      test.value.label.args = test.value.label.args,
+      centrality.parameter = centrality.parameter,
+      centrality.k = centrality.k,
+      centrality.line.args = centrality.line.args,
+      centrality.label.args = centrality.label.args
+    )
 
   # ------------------------ annotations and themes -------------------------
 
@@ -243,17 +243,10 @@ ggdotplotstats <- function(data,
     normality_message(
       x = data %>% dplyr::pull({{ x }}),
       lab = xlab,
-      k = k,
-      output = "message"
+      k = k
     )
   }
 
   # return the plot
-  return(switch(
-    EXPR = return,
-    "plot" = plot,
-    "subtitle" = subtitle,
-    "caption" = caption,
-    plot
-  ))
+  return(plot)
 }

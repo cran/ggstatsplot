@@ -118,9 +118,8 @@ gapminder %>% # dataframe to use
     outlier.tagging = TRUE, # whether outliers should be flagged
     outlier.coef = 1.5, # coefficient for Tukey's rule
     outlier.label = country, # label to attach to outlier values
-    outlier.label.color = "red", # outlier point label color
+    outlier.label.args = list(color = "red"), # outlier point label color
     mean.plotting = TRUE, # whether the mean is to be displayed
-    mean.color = "darkblue", # color for mean
     messages = FALSE, # turn off messages
     ggtheme = ggplot2::theme_gray(), # a different theme
     package = "yarrr", # package from which color palette is to be taken
@@ -166,78 +165,79 @@ library(ggstatsplot)
 library(gapminder)
 
 # selecting subset of the data
-df_year <- dplyr::filter(
-  .data = gapminder::gapminder,
-  year == 2007 | year == 1957
-)
+df_year <- dplyr::filter(.data = gapminder::gapminder, year == 2007 | year == 1957)
 
 # for reproducibility
 set.seed(123)
 
 # parametric t-test and box plot
-p1 <- ggstatsplot::ggbetweenstats(
-  data = df_year,
-  x = year,
-  y = lifeExp,
-  plot.type = "box",
-  type = "p",
-  effsize.type = "d",
-  conf.level = 0.99,
-  title = "Parametric test",
-  package = "ggsci",
-  palette = "nrc_npg",
-  messages = FALSE
-)
+p1 <-
+  ggstatsplot::ggbetweenstats(
+    data = df_year,
+    x = year,
+    y = lifeExp,
+    plot.type = "box",
+    type = "p",
+    effsize.type = "d",
+    conf.level = 0.99,
+    title = "Parametric test",
+    package = "ggsci",
+    palette = "nrc_npg",
+    messages = FALSE
+  )
 
 # Mann-Whitney U test (nonparametric t) and violin plot
-p2 <- ggstatsplot::ggbetweenstats(
-  data = df_year,
-  x = year,
-  y = lifeExp,
-  xlab = "Year",
-  ylab = "Life expectancy",
-  plot.type = "violin",
-  type = "np",
-  conf.level = 0.99,
-  title = "Non-parametric Test (violin plot)",
-  package = "ggsci",
-  palette = "uniform_startrek",
-  messages = FALSE
-)
+p2 <-
+  ggstatsplot::ggbetweenstats(
+    data = df_year,
+    x = year,
+    y = lifeExp,
+    xlab = "Year",
+    ylab = "Life expectancy",
+    plot.type = "violin",
+    type = "np",
+    conf.level = 0.99,
+    title = "Non-parametric Test (violin plot)",
+    package = "ggsci",
+    palette = "uniform_startrek",
+    messages = FALSE
+  )
 
 # robust t-test and boxviolin plot
-p3 <- ggstatsplot::ggbetweenstats(
-  data = df_year,
-  x = year,
-  y = lifeExp,
-  xlab = "Year",
-  ylab = "Life expectancy",
-  plot.type = "boxviolin",
-  type = "r",
-  conf.level = 0.99,
-  title = "Robust Test (box & violin plot)",
-  tr = 0.005,
-  package = "wesanderson",
-  palette = "Royal2",
-  nboot = 15,
-  k = 3,
-  messages = FALSE
-)
+p3 <-
+  ggstatsplot::ggbetweenstats(
+    data = df_year,
+    x = year,
+    y = lifeExp,
+    xlab = "Year",
+    ylab = "Life expectancy",
+    plot.type = "boxviolin",
+    type = "r",
+    conf.level = 0.99,
+    title = "Robust Test (box & violin plot)",
+    tr = 0.005,
+    package = "wesanderson",
+    palette = "Royal2",
+    nboot = 15,
+    k = 3,
+    messages = FALSE
+  )
 
 # Bayes Factor for parametric t-test and boxviolin plot
-p4 <- ggstatsplot::ggbetweenstats(
-  data = df_year,
-  x = year,
-  y = lifeExp,
-  xlab = "Year",
-  ylab = "Life expectancy",
-  type = "bf",
-  plot.type = "box",
-  title = "Bayesian Test (box plot)",
-  package = "ggsci",
-  palette = "nrc_npg",
-  messages = FALSE
-)
+p4 <-
+  ggstatsplot::ggbetweenstats(
+    data = df_year,
+    x = year,
+    y = lifeExp,
+    xlab = "Year",
+    ylab = "Life expectancy",
+    type = "bf",
+    plot.type = "box",
+    title = "Bayesian Test (box plot)",
+    package = "ggsci",
+    palette = "nrc_npg",
+    messages = FALSE
+  )
 
 # combining the individual plots into a single plot
 ggstatsplot::combine_plots(
@@ -271,41 +271,33 @@ every pair of continents.
 # for reproducibility
 set.seed(123)
 
-ggstatsplot::grouped_ggbetweenstats(
-  # arguments relevant for ggstatsplot::ggbetweenstats
-  data = dplyr::filter(
-    .data = gapminder::gapminder,
-    year == 1967 |
-      year == 1987 |
-      year == 2007,
-    continent != "Oceania"
-  ),
-  x = continent,
-  y = lifeExp,
-  grouping.var = year,
-  xlab = "Continent",
-  ylab = "Life expectancy",
-  k = 2,
-  nboot = 10,
-  effsize.type = "unbiased", # type of effect size (unbiased = omega)
-  partial = FALSE, # partial omega or omega?
-  pairwise.comparisons = TRUE, # display results from pairwise comparisons
-  pairwise.display = "significant", # display only significant pairwise comparisons
-  pairwise.annotation = "p.value", # annotate the pairwise comparisons using p-values
-  p.adjust.method = "fdr", # adjust p-values for multiple tests using this method
-  ggtheme = ggthemes::theme_tufte(),
-  package = "ggsci",
-  palette = "default_jco",
-  outlier.tagging = TRUE,
-  ggstatsplot.layer = FALSE,
-  outlier.label = country,
-  title.prefix = "Year",
-  messages = FALSE,
-  # arguments relevant for ggstatsplot::combine_plots
-  title.text = "Changes in life expectancy across continents (1967-2007)",
-  nrow = 3,
-  labels = c("(a)", "(b)", "(c)")
-)
+# select part of the dataset and use it for plotting
+gapminder::gapminder %>%
+  dplyr::filter(.data = ., year %in% c(1967, 1987, 2007), continent != "Oceania") %>%
+  ggstatsplot::grouped_ggbetweenstats(
+    # arguments relevant for ggstatsplot::ggbetweenstats
+    data = .,
+    x = continent,
+    y = lifeExp,
+    grouping.var = year,
+    xlab = "Continent",
+    ylab = "Life expectancy",
+    pairwise.comparisons = TRUE, # display results from pairwise comparisons
+    pairwise.display = "significant", # display only significant pairwise comparisons
+    pairwise.annotation = "p.value", # annotate the pairwise comparisons using p-values
+    p.adjust.method = "fdr", # adjust p-values for multiple tests using this method
+    ggtheme = ggthemes::theme_tufte(),
+    package = "ggsci",
+    palette = "default_jco",
+    outlier.tagging = TRUE,
+    ggstatsplot.layer = FALSE,
+    outlier.label = country,
+    title.prefix = "Year",
+    messages = FALSE,
+    # arguments relevant for ggstatsplot::combine_plots
+    title.text = "Changes in life expectancy across continents (1967-2007)",
+    plotgrid.args = list(nrow = 3, labels = c("(a)", "(b)", "(c)"))
+  )
 ```
 
 As seen from the plot, although the life expectancy has been improving steadily
@@ -388,4 +380,3 @@ If you find any bugs or have any suggestions/remarks, please file an issue on
 
 For details, see-
 <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/session_info.html>
-

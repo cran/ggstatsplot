@@ -18,33 +18,27 @@ ggdotplotstats(
   test.value = 0,
   bf.prior = 0.707,
   bf.message = TRUE,
-  robust.estimator = "onestep",
   effsize.type = "g",
   effsize.noncentral = TRUE,
   conf.level = 0.95,
   nboot = 100,
   k = 2,
   results.subtitle = TRUE,
+  point.args = list(color = "black", size = 3, shape = 16),
+  test.k = 0,
+  test.value.line = FALSE,
+  test.value.line.args = list(size = 1),
+  test.value.label.args = list(size = 3),
+  centrality.parameter = "mean",
+  centrality.k = 2,
+  centrality.line.args = list(color = "blue", size = 1),
+  centrality.label.args = list(color = "blue", size = 3),
+  ggplot.component = NULL,
   ggtheme = ggplot2::theme_bw(),
   ggstatsplot.layer = TRUE,
-  point.color = "black",
-  point.size = 3,
-  point.shape = 16,
-  centrality.para = "mean",
-  centrality.color = "blue",
-  centrality.size = 1,
-  centrality.linetype = "dashed",
-  centrality.line.labeller = TRUE,
-  centrality.k = 2,
-  test.value.line = FALSE,
-  test.value.color = "black",
-  test.value.size = 1,
-  test.value.linetype = "dashed",
-  test.line.labeller = TRUE,
-  test.k = 0,
-  ggplot.component = NULL,
-  return = "plot",
-  messages = TRUE
+  output = "plot",
+  messages = TRUE,
+  ...
 )
 }
 \arguments{
@@ -58,7 +52,7 @@ be taken. A matrix or tables will \strong{not} be accepted.}
 \item{xlab}{Labels for \code{x} and \code{y} axis variables. If \code{NULL} (default),
 variable names for \code{x} and \code{y} will be used.}
 
-\item{ylab}{Label for \code{y} axis variable (Default: \code{"term"}).}
+\item{ylab}{Labels for \code{x} axis variable (Defaults: \code{"regression coefficient"} and \code{"term"}, resp.).}
 
 \item{title}{The text for the plot title.}
 
@@ -86,10 +80,6 @@ prior width to use in calculating Bayes Factors.}
 favor of the \emph{null} hypothesis. This argument is relevant only \strong{for
 parametric test} (Default: \code{TRUE}).}
 
-\item{robust.estimator}{If \code{type = "robust"}, a robust estimator to be used
-(\code{"onestep"} (Default), \code{"mom"}, or \code{"median"}). For more, see
-\code{?WRS2::onesampb}.}
-
 \item{effsize.type}{Type of effect size needed for \emph{parametric} tests. The
 argument can be \code{"biased"} (\code{"d"} for Cohen's \emph{d}) or \code{"unbiased"}
 (\code{"g"} Hedge's \emph{g} for \strong{t-test}). The default is \code{"g"}.}
@@ -111,6 +101,43 @@ for the effect size (Default: \code{100}).}
 to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
 the plot will be returned.}
 
+\item{point.args}{A list of additional aesthetic arguments passed to
+\code{geom_point}.}
+
+\item{test.k}{Integer denoting the number of decimal places expected for
+\code{test.value} label. (Default: \code{0} ).}
+
+\item{test.value.line}{Logical that decides whether a line corresponding to
+the \code{test.value} should be superimposed on the plot.}
+
+\item{test.value.line.args}{A list of additional
+aesthetic arguments to be passed to the \code{geom_line} used to display the
+lines corresponding to the centrality parameter and test value.}
+
+\item{test.value.label.args}{A list of additional
+aesthetic arguments to be passed to the \code{geom_label} used to display the
+label corresponding to the centrality parameter and test value.}
+
+\item{centrality.parameter}{Decides \emph{which} measure of central tendency
+(\code{"mean"} or \code{"median"}) is to be displayed as a vertical line. To not show
+any parameter, set this to \code{"none"}.}
+
+\item{centrality.k}{Integer denoting the number of decimal places expected
+for centrality parameter label. (Default: \code{2}).}
+
+\item{centrality.line.args}{A list of additional
+aesthetic arguments to be passed to the \code{geom_line} used to display the
+lines corresponding to the centrality parameter and test value.}
+
+\item{centrality.label.args}{A list of additional
+aesthetic arguments to be passed to the \code{geom_label} used to display the
+label corresponding to the centrality parameter and test value.}
+
+\item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
+by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
+of the current function. Default is \code{NULL}. The argument should be entered
+as a function.}
+
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
 \code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
 extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
@@ -121,58 +148,7 @@ theme elements are to be displayed along with the selected \code{ggtheme}
 (Default: \code{TRUE}). \code{theme_ggstatsplot} is an opinionated theme layer that
 override some aspects of the selected \code{ggtheme}.}
 
-\item{point.color}{Character describing color for the point (Default:
-\code{"black"}).}
-
-\item{point.size}{Numeric specifying size for the point (Default: \code{3}).}
-
-\item{point.shape}{Numeric specifying shape to draw the points (Default: \code{16}
-(\strong{a dot})).}
-
-\item{centrality.para}{Decides \emph{which} measure of central tendency (\code{"mean"}
-or \code{"median"}) is to be displayed as a vertical line.}
-
-\item{centrality.color}{Decides color for the vertical line for centrality
-parameter (Default: \code{"blue"}).}
-
-\item{centrality.size}{Decides size for the vertical line for centrality
-parameter (Default: \code{1.2}).}
-
-\item{centrality.linetype}{Decides linetype for the vertical line for
-centrality parameter (Default: \code{"dashed"}).}
-
-\item{centrality.line.labeller}{A logical that decides whether line labels
-should be displayed for the \strong{centrality.para} line (Default: \code{TRUE}).}
-
-\item{centrality.k}{Integer denoting the number of decimal places expected
-for centrality parameter label. (Default: \code{2}).}
-
-\item{test.value.line}{Decides whether test value is to be displayed as a
-vertical line (Default: \code{FALSE}).}
-
-\item{test.value.color}{Decides color for the vertical line denoting test
-value (Default: \code{"black"}).}
-
-\item{test.value.size}{Decides size for the vertical line for test value
-(Default: \code{1.2}).}
-
-\item{test.value.linetype}{Decides linetype for the vertical line for test
-value (Default: \code{"dashed"}).}
-
-\item{test.line.labeller}{A logical that decides whether line labels should
-be displayed for \strong{test.value} line (Default: \code{TRUE}).}
-
-\item{test.k}{Integer denoting the number of decimal places expected for
-\code{test.value} label. (Default: \code{0} ).}
-
-\item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
-by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
-of the current function. Default is \code{NULL}. The argument should be entered
-as a function. If the given function has an argument \code{axes.range.restrict}
-and if it has been set to \code{TRUE}, the added \code{ggplot} component \emph{might} not
-work as expected.}
-
-\item{return}{Character that describes what is to be returned: can be
+\item{output}{Character that describes what is to be returned: can be
 \code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
 \code{"subtitle"} will return the expression containing statistical results. If
 you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
@@ -182,10 +158,13 @@ about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
+
+\item{...}{Currently ignored.}
 }
 \description{
-A dot chart with statistical details from one-sample test
-included in the plot as a subtitle.
+A dot chart (as described by William S. Cleveland) with
+statistical details from one-sample test included in the plot as a
+subtitle.
 }
 \examples{
 \donttest{
@@ -201,8 +180,7 @@ ggdotplotstats(
   test.value = 15,
   test.value.line = TRUE,
   test.line.labeller = TRUE,
-  test.value.color = "red",
-  centrality.para = "median",
+  centrality.parameter = "median",
   centrality.k = 0,
   title = "Fuel economy data",
   xlab = "city miles per gallon",

@@ -1,17 +1,17 @@
 
-# ----------------------- groupedstats -----------------------------------
+# ----------------------- ipmisc -----------------------------------
 
 #' @export
-#' @importFrom groupedstats specify_decimal_p
-groupedstats::specify_decimal_p
+#' @importFrom ipmisc specify_decimal_p
+ipmisc::specify_decimal_p
 
 #' @export
-#' @importFrom groupedstats signif_column
-groupedstats::signif_column
+#' @importFrom ipmisc signif_column
+ipmisc::signif_column
 
 #' @export
-#' @importFrom groupedstats set_cwd
-groupedstats::set_cwd
+#' @importFrom ipmisc set_cwd
+ipmisc::set_cwd
 
 # ----------------------- pairwiseComparisons --------------------------------
 
@@ -26,16 +26,21 @@ pairwiseComparisons::pairwise_comparisons
 # ----------------------- tidyverse -------------------------------------
 
 #' @export
-#' @importFrom broomExtra "%>%"
-broomExtra::`%>%`
+#' @importFrom ipmisc "%>%"
+ipmisc::`%>%`
 
 #' @export
-#' @importFrom broomExtra "%<>%"
-broomExtra::`%<>%`
+#' @importFrom ipmisc "%<>%"
+ipmisc::`%<>%`
 
 #' @export
-#' @importFrom broomExtra "%$%"
-broomExtra::`%$%`
+#' @importFrom ipmisc "%$%"
+ipmisc::`%$%`
+
+#' @export
+#' @importFrom ipmisc "%<-%"
+ipmisc::`%<-%`
+
 
 #' @export
 #' @importFrom rlang "%||%"
@@ -46,9 +51,34 @@ rlang::`%||%`
 rlang::`%|%`
 
 #' @export
-#' @importFrom tibble tibble
-tibble::tibble
+#' @importFrom ipmisc tibble
+ipmisc::tibble
 
 #' @export
-#' @importFrom tibble as_tibble
-tibble::as_tibble
+#' @importFrom ipmisc as_tibble
+ipmisc::as_tibble
+
+# ----------------------- messages -------------------------------------
+
+#' @export
+#' @importFrom ipmisc bartlett_message
+ipmisc::bartlett_message
+
+#' @export
+#' @importFrom ipmisc normality_message
+ipmisc::normality_message
+
+
+# ----------------------- broom -------------------------------------
+
+#' @export
+#' @importFrom broomExtra tidy
+broomExtra::tidy
+
+#' @export
+#' @importFrom broomExtra glance
+broomExtra::glance
+
+#' @export
+#' @importFrom broomExtra augment
+broomExtra::augment

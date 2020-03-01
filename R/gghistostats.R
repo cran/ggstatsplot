@@ -3,32 +3,24 @@
 #' @description Histogram with statistical details from one-sample test included
 #'   in the plot as a subtitle.
 #'
+#' @param ... Currently ignored.
 #' @param bar.measure Character describing what value needs to be represented as
 #'   height in the bar chart. This can either be `"count"`, which shows number
 #'   of points in bin, or `"density"`, which density of points in bin, scaled to
 #'   integrate to 1, or "`proportion`", which shows relative frequencies of
 #'   observations in each bin, or "`mix`", which shows *both* count and
 #'   proportion in the same plot.
-#' @param fill.gradient Logical decides whether color fill gradient is to be
-#'   displayed (Default: `FALSE`). If `FALSE`, the legend and the color gradient
-#'   will also be removed. The default is set to `FALSE` because the gradient
-#'   provides redundant information in light of y-axis labels.
-#' @param low.color,high.color Colors for low and high ends of the gradient.
-#'   Defaults are colorblind-friendly.
-#' @param normal.curve Logical decides whether to super-impose a normal curve
-#'   using `stats::dnorm(mean(x), sd(x))`. Default is `FALSE`.
-#' @param normal.curve.color,normal.curve.linetype,normal.curve.size If
-#'   `normal.curve = TRUE`, then these arguments can be used to modify color
-#'   (Default: `"black"`), size (default: `1.0`), linetype (default: `"solid"`).
-#' @param bar.fill If `fill.gradient = FALSE`, then `bar.fill` decides which
-#'   color will uniformly fill all the bars in the histogram (Default:
-#'   `"grey50"`).
+#' @param normal.curve A logical value that decides whether to super-impose a
+#'   normal curve using `stats::dnorm(mean(x), sd(x))`. Default is `FALSE`.
+#' @param normal.curve.args A list of additional aesthetic arguments to be
+#'   passed to the normal curve.
+#' @param bar.fill Character input that decides which color will uniformly fill
+#'   all the bars in the histogram (Default: `"grey50"`).
 #' @param binwidth The width of the histogram bins. Can be specified as a
 #'   numeric value, or a function that calculates width from `x`. The default is
 #'   to use the `max(x) - min(x) / sqrt(N)`. You should always check this value
 #'   and explore multiple widths to find the best to illustrate the stories in
 #'   your data.
-#' @inheritParams theme_ggstatsplot
 #' @inheritParams statsExpressions::expr_t_onesample
 #' @inheritParams histo_labeller
 #' @inheritParams ggbetweenstats
@@ -38,12 +30,10 @@
 #'
 #' @import ggplot2
 #'
-#' @importFrom dplyr select bind_rows summarize mutate mutate_at mutate_if
+#' @importFrom dplyr select summarize mutate
 #' @importFrom dplyr group_by n arrange
 #' @importFrom rlang enquo as_name !!
-#' @importFrom scales percent percent_format
 #' @importFrom stats dnorm
-#' @importFrom crayon green blue yellow red
 #' @importFrom statsExpressions expr_t_onesample bf_ttest
 #'
 #' @references
@@ -57,7 +47,7 @@
 #'   data = ToothGrowth,
 #'   x = len,
 #'   xlab = "Tooth length",
-#'   centrality.para = "median"
+#'   centrality.parameter = "median"
 #' )
 #'
 #' # a detailed function call
@@ -90,7 +80,6 @@ gghistostats <- function(data,
                          test.value = 0,
                          bf.prior = 0.707,
                          bf.message = TRUE,
-                         robust.estimator = "onestep",
                          effsize.type = "g",
                          effsize.noncentral = TRUE,
                          conf.level = 0.95,
@@ -98,30 +87,25 @@ gghistostats <- function(data,
                          k = 2,
                          ggtheme = ggplot2::theme_bw(),
                          ggstatsplot.layer = TRUE,
-                         fill.gradient = FALSE,
-                         low.color = "#0072B2",
-                         high.color = "#D55E00",
                          bar.fill = "grey50",
                          results.subtitle = TRUE,
-                         centrality.para = "mean",
-                         centrality.color = "blue",
-                         centrality.size = 1.0,
-                         centrality.linetype = "dashed",
-                         centrality.line.labeller = TRUE,
-                         centrality.k = 2,
-                         test.value.line = FALSE,
-                         test.value.color = "black",
-                         test.value.size = 1.0,
-                         test.value.linetype = "dashed",
-                         test.line.labeller = TRUE,
                          test.k = 0,
+                         test.value.line = FALSE,
+                         test.value.line.args = list(size = 1),
+                         test.value.label.args = list(size = 3),
+                         centrality.parameter = "mean",
+                         centrality.k = 2,
+                         centrality.line.args = list(size = 1, color = "blue"),
+                         centrality.label.args = list(color = "blue", size = 3),
                          normal.curve = FALSE,
-                         normal.curve.color = "black",
-                         normal.curve.linetype = "solid",
-                         normal.curve.size = 1.0,
+                         normal.curve.args = list(size = 3),
                          ggplot.component = NULL,
-                         return = "plot",
-                         messages = TRUE) {
+                         output = "plot",
+                         messages = TRUE,
+                         ...) {
+
+  # convert entered stats type to a standard notation
+  type <- stats_type_switch(type)
 
   # ================================= dataframe ==============================
 
@@ -135,7 +119,7 @@ gghistostats <- function(data,
   df <-
     dplyr::select(.data = data, {{ x }}) %>%
     tidyr::drop_na(data = .) %>%
-    tibble::as_tibble(x = .)
+    as_tibble(x = .)
 
   # column as a vector
   x_vec <- df %>% dplyr::pull({{ x }})
@@ -146,7 +130,26 @@ gghistostats <- function(data,
   # ================ stats labels ==========================================
 
   if (isTRUE(results.subtitle)) {
-    # preparing the BF message for NULL
+    # preparing the subtitle with statistical results
+    subtitle <-
+      statsExpressions::expr_t_onesample(
+        data = df,
+        x = {{ x }},
+        type = type,
+        test.value = test.value,
+        bf.prior = bf.prior,
+        robust.estimator = "onestep",
+        effsize.type = effsize.type,
+        effsize.noncentral = effsize.noncentral,
+        conf.type = "norm",
+        conf.level = conf.level,
+        nboot = nboot,
+        k = k,
+        stat.title = stat.title,
+        messages = messages
+      )
+
+    # preparing the BF message
     if (isTRUE(bf.message)) {
       bf.caption.text <-
         statsExpressions::bf_ttest(
@@ -158,40 +161,22 @@ gghistostats <- function(data,
           output = "caption",
           k = k
         )
-    }
 
-    # preparing the subtitle with statistical results
-    subtitle <-
-      statsExpressions::expr_t_onesample(
-        data = df,
-        x = {{ x }},
-        type = type,
-        test.value = test.value,
-        bf.prior = bf.prior,
-        robust.estimator = robust.estimator,
-        effsize.type = effsize.type,
-        effsize.noncentral = effsize.noncentral,
-        conf.type = "norm",
-        conf.level = conf.level,
-        nboot = nboot,
-        k = k,
-        stat.title = stat.title,
-        messages = messages
-      )
+      # if bayes factor message needs to be displayed
+      if (type == "parametric" && isTRUE(bf.message)) caption <- bf.caption.text
+    }
   }
 
   # quit early if only subtitle is needed
-  if (return == "subtitle") {
-    return(subtitle)
+  if (output %in% c("subtitle", "caption")) {
+    return(switch(
+      EXPR = output,
+      "subtitle" = subtitle,
+      "caption" = caption
+    ))
   }
 
   # ============================= plot ====================================
-
-  # if no color fill is to be displayed, set low and high color to white
-  if (isFALSE(fill.gradient)) {
-    low.color <- bar.fill
-    high.color <- bar.fill
-  }
 
   # preparing the basic layout of the plot based on whether counts or density
   # information is needed
@@ -202,18 +187,11 @@ gghistostats <- function(data,
       ggplot2::ggplot(data = df, mapping = ggplot2::aes(x = {{ x }})) +
       ggplot2::stat_bin(
         col = "black",
+        fill = bar.fill,
         alpha = 0.7,
         binwidth = binwidth,
         na.rm = TRUE,
-        mapping = ggplot2::aes(
-          y = ..count..,
-          fill = ..count..
-        )
-      ) +
-      ggplot2::scale_fill_gradient(
-        name = "count",
-        low = low.color,
-        high = high.color
+        mapping = ggplot2::aes(y = ..count.., fill = ..count..)
       )
   }
 
@@ -223,6 +201,7 @@ gghistostats <- function(data,
       ggplot2::ggplot(data = df, mapping = ggplot2::aes(x = {{ x }})) +
       ggplot2::stat_bin(
         col = "black",
+        fill = bar.fill,
         alpha = 0.7,
         binwidth = binwidth,
         na.rm = TRUE,
@@ -231,13 +210,7 @@ gghistostats <- function(data,
           fill = ..count.. / sum(..count..)
         )
       ) +
-      ggplot2::scale_fill_gradient(
-        name = "proportion",
-        low = low.color,
-        high = high.color,
-        labels = percent
-      ) +
-      ggplot2::scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+      ggplot2::scale_y_continuous(labels = function(x) paste0(x * 100, "%")) +
       ggplot2::ylab("proportion")
   }
 
@@ -247,18 +220,11 @@ gghistostats <- function(data,
       ggplot2::ggplot(data = df, mapping = ggplot2::aes(x = {{ x }})) +
       ggplot2::stat_bin(
         col = "black",
+        fill = bar.fill,
         alpha = 0.7,
         binwidth = binwidth,
         na.rm = TRUE,
-        mapping = ggplot2::aes(
-          y = ..density..,
-          fill = ..density..
-        )
-      ) +
-      ggplot2::scale_fill_gradient(
-        name = "density",
-        low = low.color,
-        high = high.color
+        mapping = ggplot2::aes(y = ..density.., fill = ..density..)
       )
   }
 
@@ -268,23 +234,16 @@ gghistostats <- function(data,
       ggplot2::ggplot(data = df, mapping = ggplot2::aes(x = {{ x }})) +
       ggplot2::stat_bin(
         col = "black",
+        fill = bar.fill,
         alpha = 0.7,
         binwidth = binwidth,
         na.rm = TRUE,
-        mapping = ggplot2::aes(
-          y = ..count..,
-          fill = ..count..
-        )
-      ) +
-      ggplot2::scale_fill_gradient(
-        name = "count",
-        low = low.color,
-        high = high.color
+        mapping = ggplot2::aes(y = ..count.., fill = ..count..)
       ) +
       ggplot2::scale_y_continuous(
         sec.axis = ggplot2::sec_axis(
           trans = ~ . / nrow(df),
-          labels = scales::percent_format(accuracy = 1),
+          labels = function(x) paste0(x * 100, "%"),
           name = "proportion"
         )
       ) +
@@ -316,19 +275,13 @@ gghistostats <- function(data,
 
     # adding curve to the plot
     plot <- plot +
-      ggplot2::stat_function(
+      rlang::exec(
+        .f = ggplot2::stat_function,
         fun = .f_stat,
-        linetype = normal.curve.linetype,
-        color = normal.curve.color,
-        size = normal.curve.size,
         na.rm = TRUE,
-        args = args
+        args = args,
+        !!!normal.curve.args
       )
-  }
-
-  # if bayes factor message needs to be displayed
-  if (isTRUE(results.subtitle) && type %in% c("parametric", "p") && isTRUE(bf.message)) {
-    caption <- bf.caption.text
   }
 
   # adding the theme and labels
@@ -347,33 +300,24 @@ gghistostats <- function(data,
   # ====================== centrality line and label ========================
 
   # computing statistics needed for displaying labels
-  y_label_pos <- median(
-    x = ggplot2::layer_scales(plot)$y$range$range,
-    na.rm = TRUE
-  )
+  y_label_pos <- median(ggplot2::layer_scales(plot)$y$range$range, na.rm = TRUE)
 
   # using custom function for adding labels
-  plot <- histo_labeller(
-    plot = plot,
-    x = x_vec,
-    y.label.position = y_label_pos,
-    centrality.para = centrality.para,
-    centrality.color = centrality.color,
-    centrality.size = centrality.size,
-    centrality.linetype = centrality.linetype,
-    centrality.line.labeller = centrality.line.labeller,
-    centrality.k = centrality.k,
-    test.value = test.value,
-    test.value.line = test.value.line,
-    test.value.color = test.value.color,
-    test.value.size = test.value.size,
-    test.value.linetype = test.value.linetype,
-    test.line.labeller = test.line.labeller,
-    test.k = test.k
-  )
-
-  # if no color fill gradient is used, then remove the legend
-  if (isFALSE(fill.gradient)) plot <- plot + ggplot2::theme(legend.position = "none")
+  plot <-
+    histo_labeller(
+      plot = plot,
+      x = x_vec,
+      y.label.position = y_label_pos,
+      test.value = test.value,
+      test.k = test.k,
+      test.value.line = test.value.line,
+      test.value.line.args = test.value.line.args,
+      test.value.label.args = test.value.label.args,
+      centrality.parameter = centrality.parameter,
+      centrality.k = centrality.k,
+      centrality.line.args = centrality.line.args,
+      centrality.label.args = centrality.label.args
+    )
 
   # ---------------- adding ggplot component ---------------------------------
 
@@ -385,7 +329,7 @@ gghistostats <- function(data,
 
   # display normality test result as a message
   if (isTRUE(messages)) {
-    normality_message(
+    ipmisc::normality_message(
       x = x_vec,
       lab = xlab,
       k = k,
@@ -394,11 +338,5 @@ gghistostats <- function(data,
   }
 
   # return the final plot
-  return(switch(
-    EXPR = return,
-    "plot" = plot,
-    "subtitle" = subtitle,
-    "caption" = caption,
-    plot
-  ))
+  return(plot)
 }

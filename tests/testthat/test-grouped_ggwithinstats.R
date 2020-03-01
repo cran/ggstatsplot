@@ -35,9 +35,10 @@ testthat::test_that(
         x = modality,
         y = score,
         grouping.var = order,
+        results.subtitle = FALSE,
         outlier.tagging = FALSE,
         type = "bayes",
-        messages = TRUE
+        messages = FALSE
       ),
       "ggplot"
     )
@@ -51,11 +52,13 @@ testthat::test_that(
         y = score,
         grouping.var = order,
         type = "p",
+        output = "plot",
         bf.message = TRUE,
+        results.subtitle = FALSE,
         outlier.tagging = TRUE,
         pairwise.comparisons = TRUE,
         pairwise.annotation = "p.score",
-        messages = TRUE
+        messages = FALSE
       ),
       what = "gg"
     ))
@@ -74,6 +77,7 @@ testthat::test_that(
         grouping.var = Species,
         messages = FALSE,
         type = "r",
+        results.subtitle = FALSE,
         pairwise.comparisons = TRUE,
         outlier.tagging = TRUE,
         outlier.label = "id",
@@ -109,23 +113,24 @@ testthat::test_that(
   }
 )
 
-# subtitle return --------------------------------------------------
+# subtitle output --------------------------------------------------
 
 testthat::test_that(
-  desc = "subtitle return",
+  desc = "subtitle output",
   code = {
     testthat::skip_on_cran()
 
-    # should return a list of length 3
+    # should output a list of length 3
     set.seed(123)
-    ls_results <- ggstatsplot::grouped_ggwithinstats(
-      data = iris_long,
-      x = condition,
-      y = value,
-      grouping.var = Species,
-      return = "subtitle",
-      messages = FALSE
-    )
+    ls_results <-
+      ggstatsplot::grouped_ggwithinstats(
+        data = iris_long,
+        x = condition,
+        y = value,
+        grouping.var = Species,
+        output = "subtitle",
+        messages = FALSE
+      )
 
     # tests
     testthat::expect_equal(length(ls_results), 3L)
@@ -231,14 +236,14 @@ testthat::test_that(
   }
 )
 
-# subtitle return with NA --------------------------------------------------
+# subtitle output with NA --------------------------------------------------
 
 testthat::test_that(
-  desc = "subtitle return with NA",
+  desc = "subtitle output with NA",
   code = {
     testthat::skip_on_cran()
 
-    # should return a list of length 2
+    # should output a list of length 2
     set.seed(123)
     ls_results <-
       ggstatsplot::bugs_long %>%
@@ -248,7 +253,7 @@ testthat::test_that(
         x = condition,
         y = desire,
         grouping.var = region,
-        return = "subtitle",
+        output = "subtitle",
         messages = FALSE
       )
 

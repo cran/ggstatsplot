@@ -24,7 +24,7 @@ testthat::test_that(
         grouping.var = Species,
         results.subtitle = FALSE,
         marginal = FALSE,
-        messages = TRUE
+        messages = FALSE
       ),
       what = "gg"
     ))
@@ -48,8 +48,9 @@ testthat::test_that(
         label.var = "title",
         grouping.var = mpaa,
         type = "bf",
+        results.subtitle = FALSE,
         marginal = FALSE,
-        messages = TRUE
+        messages = FALSE
       ),
       what = "gg"
     ))
@@ -82,6 +83,7 @@ testthat::test_that(
         label.var = "title",
         grouping.var = mpaa,
         type = "p",
+        results.subtitle = FALSE,
         marginal = FALSE,
         messages = FALSE
       ),
@@ -163,14 +165,14 @@ testthat::test_that(
   }
 )
 
-# subtitle return --------------------------------------------------
+# subtitle output --------------------------------------------------
 
 testthat::test_that(
-  desc = "subtitle return",
+  desc = "subtitle output",
   code = {
     testthat::skip_on_cran()
 
-    # should return a list of length 3
+    # should output a list of length 3
     set.seed(123)
     ls_results <-
       ggstatsplot::grouped_ggscatterstats(
@@ -183,7 +185,7 @@ testthat::test_that(
         k = 3,
         conf.level = 0.99,
         grouping.var = genre,
-        return = "subtitle",
+        output = "subtitle",
         messages = FALSE
       )
 

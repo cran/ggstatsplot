@@ -8,52 +8,48 @@ ggscatterstats(
   data,
   x,
   y,
-  type = "pearson",
+  type = "parametric",
   conf.level = 0.95,
   bf.prior = 0.707,
   bf.message = TRUE,
   label.var = NULL,
   label.expression = NULL,
-  xlab = NULL,
-  ylab = NULL,
+  point.label.args = list(size = 3),
+  formula = y ~ x,
+  smooth.line.args = list(size = 1.5, color = "blue"),
   method = "lm",
   method.args = list(),
-  formula = y ~ x,
-  point.color = "black",
-  point.size = 3,
-  point.alpha = 0.4,
+  point.args = list(size = 3, alpha = 0.4),
   point.width.jitter = 0,
   point.height.jitter = 0,
-  line.size = 1.5,
-  line.color = "blue",
   marginal = TRUE,
   marginal.type = "histogram",
+  margins = "both",
   marginal.size = 5,
-  margins = c("both", "x", "y"),
-  package = "wesanderson",
-  palette = "Royal1",
-  direction = 1,
   xfill = "#009E73",
   yfill = "#D55E00",
-  xalpha = 1,
-  yalpha = 1,
-  xsize = 0.7,
-  ysize = 0.7,
-  centrality.para = NULL,
+  xparams = list(fill = xfill),
+  yparams = list(fill = yfill),
+  centrality.parameter = "none",
+  centrality.label.args = list(size = 3),
+  vline.args = list(color = xfill, size = 1, linetype = "dashed"),
+  hline.args = list(color = yfill, size = 1, linetype = "dashed"),
   results.subtitle = TRUE,
   stat.title = NULL,
+  xlab = NULL,
+  ylab = NULL,
   title = NULL,
   subtitle = NULL,
   caption = NULL,
   nboot = 100,
   beta = 0.1,
   k = 2,
-  axes.range.restrict = FALSE,
   ggtheme = ggplot2::theme_bw(),
   ggstatsplot.layer = TRUE,
   ggplot.component = NULL,
-  return = "plot",
-  messages = TRUE
+  output = "plot",
+  messages = TRUE,
+  ...
 )
 }
 \arguments{
@@ -94,11 +90,14 @@ determines the subset of data points to label. This argument can be entered
 either as a character string (e.g., \code{"y < 4 & z < 20"}) or as a bare
 expression (e.g., \code{y < 4 & z < 20}).}
 
-\item{xlab}{Labels for \code{x} and \code{y} axis variables. If \code{NULL} (default),
-variable names for \code{x} and \code{y} will be used.}
+\item{point.label.args}{A list of additional aesthetic arguments to be passed
+to \code{ggrepel::geom_label_repel} geom used to display the labels.}
 
-\item{ylab}{Labels for \code{x} and \code{y} axis variables. If \code{NULL} (default),
-variable names for \code{x} and \code{y} will be used.}
+\item{formula}{Formula to use in smoothing function, eg. \code{y ~ x},
+\code{y ~ poly(x, 2)}, \code{y ~ log(x)}}
+
+\item{smooth.line.args}{A list of additional aesthetic arguments to be passed
+to \code{ggplot2::geom_smooth} geom used to display the regression line.}
 
 \item{method}{Smoothing method (function) to use, accepts either a character vector,
 e.g. \code{"auto"}, \code{"lm"}, \code{"glm"}, \code{"gam"}, \code{"loess"} or a function, e.g.
@@ -118,19 +117,14 @@ model that \code{method = "auto"} would use, then set
 \item{method.args}{List of additional arguments passed on to the modelling
 function defined by \code{method}.}
 
-\item{formula}{Formula to use in smoothing function, eg. \code{y ~ x},
-\code{y ~ poly(x, 2)}, \code{y ~ log(x)}}
-
-\item{point.color, point.size, point.alpha}{Aesthetics specifying geom point
-(defaults: \code{point.color = "black"}, \code{point.size = 3},\code{point.alpha = 0.4}).}
+\item{point.args}{A list of additional aesthetic arguments to be passed
+to \code{ggplot2::geom_point} geom used to display the raw data points.}
 
 \item{point.width.jitter, point.height.jitter}{Degree of jitter in \code{x} and \code{y}
 direction, respectively. Defaults to \code{0} (0\%) of the resolution of the
-data.}
-
-\item{line.size}{Size for the regression line.}
-
-\item{line.color}{color for the regression line.}
+data. Note that the jitter should not be specified in the \code{point.args}
+because this information will be passed to two different \code{geom}s: one
+displaying the points and the other displaying the labels for these points.}
 
 \item{marginal}{Decides whether \code{ggExtra::ggMarginal()} plots will be
 displayed; the default is \code{TRUE}.}
@@ -138,36 +132,36 @@ displayed; the default is \code{TRUE}.}
 \item{marginal.type}{Type of marginal distribution to be plotted on the axes
 (\code{"histogram"}, \code{"boxplot"}, \code{"density"}, \code{"violin"}, \code{"densigram"}).}
 
+\item{margins}{Along which margins to show the plots. One of: [both, x, y].}
+
 \item{marginal.size}{Integer describing the relative size of the marginal
 plots compared to the main plot. A size of \code{5} means that the main plot is
 5x wider and 5x taller than the marginal plots.}
 
-\item{margins}{Character describing along which margins to show the plots.
-Any of the following arguments are accepted: \code{"both"}, \code{"x"}, \code{"y"}.}
-
-\item{package}{Name of package from which the palette is desired as string
-or symbol.}
-
-\item{palette}{Name of palette as string or symbol.}
-
-\item{direction}{Either \code{1} or \code{-1}. If \code{-1} the palette will be reversed.}
-
 \item{xfill, yfill}{Character describing color fill for \code{x} and \code{y} axes
 marginal distributions (default: \code{"#009E73"} (for \code{x}) and \code{"#D55E00"} (for
-\code{y})). If set to \code{NULL}, manual specification of colors will be turned off
-and 2 colors from the specified \code{palette} from \code{package} will be selected.}
+\code{y})). The same colors will also be used for the lines denoting centrality
+parameters if \code{centrality.parameter} argument is set to \code{TRUE}. Note that
+the defaults are colorblind-friendly.}
 
-\item{xalpha, yalpha}{Numeric deciding transparency levels for the marginal
-distributions. Any numbers from \code{0} (transparent) to \code{1} (opaque). The
-default is \code{1} for both axes.}
+\item{xparams}{List of extra parameters to use only for the marginal plot along
+the x axis.}
 
-\item{xsize, ysize}{Size for the marginal distribution boundaries (Default:
-\code{0.7}).}
+\item{yparams}{List of extra parameters to use only for the marginal plot along
+the y axis.}
 
-\item{centrality.para}{Decides \emph{which} measure of central tendency (\code{"mean"}
+\item{centrality.parameter}{Decides \emph{which} measure of central tendency (\code{"mean"}
 or \code{"median"}) is to be displayed as vertical (for \code{x}) and horizontal (for
 \code{y}) lines. Note that mean values corresponds to arithmetic mean and not
 geometric mean.}
+
+\item{centrality.label.args}{A list of additional
+aesthetic arguments to be passed to the \code{geom_label} used to display the
+label corresponding to the centrality parameter and test value.}
+
+\item{vline.args, hline.args}{A list of additional aesthetic arguments to be
+passed to \code{ggplot2::geom_vline} and \code{ggplot2::geom_hline} geoms used to
+display the centrality parameter labels on vertical and horizontal lines.}
 
 \item{results.subtitle}{Decides whether the results of statistical tests are
 to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
@@ -176,6 +170,12 @@ the plot will be returned.}
 \item{stat.title}{A character describing the test being run, which will be
 added as a prefix in the subtitle. The default is \code{NULL}. An example of a
 \code{stat.title} argument will be something like \code{"Student's t-test: "}.}
+
+\item{xlab}{Labels for \code{x} and \code{y} axis variables. If \code{NULL} (default),
+variable names for \code{x} and \code{y} will be used.}
+
+\item{ylab}{Labels for \code{x} and \code{y} axis variables. If \code{NULL} (default),
+variable names for \code{x} and \code{y} will be used.}
 
 \item{title}{The text for the plot title.}
 
@@ -192,11 +192,6 @@ for the effect size (Default: \code{100}).}
 \item{k}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2}).}
 
-\item{axes.range.restrict}{Logical that decides whether to restrict the axes
-values ranges to \code{min} and \code{max} values of the axes variables (Default:
-\code{FALSE}), only relevant for functions where axes variables are of numeric
-type.}
-
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
 \code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
 extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
@@ -210,11 +205,9 @@ override some aspects of the selected \code{ggtheme}.}
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
 by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
 of the current function. Default is \code{NULL}. The argument should be entered
-as a function. If the given function has an argument \code{axes.range.restrict}
-and if it has been set to \code{TRUE}, the added \code{ggplot} component \emph{might} not
-work as expected.}
+as a function.}
 
-\item{return}{Character that describes what is to be returned: can be
+\item{output}{Character that describes what is to be returned: can be
 \code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
 \code{"subtitle"} will return the expression containing statistical results. If
 you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
@@ -224,6 +217,8 @@ about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
+
+\item{...}{Currently ignored.}
 }
 \description{
 Scatterplots from \code{ggplot2} combined with marginal
@@ -240,9 +235,10 @@ have a lot of labels that overlap.
 \donttest{
 # to get reproducible results from bootstrapping
 set.seed(123)
+library(ggstatsplot)
 
 # creating dataframe with rownames converted to a new column
-mtcars_new <- tibble::as_tibble(mtcars, rownames = "car")
+mtcars_new <- as_tibble(mtcars, rownames = "car")
 
 # simple function call with the defaults
 ggstatsplot::ggscatterstats(
@@ -252,9 +248,7 @@ ggstatsplot::ggscatterstats(
   type = "np",
   label.var = car,
   label.expression = wt < 4 & mpg < 20,
-  axes.range.restrict = TRUE,
-  centrality.para = "median",
-  xfill = NULL
+  centrality.parameter = "median"
 )
 }
 }

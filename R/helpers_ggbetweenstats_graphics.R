@@ -8,7 +8,6 @@
 #' @importFrom groupedstats grouped_summary
 #' @importFrom dplyr select group_by vars contains mutate mutate_at group_nest
 #' @importFrom rlang !! enquo ensym
-#' @importFrom tibble as_tibble
 #' @importFrom purrr map
 #' @importFrom tidyr drop_na unnest
 #'
@@ -35,7 +34,7 @@ mean_labeller <- function(data,
     dplyr::select(.data = ., {{ x }}, {{ y }}) %>%
     tidyr::drop_na(data = .) %>%
     dplyr::mutate(.data = ., {{ x }} := droplevels(as.factor({{ x }}))) %>%
-    tibble::as_tibble(x = .)
+    as_tibble(x = .)
 
   # computing mean and confidence interval for mean
   mean_dat <-
@@ -113,7 +112,7 @@ mean_labeller <- function(data,
 #' @inheritParams ggrepel::geom_label_repel
 #'
 #' @importFrom ggrepel geom_label_repel
-#' @importFrom rlang !! enquo ensym
+#' @importFrom rlang !! enquo ensym exec
 #'
 #' @examples
 #'
@@ -149,149 +148,41 @@ mean_ggrepel <- function(plot,
                          x,
                          y,
                          mean.data,
-                         mean.size = 5,
-                         mean.color = "darkred",
-                         mean.label.size = 3,
-                         mean.label.fontface = "bold",
-                         mean.label.color = "black",
+                         mean.point.args = list(size = 5, color = "darkred"),
+                         mean.label.args = list(size = 3),
                          inherit.aes = TRUE,
                          ...) {
   # highlight the mean of each group
-  if (isTRUE(inherit.aes)) {
-    plot <- plot +
-      ggplot2::stat_summary(
-        fun.y = mean,
-        geom = "point",
-        color = mean.color,
-        size = mean.size,
-        na.rm = TRUE
-      )
-  } else {
-    plot <- plot +
-      ggplot2::stat_summary(
-        mapping = ggplot2::aes(x = {{ x }}, y = {{ y }}),
-        fun.y = mean,
-        geom = "point",
-        color = mean.color,
-        size = mean.size,
-        inherit.aes = FALSE,
-        na.rm = TRUE
-      )
-  }
-
-  # attach the labels with means to the plot
   plot <- plot +
-    ggrepel::geom_label_repel(
-      data = mean.data,
-      mapping = ggplot2::aes(x = {{ x }}, y = {{ y }}, label = label),
-      size = mean.label.size,
-      fontface = mean.label.fontface,
-      color = mean.label.color,
-      direction = "both",
-      min.segment.length = 0,
-      box.padding = 0.35,
-      point.padding = 0.5,
-      segment.color = "black",
-      force = 2,
-      inherit.aes = FALSE,
-      parse = TRUE,
-      na.rm = TRUE
+    rlang::exec(
+      .fn = ggplot2::stat_summary,
+      mapping = ggplot2::aes(x = {{ x }}, y = {{ y }}),
+      fun.y = mean,
+      geom = "point",
+      inherit.aes = inherit.aes,
+      na.rm = TRUE,
+      !!!mean.point.args
     )
 
-  # return the plot with labels
-  return(plot)
+  # attach the labels with means to the plot
+  plot +
+    rlang::exec(
+      .fn = ggrepel::geom_label_repel,
+      data = mean.data,
+      mapping = ggplot2::aes(x = {{ x }}, y = {{ y }}, label = label),
+      show.legend = FALSE,
+      min.segment.length = 0,
+      inherit.aes = FALSE,
+      parse = TRUE,
+      na.rm = TRUE,
+      !!!mean.label.args
+    )
 }
-
-
-#' @title Finding the outliers in the dataframe using Tukey's interquartile
-#'   range rule
-#' @name check_outlier
-#' @description Returns a logical vector
-#'
-#' @param var A numeric vector.
-#' @param coef Coefficient for outlier detection using Tukey's method.
-#'   With Tukey's method, outliers are below (1st Quartile) or above (3rd
-#'   Quartile) `coef` times the Inter-Quartile Range (IQR) (Default: `1.5`).
-#'
-#' @importFrom stats quantile
-#'
-#' @noRd
-
-# defining function to detect outliers
-check_outlier <- function(var, coef = 1.5) {
-  # compute the quantiles
-  quantiles <- stats::quantile(x = var, probs = c(0.25, 0.75), na.rm = TRUE)
-
-  # compute the interquartile range
-  IQR <- quantiles[2] - quantiles[1]
-
-  # check for outlier and output a logical
-  return((var < (quantiles[1] - coef * IQR)) | (var > (quantiles[2] + coef * IQR)))
-}
-
-
-#' @title Adding a column to dataframe describing outlier status
-#' @name outlier_df
-#'
-#' @inheritParams ggbetweenstats
-#' @param ... Additional arguments.
-#'
-#' @importFrom rlang !! enquo ensym
-#' @importFrom dplyr group_by mutate ungroup
-#'
-#' @examples
-#' # adding column for outlier and a label for that outlier
-#' ggstatsplot:::outlier_df(
-#'   data = morley,
-#'   x = Expt,
-#'   y = Speed,
-#'   outlier.label = Run,
-#'   outlier.coef = 2
-#' ) %>%
-#'   dplyr::arrange(outlier)
-#' @noRd
-
-# function body
-outlier_df <- function(data,
-                       x,
-                       y,
-                       outlier.label,
-                       outlier.coef = 1.5,
-                       ...) {
-  # make sure both quoted and unquoted arguments are allowed
-  x <- rlang::ensym(x)
-  y <- rlang::ensym(y)
-  outlier.label <- rlang::ensym(outlier.label)
-
-  # add a logical column indicating whether a point is or is not an outlier
-  data %<>%
-    dplyr::group_by(.data = ., {{ x }}) %>%
-    dplyr::mutate(
-      .data = .,
-      isanoutlier = ifelse(
-        test = check_outlier(var = {{ y }}, coef = outlier.coef),
-        yes = TRUE,
-        no = FALSE
-      )
-    ) %>%
-    dplyr::mutate(
-      .data = .,
-      outlier = ifelse(
-        test = isanoutlier,
-        yes = {{ outlier.label }},
-        no = NA
-      )
-    ) %>%
-    dplyr::ungroup(x = .)
-
-  # return the data frame with outlier
-  return(data)
-}
-
 
 #' @title Adding `geom_signif` to `ggplot`
 #' @name ggsignif_adder
 #'
+#' @param ... Currently ignored.
 #' @param plot A `ggplot` object on which `geom_signif` needed to be added.
 #' @param df_pairwise A dataframe containing results from pairwise comparisons
 #'   (produced by `pairwiseComparisons::pairwise_comparisons()` function).
@@ -310,11 +201,12 @@ outlier_df <- function(data,
 #'   geom_boxplot()
 #'
 #' # dataframe with pairwise comparison test results
-#' df_pair <- pairwiseComparisons::pairwise_comparisons(
-#'   data = iris,
-#'   x = Species,
-#'   y = Sepal.Length
-#' )
+#' df_pair <-
+#'   pairwiseComparisons::pairwise_comparisons(
+#'     data = iris,
+#'     x = Species,
+#'     y = Sepal.Length
+#'   )
 #'
 #' # adding a geom for pairwise comparisons
 #' ggstatsplot:::ggsignif_adder(
@@ -332,7 +224,8 @@ ggsignif_adder <- function(plot,
                            x,
                            y,
                            pairwise.annotation = "p.value",
-                           pairwise.display = "significant") {
+                           pairwise.display = "significant",
+                           ...) {
   # creating a column for group combinations
   df_pairwise %<>%
     dplyr::mutate(.data = ., groups = purrr::pmap(.l = list(group1, group2), .f = c))
@@ -437,54 +330,9 @@ ggsignif_xy <- function(x, y) {
   # end position on `y`-axis for the `ggsignif` lines
   y_end <- y_start + (step_length * n_comparions)
 
-  # creating a vector of positions for the ggsignif lines
-  return(
-    seq(
-      from = y_start,
-      to = y_end,
-      length.out = n_comparions
-    )
-  )
+  # creating a vector of positions for the `ggsignif` lines
+  seq(y_start, y_end, length.out = n_comparions)
 }
-
-#' @name sort_xy
-#'
-#' @importFrom forcats fct_reorder
-#' @importFrom dplyr mutate
-#'
-#' @inheritParams ggbetweenstats
-#'
-#' @keywords internal
-#' @noRd
-
-# function body
-sort_xy <- function(data,
-                    x,
-                    y,
-                    sort = "none",
-                    sort.fun = mean,
-                    ...) {
-
-  # make sure both quoted and unquoted arguments are allowed
-  x <- rlang::ensym(x)
-  y <- rlang::ensym(y)
-
-  # reordering `x` based on its mean values
-  return(
-    data %<>%
-      dplyr::mutate(
-        .data = .,
-        {{ x }} := forcats::fct_reorder(
-          .f = {{ x }},
-          .x = {{ y }},
-          .fun = sort.fun,
-          na.rm = TRUE,
-          .desc = ifelse(sort == "ascending", FALSE, TRUE)
-        )
-      )
-  )
-}
-
 
 #' @title Making aesthetic modifications to the plot
 #' @name aesthetic_addon

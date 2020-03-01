@@ -141,22 +141,25 @@ ggstatsplot::grouped_gghistostats(
   title.prefix = "Gender", # prefix for the fixed title
   k = 1, # number of decimal places in results
   type = "r", # robust test: one-sample percentile bootstrap
-  robust.estimator = "mom", # changing the robust estimator used
   test.value = 20, # test value against which sample mean is to be compared
   test.value.line = TRUE, # show a vertical line at `test.value`
   bar.measure = "density", # density
-  centrality.para = "median", # plotting centrality parameter
-  centrality.color = "#D55E00", # color for centrality line and label
-  test.value.color = "#009E73", # color for test line and label
+  centrality.parameter = "median", # plotting centrality parameter
+  centrality.line.args = list(color = "#D55E00"), 
+  centrality.label.args = list(color = "#D55E00"),
+  test.value.line.args = list(color = "#009E73"),
+  test.value.label.args = list(color = "#009E73"),
   messages = FALSE, # turn off messages
   ggtheme = ggthemes::theme_stata(), # changing default theme
   ggstatsplot.layer = FALSE, # turn off ggstatsplot theme layer
   # arguments relevant for ggstatsplot::combine_plots
   title.text = "Distribution of ACT scores across genders",
   caption.text = "Data courtesy of: SAPA project (https://sapa-project.org)",
-  nrow = 2,
-  ncol = 1,
-  labels = c("Male", "Female")
+  plotgrid.args = list(
+    nrow = 2,
+    ncol = 1,
+    labels = c("Male", "Female")
+  )
 )
 ```
 

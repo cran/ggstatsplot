@@ -19,24 +19,15 @@
 #' @param palette If a character string (e.g., `"Set1"`), will use that named
 #'   palette. If a number, will index into the list of palettes of appropriate
 #'   type. Default palette is `"Dark2"`.
-#' @param facet.wrap.name The text for the facet_wrap variable label.
-#' @param facet.proptest Decides whether proportion test for `main` variable is
+#' @param proportion.test Decides whether proportion test for `main` variable is
 #'   to be carried out for each level of `condition` (Default: `TRUE`).
 #' @param perc.k Numeric that decides number of decimal places for percentage
 #'   labels (Default: `0`).
-#' @param slice.label Character decides what information needs to be displayed
+#' @param label Character decides what information needs to be displayed
 #'   on the label in each pie slice. Possible options are `"percentage"`
 #'   (default), `"counts"`, `"both"`.
-#' @param label.text.size Numeric that decides text size for slice/bar labels
-#'   (Default: `4`).
-#' @param label.fill.color Character that specifies fill color for slice/bar
-#'   labels (Default: `white`).
-#' @param label.fill.alpha Numeric that specifies fill color transparency or
-#'   `"alpha"` for slice/bar labels (Default: `1` range `0` to `1`).
-#' @param package Name of package from which the palette is desired as string
-#' or symbol.
-#' @param palette Name of palette as string or symbol.
-#' @param direction Either `1` or `-1`. If `-1` the palette will be reversed.
+#' @param label.args Additional aesthetic arguments that will be passed to
+#'   `geom_label`.
 #' @param bf.message Logical that decides whether to display a caption with
 #'   results from Bayes Factor test in favor of the null hypothesis (default:
 #'   `FALSE`).
@@ -45,19 +36,18 @@
 #' @inheritParams theme_ggstatsplot
 #' @inheritParams gghistostats
 #' @inheritParams cat_label_df
+#' @inheritParams ggbetweenstats
 #'
 #' @seealso \code{\link{grouped_ggpiestats}}, \code{\link{ggbarstats}},
 #'  \code{\link{grouped_ggbarstats}}
 #'
 #' @import ggplot2
 #'
-#' @importFrom dplyr select group_by summarize n mutate mutate_at mutate_if
+#' @importFrom dplyr select mutate vars pull
 #' @importFrom rlang !! enquo quo_name as_name ensym
-#' @importFrom crayon green blue yellow red
 #' @importFrom paletteer scale_fill_paletteer_d
 #' @importFrom groupedstats grouped_proptest
 #' @importFrom tidyr uncount drop_na
-#' @importFrom tibble as_tibble
 #'
 #' @references
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html}
@@ -110,10 +100,9 @@ ggpiestats <- function(data,
                        factor.levels = NULL,
                        stat.title = NULL,
                        sample.size.label = TRUE,
-                       label.separator = "\n",
-                       label.text.size = 4,
-                       label.fill.color = "white",
-                       label.fill.alpha = 1,
+                       label = "percentage",
+                       perc.k = 0,
+                       label.args = list(alpha = 1, fill = "white"),
                        bf.message = TRUE,
                        sampling.plan = "indepMulti",
                        fixed.margin = "rows",
@@ -123,23 +112,20 @@ ggpiestats <- function(data,
                        caption = NULL,
                        conf.level = 0.95,
                        nboot = 100,
-                       bias.correct = TRUE,
                        legend.title = NULL,
-                       facet.wrap.name = NULL,
                        k = 2,
-                       perc.k = 0,
-                       slice.label = "percentage",
-                       facet.proptest = TRUE,
+                       proportion.test = TRUE,
                        ggtheme = ggplot2::theme_bw(),
                        ggstatsplot.layer = TRUE,
                        package = "RColorBrewer",
                        palette = "Dark2",
                        direction = 1,
                        ggplot.component = NULL,
-                       return = "plot",
+                       output = "plot",
                        messages = TRUE,
                        x = NULL,
-                       y = NULL) {
+                       y = NULL,
+                       ...) {
 
   # ensure the variables work quoted or unquoted
   main <- rlang::ensym(main)
@@ -155,18 +141,13 @@ ggpiestats <- function(data,
   # saving the column label for the 'x' variables
   if (rlang::is_null(legend.title)) legend.title <- rlang::as_name(x)
 
-  # if facetting variable name is not specified, use 'y' variable name
-  if (!rlang::quo_is_null(rlang::enquo(y)) && rlang::is_null(facet.wrap.name)) {
-    facet.wrap.name <- rlang::as_name(y)
-  }
-
   # =============================== dataframe ================================
 
   # creating a dataframe
   data %<>%
     dplyr::select(.data = ., {{ x }}, {{ y }}, {{ counts }}) %>%
     tidyr::drop_na(data = .) %>%
-    tibble::as_tibble(x = .)
+    as_tibble(.)
 
   # =========================== converting counts ============================
 
@@ -194,110 +175,6 @@ ggpiestats <- function(data,
     data %<>% dplyr::mutate(.data = ., {{ y }} := droplevels(as.factor({{ y }})))
   }
 
-  # convert the data into percentages; group by yal variable if needed
-  # dataframe with summary labels
-  df <-
-    cat_label_df(
-      data = cat_counter(data = data, x = {{ x }}, y = {{ y }}),
-      label.col.name = "slice.label",
-      label.content = slice.label,
-      label.separator = label.separator,
-      perc.k = perc.k
-    )
-
-  # ============ preparing label dataframe and other annotations  =============
-
-  # dataframe containing all details needed for sample size and prop test
-  if (!rlang::quo_is_null(rlang::enquo(y))) {
-    df_labels <-
-      df_facet_label(
-        data = data,
-        x = {{ x }},
-        y = {{ y }},
-        k = k
-      )
-  }
-
-  # reorder the category factor levels to order the legend
-  df %<>% dplyr::mutate(.data = ., {{ x }} := factor({{ x }}, unique({{ x }})))
-
-  # getting labels for all levels of the 'x' variable factor
-  if (is.null(factor.levels)) {
-    legend.labels <- as.character(df %>% dplyr::pull({{ x }}))
-  } else {
-    legend.labels <- factor.levels
-  }
-
-  # custom function for facet_wrap variable label
-  label_facet <- function(original_var, custom_name) {
-    lev <- levels(as.factor(original_var))
-    lab <- paste0(custom_name, ": ", lev)
-    names(lab) <- lev
-    return(lab)
-  }
-
-  # =================================== plot =================================
-
-  # if no. of factor levels is greater than the default palette color count
-  palette_message(
-    package = package,
-    palette = palette,
-    min_length = nlevels(data %>% dplyr::pull({{ x }}))[[1]]
-  )
-
-  # creating the basic plot
-  p <- ggplot2::ggplot(data = df, mapping = ggplot2::aes(x = "", y = counts)) +
-    ggplot2::geom_col(
-      position = "fill",
-      color = "black",
-      width = 1,
-      ggplot2::aes(fill = {{ x }}),
-      na.rm = TRUE
-    ) +
-    ggplot2::geom_label(
-      ggplot2::aes(label = slice.label, group = {{ x }}),
-      position = ggplot2::position_fill(vjust = 0.5),
-      color = "black",
-      size = label.text.size,
-      fill = label.fill.color,
-      alpha = label.fill.alpha,
-      show.legend = FALSE,
-      na.rm = TRUE
-    )
-
-  # if facet_wrap is *not* happening
-  if (rlang::quo_is_null(rlang::enquo(y))) {
-    p <- p + ggplot2::coord_polar(theta = "y")
-  } else {
-    # if facet_wrap *is* happening
-    p <- p +
-      ggplot2::facet_wrap(
-        facets = dplyr::vars({{ y }}),
-        labeller = ggplot2::labeller(
-          y = label_facet(
-            original_var = df %>% dplyr::pull({{ y }}),
-            custom_name = facet.wrap.name
-          )
-        )
-      ) +
-      ggplot2::coord_polar(theta = "y")
-  }
-
-  # formatting
-  p <- p +
-    ggplot2::scale_y_continuous(breaks = NULL) +
-    paletteer::scale_fill_paletteer_d(
-      palette = paste0(package, "::", palette),
-      direction = direction,
-      name = "",
-      labels = unique(legend.labels)
-    ) +
-    theme_pie(
-      ggtheme = ggtheme,
-      ggstatsplot.layer = ggstatsplot.layer
-    ) + # remove black diagonal line from legend
-    ggplot2::guides(fill = ggplot2::guide_legend(override.aes = list(color = NA)))
-
   # ========================= statistical analysis ==========================
 
   # if subtitle with results is to be displayed
@@ -315,7 +192,7 @@ ggpiestats <- function(data,
           legend.title = legend.title,
           conf.level = conf.level,
           conf.type = "norm",
-          bias.correct = bias.correct,
+          bias.correct = TRUE,
           k = k,
           messages = messages
         ),
@@ -339,13 +216,100 @@ ggpiestats <- function(data,
     }
   }
 
+  # return early if anything other than plot
+  if (output %in% c("subtitle", "caption")) {
+    return(switch(
+      EXPR = output,
+      "subtitle" = subtitle,
+      "caption" = caption
+    ))
+  }
+
+  # =================================== plot =================================
+
+  # convert the data into percentages; group by yal variable if needed
+  # dataframe with summary labels
+  df <-
+    cat_label_df(
+      data = cat_counter(data = data, x = {{ x }}, y = {{ y }}),
+      label.content = label,
+      perc.k = perc.k
+    )
+
+  # dataframe containing all details needed for sample size and prop test
+  if (!rlang::quo_is_null(rlang::enquo(y))) {
+    df_labels <-
+      df_facet_label(
+        data = data,
+        x = {{ x }},
+        y = {{ y }},
+        k = k
+      )
+  }
+
+  # reorder the category factor levels to order the legend
+  df %<>% dplyr::mutate(.data = ., {{ x }} := factor({{ x }}, unique({{ x }})))
+
+  # getting labels for all levels of the 'x' variable factor
+  if (is.null(factor.levels)) {
+    legend.labels <- as.character(df %>% dplyr::pull({{ x }}))
+  } else {
+    legend.labels <- factor.levels
+  }
+
+  # if no. of factor levels is greater than the default palette color count
+  palette_message(
+    package = package,
+    palette = palette,
+    min_length = nlevels(data %>% dplyr::pull({{ x }}))[[1]]
+  )
+
+  # creating the basic plot
+  p <-
+    ggplot2::ggplot(data = df, mapping = ggplot2::aes(x = "", y = counts)) +
+    ggplot2::geom_col(
+      position = "fill",
+      color = "black",
+      width = 1,
+      ggplot2::aes(fill = {{ x }}),
+      na.rm = TRUE
+    ) +
+    rlang::exec(
+      .fn = ggplot2::geom_label,
+      mapping = ggplot2::aes(label = label, group = {{ x }}),
+      position = ggplot2::position_fill(vjust = 0.5),
+      show.legend = FALSE,
+      na.rm = TRUE,
+      !!!label.args
+    )
+
+  # if facet_wrap *is* happening
+  if (!rlang::quo_is_null(rlang::enquo(y))) {
+    p <- p + ggplot2::facet_wrap(facets = dplyr::vars({{ y }}))
+  }
+
+  # polar coordinates plus formatting
+  p <- p +
+    ggplot2::coord_polar(theta = "y") +
+    ggplot2::scale_y_continuous(breaks = NULL) +
+    paletteer::scale_fill_paletteer_d(
+      palette = paste0(package, "::", palette),
+      direction = direction,
+      name = "",
+      labels = unique(legend.labels)
+    ) +
+    theme_pie(
+      ggtheme = ggtheme,
+      ggstatsplot.layer = ggstatsplot.layer
+    ) + # remove black diagonal line from legend
+    ggplot2::guides(fill = ggplot2::guide_legend(override.aes = list(color = NA)))
+
+  # ================ sample size and proportion test labels =================
+
   # if faceting by y is happening
   if (!rlang::quo_is_null(rlang::enquo(y))) {
-
-    # ================ sample size and proportion test labels =================
-
     # adding significance labels to pie charts for grouped proportion tests
-    if (isTRUE(facet.proptest)) {
+    if (isTRUE(proportion.test)) {
       # display grouped proportion test results
       if (isTRUE(messages)) print(dplyr::select(df_labels, -label))
 
@@ -389,11 +353,5 @@ ggpiestats <- function(data,
     ggplot.component
 
   # return the final plot
-  return(switch(
-    EXPR = return,
-    "plot" = p,
-    "subtitle" = subtitle,
-    "caption" = caption,
-    p
-  ))
+  return(p)
 }

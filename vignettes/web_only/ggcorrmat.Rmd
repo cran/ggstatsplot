@@ -67,6 +67,7 @@ country, average life expectancy, and GDP per capita across countries only for
 the year 2007.
 
 The simplest way to get a correlation matrix is to stick to the defaults-
+
 ```{r ggcorrmat1, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6}
 library(ggstatsplot)
 
@@ -81,6 +82,7 @@ ggstatsplot::ggcorrmat(
 ```
 
 This plot can be further modified with additional arguments-
+
 ```{r ggcorrmat2, message = FALSE, warning = FALSE, fig.height = 6, fig.width = 6}
 ggstatsplot::ggcorrmat(
   data = gapminder_2007, # data from which variable is to be taken
@@ -90,7 +92,7 @@ ggstatsplot::ggcorrmat(
     "population",
     "GDP (per capita)"
   ),
-  corr.method = "spearman", # which correlation coefficient is to be computed
+  type = "spearman", # which correlation coefficient is to be computed
   lab.col = "red", # label color
   ggtheme = ggplot2::theme_light(), # selected ggplot2 theme
   ggstatsplot.layer = FALSE, # turn off default ggestatsplot theme overlay
@@ -141,7 +143,7 @@ ggstatsplot::ggcorrmat(
     "width (in mm)",
     "depth (in mm)"
   ),
-  hc.order = TRUE # use hierarchical clustering
+  ggcorrplot.args = list(outline.color = "black", hc.order = TRUE)
 )
 ```
 
@@ -171,27 +173,31 @@ ggstatsplot::ggcorrmat(
     "width (in mm)",
     "depth (in mm)"
   ),
-  corr.method = "spearman",
+  type = "spearman",
   sig.level = 0.008,
   matrix.type = "lower",
   title = "Relationship between diamond attributes and price",
   subtitle = "Dataset: Diamonds from ggplot2 package",
   colors = c("#0072B2", "#D55E00", "#CC79A7"),
-  lab.col = "yellow",
-  lab.size = 6,
-  tl.srt = 90, # vertical labels for the x-axis (useful in case of long variable names)
   pch = 7,
-  pch.col = "white",
-  pch.cex = 14,
-  caption = substitute( 
-    paste(italic("Note"), ": Point shape denotes correlation non-significant at p < 0.008; adjusted for 6 comparisons")
-  )
-) + # modification outside ggstatsplot using ggplot functions 
+  # additional aesthetic arguments passed to `ggcorrmat`
+  ggcorrplot.args = list(
+    lab_col = "yellow",
+    lab_size = 6,
+    tl.srt = 90, # vertical labels for the x-axis (useful in case of long variable names)
+    pch.col = "white",
+    pch.cex = 14
+  ),
+  caption =
+    substitute(
+      paste(italic("Note"), ": Point shape denotes correlation non-significant at p < 0.008; adjusted for 6 comparisons")
+    )
+) + # modification outside ggstatsplot using ggplot functions
   ggplot2::theme(
-  axis.text.x = ggplot2::element_text(
-    margin = ggplot2::margin(t = 0.15, r = 0.15, b = 0.15, l = 0.15, unit = "cm")
+    axis.text.x = ggplot2::element_text(
+      margin = ggplot2::margin(t = 0.15, r = 0.15, b = 0.15, l = 0.15, unit = "cm")
+    )
   )
-)
 ```
 
 As seen here, and unsurprisingly, the strongest predictor of the diamond price
@@ -214,7 +220,7 @@ ggstatsplot::ggcorrmat(
   data = dplyr::sample_frac(tbl = ggplot2::txhousing, size = 0.15),
   cor.vars = sales:inventory,
   return = "correlations",
-  corr.method = "robust",
+  type = "robust",
   digits = 3
 )
 
@@ -223,8 +229,16 @@ ggstatsplot::ggcorrmat(
   data = dplyr::sample_frac(tbl = ggplot2::txhousing, size = 0.15),
   cor.vars = c(volume, listings:inventory),
   return = "p-values",
-  corr.method = "nonparametric",
+  type = "nonparametric",
   digits = 3
+)
+
+# getting the sample sizes for all pairs (using a different dataset)
+ggstatsplot::ggcorrmat(
+  data = ggplot2::msleep,
+  cor.vars = sleep_total:bodywt,
+  type = "robust",
+  output = "n" # note that n is different due to NAs
 )
 ```
 
@@ -242,7 +256,7 @@ options(pillar.sigfig = 4)
 # getting the correlation coefficient matrix
 ggstatsplot::ggcorrmat(
   data = iris, # all numeric variables from data will be used
-  corr.method = "np", # non-parametric
+  type = "np", # non-parametric
   return = "corr" # correlations
 )
 
@@ -250,7 +264,7 @@ ggstatsplot::ggcorrmat(
 ggstatsplot::ggcorrmat(
   data = ggplot2::msleep,
   cor.vars = sleep_total:bodywt,
-  corr.method = "r", # robust
+  type = "r", # robust
   return = "p", # p-values
   p.adjust.method = "holm"
 )
@@ -259,7 +273,7 @@ ggstatsplot::ggcorrmat(
 ggstatsplot::ggcorrmat(
   data = ggplot2::msleep,
   cor.vars = sleep_total:bodywt,
-  corr.method = "p", # parametric
+  type = "p", # parametric
   return = "ci", # confidence intervals
   p.adjust.method = "holm"
 )
@@ -268,7 +282,7 @@ ggstatsplot::ggcorrmat(
 ggstatsplot::ggcorrmat(
   data = ggplot2::msleep,
   cor.vars = sleep_total:bodywt,
-  corr.method = "robust",
+  type = "robust",
   return = "n" # note that n is different due to NAs
 )
 ```
@@ -293,7 +307,7 @@ set.seed(123)
 ggstatsplot::grouped_ggcorrmat(
   # arguments relevant for ggstatsplot::ggcorrmat
   data = dplyr::sample_frac(tbl = ggplot2::diamonds, size = 0.05),
-  corr.method = "r", # percentage bend correlation coefficient
+  type = "robust", # percentage bend correlation coefficient
   beta = 0.2, # bending constant
   p.adjust.method = "holm", # method to adjust p-values for multiple comparisons
   grouping.var = cut,
@@ -311,14 +325,14 @@ ggstatsplot::grouped_ggcorrmat(
   lab.size = 3.5,
   # arguments relevant for ggstatsplot::combine_plots
   title.text = "Relationship between diamond attributes and price across cut",
-  title.size = 16,
-  title.color = "red",
+  title.args = list(size = 16, color = "red"),
   caption.text = "Dataset: Diamonds from ggplot2 package",
-  caption.size = 14,
-  caption.color = "blue",
-  labels = c("(a)", "(b)", "(c)", "(d)", "(e)"),
-  nrow = 3,
-  ncol = 2
+  caption.args = list(size = 14, color = "blue"),
+  plotgrid.args = list(
+    labels = c("(a)", "(b)", "(c)", "(d)", "(e)"),
+    nrow = 3,
+    ncol = 2
+  )
 )
 ```
 
@@ -374,4 +388,3 @@ If you find any bugs or have any suggestions/remarks, please file an issue on
 
 For details, see-
 <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/session_info.html>
-

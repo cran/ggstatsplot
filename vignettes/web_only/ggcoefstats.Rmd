@@ -24,16 +24,16 @@ knitr::opts_chunk$set(
   message = FALSE,
   warning = FALSE
 )
+
+library(future)
+plan("multicore")
 ```
 
 The function `ggstatsplot::ggcoefstats` generates **dot-and-whisker plots** for
-regression models saved in a tidy data frame (produced with the `broom` package
-and its mixed-effects modeling variant `broom.mixed` package).
-
-By default, the plot displays `95%` confidence intervals for the regression
-coefficients. The function currently supports only those classes of object that
-are supported by the `broom` package. For an exhaustive list, see-
-<https://broom.tidyverse.org/articles/available-methods.html>
+regression models saved in a tidy data frame. The tidy dataframes are prepared
+using the following packages: `broom`, `broom.mixed`, and `parameters`.
+Additionally, if available, the model summary indices are also extracted from
+the following packages: `broom`, `broom.mixed`, and `performance`.
 
 In this vignette, we will see examples of how to use this function. We will try
 to cover as many classes of objects as possible. Unfortunately, there is no
@@ -62,29 +62,29 @@ be invariant across models:
   - The caption will always contain diagnostic information, if available, about
     models that can be useful for model selection: The smaller the Akaike's
     Information Criterion (**AIC**) and the Bayesian Information Criterion
-    (**BIC**) values, the "better" the model is. Additionally, the higher the
-    **log-likelihood** value the "better" is the model fit.
+    (**BIC**) values, the "better" the model is.
 
-- The output of this function will be a `ggplot2` object and, thus, it can be
-  further modified (e.g., change themes, etc.) with `ggplot2` functions.
+  - The output of this function will be a `ggplot2` object and, thus, it can be
+    further modified (e.g., change themes, etc.) with `ggplot2` functions.
 
-Most of the regression models that are supported in the `broom` and
-`broom.mixed` packages with `tidy` and `glance` methods are also supported by
-`ggcoefstats`. For example-
+Most of the regression models that are supported in the underlying packages are
+also supported by `ggcoefstats`. For example-
 
-`aareg`, `anova`, `aov`, `aovlist`, `Arima`, `bglmerMod`, `bigglm`, `biglm`,
-`blavaan`, `bmlm`, `blmerMod`, `bracl`, `brglm2`, `brmsfit`, `btergm`, `cch`,
-`cgam`, `cgamm`, `clm`, `clmm`, `coeftest`, `confusionMatrix`, `coxme`, `coxph`,
-`cpglm`, `cpglmm`, `complmrob`, `drc`, `emmGrid`, `epi.2by2`, `ergm`, `feis`,
-`felm`, `fitdistr`, `flexsurvreg`, `glmc`, `glmerMod`, `glmmTMB`, `gls`, `gam`,
-`Gam`, `gamlss`, `garch`, `glm`, `glmmadmb`, `glmmPQL`, `glmRob`, `glmrob`,
-`glmx`, `gmm`, `hurdle`, `ivreg`, `iv_robust`, `lavaan`, `lm`, `lm.beta`,
-`lmerMod`, `lmodel2`, `lmRob`, `lmrob`, `mcmc`, `MCMCglmm`, `mclogit`,
-`mmclogit`, `mediate`, `mixor`, `mjoint`, `mle2`, `mlm`, `multinom`, `negbin`,
-`nlmerMod`, `nlrq`, `nlreg`, `nls`, `orcutt`, `plm`, `polr`, `ridgelm`, `rjags`,
-`rlm`, `rlmerMod`, `rq`, `rqss`, `slm`, `speedglm`, `speedlm`, `stanfit`,
-`stanreg`, `survreg`, `svyglm`, `svyolr`, `svyglm`, `tobit`, `truncreg`, `vgam`,
-`wbgee`, `wblm`, etc.
+`aareg`, `anova`, `aov`, `aovlist`, `Arima`, `BBreg`, `bcplm`, `bglmerMod`,
+`bife`, `bigglm`, `biglm`, `blavaan`, `bmlm`, `blmerMod`, `bracl`, `brglm2`,
+`brmsfit`, `btergm`, `cch`, `cgam`, `cgamm`, `cglm`, `clm`, `clmm`, `coeftest`,
+`complmrob`, `confusionMatrix`, `coxme`, `coxph`, `cpglm`, `cpglmm`, `crch`,
+`DirichReg`, `drc`, `emmGrid`, `epi.2by2`, `ergm`, `feis`, `felm`, `fitdistr`,
+`flexsurvreg`, `glmc`, `glmerMod`, `glmmTMB`, `gls`, `gam`, `Gam`, `gamlss`,
+`garch`, `glm`, `glmmadmb`, `glmmPQL`, `glmRob`, `glmrob`, `glmx`, `gmm`,
+`hurdle`, `ivreg`, `iv_robust`, `lavaan`, `lm`, `lm.beta`, `lmerMod`, `lmodel2`,
+`lmRob`, `lmrob`, `LORgee`, `mcmc`, `MCMCglmm`, `mclogit`, `mmclogit`,
+`mediate`, `mixor`, `mjoint`, `mle2`, `mlm`, `multinom`, `negbin`, `nlmerMod`,
+`nlrq`, `nlreg`, `nls`, `orcutt`, `plm`, `polr`, `ridgelm`, `rjags`, `rlm`,
+`rlmerMod`, `rq`, `rqss`, `slm`, `speedglm`, `speedlm`, `stanfit`, `stanreg`,
+`survreg`, `svyglm`, `svyolr`, `svyglm`, `tobit`, `truncreg`, `vgam`, `wbgee`,
+`wblm`, `zcpglm`, `zeroinfl`, etc.
+
 
 In the following examples, we will try out a number of regression models and,
 additionally, we will also see how we can change different aspects of the plot
@@ -494,29 +494,28 @@ child).
 library(ggstatsplot)
 
 # dataframe #1
-(
-  df.counts <-
-    base::data.frame(
-      treatment = gl(n = 3, k = 3, length = 9),
-      outcome = gl(n = 3, k = 1, length = 9),
-      counts = c(18, 17, 15, 20, 10, 20, 25, 13, 12)
-    ) %>%
-    tibble::as_tibble(x = .)
-)
+df.counts <-
+  base::data.frame(
+    treatment = gl(n = 3, k = 3, length = 9),
+    outcome = gl(n = 3, k = 1, length = 9),
+    counts = c(18, 17, 15, 20, 10, 20, 25, 13, 12)
+  ) %>%
+  tibble::as_tibble(.)
 
 # dataframe #2
-(df.clotting <- data.frame(
-  u = c(5, 10, 15, 20, 30, 40, 60, 80, 100),
-  lot1 = c(118, 58, 42, 35, 27, 25, 21, 19, 18),
-  lot2 = c(69, 35, 26, 21, 18, 16, 13, 12, 12)
-) %>%
-  tibble::as_tibble(x = .))
+df.clotting <-
+  data.frame(
+    u = c(5, 10, 15, 20, 30, 40, 60, 80, 100),
+    lot1 = c(118, 58, 42, 35, 27, 25, 21, 19, 18),
+    lot2 = c(69, 35, 26, 21, 18, 16, 13, 12, 12)
+  ) %>%
+  tibble::as_tibble(.)
 
 # dataframe #3
 x1 <- stats::rnorm(50)
 y1 <- stats::rpois(n = 50, lambda = exp(1 + x1))
-(df.3 <- data.frame(x = x1, y = y1) %>%
-  tibble::as_tibble(x = .))
+df.3 <- data.frame(x = x1, y = y1) %>%
+  tibble::as_tibble(.)
 
 # dataframe #4
 x2 <- stats::rnorm(50)
@@ -526,8 +525,8 @@ y2 <- rbinom(
   prob = stats::plogis(x2)
 )
 
-(df.4 <- data.frame(x = x2, y = y2) %>%
-  tibble::as_tibble(x = .))
+df.4 <- data.frame(x = x2, y = y2) %>%
+  tibble::as_tibble(.)
 
 # combining all plots in a single plot
 ggstatsplot::combine_plots(
@@ -737,15 +736,15 @@ library(lme4)
 set.seed(101)
 
 # data
-dd <- expand.grid(
-  f1 = factor(1:3),
-  f2 = LETTERS[1:2],
-  g = 1:9,
-  rep = 1:15,
-  KEEP.OUT.ATTRS = FALSE
-)
-summary(mu <-
-  5 * (-4 + with(dd, as.integer(f1) + 4 * as.numeric(f2))))
+dd <-
+  expand.grid(
+    f1 = factor(1:3),
+    f2 = LETTERS[1:2],
+    g = 1:9,
+    rep = 1:15,
+    KEEP.OUT.ATTRS = FALSE
+  )
+mu <- 5 * (-4 + with(dd, as.integer(f1) + 4 * as.numeric(f2)))
 dd$y <- rnbinom(nrow(dd), mu = mu, size = 0.5)
 
 # model
@@ -787,10 +786,7 @@ set.seed(123)
 library(cplm)
 
 # model
-mod <- cpglmm(
-  formula = RLD ~ Stock + Spacing + (1 | Plant),
-  data = FineRoot
-)
+mod <- cpglmm(formula = RLD ~ Stock + Spacing + (1 | Plant), data = FineRoot)
 
 # plot
 ggstatsplot::ggcoefstats(
@@ -801,7 +797,7 @@ ggstatsplot::ggcoefstats(
 
 ## Bayesian Compound Poisson Linear Models (`bcplm`)
 
-```{r bcplm, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 10, eval=FALSE}
+```{r bcplm, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 10}
 # set up
 set.seed(123)
 library(cplm)
@@ -826,7 +822,7 @@ ggstatsplot::ggcoefstats(
 
 ## Zero-inflated Compound Poisson Generalized Linear Models (`zcpglm`)
 
-```{r zcpglm, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 10, eval=FALSE}
+```{r zcpglm, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 10}
 # set up
 set.seed(123)
 library(cplm)
@@ -843,6 +839,32 @@ mod <- zcpglm(
 ggstatsplot::ggcoefstats(
   x = mod,
   title = "Zero-inflated Compound Poisson \nGeneralized Linear Models"
+)
+```
+
+## Zero-Inflated Count Data Regression (`zeroinfl`)
+
+```{r zeroinfl, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6}
+# setup
+set.seed(123)
+library(pscl)
+
+# data
+data("bioChemists", package = "pscl")
+
+# model
+mod <-
+  pscl::zeroinfl(
+    formula = art ~ . | 1,
+    data = bioChemists,
+    dist = "negbin"
+  )
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = mod,
+  exclude.intercept = FALSE,
+  title = "Zero-Inflated Count Data Regression"
 )
 ```
 
@@ -963,6 +985,78 @@ ggstatsplot::ggcoefstats(
 )
 ```
 
+## beta-binomial logistic regression model (`BBreg`)
+
+```{r BBreg, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+# setup
+set.seed(18)
+library(PROreg)
+
+# We simulate a covariate, fix the paramters of the beta-binomial
+# distribution and simulate a response variable.
+# Then we apply the model, and try to get the same values.
+k <- 1000
+m <- 10
+x <- rnorm(k, 5, 3)
+beta <- c(-10, 2)
+p <- 1 / (1 + exp(-(beta[1] + beta[2] * x)))
+phi <- 1.2
+y <- rBB(k, m, p, phi)
+
+# model
+model <- BBreg(y ~ x, m)
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = model,
+  exclude.intercept = FALSE,
+  title = "beta-binomial logistic regression model"
+)
+```
+
+## binary choice models with fixed effects (`bife`)
+
+```{r bife, warning = FALSE, message = FALSE, fig.height = 10, fig.width = 8}
+# setup
+set.seed(123)
+library(bife)
+dataset <- psid
+
+# binary choice models with fixed effects
+mod <-
+  bife(
+    LFP ~ I(AGE^2) + log(INCH) + KID1 + KID2 + KID3 + factor(TIME) | ID,
+    dataset
+  )
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = mod,
+  title = "binary choice models with fixed effects"
+)
+```
+
+## Dirichlet regression model (`DirichReg`)
+
+```{r DirichReg, warning = FALSE, message = FALSE, fig.height = 8, fig.width = 6}
+# setup
+set.seed(123)
+library(DirichletReg)
+
+# data
+ALake <- ArcticLake
+ALake$Y <- DR_data(ALake[, 1:3])
+
+# fit a quadratic Dirichlet regression models ("common")
+mod <- DirichReg(Y ~ depth + I(depth^2), ALake)
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = mod,
+  title = "Dirichlet Regression"
+)
+```
+
 ## Generalized Linear Models with Extra Parameters (`glmx`)
 
 ```{r glmx, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 10}
@@ -1071,7 +1165,7 @@ mod <-
 # plotting the model
 ggstatsplot::ggcoefstats(
   x = mod,
-  conf.method = "uniroot",
+  # conf.method = "uniroot",
   title = "generalized linear mixed models \nusing Template Model Builder"
 )
 ```
@@ -1124,7 +1218,7 @@ four different vignettes, each featuring a different type of harm. The question
 we are interested in is what explains variation in participants' rating:
 information about intentionality, consequences, or their interaction?
 
-```{r clm, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 6}
+```{r clm, warning = FALSE, message = FALSE, fig.height = 6, fig.width = 8}
 # for reproducibility
 set.seed(123)
 
@@ -1144,8 +1238,7 @@ ggstatsplot::ggcoefstats(
   x = mod,
   stats.label.color = "black",
   title = "cumulative link model (clm)",
-  subtitle = "(using `ordinal` package)",
-  caption.summary = FALSE # suppress model diagnostics
+  subtitle = "(using `ordinal` package)"
 ) +
   ggplot2::labs(x = "logit regression coefficient", y = NULL)
 ```
@@ -1385,7 +1478,6 @@ gfit <-
 ggstatsplot::ggcoefstats(
   x = gfit,
   title = "generalized linear models \nsubject to population constraints",
-  conf.int = FALSE,
   exclude.intercept = FALSE
 )
 ```
@@ -1476,17 +1568,20 @@ ggstatsplot::ggcoefstats(
 
 ## multiple linear regression models (`mlm`)
 
-```{r mlm, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
+```{r mlm, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 6}
 # model (converting all numeric columns in data to z-scores)
 mod <-
   stats::lm(
     formula = cbind(mpg, disp) ~ wt,
-    data = purrr::modify_if(.x = mtcars, .p = is.numeric, .f = scale)
+    data = purrr::modify_if(.x = mtcars, .p = is.numeric, ~ {
+      as.numeric(scale(.x))
+    })
   )
 
 # plot
 ggstatsplot::ggcoefstats(
   x = mod,
+  title = "multiple linear regression models",
   exclude.intercept = FALSE
 )
 ```
@@ -1494,12 +1589,19 @@ ggstatsplot::ggcoefstats(
 ## multinomial logistic regression models (`multinom`)
 
 ```{r multinom, warning = FALSE, message = FALSE, fig.height = 8, fig.width = 6}
-# model
+# setup
 set.seed(123)
 library(nnet)
 library(MASS)
 utils::example(topic = birthwt, echo = FALSE)
-bwt.mu <- nnet::multinom(formula = low ~ ., data = bwt, trace = FALSE)
+
+# model
+bwt.mu <-
+  nnet::multinom(
+    formula = low ~ .,
+    data = bwt,
+    trace = FALSE
+  )
 
 # plot
 ggstatsplot::ggcoefstats(
@@ -1560,11 +1662,7 @@ dclus1 <-
 dclus1 <- update(dclus1, mealcat = cut(meals, c(0, 25, 50, 75, 100)))
 
 # model
-m <-
-  survey::svyolr(
-    formula = mealcat ~ avg.ed + mobility + stype,
-    design = dclus1
-  )
+m <- survey::svyolr(formula = mealcat ~ avg.ed + mobility + stype, design = dclus1)
 
 # plot
 ggstatsplot::ggcoefstats(
@@ -1944,6 +2042,31 @@ ggstatsplot::ggcoefstats(
 )
 ```
 
+## conditional generalized linear models for clustered data (`cglm`)
+
+```{r cglm, warning = FALSE, message = FALSE, fig.height = 8, fig.width = 6}
+# setup
+set.seed(123)
+library(cglm)
+data(teenpov)
+
+# model
+fit.ide <-
+  cglm::cglm(
+    method = "ts",
+    formula = hours ~ nonpov + inschool + spouse + age + mother,
+    data = teenpov,
+    id = "ID",
+    link = "identity"
+  )
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = fit.ide,
+  title = "conditional generalized linear models\n for clustered data"
+)
+```
+
 ## Cox proportional hazards regression model (`coxph`)
 
 Fitted proportional hazards regression model - as implemented in the `survival`
@@ -1963,10 +2086,11 @@ test1 <- list(
 )
 
 # fit a stratified model
-mod <- survival::coxph(
-  formula = Surv(time, status) ~ x + strata(sex),
-  data = test1
-)
+mod <-
+  survival::coxph(
+    formula = Surv(time, status) ~ x + strata(sex),
+    data = test1
+  )
 
 # plot
 ggstatsplot::ggcoefstats(
@@ -2042,13 +2166,17 @@ ggstatsplot::ggcoefstats(
 Example of high performance linear model-
 
 ```{r speedlm, warning = FALSE, message = FALSE, fig.height = 5, fig.width = 5}
-# model
+# setup
+library(speedglm)
 set.seed(123)
-mod <- speedglm::speedlm(
-  formula = mpg ~ wt + qsec,
-  data = mtcars,
-  fitted = TRUE
-)
+
+# model
+mod <-
+  speedglm::speedlm(
+    formula = mpg ~ wt + qsec,
+    data = mtcars,
+    fitted = TRUE
+  )
 
 # plot
 ggstatsplot::ggcoefstats(
@@ -2118,12 +2246,13 @@ library(biglm)
 data(trees)
 
 # model
-mod <- biglm::bigglm(
-  formula = log(Volume) ~ log(Girth) + log(Height),
-  data = trees,
-  chunksize = 10,
-  sandwich = TRUE
-)
+mod <-
+  biglm::bigglm(
+    formula = log(Volume) ~ log(Girth) + log(Height),
+    data = trees,
+    chunksize = 10,
+    sandwich = TRUE
+  )
 # plot
 ggstatsplot::ggcoefstats(
   x = mod,
@@ -2139,11 +2268,12 @@ set.seed(123)
 library(survival)
 
 # model
-mod <- survival::survreg(
-  formula = Surv(futime, fustat) ~ ecog.ps + rx,
-  data = ovarian,
-  dist = "logistic"
-)
+mod <-
+  survival::survreg(
+    formula = Surv(futime, fustat) ~ ecog.ps + rx,
+    data = ovarian,
+    dist = "logistic"
+  )
 
 # plot
 ggstatsplot::ggcoefstats(
@@ -2298,11 +2428,12 @@ set.seed(123)
 library(mgcv)
 
 # model
-g <- mgcv::gam(
-  formula = mpg ~ s(hp) + am + qsec,
-  family = stats::quasi(),
-  data = mtcars
-)
+g <-
+  mgcv::gam(
+    formula = mpg ~ s(hp) + am + qsec,
+    family = stats::quasi(),
+    data = mtcars
+  )
 
 # plot
 ggstatsplot::ggcoefstats(
@@ -2497,7 +2628,8 @@ Dat.nlrq <-
 # plot
 ggstatsplot::ggcoefstats(
   x = Dat.nlrq,
-  title = "non-linear quantile regression"
+  title = "non-linear quantile regression",
+  se.type = "nid"
 )
 ```
 
@@ -2693,20 +2825,21 @@ hvd <- heart.valve[!is.na(heart.valve$log.grad) &
   heart.valve$num <= 50, ]
 
 # model
-fit <- joineRML::mjoint(
-  formLongFixed = list(
-    "grad" = log.grad ~ time + sex + hs,
-    "lvmi" = log.lvmi ~ time + sex
-  ),
-  formLongRandom = list(
-    "grad" = ~ 1 | num,
-    "lvmi" = ~ time | num
-  ),
-  formSurv = Surv(fuyrs, status) ~ age,
-  data = hvd,
-  inits = list("gamma" = c(0.11, 1.51, 0.80)),
-  timeVar = "time"
-)
+fit <-
+  joineRML::mjoint(
+    formLongFixed = list(
+      "grad" = log.grad ~ time + sex + hs,
+      "lvmi" = log.lvmi ~ time + sex
+    ),
+    formLongRandom = list(
+      "grad" = ~ 1 | num,
+      "lvmi" = ~ time | num
+    ),
+    formSurv = Surv(fuyrs, status) ~ age,
+    data = hvd,
+    inits = list("gamma" = c(0.11, 1.51, 0.80)),
+    timeVar = "time"
+  )
 
 # extract the survival fixed effects and plot them
 ggstatsplot::ggcoefstats(
@@ -2901,10 +3034,7 @@ set.seed(123)
 two_class_sample1 <- as.factor(sample(letters[1:2], 100, TRUE))
 two_class_sample2 <- as.factor(sample(letters[1:2], 100, TRUE))
 
-two_class_cm <- caret::confusionMatrix(
-  two_class_sample1,
-  two_class_sample2
-)
+two_class_cm <- caret::confusionMatrix(two_class_sample1, two_class_sample2)
 
 # plot
 ggstatsplot::ggcoefstats(
@@ -2949,11 +3079,12 @@ library(flexsurv)
 data(ovarian)
 
 # compare generalized gamma fit with Weibull
-fitg <- flexsurvreg(
-  formula = Surv(futime, fustat) ~ 1,
-  data = ovarian,
-  dist = "gengamma"
-)
+fitg <-
+  flexsurvreg(
+    formula = Surv(futime, fustat) ~ 1,
+    data = ovarian,
+    dist = "gengamma"
+  )
 
 ggstatsplot::ggcoefstats(
   x = fitg,
@@ -2997,10 +3128,11 @@ data("WageData")
 wages <- panelr::panel_data(data = WageData, id = id, wave = t)
 
 # model
-model <- panelr::wbgee(
-  formula = lwage ~ lag(union) + wks | blk + fem | blk * lag(union),
-  data = wages
-)
+model <-
+  panelr::wbgee(
+    formula = lwage ~ lag(union) + wks | blk + fem | blk * lag(union),
+    data = wages
+  )
 
 # plot
 ggstatsplot::ggcoefstats(
@@ -3008,6 +3140,61 @@ ggstatsplot::ggcoefstats(
   exclude.intercept = FALSE,
   conf.level = 0.99,
   title = "panel regression models fit \nvia generalized estimating equations"
+)
+```
+
+## Censored Regression with Conditional Heteroscedasticy (`crch`)
+
+```{r crch, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 8}
+# setup
+set.seed(123)
+library(crch)
+data("RainIbk")
+
+# mean and standard deviation of square root transformed ensemble forecasts
+RainIbk$sqrtensmean <- apply(sqrt(RainIbk[, grep("^rainfc", names(RainIbk))]), 1, mean)
+RainIbk$sqrtenssd <- apply(sqrt(RainIbk[, grep("^rainfc", names(RainIbk))]), 1, sd)
+
+# fit linear regression model with Gaussian distribution
+CRCH <-
+  crch(
+    formula = sqrt(rain) ~ sqrtensmean,
+    data = RainIbk,
+    dist = "gaussian"
+  )
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = CRCH,
+  title = "Censored Regression with Conditional Heteroscedasticy"
+)
+```
+
+## Marginal Models For Correlated Ordinal Multinomial Responses (`LORgee`)
+
+```{r LORgee, warning = FALSE, message = FALSE, fig.height = 10, fig.width = 8}
+# setup
+set.seed(123)
+library(multgee)
+data("arthritis")
+
+# model
+fit <-
+  ordLORgee(
+    formula = y ~ factor(time) + factor(trt) + factor(baseline),
+    link = "logit",
+    id = id,
+    repeated = time,
+    data = arthritis,
+    LORstr = "uniform"
+  )
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = fit,
+  title = "Marginal Models For Correlated Ordinal Multinomial Responses",
+  package = "ggthemes",
+  palette = "Classic 20"
 )
 ```
 

@@ -31,35 +31,31 @@ ggwithinstats(
   conf.level = 0.95,
   nboot = 100,
   tr = 0.1,
-  path.point = TRUE,
-  path.mean = TRUE,
-  sort = "none",
-  sort.fun = mean,
-  axes.range.restrict = FALSE,
-  mean.label.size = 3,
-  mean.label.fontface = "bold",
-  mean.label.color = "black",
-  notch = FALSE,
-  notchwidth = 0.5,
-  linetype = "solid",
-  outlier.tagging = FALSE,
-  outlier.shape = 19,
-  outlier.label = NULL,
-  outlier.label.color = "black",
-  outlier.color = "black",
-  outlier.coef = 1.5,
   mean.plotting = TRUE,
   mean.ci = FALSE,
-  mean.size = 5,
-  mean.color = "darkred",
+  mean.point.args = list(size = 5, color = "darkred"),
+  mean.label.args = list(size = 3),
+  point.path = TRUE,
+  point.path.args = list(alpha = 0.5, linetype = "dashed"),
+  mean.path = TRUE,
+  mean.path.args = list(color = "red", size = 1, alpha = 0.5),
+  notch = FALSE,
+  notchwidth = 0.5,
+  outlier.tagging = FALSE,
+  outlier.label = NULL,
+  outlier.coef = 1.5,
+  outlier.label.args = list(),
+  outlier.point.args = list(),
+  violin.args = list(width = 0.5, alpha = 0.2),
   ggtheme = ggplot2::theme_bw(),
   ggstatsplot.layer = TRUE,
   package = "RColorBrewer",
   palette = "Dark2",
   direction = 1,
   ggplot.component = NULL,
-  return = "plot",
-  messages = TRUE
+  output = "plot",
+  messages = TRUE,
+  ...
 )
 }
 \arguments{
@@ -158,32 +154,30 @@ variance of 0 (e.g., due to ties). Try to decrease the trimming level.",
 try to play around with the value of \code{tr}, which is by default set to
 \code{0.1}. Lowering the value might help.}
 
-\item{path.point, path.mean}{Logical that decides whether individual data
+\item{mean.plotting}{Logical that decides whether mean is to be highlighted
+and its value to be displayed (Default: \code{TRUE}).}
+
+\item{mean.ci}{Logical that decides whether \verb{95\%} confidence interval for
+mean is to be displayed (Default: \code{FALSE}).}
+
+\item{mean.point.args}{A list of additional aesthetic
+arguments to be passed to \code{ggplot2::geom_point} and
+\code{ggrepel::geom_label_repel} geoms involved mean value plotting.}
+
+\item{mean.label.args}{A list of additional aesthetic
+arguments to be passed to \code{ggplot2::geom_point} and
+\code{ggrepel::geom_label_repel} geoms involved mean value plotting.}
+
+\item{point.path, mean.path}{Logical that decides whether individual data
 points and means, respectively, should be connected using \code{geom_path}. Both
-default to \code{TRUE}. Note that \code{path.point} argument is relevant only when
+default to \code{TRUE}. Note that \code{point.path} argument is relevant only when
 there are two groups (i.e., in case of a \emph{t}-test). In case of large number
-of data points, it is advisable to set \code{path.point = FALSE} as these lines
+of data points, it is advisable to set \code{point.path = FALSE} as these lines
 can overwhelm the plot.}
 
-\item{sort}{If \code{"ascending"} (default), \code{x}-axis variable factor levels will
-be sorted based on increasing values of \code{y}-axis variable. If
-\code{"descending"}, the opposite. If \code{"none"}, no sorting will happen.}
-
-\item{sort.fun}{The function used to sort (default: \code{mean}).}
-
-\item{axes.range.restrict}{Logical that decides whether to restrict the axes
-values ranges to \code{min} and \code{max} values of the axes variables (Default:
-\code{FALSE}), only relevant for functions where axes variables are of numeric
-type.}
-
-\item{mean.label.size}{Aesthetics for
-the label displaying mean. Defaults: \code{3}, \code{"bold"},\code{"black"}, respectively.}
-
-\item{mean.label.fontface}{Aesthetics for
-the label displaying mean. Defaults: \code{3}, \code{"bold"},\code{"black"}, respectively.}
-
-\item{mean.label.color}{Aesthetics for
-the label displaying mean. Defaults: \code{3}, \code{"bold"},\code{"black"}, respectively.}
+\item{mean.path.args, point.path.args}{A list of additional aesthetic
+arguments passed on to \code{geom_path} connecting raw data points and mean
+points.}
 
 \item{notch}{A logical. If \code{FALSE} (default), a standard box plot will be
 displayed. If \code{TRUE}, a notched box plot will be used. Notches are used to
@@ -195,43 +189,27 @@ confidence interval for comparing medians. IQR: Inter-Quartile Range.}
 \item{notchwidth}{For a notched box plot, width of the notch relative to the
 body (default \code{0.5}).}
 
-\item{linetype}{Character strings (\code{"blank"}, \code{"solid"}, \code{"dashed"},
-\code{"dotted"}, \code{"dotdash"}, \code{"longdash"}, and \code{"twodash"}) specifying the type
-of line to draw box plots (Default: \code{"solid"}). Alternatively, the numbers
-\code{0} to \code{6} can be used (\code{0} for "blank", \code{1} for "solid", etc.).}
-
 \item{outlier.tagging}{Decides whether outliers should be tagged (Default:
 \code{FALSE}).}
 
-\item{outlier.shape}{Hiding the outliers can be achieved by setting
-\code{outlier.shape = NA}. Importantly, this does not remove the outliers,
-it only hides them, so the range calculated for the \code{y}-axis will be
-the same with outliers shown and outliers hidden.}
-
 \item{outlier.label}{Label to put on the outliers that have been tagged. This
 \strong{can't} be the same as \code{x} argument.}
-
-\item{outlier.label.color}{Color for the label to to put on the outliers that
-have been tagged (Default: \code{"black"}).}
-
-\item{outlier.color}{Default aesthetics for outliers (Default: \code{"black"}).}
 
 \item{outlier.coef}{Coefficient for outlier detection using Tukey's method.
 With Tukey's method, outliers are below (1st Quartile) or above (3rd
 Quartile) \code{outlier.coef} times the Inter-Quartile Range (IQR) (Default:
 \code{1.5}).}
 
-\item{mean.plotting}{Logical that decides whether mean is to be highlighted
-and its value to be displayed (Default: \code{TRUE}).}
+\item{outlier.label.args}{A list of additional aesthetic arguments to be
+passed to \code{ggplot2::geom_point} and \code{ggrepel::geom_label_repel} geoms
+involved outlier value plotting.}
 
-\item{mean.ci}{Logical that decides whether \verb{95\%} confidence interval for
-mean is to be displayed (Default: \code{FALSE}).}
+\item{outlier.point.args}{A list of additional aesthetic arguments to be
+passed to \code{ggplot2::geom_point} and \code{ggrepel::geom_label_repel} geoms
+involved outlier value plotting.}
 
-\item{mean.size}{Point size for the data point corresponding to mean
-(Default: \code{5}).}
-
-\item{mean.color}{Color for the data point corresponding to mean (Default:
-\code{"darkred"}).}
+\item{violin.args}{A list of additional aesthetic arguments to be passed to
+the \code{geom_violin}.}
 
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
 \code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
@@ -253,11 +231,9 @@ or symbol.}
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
 by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
 of the current function. Default is \code{NULL}. The argument should be entered
-as a function. If the given function has an argument \code{axes.range.restrict}
-and if it has been set to \code{TRUE}, the added \code{ggplot} component \emph{might} not
-work as expected.}
+as a function.}
 
-\item{return}{Character that describes what is to be returned: can be
+\item{output}{Character that describes what is to be returned: can be
 \code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
 \code{"subtitle"} will return the expression containing statistical results. If
 you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
@@ -267,6 +243,8 @@ about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
+
+\item{...}{Currently ignored.}
 }
 \description{
 A combination of box and violin plots along with raw
@@ -298,7 +276,7 @@ ggstatsplot::ggwithinstats(
 library(WRS2)
 
 ggstatsplot::ggwithinstats(
-  data = tibble::as_tibble(WineTasting),
+  data = as_tibble(WineTasting),
   x = Wine,
   y = Taste,
   type = "np",

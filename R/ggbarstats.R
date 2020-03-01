@@ -8,18 +8,14 @@
 #' @param xlab Custom text for the `x` axis label (Default: `NULL`, which
 #'   will cause the `x` axis label to be the `x` variable).
 #' @param ylab Custom text for the `y` axis label (Default: `"percent"`).
-#' @param bar.proptest Decides whether proportion test for `main` variable is
+#' @param proportion.test Decides whether proportion test for `main` variable is
 #'   to be carried out for each level of `y` (Default: `TRUE`).
-#' @param bar.label,data.label Character decides what information needs to be
+#' @param label Character decides what information needs to be
 #'   displayed on the label in each pie slice. Possible options are
 #'   `"percentage"` (default), `"counts"`, `"both"`.
-#' @param legend.position The position of the legend
-#'   `"none"`, `"left"`, `"right"`, `"bottom"`, `"top"` (Default: `"right"`).
 #' @param x.axis.orientation The orientation of the `x` axis labels one of
 #'   "slant" or "vertical" to change from the default horizontal
 #'   orientation (Default: `NULL` which is horizontal).
-#' @param bar.outline.color Character specifying color for bars (default:
-#'   `"black"`).
 #' @inheritParams ggpiestats
 #'
 #' @seealso \code{\link{grouped_ggbarstats}}, \code{\link{ggpiestats}},
@@ -29,12 +25,9 @@
 #'
 #' @importFrom dplyr select group_by summarize n mutate mutate_at mutate_if
 #' @importFrom rlang !! enquo quo_name as_name ensym
-#' @importFrom crayon green blue yellow red
 #' @importFrom paletteer scale_fill_paletteer_d
 #' @importFrom groupedstats grouped_proptest
 #' @importFrom tidyr uncount drop_na
-#' @importFrom tibble as_tibble
-#' @importFrom scales percent
 #' @importFrom statsExpressions expr_contingency_tab bf_contingency_tab
 #'
 #' @inherit ggpiestats return details
@@ -65,11 +58,9 @@ ggbarstats <- function(data,
                        results.subtitle = TRUE,
                        stat.title = NULL,
                        sample.size.label = TRUE,
-                       label.separator = " ",
-                       label.text.size = 4,
-                       label.fill.color = "white",
-                       label.fill.alpha = 1,
-                       bar.outline.color = "black",
+                       label = "percentage",
+                       perc.k = 0,
+                       label.args = list(alpha = 1, fill = "white"),
                        bf.message = TRUE,
                        sampling.plan = "indepMulti",
                        fixed.margin = "rows",
@@ -77,29 +68,25 @@ ggbarstats <- function(data,
                        title = NULL,
                        subtitle = NULL,
                        caption = NULL,
-                       legend.position = "right",
                        x.axis.orientation = NULL,
                        conf.level = 0.95,
                        nboot = 100,
-                       bias.correct = TRUE,
                        legend.title = NULL,
                        xlab = NULL,
                        ylab = "Percent",
                        k = 2,
-                       perc.k = 0,
-                       bar.label = "percentage",
-                       data.label = NULL,
-                       bar.proptest = TRUE,
+                       proportion.test = TRUE,
                        ggtheme = ggplot2::theme_bw(),
                        ggstatsplot.layer = TRUE,
                        package = "RColorBrewer",
                        palette = "Dark2",
                        direction = 1,
                        ggplot.component = NULL,
-                       return = "plot",
+                       output = "plot",
                        messages = TRUE,
                        x = NULL,
-                       y = NULL) {
+                       y = NULL,
+                       ...) {
 
   # ensure the variables work quoted or unquoted
   main <- rlang::ensym(main)
@@ -124,7 +111,7 @@ ggbarstats <- function(data,
   data %<>%
     dplyr::select(.data = ., {{ x }}, {{ y }}, {{ counts }}) %>%
     tidyr::drop_na(data = .) %>%
-    tibble::as_tibble(x = .)
+    as_tibble(x = .)
 
   # =========================== converting counts ============================
 
@@ -139,8 +126,6 @@ ggbarstats <- function(data,
       )
   }
 
-  # ============================ percentage dataframe ========================
-
   # x and y need to be a factor for this analysis
   # also drop the unused levels of the factors
   data %<>%
@@ -150,15 +135,65 @@ ggbarstats <- function(data,
       {{ y }} := droplevels(as.factor({{ y }}))
     )
 
+  # ========================= statistical analysis ===========================
+
+  # running appropriate statistical test
+  # unpaired: Pearson's Chi-square test of independence
+  if (isTRUE(results.subtitle)) {
+    subtitle <-
+      tryCatch(
+        expr = statsExpressions::expr_contingency_tab(
+          data = data,
+          x = {{ x }},
+          y = {{ y }},
+          ratio = ratio,
+          nboot = nboot,
+          paired = paired,
+          stat.title = stat.title,
+          legend.title = legend.title,
+          conf.level = conf.level,
+          conf.type = "norm",
+          bias.correct = TRUE,
+          k = k,
+          messages = messages
+        ),
+        error = function(e) NULL
+      )
+
+    # preparing the BF message for null hypothesis support
+    if (isTRUE(bf.message) && !is.null(subtitle)) {
+      caption <-
+        statsExpressions::bf_contingency_tab(
+          data = data,
+          x = {{ x }},
+          y = {{ y }},
+          sampling.plan = sampling.plan,
+          fixed.margin = fixed.margin,
+          prior.concentration = prior.concentration,
+          caption = caption,
+          output = "caption",
+          k = k
+        )
+    }
+  }
+
+  # return early if anything other than plot
+  if (output %in% c("subtitle", "caption")) {
+    return(switch(
+      EXPR = output,
+      "subtitle" = subtitle,
+      "caption" = caption
+    ))
+  }
+
+  # ============================ percentage dataframe ========================
+
   # convert the data into percentages; group by yal variable
   # dataframe with summary labels
-  bar.label <- data.label %||% bar.label
   df <-
     cat_label_df(
       data = cat_counter(data = data, x = {{ x }}, y = {{ y }}),
-      label.col.name = "bar.label",
-      label.content = bar.label,
-      label.separator = label.separator,
+      label.content = label,
       perc.k = perc.k
     )
 
@@ -185,179 +220,122 @@ ggbarstats <- function(data,
 
   # =================================== plot =================================
 
-  if (return == "plot") {
-    # if no. of factor levels is greater than the default palette color count
-    palette_message(
-      package = package,
-      palette = palette,
-      min_length = nlevels(data %>% dplyr::pull({{ x }}))[[1]]
-    )
+  # if no. of factor levels is greater than the default palette color count
+  palette_message(
+    package = package,
+    palette = palette,
+    min_length = nlevels(data %>% dplyr::pull({{ x }}))[[1]]
+  )
 
-    # plot
-    p <- ggplot2::ggplot(
-      data = df, mapping = ggplot2::aes(x = {{ y }}, y = perc, fill = {{ x }})
+  # plot
+  p <-
+    ggplot2::ggplot(
+      data = df,
+      mapping = ggplot2::aes(x = {{ y }}, y = perc, fill = {{ x }})
     ) +
-      ggplot2::geom_bar(
-        stat = "identity",
-        position = "fill",
-        color = bar.outline.color,
-        na.rm = TRUE
-      ) +
-      ggplot2::scale_y_continuous(
-        labels = scales::percent,
-        breaks = seq(from = 0, to = 1, by = 0.10),
-        minor_breaks = seq(from = 0.05, to = 0.95, by = 0.10)
-      ) +
-      ggplot2::geom_label(
-        mapping = ggplot2::aes(label = bar.label, group = {{ x }}),
-        show.legend = FALSE,
-        position = ggplot2::position_fill(vjust = 0.5),
-        color = "black",
-        size = label.text.size,
-        fill = label.fill.color,
-        alpha = label.fill.alpha,
-        na.rm = TRUE
-      ) +
-      ggstatsplot::theme_ggstatsplot(
-        ggtheme = ggtheme,
-        ggstatsplot.layer = ggstatsplot.layer
-      ) +
-      ggplot2::theme(
-        panel.grid.major.x = ggplot2::element_blank(),
-        legend.position = legend.position
-      ) +
-      ggplot2::guides(fill = ggplot2::guide_legend(title = legend.title)) +
-      paletteer::scale_fill_paletteer_d(
-        palette = paste0(package, "::", palette),
-        direction = direction,
-        name = "",
-        labels = unique(legend.labels)
-      )
-  }
-
-  # ========================= statistical analysis ===========================
-
-  # running appropriate statistical test
-  # unpaired: Pearson's Chi-square test of independence
-  if (isTRUE(results.subtitle)) {
-    subtitle <-
-      tryCatch(
-        expr = statsExpressions::expr_contingency_tab(
-          data = data,
-          x = {{ x }},
-          y = {{ y }},
-          ratio = ratio,
-          nboot = nboot,
-          paired = paired,
-          stat.title = stat.title,
-          legend.title = legend.title,
-          conf.level = conf.level,
-          conf.type = "norm",
-          bias.correct = bias.correct,
-          k = k,
-          messages = messages
-        ),
-        error = function(e) NULL
-      )
-
-    # preparing the BF message for null hypothesis support
-    if (isTRUE(bf.message) && !is.null(subtitle)) {
-      caption <-
-        statsExpressions::bf_contingency_tab(
-          data = data,
-          x = {{ x }},
-          y = {{ y }},
-          sampling.plan = sampling.plan,
-          fixed.margin = fixed.margin,
-          prior.concentration = prior.concentration,
-          caption = caption,
-          output = "caption",
-          k = k
-        )
-    }
-  }
+    ggplot2::geom_bar(
+      stat = "identity",
+      position = "fill",
+      color = "black",
+      na.rm = TRUE
+    ) +
+    ggplot2::scale_y_continuous(
+      labels = function(x) paste0(x * 100, "%"),
+      breaks = seq(from = 0, to = 1, by = 0.10),
+      minor_breaks = seq(from = 0.05, to = 0.95, by = 0.10)
+    ) +
+    rlang::exec(
+      .fn = ggplot2::geom_label,
+      mapping = ggplot2::aes(label = label, group = {{ x }}),
+      show.legend = FALSE,
+      position = ggplot2::position_fill(vjust = 0.5),
+      na.rm = TRUE,
+      !!!label.args
+    ) +
+    ggstatsplot::theme_ggstatsplot(
+      ggtheme = ggtheme,
+      ggstatsplot.layer = ggstatsplot.layer
+    ) +
+    ggplot2::theme(panel.grid.major.x = ggplot2::element_blank()) +
+    ggplot2::guides(fill = ggplot2::guide_legend(title = legend.title)) +
+    paletteer::scale_fill_paletteer_d(
+      palette = paste0(package, "::", palette),
+      direction = direction,
+      name = "",
+      labels = unique(legend.labels)
+    )
 
   # ================ sample size and proportion test labels ===================
 
-  if (return == "plot") {
-    # adding significance labels to bars for proportion tests
-    if (isTRUE(bar.proptest)) {
-      # display grouped proportion test results
-      if (isTRUE(messages)) print(dplyr::select(df_labels, -label))
+  # adding significance labels to bars for proportion tests
+  if (isTRUE(proportion.test)) {
+    # display grouped proportion test results
+    if (isTRUE(messages)) print(dplyr::select(df_labels, -label))
 
-      # modify plot
-      p <- p +
-        ggplot2::geom_text(
-          data = df_labels,
-          mapping = ggplot2::aes(
-            x = {{ y }},
-            y = 1.05,
-            label = significance,
-            fill = NULL
-          ),
-          size = 5,
-          na.rm = TRUE
-        )
-    }
-
-    # adding sample size info
-    if (isTRUE(sample.size.label)) {
-      p <- p +
-        ggplot2::geom_text(
-          data = df_labels,
-          mapping = ggplot2::aes(
-            x = {{ y }},
-            y = -0.05,
-            label = N,
-            fill = NULL
-          ),
-          size = 4,
-          na.rm = TRUE
-        )
-    }
-
-    # =========================== putting all together ========================
-
-    # if we need to modify `x`-axis orientation
-    if (!is.null(x.axis.orientation)) {
-      if (x.axis.orientation == "slant") {
-        angle <- 45
-        vjust <- 1
-      } else {
-        angle <- 90
-        vjust <- 0.5
-      }
-
-      # adjusting plot label
-      p <- p +
-        ggplot2::theme(
-          axis.text.x = ggplot2::element_text(
-            angle = angle,
-            vjust = vjust,
-            hjust = 1,
-            face = "bold"
-          )
-        )
-    }
-
-    # preparing the plot
+    # modify plot
     p <- p +
-      ggplot2::labs(
-        x = xlab,
-        y = ylab,
-        subtitle = subtitle,
-        title = title,
-        caption = caption
-      ) +
-      ggplot.component
+      ggplot2::geom_text(
+        data = df_labels,
+        mapping = ggplot2::aes(
+          x = {{ y }},
+          y = 1.05,
+          label = significance,
+          fill = NULL
+        ),
+        size = 5,
+        na.rm = TRUE
+      )
   }
 
+  # adding sample size info
+  if (isTRUE(sample.size.label)) {
+    p <- p +
+      ggplot2::geom_text(
+        data = df_labels,
+        mapping = ggplot2::aes(
+          x = {{ y }},
+          y = -0.05,
+          label = N,
+          fill = NULL
+        ),
+        size = 4,
+        na.rm = TRUE
+      )
+  }
+
+  # =========================== putting all together ========================
+
+  # if we need to modify `x`-axis orientation
+  if (!is.null(x.axis.orientation)) {
+    if (x.axis.orientation == "slant") {
+      c(angle, vjust) %<-% c(45, 1)
+    } else {
+      c(angle, vjust) %<-% c(90, 0.5)
+    }
+
+    # adjusting plot label
+    p <- p +
+      ggplot2::theme(
+        axis.text.x = ggplot2::element_text(
+          angle = angle,
+          vjust = vjust,
+          hjust = 1,
+          face = "bold"
+        )
+      )
+  }
+
+  # preparing the plot
+  p <- p +
+    ggplot2::labs(
+      x = xlab,
+      y = ylab,
+      subtitle = subtitle,
+      title = title,
+      caption = caption
+    ) +
+    ggplot.component
+
   # return the final plot
-  return(switch(
-    EXPR = return,
-    "plot" = p,
-    "subtitle" = subtitle,
-    "caption" = caption,
-    p
-  ))
+  return(p)
 }

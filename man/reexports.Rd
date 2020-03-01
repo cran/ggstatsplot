@@ -11,10 +11,16 @@
 \alias{\%>\%}
 \alias{\%<>\%}
 \alias{\%$\%}
+\alias{\%<-\%}
 \alias{\%||\%}
 \alias{\%|\%}
 \alias{tibble}
 \alias{as_tibble}
+\alias{bartlett_message}
+\alias{normality_message}
+\alias{tidy}
+\alias{glance}
+\alias{augment}
 \title{Objects exported from other packages}
 \keyword{internal}
 \description{
@@ -22,14 +28,12 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{broomExtra}{\code{\link[broomExtra]{\%$\%}}, \code{\link[broomExtra]{\%<>\%}}, \code{\link[broomExtra]{\%>\%}}}
+  \item{broomExtra}{\code{\link[broomExtra]{augment}}, \code{\link[broomExtra]{glance}}, \code{\link[broomExtra]{tidy}}}
 
-  \item{groupedstats}{\code{\link[groupedstats]{set_cwd}}, \code{\link[groupedstats]{signif_column}}, \code{\link[groupedstats]{specify_decimal_p}}}
+  \item{ipmisc}{\code{\link[ipmisc]{\%$\%}}, \code{\link[ipmisc]{\%<-\%}}, \code{\link[ipmisc]{\%<>\%}}, \code{\link[ipmisc]{\%>\%}}, \code{\link[ipmisc]{as_tibble}}, \code{\link[ipmisc]{bartlett_message}}, \code{\link[ipmisc]{normality_message}}, \code{\link[ipmisc]{set_cwd}}, \code{\link[ipmisc]{signif_column}}, \code{\link[ipmisc]{specify_decimal_p}}, \code{\link[ipmisc]{tibble}}}
 
   \item{pairwiseComparisons}{\code{\link[pairwiseComparisons]{pairwise_comparisons}}, \code{\link[pairwiseComparisons]{pairwise_p}}}
 
   \item{rlang}{\code{\link[rlang]{\%|\%}}, \code{\link[rlang]{\%||\%}}}
-
-  \item{tibble}{\code{\link[tibble]{as_tibble}}, \code{\link[tibble]{tibble}}}
 }}
 
