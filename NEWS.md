@@ -1,3 +1,14 @@
+# ggstatsplot 0.3.1
+
+This is a hotfix release to correct some of the failing tests and other minor
+breakages resulting from the new release of `ggplot2 3.3.0`.
+
+MAJOR CHANGES
+
+  - `ggpiestats` loses `sample.size.label` argument since this information is
+    included in the goodness of fit test results itself. So setting
+    `proportion.test` to `FALSE` will suppress this information.
+
 # ggstatsplot 0.3.0
 
 BREAKING CHANGES
