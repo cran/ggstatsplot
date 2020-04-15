@@ -25,31 +25,19 @@
 #' set.seed(123)
 #'
 #' # for plot
-#' # (without specifying needed variables; all numeric variables will be used)
 #' ggstatsplot::grouped_ggcorrmat(
-#'   data = ggplot2::msleep,
-#'   grouping.var = vore
+#'   data = iris,
+#'   grouping.var = Species,
+#'   type = "robust",
+#'   p.adjust.method = "holm"
 #' )
 #'
-#' # for getting plot
+#' # for dataframe
 #' ggstatsplot::grouped_ggcorrmat(
 #'   data = ggplot2::msleep,
 #'   grouping.var = vore,
-#'   cor.vars = sleep_total:bodywt,
-#'   corr.method = "r",
-#'   p.adjust.method = "holm",
-#'   colors = NULL,
-#'   package = "wesanderson",
-#'   palette = "BottleRocket2",
-#'   plotgrid.args = list(nrow = 2)
-#' )
-#'
-#' # for getting correlations
-#' ggstatsplot::grouped_ggcorrmat(
-#'   data = ggplot2::msleep,
-#'   grouping.var = vore,
-#'   cor.vars = sleep_total:bodywt,
-#'   output = "correlations"
+#'   type = "bayes",
+#'   output = "dataframe"
 #' )
 #' }
 #' @export
@@ -70,15 +58,10 @@ grouped_ggcorrmat <- function(data,
                               sub.text = NULL,
                               sub.args = list(size = 12)) {
 
+  # ========================= preparing dataframe =============================
+
   # create a list of function call to check for label.expression
   param_list <- as.list(match.call())
-
-  # check that there is a grouping.var
-  if (!"grouping.var" %in% names(param_list)) {
-    stop("You must specify a grouping variable")
-  }
-
-  # ========================= preparing dataframe =============================
 
   # ensure the grouping variable works quoted or unquoted
   grouping.var <- rlang::ensym(grouping.var)

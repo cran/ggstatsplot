@@ -18,10 +18,15 @@ vignette: >
 ---
 
 ```{r setup, include = FALSE}
+# show me all columns
+options(tibble.width = Inf)
+
 knitr::opts_chunk$set(
   dpi = 300,
   out.width = "100%",
   collapse = TRUE,
+  message = FALSE,
+  warning = FALSE,
   comment = "#>"
 )
 ```
@@ -60,7 +65,7 @@ ggstatsplot::ggcorrmat(
   cor.vars = c(Sepal.Length:Petal.Width),
   matrix.type = "upper",
   ggtheme = ggthemes::theme_fivethirtyeight(), # selected ggplot2 theme
-  ggstatsplot.layer = FALSE
+  ggstatsplot.layer = FALSE # turn of default theme layer
 )
 ```
 

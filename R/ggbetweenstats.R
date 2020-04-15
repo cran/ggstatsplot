@@ -11,9 +11,12 @@
 #' @param xlab,ylab Labels for `x` and `y` axis variables. If `NULL` (default),
 #'   variable names for `x` and `y` will be used.
 #' @param pairwise.comparisons Logical that decides whether pairwise comparisons
-#'   are to be displayed (default: `FALSE`). Please note that **only significant
-#'   comparisons** will be shown by default. To change this behavior, select
-#'   appropriate option with `pairwise.display` argument.
+#'   are to be displayed (default: `FALSE`). Please note that only
+#'   **significant** comparisons will be shown by default. To change this
+#'   behavior, select appropriate option with `pairwise.display` argument. The
+#'   pairwise comparison dataframes are prepared using the
+#'   `pairwiseComparisons::pairwise_comparisons` function. For more details
+#'   about pairwise comparisons, see the documentation for that function.
 #' @param p.adjust.method Adjustment method for *p*-values for multiple
 #'   comparisons. Possible methods are: `"holm"` (default), `"hochberg"`,
 #'   `"hommel"`, `"bonferroni"`, `"BH"`, `"BY"`, `"fdr"`, `"none"`.
@@ -94,7 +97,9 @@
 #'   you have set `results.subtitle = FALSE`, then this will return a `NULL`.
 #'   Setting this to `"caption"` will return the expression containing details
 #'   about Bayes Factor analysis, but valid only when `type = "parametric"` and
-#'   `bf.message = TRUE`, otherwise this will return a `NULL`.
+#'   `bf.message = TRUE`, otherwise this will return a `NULL`. For functions
+#'   `ggpiestats` and `ggbarstats`, setting `output = "proptest"` will return a
+#'   dataframe containing results from proportion tests.
 #' @param ... Currently ignored.
 #' @inheritParams theme_ggstatsplot
 #' @param mean.point.args,mean.label.args A list of additional aesthetic
@@ -115,7 +120,7 @@
 #' @importFrom paletteer scale_color_paletteer_d scale_fill_paletteer_d
 #' @importFrom ggsignif geom_signif
 #' @importFrom statsExpressions bf_ttest bf_oneway_anova
-#' @importFrom pairwiseComparisons pairwise_comparisons
+#' @importFrom pairwiseComparisons pairwise_comparisons pairwise_caption
 #' @importFrom ipmisc outlier_df
 #'
 #' @seealso \code{\link{grouped_ggbetweenstats}}, \code{\link{ggwithinstats}},
@@ -165,7 +170,7 @@
 #'   data = datasets::morley,
 #'   x = Expt,
 #'   y = Speed,
-#'   type = "np",
+#'   type = "nonparametric",
 #'   plot.type = "box",
 #'   conf.level = 0.99,
 #'   xlab = "The experiment number",
@@ -194,7 +199,6 @@ ggbetweenstats <- function(data,
                            p.adjust.method = "holm",
                            effsize.type = "unbiased",
                            partial = TRUE,
-                           effsize.noncentral = TRUE,
                            bf.prior = 0.707,
                            bf.message = TRUE,
                            results.subtitle = TRUE,
@@ -203,7 +207,6 @@ ggbetweenstats <- function(data,
                            caption = NULL,
                            title = NULL,
                            subtitle = NULL,
-                           stat.title = NULL,
                            sample.size.label = TRUE,
                            k = 2,
                            var.equal = FALSE,
@@ -242,10 +245,7 @@ ggbetweenstats <- function(data,
                            ...) {
 
   # convert entered stats type to a standard notation
-  type <- stats_type_switch(type)
-
-  # no pairwise comparisons are available for Bayesian t-tests
-  if (type == "bayes") pairwise.comparisons <- FALSE
+  type <- ipmisc::stats_type_switch(type)
 
   # ------------------------------ variable names ----------------------------
 
@@ -320,18 +320,14 @@ ggbetweenstats <- function(data,
         paired = FALSE,
         effsize.type = effsize.type,
         partial = partial,
-        effsize.noncentral = effsize.noncentral,
         var.equal = var.equal,
         bf.prior = bf.prior,
         tr = tr,
         nboot = nboot,
         conf.level = conf.level,
-        stat.title = stat.title,
         k = k,
         messages = messages
       )
-  } else {
-    test <- "none"
   }
 
   # quit early if only subtitle is needed
@@ -506,9 +502,6 @@ ggbetweenstats <- function(data,
         messages = FALSE
       )
 
-    # display the results if needed
-    if (isTRUE(messages)) print(dplyr::select(df_pairwise, -label))
-
     # adding the layer for pairwise comparisons
     plot <-
       ggsignif_adder(
@@ -522,7 +515,14 @@ ggbetweenstats <- function(data,
       )
 
     # preparing the caption for pairwise comparisons test
-    caption <- pairwise_caption(caption, unique(df_pairwise$test.details), p.adjust.method)
+    if (type != "bayes") {
+      caption <-
+        pairwiseComparisons::pairwise_caption(
+          caption,
+          unique(df_pairwise$test.details),
+          p.adjust.method
+        )
+    }
   }
 
   # ------------------------ annotations and themes -------------------------
