@@ -9,13 +9,6 @@
 #'   of fit test) will be run for the `x` variable. Otherwise an appropriate
 #'   association test will be run. This argument can not be `NULL` for
 #'   `ggbarstats` function.
-#' @param factor.levels A character vector with labels for factor levels of
-#'   `main` variable.
-#' @param title The text for the plot title.
-#' @param caption The text for the plot caption.
-#' @param palette If a character string (e.g., `"Set1"`), will use that named
-#'   palette. If a number, will index into the list of palettes of appropriate
-#'   type. Default palette is `"Dark2"`.
 #' @param proportion.test Decides whether proportion test for `main` variable is
 #'   to be carried out for each level of `condition` (Default: `TRUE`).
 #' @param perc.k Numeric that decides number of decimal places for percentage
@@ -25,15 +18,12 @@
 #'   (default), `"counts"`, `"both"`.
 #' @param label.args Additional aesthetic arguments that will be passed to
 #'   `geom_label`.
-#' @param bf.message Logical that decides whether to display a caption with
-#'   results from Bayes Factor test in favor of the null hypothesis (default:
-#'   `FALSE`).
+#' @inheritParams ggbetweenstats
 #' @inheritParams tidyBF::bf_contingency_tab
 #' @inheritParams statsExpressions::expr_contingency_tab
 #' @inheritParams theme_ggstatsplot
 #' @inheritParams gghistostats
 #' @inheritParams cat_label_df
-#' @inheritParams ggbetweenstats
 #'
 #' @seealso \code{\link{grouped_ggpiestats}}, \code{\link{ggbarstats}},
 #'  \code{\link{grouped_ggbarstats}}
@@ -45,6 +35,7 @@
 #' @importFrom paletteer scale_fill_paletteer_d
 #' @importFrom groupedstats grouped_proptest
 #' @importFrom tidyr uncount drop_na
+#' @importFrom statsExpressions bf_contingency_tab expr_contingency_tab
 #'
 #' @references
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html}
@@ -66,20 +57,14 @@
 #' set.seed(123)
 #'
 #' # one sample goodness of fit proportion test
-#' ggstatsplot::ggpiestats(
-#'   data = ggplot2::msleep,
-#'   x = vore,
-#'   perc.k = 1
-#' )
+#' ggstatsplot::ggpiestats(ggplot2::msleep, vore)
 #'
 #' # association test (or contingency table analysis)
 #' ggstatsplot::ggpiestats(
 #'   data = mtcars,
 #'   x = vs,
 #'   y = cyl,
-#'   bf.message = TRUE,
 #'   nboot = 10,
-#'   factor.levels = c("0 = V-shaped", "1 = straight"),
 #'   legend.title = "Engine"
 #' )
 #' @export
@@ -92,7 +77,6 @@ ggpiestats <- function(data,
                        ratio = NULL,
                        paired = FALSE,
                        results.subtitle = TRUE,
-                       factor.levels = NULL,
                        label = "percentage",
                        perc.k = 0,
                        label.args = list(alpha = 1, fill = "white"),
@@ -112,7 +96,6 @@ ggpiestats <- function(data,
                        ggstatsplot.layer = TRUE,
                        package = "RColorBrewer",
                        palette = "Dark2",
-                       direction = 1,
                        ggplot.component = NULL,
                        output = "plot",
                        messages = TRUE,
@@ -245,13 +228,6 @@ ggpiestats <- function(data,
 
   # =================================== plot =================================
 
-  # getting labels for all levels of the 'x' variable factor
-  if (is.null(factor.levels)) {
-    legend.labels <- as.character(df %>% dplyr::pull({{ x }}))
-  } else {
-    legend.labels <- factor.levels
-  }
-
   # if no. of factor levels is greater than the default palette color count
   palette_message(
     package = package,
@@ -289,9 +265,7 @@ ggpiestats <- function(data,
     ggplot2::scale_y_continuous(breaks = NULL) +
     paletteer::scale_fill_paletteer_d(
       palette = paste0(package, "::", palette),
-      direction = direction,
-      name = "",
-      labels = unique(legend.labels)
+      name = ""
     ) +
     theme_pie(
       ggtheme = ggtheme,

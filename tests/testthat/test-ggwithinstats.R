@@ -18,6 +18,7 @@ testthat::test_that(
         y = desire,
         type = "bayes",
         k = 4,
+        # mean.ci = TRUE,
         conf.level = 0.99,
         outlier.tagging = TRUE,
         outlier.label = "region",
@@ -57,8 +58,9 @@ testthat::test_that(
     testthat::expect_equal(dim(pb1$data[[3]]), c(1024L, 21L))
     testthat::expect_equal(dim(pb1$data[[4]]), c(180L, 8L))
     testthat::expect_equal(dim(pb1$data[[5]]), c(0L, 0L))
-    testthat::expect_equal(dim(pb1$data[[6]]), c(2L, 13L))
-    testthat::expect_equal(dim(pb1$data[[8]]), c(2L, 8L))
+    testthat::expect_equal(dim(pb1$data[[6]]), c(2L, 8L))
+    testthat::expect_equal(dim(pb1$data[[7]]), c(2L, 13L))
+    testthat::expect_equal(dim(pb1$data[[8]]), c(2L, 15L))
 
     # checking geom data
     testthat::expect_identical(pb1$data[[4]]$colour[[1]], "red")
@@ -122,7 +124,7 @@ testthat::test_that(
     )
 
     testthat::expect_equal(
-      pb1$data[[6]],
+      pb1$data[[7]],
       structure(
         list(
           x = 1:2,
@@ -157,14 +159,14 @@ testthat::test_that(
     )
 
     testthat::expect_equal(
-      pb1$data[[7]],
+      pb1$data[[8]],
       structure(
         list(
           x = 1:2,
           y = c(7.86666666666667, 6.73888888888889),
           label = c(
-            "list(~italic(widehat(mu))== 7.8667 )",
-            "list(~italic(widehat(mu))== 6.7389 )"
+            "list(~italic(widehat(mu))==7.8667)",
+            "list(~italic(widehat(mu))==6.7389)"
           ),
           PANEL = structure(c(1L, 1L), class = "factor", .Label = "1"),
           group = structure(1:2, n = 2L),
@@ -194,7 +196,7 @@ testthat::test_that(
     )
 
     testthat::expect_equal(
-      pb1$data[[8]],
+      pb1$data[[6]],
       structure(
         list(
           x = 1:2,
@@ -289,8 +291,10 @@ testthat::test_that(
     testthat::expect_equal(dim(pb1$data[[1]]), c(66L, 10L))
     testthat::expect_equal(dim(pb1$data[[2]]), c(3L, 26L))
     testthat::expect_equal(dim(pb1$data[[3]]), c(1536L, 21L))
-    testthat::expect_equal(dim(pb1$data[[5]]), c(3L, 13L))
-    testthat::expect_equal(dim(pb1$data[[7]]), c(3L, 8L))
+    testthat::expect_equal(dim(pb1$data[[4]]), c(4L, 15L))
+    testthat::expect_equal(dim(pb1$data[[5]]), c(3L, 8L))
+    testthat::expect_equal(dim(pb1$data[[6]]), c(3L, 13L))
+    testthat::expect_equal(dim(pb1$data[[7]]), c(3L, 15L))
     testthat::expect_equal(dim(pb1$data[[8]]), c(6L, 19L))
 
     # data from difference layers

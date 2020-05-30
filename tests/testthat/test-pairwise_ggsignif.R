@@ -75,15 +75,15 @@ testthat::test_that(
     testthat::expect_equal(
       unique(as.character(pb$data[[7]]$annotation)),
       c(
-        "list(~italic(p)[ unadjusted ]== 0.079 )",
         "list(~italic(p)[ unadjusted ]== 0.139 )",
+        "list(~italic(p)[ unadjusted ]== 0.079 )",
         "list(~italic(p)[ unadjusted ]== 0.825 )"
       )
     )
 
     testthat::expect_equal(
       unique(as.character(pb$data[[7]]$group)),
-      c("PG-13-R-1", "PG-13-PG-2", "R-PG-3")
+      c("PG-13-PG-1", "PG-13-R-2", "R-PG-3")
     )
 
     # checking caption
@@ -123,7 +123,6 @@ testthat::test_that(
       messages = FALSE,
       bf.message = FALSE,
       pairwise.comparisons = TRUE,
-      pairwise.annotation = "xyz",
       p.adjust.method = "fdr",
       pairwise.display = "all",
       k = 3,
@@ -148,13 +147,13 @@ testthat::test_that(
     # checking comparison groups and labels
     testthat::expect_identical(dat$group1, c("Action", "Action", "Comedy"))
     testthat::expect_identical(dat$group2, c("Comedy", "RomCom", "RomCom"))
-    testthat::expect_identical(dat$significance, c("ns", "**", "**"))
+    testthat::expect_identical(dat$significance, c("ns", "***", "***"))
     testthat::expect_identical(
       dat$label,
       c(
-        "list(~italic(p)[ adjusted ]== 0.915 )",
-        "list(~italic(p)[ adjusted ]== 0.003 )",
-        "list(~italic(p)[ adjusted ]== 0.001 )"
+        "list(~italic(p)[ adjusted ]== 0.812 )",
+        "list(~italic(p)[ adjusted ]<= 0.001 )",
+        "list(~italic(p)[ adjusted ]<= 0.001 )"
       )
     )
     testthat::expect_identical(
@@ -163,7 +162,7 @@ testthat::test_that(
         displaystyle(NULL),
         expr = paste(
           "Pairwise comparisons: ",
-          bold("Dwass-Steel-Crichtlow-Fligner test"),
+          bold("Dunn test"),
           "; Adjustment (p-value): ",
           bold("Benjamini & Hochberg")
         )
@@ -175,12 +174,12 @@ testthat::test_that(
         p.value = TRUE,
         k = 4
       ),
-      "0.9145"
+      "0.8116"
     )
 
     # checking values
-    testthat::expect_equal(dat$W,
-      c(0.5702297, 4.8458729, 5.4434648),
+    testthat::expect_equal(dat$z.value,
+      c(0.238306686320387, 3.63442246865882, 3.69050171235682),
       tolerance = 0.001
     )
 
@@ -193,7 +192,7 @@ testthat::test_that(
       ggsignif_stat$comparisons[[1]],
       c("Action", "Comedy")
     )
-    testthat::expect_equal(ggsignif_stat$annotations, dat$significance)
+    testthat::expect_equal(ggsignif_stat$annotations, dat$label)
   }
 )
 

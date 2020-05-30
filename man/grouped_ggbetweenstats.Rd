@@ -72,8 +72,6 @@ about pairwise comparisons, see the documentation for that function.}
     \item{\code{p.adjust.method}}{Adjustment method for \emph{p}-values for multiple
 comparisons. Possible methods are: \code{"holm"} (default), \code{"hochberg"},
 \code{"hommel"}, \code{"bonferroni"}, \code{"BH"}, \code{"BY"}, \code{"fdr"}, \code{"none"}.}
-    \item{\code{pairwise.annotation}}{Character that decides the annotations to use for
-pairwise comparisons. Either \code{"p.value"} (default) or \code{"asterisk"}.}
     \item{\code{pairwise.display}}{Decides which pairwise comparisons to display.
 Available options are \code{"significant"} (abbreviation accepted: \code{"s"}) or
 \code{"non-significant"} (abbreviation accepted: \code{"ns"}) or
@@ -139,7 +137,6 @@ as a function.}
     \item{\code{package}}{Name of package from which the palette is desired as string
 or symbol.}
     \item{\code{palette}}{Name of palette as string or symbol.}
-    \item{\code{direction}}{Either \code{1} or \code{-1}. If \code{-1} the palette will be reversed.}
     \item{\code{mean.point.args}}{A list of additional aesthetic
 arguments to be passed to \code{ggplot2::geom_point} and
 \code{ggrepel::geom_label_repel} geoms involved mean value plotting.}

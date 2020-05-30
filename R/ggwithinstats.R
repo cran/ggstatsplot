@@ -70,7 +70,6 @@ ggwithinstats <- function(data,
                           y,
                           type = "parametric",
                           pairwise.comparisons = FALSE,
-                          pairwise.annotation = "p.value",
                           pairwise.display = "significant",
                           p.adjust.method = "holm",
                           effsize.type = "unbiased",
@@ -109,7 +108,6 @@ ggwithinstats <- function(data,
                           ggstatsplot.layer = TRUE,
                           package = "RColorBrewer",
                           palette = "Dark2",
-                          direction = 1,
                           ggplot.component = NULL,
                           output = "plot",
                           messages = TRUE,
@@ -297,17 +295,6 @@ ggwithinstats <- function(data,
 
   # add labels for mean values
   if (isTRUE(mean.plotting)) {
-    plot <-
-      mean_ggrepel(
-        mean.data = mean_dat,
-        x = {{ x }},
-        y = {{ y }},
-        plot = plot,
-        mean.point.args = mean.point.args,
-        mean.label.args = mean.label.args,
-        inherit.aes = FALSE
-      )
-
     # if there should be lines connecting mean values across groups
     if (isTRUE(mean.path)) {
       plot <- plot +
@@ -319,6 +306,18 @@ ggwithinstats <- function(data,
           !!!mean.path.args
         )
     }
+
+    # add mean points
+    plot <-
+      mean_ggrepel(
+        mean.data = mean_dat,
+        x = {{ x }},
+        y = {{ y }},
+        plot = plot,
+        mean.point.args = mean.point.args,
+        mean.label.args = mean.label.args,
+        inherit.aes = FALSE
+      )
   }
 
   # ----------------- sample size labels --------------------------------------
@@ -354,7 +353,6 @@ ggwithinstats <- function(data,
         data = data,
         x = {{ x }},
         y = {{ y }},
-        pairwise.annotation = pairwise.annotation,
         pairwise.display = pairwise.display
       )
 
@@ -385,29 +383,8 @@ ggwithinstats <- function(data,
       ggstatsplot.layer = ggstatsplot.layer,
       package = package,
       palette = palette,
-      direction = direction,
       ggplot.component = ggplot.component
     )
-
-  # --------------------- messages ------------------------------------------
-
-  if (isTRUE(messages)) {
-    # display normality test result as a message
-    normality_message(
-      x = data %>% dplyr::pull({{ y }}),
-      lab = ylab,
-      k = k
-    )
-
-    # display homogeneity of variance test as a message
-    bartlett_message(
-      data = data,
-      x = {{ x }},
-      y = {{ y }},
-      lab = xlab,
-      k = k
-    )
-  }
 
   # return the final plot
   return(plot)

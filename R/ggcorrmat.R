@@ -21,14 +21,6 @@
 #'   values, *p*-values, no. of observations, etc.) will be returned.
 #' @param matrix.type Character, `"full"` (default), `"upper"` or `"lower"`,
 #'   display full matrix, lower triangular or upper triangular matrix.
-#' @param type A character string indicating which correlation coefficient is to
-#'   be computed: `"pearson"` (Pearson's *r*), `"spearman"` (Spearman's *rho*),
-#'   `"robust"` (percentage bend correlation (see `?WRS2::pball`)) or `"bayes"`,
-#'   which would compute Bayes Factor for Pearson's *r*.
-#'   Abbreviations will also work: `"p"` (for parametric), `"np"`
-#'   (nonparametric), `"r"` (robust), `"bf"` (Bayes Factor).
-#' @param beta A numeric bending constant for percentage bend robust correlation
-#'   coefficient (Default: `0.1`).
 #' @param sig.level Significance level (Default: `0.05`). If the *p*-value in
 #'   *p*-value matrix is bigger than `sig.level`, then the corresponding
 #'   correlation coefficient is regarded as insignificant and flagged as such in
@@ -46,7 +38,7 @@
 #'   colors from the specified `palette` from `package` will be selected.
 #' @param caption The text for the plot caption. If `NULL`, a default caption
 #'   will be shown.
-#' @param pch Decides the glyphs (read point shapes) to be used for
+#' @param pch Decides the glyphs (or point shapes) to be used for
 #'   insignificant correlation coefficients (only valid when `insig = "pch"`).
 #'   Default value is `pch = 4`.
 #' @param ggcorrplot.args A list of additional (mostly aesthetic) arguments that
@@ -54,9 +46,10 @@
 #'   any of the following arguments since they are already internally being used
 #'   by `ggstatsplot`: `corr`, `method`, `p.mat`, `sig.level`, `ggtheme`,
 #'   `colors`, `matrix.type`, `lab`, `pch`, `legend.title`, `digits`.
-#' @inheritParams theme_ggstatsplot
-#' @inheritParams ggscatterstats
+#' @inheritParams statsExpressions::expr_corr_test
 #' @inheritParams ggbetweenstats
+#' @inheritParams theme_ggstatsplot
+#' @inheritParams ggcorrplot::ggcorrplot
 #'
 #' @import ggplot2
 #'
@@ -111,7 +104,7 @@ ggcorrmat <- function(data,
                       method = "square",
                       type = "parametric",
                       beta = 0.1,
-                      k = 2,
+                      k = 2L,
                       sig.level = 0.05,
                       conf.level = 0.95,
                       bf.prior = 0.707,
@@ -120,10 +113,10 @@ ggcorrmat <- function(data,
                       ggcorrplot.args = list(outline.color = "black"),
                       package = "RColorBrewer",
                       palette = "Dark2",
-                      direction = 1,
                       colors = c("#E69F00", "white", "#009E73"),
                       ggtheme = ggplot2::theme_bw(),
                       ggstatsplot.layer = TRUE,
+                      ggplot.component = NULL,
                       title = NULL,
                       subtitle = NULL,
                       caption = NULL,
@@ -224,8 +217,7 @@ ggcorrmat <- function(data,
     colors <-
       paletteer::paletteer_d(
         palette = paste0(package, "::", palette),
-        n = 3,
-        direction = direction,
+        n = 3L,
         type = "discrete"
       )
   }
@@ -328,6 +320,12 @@ ggcorrmat <- function(data,
 
   # adding `ggstatsplot` theme for correlation matrix
   if (isTRUE(ggstatsplot.layer)) plot <- plot + theme_corrmat()
+
+  # ---------------- adding ggplot component ---------------------------------
+
+  # if any additional modification needs to be made to the plot
+  # this is primarily useful for grouped_ variant of this function
+  plot <- plot + ggplot.component
 
   # return the desired result
   return(plot)

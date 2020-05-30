@@ -13,7 +13,7 @@ ggcorrmat(
   method = "square",
   type = "parametric",
   beta = 0.1,
-  k = 2,
+  k = 2L,
   sig.level = 0.05,
   conf.level = 0.95,
   bf.prior = 0.707,
@@ -22,10 +22,10 @@ ggcorrmat(
   ggcorrplot.args = list(outline.color = "black"),
   package = "RColorBrewer",
   palette = "Dark2",
-  direction = 1,
   colors = c("#E69F00", "white", "#009E73"),
   ggtheme = ggplot2::theme_bw(),
   ggstatsplot.layer = TRUE,
+  ggplot.component = NULL,
   title = NULL,
   subtitle = NULL,
   caption = NULL,
@@ -53,32 +53,18 @@ values, \emph{p}-values, no. of observations, etc.) will be returned.}
 \item{matrix.type}{Character, \code{"full"} (default), \code{"upper"} or \code{"lower"},
 display full matrix, lower triangular or upper triangular matrix.}
 
-\item{method}{Smoothing method (function) to use, accepts either
-\code{NULL} or a character vector, e.g. \code{"lm"}, \code{"glm"}, \code{"gam"}, \code{"loess"}
-or a function, e.g. \code{MASS::rlm} or \code{mgcv::gam}, \code{stats::lm}, or \code{stats::loess}.
-\code{"auto"} is also accepted for backwards compatibility.  It is equivalent to
-\code{NULL}.
+\item{method}{character, the visualization method of correlation matrix to be
+used. Allowed values are "square" (default), "circle".}
 
-For \code{method = NULL} the smoothing method is chosen based on the
-size of the largest group (across all panels). \code{\link[stats:loess]{stats::loess()}} is
-used for less than 1,000 observations; otherwise \code{\link[mgcv:gam]{mgcv::gam()}} is
-used with \code{formula = y ~ s(x, bs = "cs")} with \code{method = "REML"}. Somewhat anecdotally,
-\code{loess} gives a better appearance, but is \eqn{O(N^{2})}{O(N^2)} in memory,
-so does not work for larger datasets.
+\item{type}{Type of association between paired samples required
+("\code{"parametric"}: Pearson's product moment correlation coefficient" or
+"\code{"nonparametric"}: Spearman's rho" or "\code{"robust"}: percentage bend
+correlation coefficient" or "\code{"bayes"}: Bayes Factor for Pearson's \emph{r}").
+Corresponding abbreviations are also accepted: \code{"p"} (for
+parametric/pearson's), \code{"np"} (nonparametric/spearman), \code{"r"} (robust),
+\code{"bf"} (for bayes factor), resp.}
 
-If you have fewer than 1,000 observations but want to use the same \code{gam()}
-model that \code{method = NULL} would use, then set
-\verb{method = "gam", formula = y ~ s(x, bs = "cs")}.}
-
-\item{type}{A character string indicating which correlation coefficient is to
-be computed: \code{"pearson"} (Pearson's \emph{r}), \code{"spearman"} (Spearman's \emph{rho}),
-\code{"robust"} (percentage bend correlation (see \code{?WRS2::pball})) or \code{"bayes"},
-which would compute Bayes Factor for Pearson's \emph{r}.
-Abbreviations will also work: \code{"p"} (for parametric), \code{"np"}
-(nonparametric), \code{"r"} (robust), \code{"bf"} (Bayes Factor).}
-
-\item{beta}{A numeric bending constant for percentage bend robust correlation
-coefficient (Default: \code{0.1}).}
+\item{beta}{bending constant (Default: \code{0.1}). For more, see \code{?WRS2::pbcor}.}
 
 \item{k}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2}).}
@@ -103,7 +89,7 @@ width to use in calculating Bayes factors.}
 \strong{unadjusted} \emph{p}-values will be used for the \strong{lower} triangle of the
 matrix.}
 
-\item{pch}{Decides the glyphs (read point shapes) to be used for
+\item{pch}{Decides the glyphs (or point shapes) to be used for
 insignificant correlation coefficients (only valid when \code{insig = "pch"}).
 Default value is \code{pch = 4}.}
 
@@ -118,8 +104,6 @@ or symbol.}
 
 \item{palette}{Name of palette as string or symbol.}
 
-\item{direction}{Either \code{1} or \code{-1}. If \code{-1} the palette will be reversed.}
-
 \item{colors}{A vector of 3 colors for low, mid, and high correlation values.
 If set to \code{NULL}, manual specification of colors will be turned off and 3
 colors from the specified \code{palette} from \code{package} will be selected.}
@@ -133,6 +117,11 @@ extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
 theme elements are to be displayed along with the selected \code{ggtheme}
 (Default: \code{TRUE}). \code{theme_ggstatsplot} is an opinionated theme layer that
 override some aspects of the selected \code{ggtheme}.}
+
+\item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
+by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
+of the current function. Default is \code{NULL}. The argument should be entered
+as a function.}
 
 \item{title}{The text for the plot title.}
 

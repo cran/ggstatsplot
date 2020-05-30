@@ -150,7 +150,7 @@ testthat::test_that(
               " [",
               "-0.06250",
               ", ",
-              "0.07503",
+              "0.20569",
               "]",
               ", ",
               italic("n")["obs"],
@@ -244,6 +244,15 @@ testthat::test_that(
       c(1, 2, 3, 4, 5, 6)
     )
 
+    testthat::expect_identical(
+      pb$data[[6]]$label,
+      c(
+        "list(~italic(widehat(mu))==2.29,CI[95*'%']*'['*1.89,2.56*']')",
+        "list(~italic(widehat(mu))==3.12,CI[95*'%']*'['*2.88,3.32*']')",
+        "list(~italic(widehat(mu))==4.00,CI[95*'%']*'['*3.60,4.41*']')"
+      )
+    )
+
     # edge case
     a <- data.frame(
       mean.a = c(1.1, 0.9, 0.94, 1.58, 1.2, 1.4),
@@ -251,21 +260,21 @@ testthat::test_that(
     )
 
     # plot
-    p <-
-      ggstatsplot::ggbetweenstats(
+    p1 <-
+      suppressWarnings(ggstatsplot::ggbetweenstats(
         data = a,
         x = "group",
         y = "mean.a",
         results.subtitle = FALSE,
         messages = FALSE
-      )
+      ))
 
     # build
-    pb <- ggplot2::ggplot_build(p)
+    pb1 <- ggplot2::ggplot_build(p1)
 
     testthat::expect_identical(
-      pb$data[[6]]$label,
-      c("list(~italic(widehat(mu))== 0.98 )", "list(~italic(widehat(mu))== 1.39 )")
+      pb1$data[[6]]$label,
+      c("list(~italic(widehat(mu))==0.98)", "list(~italic(widehat(mu))==1.39)")
     )
   }
 )
@@ -489,8 +498,8 @@ testthat::test_that(
           x = 1:2,
           y = c(20.6633333333333, 16.9633333333333),
           label = c(
-            "list(~italic(widehat(mu))== 20.66 )",
-            "list(~italic(widehat(mu))== 16.96 )"
+            "list(~italic(widehat(mu))==20.66)",
+            "list(~italic(widehat(mu))==16.96)"
           ),
           PANEL = structure(c(1L, 1L), class = "factor", .Label = "1"),
           group = structure(1:2, n = 2L),
@@ -557,32 +566,6 @@ testthat::test_that(
         class = "data.frame"
       )
     )
-  }
-)
-
-# ggplot component addition works ------------------------------------------
-
-testthat::test_that(
-  desc = "ggplot component addition works",
-  code = {
-    testthat::skip_on_cran()
-
-    # plot
-    p <-
-      ggstatsplot::ggbetweenstats(
-        data = iris,
-        x = Species,
-        y = Sepal.Length,
-        results.subtitle = FALSE,
-        messages = FALSE,
-        ggplot.component = ggplot2::labs(y = "SL")
-      )
-
-    # build plot
-    pb <- ggplot2::ggplot_build(p)
-
-    # test
-    testthat::expect_identical(p$labels$y, "SL")
   }
 )
 

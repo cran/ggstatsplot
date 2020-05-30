@@ -51,14 +51,6 @@ values, \emph{p}-values, no. of observations, etc.) will be returned.}
   \describe{
     \item{\code{matrix.type}}{Character, \code{"full"} (default), \code{"upper"} or \code{"lower"},
 display full matrix, lower triangular or upper triangular matrix.}
-    \item{\code{type}}{A character string indicating which correlation coefficient is to
-be computed: \code{"pearson"} (Pearson's \emph{r}), \code{"spearman"} (Spearman's \emph{rho}),
-\code{"robust"} (percentage bend correlation (see \code{?WRS2::pball})) or \code{"bayes"},
-which would compute Bayes Factor for Pearson's \emph{r}.
-Abbreviations will also work: \code{"p"} (for parametric), \code{"np"}
-(nonparametric), \code{"r"} (robust), \code{"bf"} (Bayes Factor).}
-    \item{\code{beta}}{A numeric bending constant for percentage bend robust correlation
-coefficient (Default: \code{0.1}).}
     \item{\code{sig.level}}{Significance level (Default: \code{0.05}). If the \emph{p}-value in
 \emph{p}-value matrix is bigger than \code{sig.level}, then the corresponding
 correlation coefficient is regarded as insignificant and flagged as such in
@@ -76,7 +68,7 @@ If set to \code{NULL}, manual specification of colors will be turned off and 3
 colors from the specified \code{palette} from \code{package} will be selected.}
     \item{\code{caption}}{The text for the plot caption. If \code{NULL}, a default caption
 will be shown.}
-    \item{\code{pch}}{Decides the glyphs (read point shapes) to be used for
+    \item{\code{pch}}{Decides the glyphs (or point shapes) to be used for
 insignificant correlation coefficients (only valid when \code{insig = "pch"}).
 Default value is \code{pch = 4}.}
     \item{\code{ggcorrplot.args}}{A list of additional (mostly aesthetic) arguments that
@@ -84,6 +76,23 @@ will be passed to \code{ggcorrplot::ggcorrplot} function. The list should avoid
 any of the following arguments since they are already internally being used
 by \code{ggstatsplot}: \code{corr}, \code{method}, \code{p.mat}, \code{sig.level}, \code{ggtheme},
 \code{colors}, \code{matrix.type}, \code{lab}, \code{pch}, \code{legend.title}, \code{digits}.}
+    \item{\code{type}}{Type of association between paired samples required
+("\code{"parametric"}: Pearson's product moment correlation coefficient" or
+"\code{"nonparametric"}: Spearman's rho" or "\code{"robust"}: percentage bend
+correlation coefficient" or "\code{"bayes"}: Bayes Factor for Pearson's \emph{r}").
+Corresponding abbreviations are also accepted: \code{"p"} (for
+parametric/pearson's), \code{"np"} (nonparametric/spearman), \code{"r"} (robust),
+\code{"bf"} (for bayes factor), resp.}
+    \item{\code{beta}}{bending constant (Default: \code{0.1}). For more, see \code{?WRS2::pbcor}.}
+    \item{\code{k}}{Number of digits after decimal point (should be an integer)
+(Default: \code{k = 2}).}
+    \item{\code{conf.level}}{Scalar between 0 and 1. If unspecified, the defaults return
+\verb{95\%} lower and upper confidence intervals (\code{0.95}).}
+    \item{\code{bf.prior}}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
+width to use in calculating Bayes factors.}
+    \item{\code{package}}{Name of package from which the palette is desired as string
+or symbol.}
+    \item{\code{palette}}{Name of palette as string or symbol.}
     \item{\code{ggtheme}}{A function, \code{ggplot2} theme name. Default value is
 \code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
 extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
@@ -92,36 +101,16 @@ extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
 theme elements are to be displayed along with the selected \code{ggtheme}
 (Default: \code{TRUE}). \code{theme_ggstatsplot} is an opinionated theme layer that
 override some aspects of the selected \code{ggtheme}.}
-    \item{\code{method}}{Smoothing method (function) to use, accepts either
-\code{NULL} or a character vector, e.g. \code{"lm"}, \code{"glm"}, \code{"gam"}, \code{"loess"}
-or a function, e.g. \code{MASS::rlm} or \code{mgcv::gam}, \code{stats::lm}, or \code{stats::loess}.
-\code{"auto"} is also accepted for backwards compatibility.  It is equivalent to
-\code{NULL}.
-
-For \code{method = NULL} the smoothing method is chosen based on the
-size of the largest group (across all panels). \code{\link[stats:loess]{stats::loess()}} is
-used for less than 1,000 observations; otherwise \code{\link[mgcv:gam]{mgcv::gam()}} is
-used with \code{formula = y ~ s(x, bs = "cs")} with \code{method = "REML"}. Somewhat anecdotally,
-\code{loess} gives a better appearance, but is \eqn{O(N^{2})}{O(N^2)} in memory,
-so does not work for larger datasets.
-
-If you have fewer than 1,000 observations but want to use the same \code{gam()}
-model that \code{method = NULL} would use, then set
-\verb{method = "gam", formula = y ~ s(x, bs = "cs")}.}
-    \item{\code{k}}{Number of digits after decimal point (should be an integer)
-(Default: \code{k = 2}).}
-    \item{\code{conf.level}}{Scalar between 0 and 1. If unspecified, the defaults return
-\verb{95\%} lower and upper confidence intervals (\code{0.95}).}
-    \item{\code{bf.prior}}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
-width to use in calculating Bayes factors.}
+    \item{\code{ggplot.component}}{A \code{ggplot} component to be added to the plot prepared
+by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
+of the current function. Default is \code{NULL}. The argument should be entered
+as a function.}
     \item{\code{subtitle}}{The text for the plot subtitle. Will work only if
 \code{results.subtitle = FALSE}.}
     \item{\code{messages}}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}
-    \item{\code{package}}{Name of package from which the palette is desired as string
-or symbol.}
-    \item{\code{palette}}{Name of palette as string or symbol.}
-    \item{\code{direction}}{Either \code{1} or \code{-1}. If \code{-1} the palette will be reversed.}
+    \item{\code{method}}{character, the visualization method of correlation matrix to be
+used. Allowed values are "square" (default), "circle".}
   }}
 
 \item{plotgrid.args}{A list of additional arguments to \code{cowplot::plot_grid}.}

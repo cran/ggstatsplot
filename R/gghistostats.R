@@ -82,7 +82,7 @@ gghistostats <- function(data,
                          effsize.type = "g",
                          conf.level = 0.95,
                          nboot = 100,
-                         k = 2,
+                         k = 2L,
                          ggtheme = ggplot2::theme_bw(),
                          ggstatsplot.layer = TRUE,
                          bar.fill = "grey50",
@@ -320,18 +320,6 @@ gghistostats <- function(data,
   # if any additional modification needs to be made to the plot
   # this is primarily useful for grouped_ variant of this function
   plot <- plot + ggplot.component
-
-  # ============================= messages =================================
-
-  # display normality test result as a message
-  if (isTRUE(messages)) {
-    ipmisc::normality_message(
-      x = x_vec,
-      lab = xlab,
-      k = k,
-      output = "message"
-    )
-  }
 
   # return the final plot
   return(plot)

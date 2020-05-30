@@ -20,8 +20,6 @@
 #' @param p.adjust.method Adjustment method for *p*-values for multiple
 #'   comparisons. Possible methods are: `"holm"` (default), `"hochberg"`,
 #'   `"hommel"`, `"bonferroni"`, `"BH"`, `"BY"`, `"fdr"`, `"none"`.
-#' @param pairwise.annotation Character that decides the annotations to use for
-#'   pairwise comparisons. Either `"p.value"` (default) or `"asterisk"`.
 #' @param pairwise.display Decides which pairwise comparisons to display.
 #'   Available options are `"significant"` (abbreviation accepted: `"s"`) or
 #'   `"non-significant"` (abbreviation accepted: `"ns"`) or
@@ -90,7 +88,6 @@
 #' @param package Name of package from which the palette is desired as string
 #' or symbol.
 #' @param palette Name of palette as string or symbol.
-#' @param direction Either `1` or `-1`. If `-1` the palette will be reversed.
 #' @param output Character that describes what is to be returned: can be
 #'   `"plot"` (default) or `"subtitle"` or `"caption"`. Setting this to
 #'   `"subtitle"` will return the expression containing statistical results. If
@@ -176,7 +173,6 @@
 #'   xlab = "The experiment number",
 #'   ylab = "Speed-of-light measurement",
 #'   pairwise.comparisons = TRUE,
-#'   pairwise.annotation = "p.value",
 #'   p.adjust.method = "fdr",
 #'   outlier.tagging = TRUE,
 #'   outlier.label = Run,
@@ -194,7 +190,6 @@ ggbetweenstats <- function(data,
                            plot.type = "boxviolin",
                            type = "parametric",
                            pairwise.comparisons = FALSE,
-                           pairwise.annotation = "p.value",
                            pairwise.display = "significant",
                            p.adjust.method = "holm",
                            effsize.type = "unbiased",
@@ -238,7 +233,6 @@ ggbetweenstats <- function(data,
                            ggstatsplot.layer = TRUE,
                            package = "RColorBrewer",
                            palette = "Dark2",
-                           direction = 1,
                            ggplot.component = NULL,
                            output = "plot",
                            messages = TRUE,
@@ -510,7 +504,6 @@ ggbetweenstats <- function(data,
         data = data,
         x = {{ x }},
         y = {{ y }},
-        pairwise.annotation = pairwise.annotation,
         pairwise.display = pairwise.display
       )
 
@@ -541,29 +534,8 @@ ggbetweenstats <- function(data,
       ggstatsplot.layer = ggstatsplot.layer,
       package = package,
       palette = palette,
-      direction = direction,
       ggplot.component = ggplot.component
     )
-
-  # --------------------- messages ------------------------------------------
-
-  if (isTRUE(messages)) {
-    # display normality test result as a message
-    normality_message(
-      x = data %>% dplyr::pull({{ y }}),
-      lab = ylab,
-      k = k
-    )
-
-    # display homogeneity of variance test as a message
-    bartlett_message(
-      data = data,
-      x = {{ x }},
-      y = {{ y }},
-      lab = xlab,
-      k = k
-    )
-  }
 
   # return the final plot
   return(plot)

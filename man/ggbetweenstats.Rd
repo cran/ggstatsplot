@@ -12,7 +12,6 @@ ggbetweenstats(
   plot.type = "boxviolin",
   type = "parametric",
   pairwise.comparisons = FALSE,
-  pairwise.annotation = "p.value",
   pairwise.display = "significant",
   p.adjust.method = "holm",
   effsize.type = "unbiased",
@@ -52,7 +51,6 @@ ggbetweenstats(
   ggstatsplot.layer = TRUE,
   package = "RColorBrewer",
   palette = "Dark2",
-  direction = 1,
   ggplot.component = NULL,
   output = "plot",
   messages = TRUE,
@@ -84,9 +82,6 @@ behavior, select appropriate option with \code{pairwise.display} argument. The
 pairwise comparison dataframes are prepared using the
 \code{pairwiseComparisons::pairwise_comparisons} function. For more details
 about pairwise comparisons, see the documentation for that function.}
-
-\item{pairwise.annotation}{Character that decides the annotations to use for
-pairwise comparisons. Either \code{"p.value"} (default) or \code{"asterisk"}.}
 
 \item{pairwise.display}{Decides which pairwise comparisons to display.
 Available options are \code{"significant"} (abbreviation accepted: \code{"s"}) or
@@ -223,8 +218,6 @@ or symbol.}
 
 \item{palette}{Name of palette as string or symbol.}
 
-\item{direction}{Either \code{1} or \code{-1}. If \code{-1} the palette will be reversed.}
-
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
 by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
 of the current function. Default is \code{NULL}. The argument should be entered
@@ -297,7 +290,6 @@ ggstatsplot::ggbetweenstats(
   xlab = "The experiment number",
   ylab = "Speed-of-light measurement",
   pairwise.comparisons = TRUE,
-  pairwise.annotation = "p.value",
   p.adjust.method = "fdr",
   outlier.tagging = TRUE,
   outlier.label = Run,
