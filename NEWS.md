@@ -1,3 +1,42 @@
+# ggstatsplot 0.6.0
+
+NEW FEATURES
+
+  - More models supported in `ggcoefstats`: `BFBayesFactor`, `betamfx`, `crq`,
+    `coxph.penal`, `geeglm`, `glht`, `glmm`, `lm_robust`, `lqm`, `lqmm`,
+    `manova`, `maov`, `negbinmfx`, `logitmfx`, `logitsf`, `margins`,
+    `poissonmfx`, `betaor`, `negbinirr`, `logitor`, `metafor`, `metaplus`,
+    `orm`, `poissonirr`, `semLm`, `semLme`, `vgam`.
+    
+  - `ggpiestats` gains `label.repel` argument to cover contexts in which the
+    labels might overlap. Setting it to `TRUE` will minimize such an overlap.
+    
+  - `ggbetweenstats` and `ggwithinstats` gain `ggsignif.args` argument to make
+    it easy to change aesthetics of the pairwise comparison geom.
+    
+  - The subtitle and caption for Bayes Factor tests now also provide information
+    about posterior estimates, when relevant.
+
+MAJOR CHANGES
+
+  - Removed unused `intent_morality` dataset.
+  
+  - `ggcoefstats` retires `caption.summary` argument. So, by default, the
+    caption is going to contain as much information as it can and the users can
+    then choose to modify the default caption using `ggplot2` functions.
+
+MINOR CHANGES
+
+  - The argument `method` for `ggcorrmat` has been renamed to `matrix.method`,
+    since it was confusing whether this method referred to correlation method.
+    
+  - For both `ggpiestats` and `ggbarstats`, the count labels no longer include
+    ` n =  ` in them as this was confusing since all labels had ` n =  ` in them
+    with no further explanation about how this `n` differed from `n` in the
+    proportion test.
+    
+  - No longer relies on `groupedstats` package.
+
 # ggstatsplot 0.5.0
 
 BREAKING CHANGES

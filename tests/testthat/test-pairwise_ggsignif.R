@@ -75,15 +75,15 @@ testthat::test_that(
     testthat::expect_equal(
       unique(as.character(pb$data[[7]]$annotation)),
       c(
-        "list(~italic(p)[ unadjusted ]== 0.139 )",
-        "list(~italic(p)[ unadjusted ]== 0.079 )",
-        "list(~italic(p)[ unadjusted ]== 0.825 )"
+        "list(~italic(p)[unadjusted]==0.139)",
+        "list(~italic(p)[unadjusted]==0.825)",
+        "list(~italic(p)[unadjusted]==0.079)"
       )
     )
 
     testthat::expect_equal(
       unique(as.character(pb$data[[7]]$group)),
-      c("PG-13-PG-1", "PG-13-R-2", "R-PG-3")
+      c("PG-PG-13-1", "PG-R-2", "PG-13-R-3")
     )
 
     # checking caption
@@ -142,7 +142,7 @@ testthat::test_that(
     data_dims <- dim(dat)
 
     # data for geom_signif layer
-    data_signif <- tibble::as_tibble(pb$data[[7]])
+    data_signif <- as_tibble(pb$data[[7]])
 
     # checking comparison groups and labels
     testthat::expect_identical(dat$group1, c("Action", "Action", "Comedy"))
@@ -151,9 +151,9 @@ testthat::test_that(
     testthat::expect_identical(
       dat$label,
       c(
-        "list(~italic(p)[ adjusted ]== 0.812 )",
-        "list(~italic(p)[ adjusted ]<= 0.001 )",
-        "list(~italic(p)[ adjusted ]<= 0.001 )"
+        "list(~italic(p)[adjusted]==0.812)",
+        "list(~italic(p)[adjusted]<=0.001)",
+        "list(~italic(p)[adjusted]<=0.001)"
       )
     )
     testthat::expect_identical(
@@ -233,7 +233,7 @@ testthat::test_that(
     data_dims <- dim(dat)
 
     # data for geom_signif layer
-    data_signif <- tibble::as_tibble(pb$data[[7]])
+    data_signif <- as_tibble(pb$data[[7]])
 
     # checking comparison groups and labels
     testthat::expect_identical(dat$group1, c("4", "4", "f"))
@@ -268,8 +268,8 @@ testthat::test_that(
     testthat::expect_equal(
       ggsignif_stat$annotations,
       c(
-        "list(~italic(p)[ adjusted ]<= 0.001 )",
-        "list(~italic(p)[ adjusted ]<= 0.001 )"
+        "list(~italic(p)[adjusted]<=0.001)",
+        "list(~italic(p)[adjusted]<=0.001)"
       )
     )
   }
@@ -313,7 +313,7 @@ testthat::test_that(
     data_dims <- dim(dat)
 
     # data for geom_signif layer
-    data_signif <- tibble::as_tibble(pb$data[[7]])
+    data_signif <- as_tibble(pb$data[[7]])
 
     # checking comparison groups and labels)
     testthat::expect_identical(dat$group1, c("4", "4", "6"))
@@ -347,9 +347,9 @@ testthat::test_that(
     testthat::expect_equal(
       ggsignif_stat$annotations,
       c(
-        "list(~italic(p)[ adjusted ]== 0.032 )",
-        "list(~italic(p)[ adjusted ]<= 0.001 )",
-        "list(~italic(p)[ adjusted ]== 0.015 )"
+        "list(~italic(p)[adjusted]==0.032)",
+        "list(~italic(p)[adjusted]<=0.001)",
+        "list(~italic(p)[adjusted]==0.015)"
       )
     )
 

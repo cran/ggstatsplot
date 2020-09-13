@@ -54,22 +54,6 @@ Note that this is a repeated measures design because the same participant gave
 four different ratings across four different conditions (LDLF, LDHF, HDLF,
 HDHF).
 
-Let's have a look at the data-
-
-```{r bugs, warning = FALSE, message = FALSE}
-library(jmv)
-library(ggstatsplot)
-data("bugs", package = "jmv")
-
-# getting data in tidy format
-data_bugs <- bugs %>%
-  tibble::as_tibble(x = .) %>%
-  tidyr::gather(data = ., key, value, LDLF:HDHF) %>%
-  dplyr::filter(.data = ., Region %in% c("Europe", "North America"))
-
-dplyr::glimpse(x = data_bugs)
-```
-
 Suppose the first thing we want to inspect is the distribution of desire to kill
 across all conditions (disregarding the factorial structure of the experiment).
 We also want to know if the mean differences in this desire across conditions is
@@ -81,13 +65,13 @@ The simplest form of the function call is-
 # since the confidence intervals for the effect sizes are computed using
 # bootstrapping, important to set a seed for reproducibility
 set.seed(123)
+library(ggstatsplot)
 
 # function call
 ggstatsplot::ggwithinstats(
-  data = data_bugs,
-  x = key,
-  y = value,
-  messages = FALSE
+  data = bugs_long,
+  x = condition,
+  y = desire
 )
 ```
 
@@ -108,7 +92,7 @@ evidence in favor of the null hypothesis (i.e., $BF_{01}$).
 By default, natural logarithms are shown because Bayes Factor values can
 sometimes be pretty large. Having values on logarithmic scale also makes it easy
 to compare evidence in favor alternative ($BF_{10}$) versus null ($BF_{01}$)
-hypotheses (since $log_{e}(BF_{01}) = - log_{e}(BF_{01})$).
+hypotheses (since $log_{e}(BF_{01}) = - log_{e}(BF_{10})$).
 
 We can make the output much more aesthetically pleasing as well as informative
 by making use of the many optional parameters in `ggwithinstats`. We'll add a
@@ -117,32 +101,28 @@ outliers in the data. We can and will change the overall theme as well as the
 color palette in use.
 
 ```{r ggwithinstats2, message = FALSE, warning = FALSE, fig.height = 6, fig.width = 8}
+# for reproducibility
+set.seed(123)
 library(ggstatsplot)
 library(firatheme)
 
-# for reproducibility
-set.seed(123)
-
 # plot
 ggstatsplot::ggwithinstats(
-  data = data_bugs,
-  x = key, # grouping/independent variable
-  y = value, # dependent variables
+  data = bugs_long,
+  x = condition,
+  y = desire,
+  type = "nonparametric", # type of statistical test
   xlab = "Condition", # label for the x-axis
   ylab = "Desire to kill an artrhopod", # label for the y-axis
-  type = "parametric", # type of statistical test
   effsize.type = "biased", # type of effect size
-  nboot = 10, # number of bootstrap samples used
-  bf.message = TRUE, # display bayes factor in favor of null hypothesis
   sphericity.correction = FALSE, # don't display sphericity corrected dfs and p-values
   pairwise.comparisons = TRUE, # display pairwise comparisons
   outlier.tagging = TRUE, # whether outliers should be flagged
   outlier.coef = 1.5, # coefficient for Tukey's rule
-  outlier.label = Region, # label to attach to outlier values
+  outlier.label = region, # label to attach to outlier values
   outlier.label.color = "red", # outlier point label color
   mean.plotting = TRUE, # whether the mean is to be displayed
   mean.color = "darkblue", # color for mean
-  messages = FALSE, # turn off messages
   ggtheme = firatheme::theme_fira(), # a different theme
   ggstatsplot.layer = FALSE, # turn off default modification of the used theme
   package = "yarrr", # package from which color palette is to be taken
@@ -182,30 +162,29 @@ set.seed(123)
 library(ggstatsplot)
 
 # selecting subset of the data
-df_disgust <- dplyr::filter(.data = data_bugs, key %in% c("LDHF", "HDHF"))
+df_disgust <- dplyr::filter(.data = bugs_long, condition %in% c("LDHF", "HDHF"))
 
 # parametric t-test
 p1 <-
   ggstatsplot::ggwithinstats(
     data = df_disgust,
-    x = key,
-    y = value,
+    x = condition,
+    y = desire,
     type = "p",
     effsize.type = "d",
     conf.level = 0.99,
     title = "Parametric test",
     package = "ggsci",
     palette = "nrc_npg",
-    ggtheme = ggthemr::ggthemr(palette = "light"),
-    messages = FALSE
+    ggtheme = ggthemr::ggthemr(palette = "light")
   )
 
 # Mann-Whitney U test (nonparametric test)
 p2 <-
   ggstatsplot::ggwithinstats(
     data = df_disgust,
-    x = key,
-    y = value,
+    x = condition,
+    y = desire,
     xlab = "Condition",
     ylab = "Desire to kill bugs",
     type = "np",
@@ -214,16 +193,15 @@ p2 <-
     package = "ggsci",
     palette = "uniform_startrek",
     ggtheme = ggthemes::theme_map(),
-    ggstatsplot.layer = FALSE,
-    messages = FALSE
+    ggstatsplot.layer = FALSE
   )
 
 # robust t-test
 p3 <-
   ggstatsplot::ggwithinstats(
     data = df_disgust,
-    x = key,
-    y = value,
+    x = condition,
+    y = desire,
     xlab = "Condition",
     ylab = "Desire to kill bugs",
     type = "r",
@@ -232,24 +210,22 @@ p3 <-
     package = "wesanderson",
     palette = "Royal2",
     ggtheme = hrbrthemes::theme_ipsum_tw(),
-    ggstatsplot.layer = FALSE,
-    messages = FALSE
+    ggstatsplot.layer = FALSE
   )
 
 # Bayes Factor for parametric t-test
 p4 <-
   ggstatsplot::ggwithinstats(
     data = df_disgust,
-    x = key,
-    y = value,
+    x = condition,
+    y = desire,
     xlab = "Condition",
     ylab = "Desire to kill bugs",
     type = "bf",
     title = "Bayesian Test",
     package = "ggsci",
     palette = "nrc_npg",
-    ggtheme = ggthemes::theme_fivethirtyeight(),
-    messages = FALSE
+    ggtheme = ggthemes::theme_fivethirtyeight()
   )
 
 # combining the individual plots into a single plot
@@ -285,10 +261,10 @@ library(ggstatsplot)
 
 ggstatsplot::grouped_ggwithinstats(
   # arguments relevant for ggstatsplot::ggwithinstats
-  data = data_bugs,
-  x = key,
-  y = value,
-  grouping.var = Gender,
+  data = bugs_long,
+  x = condition,
+  y = desire,
+  grouping.var = gender,
   xlab = "Continent",
   ylab = "Desire to kill bugs",
   type = "nonparametric", # type of test
@@ -301,11 +277,10 @@ ggstatsplot::grouped_ggwithinstats(
   notch = TRUE,
   outlier.tagging = TRUE,
   ggstatsplot.layer = FALSE,
-  outlier.label = Education,
+  outlier.label = education,
   k = 3,
   mean.ci = TRUE,
   title.prefix = "Year",
-  messages = FALSE,
   # arguments relevant for ggstatsplot::combine_plots
   title.text = "Desire to kill bugs across genders",
   plotgrid.args = list(ncol = 1)
@@ -356,8 +331,8 @@ Robust | > 2 | <font color="red">No<font> | <font color="red">No<font>
 Bayes Factor | > 2 | <font color="red">No<font> | <font color="red">No<font>
 Parametric | 2 | Cohen's *d*, Hedge's *g* (central-and noncentral-*t* distribution based) | <font color="green">Yes<font>
 Non-parametric | 2 | *r* (computed as $Z/\sqrt{N}$) | <font color="green">Yes<font>
-Robust | 2 |  $\xi$ (Explanatory measure of effect size) | <font color="green">Yes<font>
-Bayes Factor | 2 | <font color="red">No<font> | <font color="red">No<font>
+Robust | 2 |  $\delta_{R}$ (robust standardized difference similar to Cohen's *d*) | <font color="green">Yes<font>
+Bayes Factor | 2 | <font color="green">Yes</font> | <font color="green">Yes</font>
 
 Here is a summary of *multiple pairwise comparison* tests supported in
 *ggwithinstats*-

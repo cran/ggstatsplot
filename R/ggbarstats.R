@@ -24,7 +24,6 @@
 #' @importFrom dplyr select group_by summarize n mutate mutate_at mutate_if
 #' @importFrom rlang !! enquo quo_name as_name ensym
 #' @importFrom paletteer scale_fill_paletteer_d
-#' @importFrom groupedstats grouped_proptest
 #' @importFrom tidyr uncount drop_na
 #' @importFrom statsExpressions expr_contingency_tab bf_contingency_tab
 #'
@@ -54,8 +53,12 @@ ggbarstats <- function(data,
                        results.subtitle = TRUE,
                        sample.size.label = TRUE,
                        label = "percentage",
-                       perc.k = 0,
                        label.args = list(alpha = 1, fill = "white"),
+                       conf.level = 0.95,
+                       nboot = 100L,
+                       k = 2L,
+                       proportion.test = TRUE,
+                       perc.k = 0,
                        bf.message = TRUE,
                        sampling.plan = "indepMulti",
                        fixed.margin = "rows",
@@ -63,20 +66,15 @@ ggbarstats <- function(data,
                        title = NULL,
                        subtitle = NULL,
                        caption = NULL,
-                       conf.level = 0.95,
-                       nboot = 100,
                        legend.title = NULL,
                        xlab = NULL,
                        ylab = NULL,
-                       k = 2,
-                       proportion.test = TRUE,
                        ggtheme = ggplot2::theme_bw(),
                        ggstatsplot.layer = TRUE,
                        package = "RColorBrewer",
                        palette = "Dark2",
                        ggplot.component = NULL,
                        output = "plot",
-                       messages = TRUE,
                        x = NULL,
                        y = NULL,
                        ...) {
@@ -146,8 +144,7 @@ ggbarstats <- function(data,
           conf.level = conf.level,
           conf.type = "norm",
           bias.correct = TRUE,
-          k = k,
-          messages = messages
+          k = k
         ),
         error = function(e) NULL
       )
@@ -236,24 +233,15 @@ ggbarstats <- function(data,
       na.rm = TRUE,
       !!!label.args
     ) +
-    ggstatsplot::theme_ggstatsplot(
-      ggtheme = ggtheme,
-      ggstatsplot.layer = ggstatsplot.layer
-    ) +
+    theme_ggstatsplot(ggtheme = ggtheme, ggstatsplot.layer = ggstatsplot.layer) +
     ggplot2::theme(panel.grid.major.x = ggplot2::element_blank()) +
     ggplot2::guides(fill = ggplot2::guide_legend(title = legend.title)) +
-    paletteer::scale_fill_paletteer_d(
-      palette = paste0(package, "::", palette),
-      name = ""
-    )
+    paletteer::scale_fill_paletteer_d(palette = paste0(package, "::", palette), name = "")
 
   # ================ sample size and proportion test labels ===================
 
   # adding significance labels to bars for proportion tests
   if (isTRUE(proportion.test)) {
-    # display grouped proportion test results
-    if (isTRUE(messages)) print(dplyr::select(df_labels, -label))
-
     # modify plot
     p <- p +
       ggplot2::geom_text(
@@ -288,7 +276,7 @@ ggbarstats <- function(data,
   # =========================== putting all together ========================
 
   # preparing the plot
-  p <- p +
+  p +
     ggplot2::labs(
       x = xlab,
       y = ylab,
@@ -297,7 +285,4 @@ ggbarstats <- function(data,
       caption = caption
     ) +
     ggplot.component
-
-  # return the final plot
-  return(p)
 }

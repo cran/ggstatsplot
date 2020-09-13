@@ -36,7 +36,6 @@ ggbetweenstats(
   mean.label.args = list(size = 3),
   notch = FALSE,
   notchwidth = 0.5,
-  linetype = "solid",
   outlier.tagging = FALSE,
   outlier.label = NULL,
   outlier.coef = 1.5,
@@ -47,13 +46,13 @@ ggbetweenstats(
   point.args = list(position = ggplot2::position_jitterdodge(dodge.width = 0.6), alpha
     = 0.4, size = 3, stroke = 0),
   violin.args = list(width = 0.5, alpha = 0.2),
+  ggsignif.args = list(textsize = 3, tip_length = 0.01),
   ggtheme = ggplot2::theme_bw(),
   ggstatsplot.layer = TRUE,
   package = "RColorBrewer",
   palette = "Dark2",
   ggplot.component = NULL,
   output = "plot",
-  messages = TRUE,
   ...
 )
 }
@@ -170,11 +169,6 @@ confidence interval for comparing medians. IQR: Inter-Quartile Range.}
 \item{notchwidth}{For a notched box plot, width of the notch relative to the
 body (default \code{0.5}).}
 
-\item{linetype}{Character strings (\code{"blank"}, \code{"solid"}, \code{"dashed"},
-\code{"dotted"}, \code{"dotdash"}, \code{"longdash"}, and \code{"twodash"}) specifying the type
-of line to draw box plots (Default: \code{"solid"}). Alternatively, the numbers
-\code{0} to \code{6} can be used (\code{0} for "blank", \code{1} for "solid", etc.).}
-
 \item{outlier.tagging}{Decides whether outliers should be tagged (Default:
 \code{FALSE}).}
 
@@ -203,6 +197,9 @@ the \code{geom_point} displaying the raw data.}
 \item{violin.args}{A list of additional aesthetic arguments to be passed to
 the \code{geom_violin}.}
 
+\item{ggsignif.args}{A list of additional aesthetic
+arguments to be passed to \code{ggsignif::geom_signif}.}
+
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
 \code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
 extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
@@ -213,10 +210,9 @@ theme elements are to be displayed along with the selected \code{ggtheme}
 (Default: \code{TRUE}). \code{theme_ggstatsplot} is an opinionated theme layer that
 override some aspects of the selected \code{ggtheme}.}
 
-\item{package}{Name of package from which the palette is desired as string
-or symbol.}
-
-\item{palette}{Name of palette as string or symbol.}
+\item{package, palette}{Name of the package from which the given palette is to
+be extracted. The available palettes and packages can be checked by running
+\code{View(paletteer::palettes_d_names)}.}
 
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
 by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
@@ -233,9 +229,6 @@ about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
 \code{ggpiestats} and \code{ggbarstats}, setting \code{output = "proptest"} will return a
 dataframe containing results from proportion tests.}
 
-\item{messages}{Decides whether messages references, notes, and warnings are
-to be displayed (Default: \code{TRUE}).}
-
 \item{...}{Currently ignored.}
 }
 \description{
@@ -246,12 +239,6 @@ the plot as a subtitle.
 \details{
 For parametric tests, Welch's ANOVA/\emph{t}-test are used as a default (i.e.,
 \code{var.equal = FALSE}).
-References:
-\itemize{
-\item ANOVA: Delacre, Leys, Mora, & Lakens, \emph{PsyArXiv}, 2018
-\item \emph{t}-test: Delacre, Lakens, & Leys,
-\emph{International Review of Social Psychology}, 2017
-}
 
 If robust tests are selected, following tests are used is .
 \itemize{
@@ -286,14 +273,12 @@ ggstatsplot::ggbetweenstats(
   y = Speed,
   type = "nonparametric",
   plot.type = "box",
-  conf.level = 0.99,
   xlab = "The experiment number",
   ylab = "Speed-of-light measurement",
   pairwise.comparisons = TRUE,
   p.adjust.method = "fdr",
   outlier.tagging = TRUE,
   outlier.label = Run,
-  nboot = 10,
   ggtheme = ggplot2::theme_grey(),
   ggstatsplot.layer = FALSE
 )

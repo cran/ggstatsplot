@@ -77,7 +77,6 @@ ggdotplotstats <- function(data,
                            ggtheme = ggplot2::theme_bw(),
                            ggstatsplot.layer = TRUE,
                            output = "plot",
-                           messages = TRUE,
                            ...) {
 
   # convert entered stats type to a standard notation
@@ -102,7 +101,8 @@ ggdotplotstats <- function(data,
     dplyr::mutate(.data = ., {{ y }} := droplevels(as.factor({{ y }}))) %>%
     dplyr::group_by(.data = ., {{ y }}) %>%
     dplyr::summarise(.data = ., {{ x }} := mean({{ x }}, na.rm = TRUE)) %>%
-    dplyr::ungroup(x = .) %>% # rank ordering the data
+    dplyr::ungroup(x = .) %>%
+    # rank ordering the data
     dplyr::arrange(.data = ., {{ x }}) %>%
     dplyr::mutate(
       .data = .,
@@ -141,8 +141,7 @@ ggdotplotstats <- function(data,
         conf.type = "norm",
         conf.level = conf.level,
         nboot = nboot,
-        k = k,
-        messages = messages
+        k = k
       )
   }
 
@@ -230,8 +229,5 @@ ggdotplotstats <- function(data,
 
   # if any additional modification needs to be made to the plot
   # this is primarily useful for grouped_ variant of this function
-  plot <- plot + ggplot.component
-
-  # return the plot
-  return(plot)
+  return(plot + ggplot.component)
 }

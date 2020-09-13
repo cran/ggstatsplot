@@ -21,6 +21,8 @@
 #'   values, *p*-values, no. of observations, etc.) will be returned.
 #' @param matrix.type Character, `"full"` (default), `"upper"` or `"lower"`,
 #'   display full matrix, lower triangular or upper triangular matrix.
+#' @param matrix.method The visualization method of correlation matrix to be
+#'   used. Allowed values are `"square"` (default) or `"circle"`.
 #' @param sig.level Significance level (Default: `0.05`). If the *p*-value in
 #'   *p*-value matrix is bigger than `sig.level`, then the corresponding
 #'   correlation coefficient is regarded as insignificant and flagged as such in
@@ -36,20 +38,20 @@
 #' @param colors A vector of 3 colors for low, mid, and high correlation values.
 #'   If set to `NULL`, manual specification of colors will be turned off and 3
 #'   colors from the specified `palette` from `package` will be selected.
-#' @param caption The text for the plot caption. If `NULL`, a default caption
-#'   will be shown.
-#' @param pch Decides the glyphs (or point shapes) to be used for
-#'   insignificant correlation coefficients (only valid when `insig = "pch"`).
-#'   Default value is `pch = 4`.
+#' @param pch Decides the point shape to be used for insignificant correlation
+#'   coefficients (only valid when `insig = "pch"`). Default: `pch = "cross"`.
 #' @param ggcorrplot.args A list of additional (mostly aesthetic) arguments that
 #'   will be passed to `ggcorrplot::ggcorrplot` function. The list should avoid
 #'   any of the following arguments since they are already internally being used
 #'   by `ggstatsplot`: `corr`, `method`, `p.mat`, `sig.level`, `ggtheme`,
 #'   `colors`, `matrix.type`, `lab`, `pch`, `legend.title`, `digits`.
+#' @param messages Decides whether messages references, notes, and warnings are
+#'   to be displayed (Default: `TRUE`).
 #' @inheritParams statsExpressions::expr_corr_test
 #' @inheritParams ggbetweenstats
 #' @inheritParams theme_ggstatsplot
 #' @inheritParams ggcorrplot::ggcorrplot
+#' @inheritParams ggscatterstats
 #'
 #' @import ggplot2
 #'
@@ -59,7 +61,7 @@
 #' @importFrom rlang !! enquo quo_name is_null
 #' @importFrom ipmisc green blue yellow red
 #' @importFrom pairwiseComparisons p_adjust_text
-#' @importFrom correlation correlation
+#' @importFrom statsExpressions correlation
 #'
 #' @seealso \code{\link{grouped_ggcorrmat}} \code{\link{ggscatterstats}}
 #'   \code{\link{grouped_ggscatterstats}}
@@ -101,7 +103,7 @@ ggcorrmat <- function(data,
                       cor.vars.names = NULL,
                       output = "plot",
                       matrix.type = "full",
-                      method = "square",
+                      matrix.method = "square",
                       type = "parametric",
                       beta = 0.1,
                       k = 2L,
@@ -109,7 +111,7 @@ ggcorrmat <- function(data,
                       conf.level = 0.95,
                       bf.prior = 0.707,
                       p.adjust.method = "none",
-                      pch = 4,
+                      pch = "cross",
                       ggcorrplot.args = list(outline.color = "black"),
                       package = "RColorBrewer",
                       palette = "Dark2",
@@ -139,7 +141,7 @@ ggcorrmat <- function(data,
       # display a warning message if not
       message(cat(
         ipmisc::red("Warning: "),
-        ipmisc::blue("No. of variable names doesn't equal no. of variables.\n"),
+        ipmisc::blue("No. of variable names doesn't equal no. of variables."),
         sep = ""
       ))
     } else {
@@ -180,7 +182,7 @@ ggcorrmat <- function(data,
 
   # creating a dataframe of results
   df_correlation <-
-    correlation::correlation(
+    statsExpressions::correlation(
       data = df,
       method = corr.method,
       p_adjust = p.adjust.method,
@@ -268,7 +270,7 @@ ggcorrmat <- function(data,
     rlang::exec(
       .f = ggcorrplot::ggcorrplot,
       corr = corr.mat,
-      method = method,
+      method = matrix.method,
       p.mat = p.mat,
       sig.level = sig.level,
       ggtheme = ggtheme,
@@ -284,7 +286,7 @@ ggcorrmat <- function(data,
   # =========================== labels ==================================
 
   # preparing the `pch` caption
-  if (pch == 4) {
+  if (pch == "cross" || pch == 4) {
     caption <-
       substitute(
         atop(
@@ -325,8 +327,5 @@ ggcorrmat <- function(data,
 
   # if any additional modification needs to be made to the plot
   # this is primarily useful for grouped_ variant of this function
-  plot <- plot + ggplot.component
-
-  # return the desired result
-  return(plot)
+  return(plot + ggplot.component)
 }

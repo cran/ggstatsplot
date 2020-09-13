@@ -12,7 +12,7 @@ output:
     warning: FALSE
     message: FALSE
 vignette: >
-  %\VignetteIndexEntry{other resources}
+  %\VignetteIndexEntry{other resources to learn about `ggstatsplot`}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -26,6 +26,10 @@ knitr::opts_chunk$set(
 
 Below is a collection of blogposts or other documents that talk about different
 functions included in `ggstatsplot`.
+
+# Presentation
+
+  - <https://indrajeetpatil.github.io/ggstatsplot_slides/slides/ggstatsplot_presentation.html#1>
 
 # Blogs
 
@@ -42,14 +46,22 @@ functions included in `ggstatsplot`.
   - <https://medium.com/yulun-ding-ambassador/ggplot-ch1-3-ways-to-present-discrete-vs-discrete-in-graph-7cbcbbfa4803>
  
   - <https://www.r-bloggers.com/how-to-remove-outliers-in-r/>
+  
+  - <https://yury-zablotski.netlify.app/post/boxplot/#fn3>
 
 # Videos
 
   - <https://www.youtube.com/watch?v=aw6HDz9zA1Q>
+  
+  - <https://www.youtube.com/watch?v=m3uInetiC8w>
+  
+  - <https://www.youtube.com/watch?v=-p6_K_l__N4>
 
 # RPubs posts
 
   - <https://rpubs.com/adg93/IGNITE_RepeatedMs>
+  
+  - <https://rpubs.com/tskam/SMT483-Step01>
 
 # Publications
 

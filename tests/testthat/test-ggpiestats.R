@@ -47,7 +47,10 @@ testthat::test_that(
             1, 0.736842105263158, 0.671052631578947,
             0.25
           ),
-          x = c(1L, 1L, 1L, 1L),
+          x = structure(c(1L, 1L, 1L, 1L), class = c(
+            "mapped_discrete",
+            "numeric"
+          )),
           PANEL = structure(c(
             1L, 1L, 1L,
             1L
@@ -62,8 +65,14 @@ testthat::test_that(
             0.25, 0
           ),
           ymax = c(1, 0.736842105263158, 0.671052631578947, 0.25),
-          xmin = c(0.5, 0.5, 0.5, 0.5),
-          xmax = c(1.5, 1.5, 1.5, 1.5),
+          xmin = structure(c(0.5, 0.5, 0.5, 0.5), class = c(
+            "mapped_discrete",
+            "numeric"
+          )),
+          xmax = structure(c(1.5, 1.5, 1.5, 1.5), class = c(
+            "mapped_discrete",
+            "numeric"
+          )),
           colour = c("black", "black", "black", "black"),
           size = c(
             0.5,
@@ -90,18 +99,27 @@ testthat::test_that(
             0.460526315789474,
             0.125
           ),
-          x = c(1L, 1L, 1L, 1L),
+          x = structure(c(1L, 1L, 1L, 1L), class = c(
+            "mapped_discrete",
+            "numeric"
+          )),
           label = c(
-            "n = 20\n(26.32%)",
-            "n = 5\n(6.58%)",
-            "n = 32\n(42.11%)",
-            "n = 19\n(25%)"
+            "20\n(26.32%)",
+            "5\n(6.58%)",
+            "32\n(42.11%)",
+            "19\n(25%)"
           ),
           group = 1:4,
           PANEL = structure(c(1L, 1L, 1L, 1L), .Label = "1", class = "factor"),
           ymax = c(1, 0.736842105263158, 0.671052631578947, 0.25),
-          xmin = c(1L, 1L, 1L, 1L),
-          xmax = c(1L, 1L, 1L, 1L),
+          xmin = structure(c(1L, 1L, 1L, 1L), class = c(
+            "mapped_discrete",
+            "numeric"
+          )),
+          xmax = structure(c(1L, 1L, 1L, 1L), class = c(
+            "mapped_discrete",
+            "numeric"
+          )),
           ymin = c(
             0.736842105263158,
             0.671052631578947, 0.25, 0
@@ -136,7 +154,6 @@ testthat::test_that(
       ggplot2::expr(atop(
         displaystyle("From ggplot2 package"),
         expr = paste(
-          "In favor of null: ",
           "log"["e"],
           "(BF"["01"],
           ") = ",
@@ -208,6 +225,17 @@ testthat::test_that(
         messages = FALSE
       ))
 
+    # subtitle used
+    set.seed(123)
+    p_cap <-
+      suppressWarnings(statsExpressions::bf_contingency_tab(
+        data = mtcars,
+        x = "am",
+        y = "cyl",
+        output = "caption"
+      ))
+
+
     # with facets
     testthat::expect_equal(length(pb$data), 3L)
     testthat::expect_equal(dim(pb$data[[1]]), c(6L, 14L))
@@ -251,25 +279,7 @@ testthat::test_that(
 
     # checking plot labels
     testthat::expect_identical(p$labels$subtitle, p_subtitle)
-    testthat::expect_identical(
-      pb$plot$labels$caption,
-      ggplot2::expr(atop(
-        displaystyle(NULL),
-        expr = paste(
-          "In favor of null: ",
-          "log"["e"],
-          "(BF"["01"],
-          ") = ",
-          "-2.82",
-          ", sampling = ",
-          "independent multinomial",
-          ", ",
-          italic("a"),
-          " = ",
-          "1.00"
-        )
-      ))
-    )
+    testthat::expect_identical(pb$plot$labels$caption, p_cap)
     testthat::expect_null(p$labels$x, NULL)
     testthat::expect_null(p$labels$y, NULL)
     testthat::expect_null(pb$plot$plot_env$stat.title, NULL)
@@ -280,7 +290,7 @@ testthat::test_that(
     # checking labels
     testthat::expect_identical(
       pb$data[[2]]$label,
-      c("n = 8", "n = 3", "n = 3", "n = 4", "n = 2", "n = 12")
+      c("8", "3", "3", "4", "2", "12")
     )
     testthat::expect_identical(
       pb$data[[3]]$label,
@@ -441,6 +451,111 @@ testthat::test_that(
   }
 )
 
+# repelling labels -------------------------------------------------------------
+
+testthat::test_that(
+  desc = "repelling labels",
+  code = {
+    testthat::skip_on_cran()
+    set.seed(123)
+
+    # data
+    df <-
+      structure(list(
+        epoch = structure(c(1L, 2L, 1L, 2L, 1L, 2L, 1L, 2L),
+          .Label = c("Before", "After"),
+          class = "factor"
+        ),
+        mode = structure(c(1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L),
+          .Label = c("A", "P", "C", "T"), class = "factor"
+        ),
+        counts = c(
+          30916L, 21117L, 7676L, 1962L, 1663L, 462L, 7221L,
+          197L
+        ),
+        perc = c(
+          65.1192181312663,
+          88.9586317297161,
+          16.1681691802174,
+          8.26522874715646,
+          3.50282247872609,
+          1.94624652455978,
+          15.2097902097902,
+          0.829892998567697
+        ),
+        label = c(
+          "65%", "89%", "16%", "8%",
+          "4%", "2%", "15%", "1%"
+        )
+      ),
+      row.names = c(NA, -8L),
+      class = c(
+        "tbl_df",
+        "tbl", "data.frame"
+      )
+      )
+
+    # plot
+    set.seed(123)
+    p <-
+      ggpiestats(
+        df,
+        mode,
+        epoch,
+        counts = counts,
+        label.repel = TRUE,
+        results.subtitle = FALSE,
+        proportion.test = FALSE
+      )
+
+    # build plot
+    pb <- ggplot2::ggplot_build(p)
+
+    # tests
+    testthat::expect_equal(
+      pb$data[[2]]$y,
+      c(
+        0.923951048951049,
+        0.830387985508467,
+        0.73203302721375,
+        0.325596090656332,
+        0.995850535007161,
+        0.981969837391524,
+        0.930912461032943,
+        0.44479315864858
+      )
+    )
+
+    testthat::expect_equal(
+      pb$data[[2]]$ymin,
+      c(
+        0.847902097902098,
+        0.812873873114837,
+        0.651192181312663,
+        0,
+        0.991701070014323,
+        0.972238604768725,
+        0.889586317297161,
+        0
+      )
+    )
+
+    testthat::expect_equal(
+      pb$data[[2]]$ymax,
+      c(
+        1,
+        0.847902097902098,
+        0.812873873114837,
+        0.651192181312663,
+        1,
+        0.991701070014323,
+        0.972238604768725,
+        0.889586317297161
+      )
+    )
+  }
+)
+
 # without enough data ---------------------------------------------------------
 
 testthat::test_that(
@@ -521,33 +636,25 @@ testthat::test_that(
     p_cap <-
       ggstatsplot::ggpiestats(
         data = dplyr::sample_frac(tbl = forcats::gss_cat, size = 0.1),
-        main = race,
-        condition = marital,
+        x = race,
+        y = "marital",
         output = "caption",
-        k = 4,
-        messages = FALSE
+        k = 4
+      )
+
+    # caption output
+    set.seed(123)
+    p_cap_exp <-
+      statsExpressions::bf_contingency_tab(
+        data = dplyr::sample_frac(tbl = forcats::gss_cat, size = 0.1),
+        x = "race",
+        y = marital,
+        output = "caption",
+        k = 4
       )
 
     # tests
     testthat::expect_identical(p_sub, stats_output)
-    testthat::expect_identical(
-      p_cap,
-      ggplot2::expr(atop(
-        displaystyle(NULL),
-        expr = paste(
-          "In favor of null: ",
-          "log"["e"],
-          "(BF"["01"],
-          ") = ",
-          "-36.8983",
-          ", sampling = ",
-          "independent multinomial",
-          ", ",
-          italic("a"),
-          " = ",
-          "1.0000"
-        )
-      ))
-    )
+    testthat::expect_identical(p_cap, p_cap_exp)
   }
 )

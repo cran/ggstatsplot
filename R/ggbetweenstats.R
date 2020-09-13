@@ -50,10 +50,6 @@
 #'   confidence interval for comparing medians. IQR: Inter-Quartile Range.
 #' @param notchwidth For a notched box plot, width of the notch relative to the
 #'   body (default `0.5`).
-#' @param linetype Character strings (`"blank"`, `"solid"`, `"dashed"`,
-#'   `"dotted"`, `"dotdash"`, `"longdash"`, and `"twodash"`) specifying the type
-#'   of line to draw box plots (Default: `"solid"`). Alternatively, the numbers
-#'   `0` to `6` can be used (`0` for "blank", `1` for "solid", etc.).
 #' @param outlier.color Default aesthetics for outliers (Default: `"black"`).
 #' @param outlier.tagging Decides whether outliers should be tagged (Default:
 #'   `FALSE`).
@@ -74,9 +70,6 @@
 #'   and its value to be displayed (Default: `TRUE`).
 #' @param mean.ci Logical that decides whether `95%` confidence interval for
 #'   mean is to be displayed (Default: `FALSE`).
-#' @param palette If a character string (e.g., `"Set1"`), will use that named
-#'   palette. If a number, will index into the list of palettes of appropriate
-#'   type. Default palette is `"Dark2"`.
 #' @param point.args A list of additional aesthetic arguments to be passed to
 #'   the `geom_point` displaying the raw data.
 #' @param violin.args A list of additional aesthetic arguments to be passed to
@@ -85,9 +78,9 @@
 #'   by `ggstatsplot`. This argument is primarily helpful for `grouped_` variant
 #'   of the current function. Default is `NULL`. The argument should be entered
 #'   as a function.
-#' @param package Name of package from which the palette is desired as string
-#' or symbol.
-#' @param palette Name of palette as string or symbol.
+#' @param package,palette Name of the package from which the given palette is to
+#'   be extracted. The available palettes and packages can be checked by running
+#'   `View(paletteer::palettes_d_names)`.
 #' @param output Character that describes what is to be returned: can be
 #'   `"plot"` (default) or `"subtitle"` or `"caption"`. Setting this to
 #'   `"subtitle"` will return the expression containing statistical results. If
@@ -102,6 +95,8 @@
 #' @param mean.point.args,mean.label.args A list of additional aesthetic
 #'   arguments to be passed to `ggplot2::geom_point` and
 #'   `ggrepel::geom_label_repel` geoms involved mean value plotting.
+#' @param  ggsignif.args A list of additional aesthetic
+#'   arguments to be passed to `ggsignif::geom_signif`.
 #' @inheritParams statsExpressions::expr_anova_parametric
 #' @inheritParams statsExpressions::expr_t_parametric
 #' @inheritParams statsExpressions::expr_t_onesample
@@ -126,12 +121,6 @@
 #' @details
 #' For parametric tests, Welch's ANOVA/*t*-test are used as a default (i.e.,
 #' `var.equal = FALSE`).
-#' References:
-#' \itemize{
-#'  \item ANOVA: Delacre, Leys, Mora, & Lakens, *PsyArXiv*, 2018
-#'  \item *t*-test: Delacre, Lakens, & Leys,
-#'  *International Review of Social Psychology*, 2017
-#'  }
 #'
 #'  If robust tests are selected, following tests are used is .
 #' \itemize{
@@ -169,14 +158,12 @@
 #'   y = Speed,
 #'   type = "nonparametric",
 #'   plot.type = "box",
-#'   conf.level = 0.99,
 #'   xlab = "The experiment number",
 #'   ylab = "Speed-of-light measurement",
 #'   pairwise.comparisons = TRUE,
 #'   p.adjust.method = "fdr",
 #'   outlier.tagging = TRUE,
 #'   outlier.label = Run,
-#'   nboot = 10,
 #'   ggtheme = ggplot2::theme_grey(),
 #'   ggstatsplot.layer = FALSE
 #' )
@@ -214,7 +201,6 @@ ggbetweenstats <- function(data,
                            mean.label.args = list(size = 3),
                            notch = FALSE,
                            notchwidth = 0.5,
-                           linetype = "solid",
                            outlier.tagging = FALSE,
                            outlier.label = NULL,
                            outlier.coef = 1.5,
@@ -229,13 +215,13 @@ ggbetweenstats <- function(data,
                              stroke = 0
                            ),
                            violin.args = list(width = 0.5, alpha = 0.2),
+                           ggsignif.args = list(textsize = 3, tip_length = 0.01),
                            ggtheme = ggplot2::theme_bw(),
                            ggstatsplot.layer = TRUE,
                            package = "RColorBrewer",
                            palette = "Dark2",
                            ggplot.component = NULL,
                            output = "plot",
-                           messages = TRUE,
                            ...) {
 
   # convert entered stats type to a standard notation
@@ -319,8 +305,7 @@ ggbetweenstats <- function(data,
         tr = tr,
         nboot = nboot,
         conf.level = conf.level,
-        k = k,
-        messages = messages
+        k = k
       )
   }
 
@@ -360,20 +345,18 @@ ggbetweenstats <- function(data,
   }
 
   # if outlier tagging is happening, decide how those points should be displayed
-  if (isTRUE(outlier.tagging)) {
-    if (plot.type == "violin") {
-      plot <- plot +
-        # add all outliers in
-        ggplot2::geom_point(
-          data = dplyr::filter(.data = data, isanoutlier),
-          size = 3,
-          stroke = 0,
-          alpha = 0.7,
-          na.rm = TRUE,
-          color = outlier.color,
-          shape = outlier.shape
-        )
-    }
+  if (plot.type == "violin" && isTRUE(outlier.tagging)) {
+    plot <- plot +
+      # add all outliers in
+      ggplot2::geom_point(
+        data = dplyr::filter(.data = data, isanoutlier),
+        size = 3,
+        stroke = 0,
+        alpha = 0.7,
+        na.rm = TRUE,
+        color = outlier.color,
+        shape = outlier.shape
+      )
   }
 
   # adding a boxplot
@@ -383,7 +366,6 @@ ggbetweenstats <- function(data,
         ggplot2::stat_boxplot(
           notch = notch,
           notchwidth = notchwidth,
-          linetype = linetype,
           geom = "boxplot",
           width = 0.3,
           alpha = 0.2,
@@ -400,7 +382,6 @@ ggbetweenstats <- function(data,
         ggplot2::geom_boxplot(
           notch = notch,
           notchwidth = notchwidth,
-          linetype = linetype,
           width = 0.3,
           alpha = 0.2,
           fill = "white",
@@ -504,7 +485,8 @@ ggbetweenstats <- function(data,
         data = data,
         x = {{ x }},
         y = {{ y }},
-        pairwise.display = pairwise.display
+        pairwise.display = pairwise.display,
+        ggsignif.args = ggsignif.args
       )
 
     # preparing the caption for pairwise comparisons test
@@ -521,22 +503,18 @@ ggbetweenstats <- function(data,
   # ------------------------ annotations and themes -------------------------
 
   # specifying annotations and other aesthetic aspects for the plot
-  plot <-
-    aesthetic_addon(
-      plot = plot,
-      x = data %>% dplyr::pull({{ x }}),
-      xlab = xlab,
-      ylab = ylab,
-      title = title,
-      subtitle = subtitle,
-      caption = caption,
-      ggtheme = ggtheme,
-      ggstatsplot.layer = ggstatsplot.layer,
-      package = package,
-      palette = palette,
-      ggplot.component = ggplot.component
-    )
-
-  # return the final plot
-  return(plot)
+  aesthetic_addon(
+    plot = plot,
+    x = data %>% dplyr::pull({{ x }}),
+    xlab = xlab,
+    ylab = ylab,
+    title = title,
+    subtitle = subtitle,
+    caption = caption,
+    ggtheme = ggtheme,
+    ggstatsplot.layer = ggstatsplot.layer,
+    package = package,
+    palette = palette,
+    ggplot.component = ggplot.component
+  )
 }

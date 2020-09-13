@@ -17,12 +17,11 @@ ggcoefstats_label_maker(
 \item{tidy_df}{A tidy dataframe.}
 
 \item{statistic}{Which statistic is to be displayed (either \code{"t"} or \code{"f"}or
-\code{"z"}) in the label. This is especially important if the \code{x} argument in
-\code{ggcoefstats} is a dataframe in which case the function wouldn't know what
-kind of model it is dealing with.}
+\code{"z"} or \code{"chi"}) in the label. This is relevant if the \code{x} argument is a
+\emph{dataframe}.}
 
-\item{k}{Number of decimal places expected for results displayed in labels
-(Default : \code{k = 2}).}
+\item{k}{Number of digits after decimal point (should be an integer)
+(Default: \code{k = 2L}).}
 
 \item{effsize}{Character describing the effect size to be displayed: \code{"eta"}
 (default) or \code{"omega"}. This argument is relevant only for models objects

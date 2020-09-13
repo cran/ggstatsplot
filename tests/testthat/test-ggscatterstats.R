@@ -11,7 +11,7 @@ testthat::test_that(
       ggstatsplot::ggscatterstats(
         data = ggplot2::msleep,
         x = sleep_total,
-        y = bodywt,
+        y = "bodywt",
         label.var = "name",
         label.expression = bodywt > 2000,
         xlab = "sleep (total)",
@@ -46,7 +46,7 @@ testthat::test_that(
         list(
           xintercept = 10.433734939759,
           PANEL = structure(1L, .Label = "1", class = "factor"),
-          group = -1L,
+          group = structure(-1L, n = 1L),
           colour = "red",
           size = 1,
           linetype = "dashed",
@@ -63,7 +63,7 @@ testthat::test_that(
         list(
           yintercept = 166.13634939759,
           PANEL = structure(1L, .Label = "1", class = "factor"),
-          group = -1L,
+          group = structure(-1L, n = 1L),
           colour = "orange",
           size = 1,
           linetype = "dashed",
@@ -82,7 +82,7 @@ testthat::test_that(
           y = c(2547, 6654),
           label = c("Asian elephant", "African elephant"),
           PANEL = structure(c(1L, 1L), class = "factor", .Label = "1"),
-          group = c(-1L, -1L),
+          group = structure(c(-1L, -1L), n = 1L),
           colour = c("black", "black"),
           fill = c("white", "white"),
           size = c(3, 3),
@@ -131,7 +131,7 @@ testthat::test_that(
     p_subtitle <-
       statsExpressions::expr_corr_test(
         data = ggplot2::msleep,
-        x = sleep_total,
+        x = "sleep_total",
         y = bodywt,
         type = "p",
         messages = FALSE
@@ -139,17 +139,28 @@ testthat::test_that(
 
     # checking plot labels
     testthat::expect_identical(
-      p$plot_env$caption,
+      pb$plot$labels$caption,
       ggplot2::expr(atop(
         displaystyle("ggplot2 dataset"),
         expr = paste(
-          "In favor of null: ",
           "log"["e"],
           "(BF"["01"],
           ") = ",
           "-2.23",
           ", ",
-          italic("r")["Cauchy"]^"JZS",
+          widehat(italic(rho))["median"]^
+            "posterior",
+          " = ",
+          "-0.30",
+          ", CI"["95%"]^"HDI",
+          " [",
+          "-0.49",
+          ", ",
+          "-0.11",
+          "]",
+          ", ",
+          italic("r")["Cauchy"]^
+            "JZS",
           " = ",
           "0.71"
         )
@@ -178,7 +189,7 @@ testthat::test_that(
     p <-
       ggstatsplot::ggscatterstats(
         data = ggplot2::msleep,
-        x = sleep_total,
+        x = "sleep_total",
         y = bodywt,
         centrality.parameter = "none",
         type = "np",
@@ -353,6 +364,7 @@ testthat::test_that(
       )
 
     # subtitle
+    set.seed(123)
     p_subtitle <-
       statsExpressions::expr_corr_test(
         data = ggplot2::msleep,
@@ -364,23 +376,23 @@ testthat::test_that(
 
     testthat::expect_identical(class(p)[[1]], "ggExtraPlot")
     testthat::expect_identical(
-      tibble::enframe(p$grobs[[23]]$children)$value[[1]][[1]],
+      enframe(p$grobs[[23]]$children)$value[[1]][[1]],
       "mammalian sleep dataset"
     )
     testthat::expect_identical(
-      tibble::enframe(p$grobs[[17]]$children)$value[[1]][[1]],
+      enframe(p$grobs[[17]]$children)$value[[1]][[1]],
       "source: ggplot2 package"
     )
     testthat::expect_identical(
-      tibble::enframe(p$grobs[[12]]$children)$value[[1]][[1]],
+      enframe(p$grobs[[12]]$children)$value[[1]][[1]],
       "total sleep"
     )
     testthat::expect_identical(
-      tibble::enframe(p$grobs[[13]]$children)$value[[1]][[1]],
+      enframe(p$grobs[[13]]$children)$value[[1]][[1]],
       "body weight"
     )
     testthat::expect_identical(
-      tibble::enframe(p$grobs[[22]]$children)$value[[1]][[1]],
+      enframe(p$grobs[[22]]$children)$value[[1]][[1]],
       p_subtitle
     )
   }
@@ -421,7 +433,7 @@ testthat::test_that(
           x = c(17.4, 18, 19.7, 19.9),
           label = c("Cingulata", "Didelphimorphia", "Chiroptera", "Chiroptera"),
           PANEL = structure(c(1L, 1L, 1L, 1L), class = "factor", .Label = "1"),
-          group = c(-1L, -1L, -1L, -1L),
+          group = structure(c(-1L, -1L, -1L, -1L), n = 1L),
           colour = c("blue", "blue", "blue", "blue"),
           fill = c("white", "white", "white", "white"),
           size = c(4, 4, 4, 4),

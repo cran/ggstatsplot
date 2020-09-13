@@ -25,6 +25,7 @@ testthat::test_that(
         outlier.coef = 1.5,
         bf.message = TRUE,
         pairwise.comparisons = TRUE,
+        ggsignif.args = list(textsize = 6, tip_length = 0.01),
         pairwise.annotation = "asterisk",
         point.path.args = list(color = "red"),
         mean.path.args = list(color = "blue", size = 2, alpha = 0.8),
@@ -84,10 +85,10 @@ testthat::test_that(
           ),
           notchupper = c(9.41618649374214, 8.83273311717767),
           notchlower = c(8.08381350625786, 7.16726688282233),
-          x = c(
+          x = structure(c(
             1,
             2
-          ),
+          ), class = c("mapped_discrete", "numeric")),
           flipped_aes = c(FALSE, FALSE),
           PANEL = structure(c(1L, 1L), .Label = "1", class = "factor"),
           group = 1:2,
@@ -96,13 +97,16 @@ testthat::test_that(
             0
           ),
           ymax_final = c(10, 10),
-          xmin = c(0.9, 1.9),
-          xmax = c(
-            1.1,
-            2.1
-          ),
+          xmin = structure(c(0.9, 1.9), class = c(
+            "mapped_discrete",
+            "numeric"
+          )),
+          xmax = structure(c(1.1, 2.1), class = c(
+            "mapped_discrete",
+            "numeric"
+          )),
           xid = c(1, 2),
-          newx = c(1, 2),
+          newx = structure(c(1, 2), .Dim = 2L),
           new_width = c(0.2, 0.2),
           weight = c(1, 1),
           colour = c("grey20", "grey20"),
@@ -127,7 +131,10 @@ testthat::test_that(
       pb1$data[[7]],
       structure(
         list(
-          x = 1:2,
+          x = structure(1:2, class = c(
+            "mapped_discrete",
+            "numeric"
+          )),
           group = 1:2,
           y = c(
             7.86666666666667,
@@ -162,7 +169,10 @@ testthat::test_that(
       pb1$data[[8]],
       structure(
         list(
-          x = 1:2,
+          x = structure(1:2, class = c(
+            "mapped_discrete",
+            "numeric"
+          )),
           y = c(7.86666666666667, 6.73888888888889),
           label = c(
             "list(~italic(widehat(mu))==7.8667)",
@@ -199,7 +209,10 @@ testthat::test_that(
       pb1$data[[6]],
       structure(
         list(
-          x = 1:2,
+          x = structure(1:2, class = c(
+            "mapped_discrete",
+            "numeric"
+          )),
           y = c(7.86666666666667, 6.73888888888889),
           group = structure(c(1L, 1L), n = 1L),
           PANEL = structure(c(
@@ -298,7 +311,13 @@ testthat::test_that(
     testthat::expect_equal(dim(pb1$data[[8]]), c(6L, 19L))
 
     # data from difference layers
-    testthat::expect_equal(pb1$data[[5]]$x, c(1L, 2L, 3L))
+    testthat::expect_equal(
+      pb1$data[[5]]$x,
+      structure(c(1L, 2L, 3L), class = c(
+        "mapped_discrete",
+        "numeric"
+      ))
+    )
     testthat::expect_equal(
       pb1$data[[5]]$y,
       c(5.54318181818182, 5.53409090909091, 5.45909090909091),
@@ -334,15 +353,10 @@ testthat::test_that(
         displaystyle(atop(
           displaystyle("From `WRS2` package"),
           expr = paste(
-            "In favor of null: ",
             "log"["e"],
             "(BF"["01"],
             ") = ",
-            "-2.1154",
-            ", ",
-            italic("r")["Cauchy"]^"JZS",
-            " = ",
-            "0.7070"
+            "-2.1154"
           )
         )),
         expr = paste(
@@ -372,6 +386,7 @@ testthat::test_that(
         x = condition,
         y = value,
         type = "np",
+        ggsignif.args = list(textsize = 6, tip_length = 0.01),
         pairwise.display = "s",
         pairwise.annotation = "p",
         outlier.tagging = FALSE,
@@ -487,24 +502,30 @@ testthat::test_that(
     testthat::expect_identical(p2$labels$subtitle, p2_subtitle)
     testthat::expect_identical(p3$labels$subtitle, p3_subtitle)
     testthat::expect_identical(p4$labels$subtitle, p4_subtitle)
-    testthat::expect_identical(p1$labels$caption, ggplot2::expr(atop(
-      displaystyle(NULL),
-      expr = paste(
-        "Pairwise comparisons: ",
-        bold("Durbin-Conover test"),
-        "; Adjustment (p-value): ",
-        bold("Holm")
-      )
-    )))
-    testthat::expect_identical(p2$labels$caption, ggplot2::expr(atop(
-      displaystyle(NULL),
-      expr = paste(
-        "Pairwise comparisons: ",
-        bold("Yuen's trimmed means test"),
-        "; Adjustment (p-value): ",
-        bold("Holm")
-      )
-    )))
+    testthat::expect_identical(
+      p1$labels$caption,
+      ggplot2::expr(atop(
+        displaystyle(NULL),
+        expr = paste(
+          "Pairwise comparisons: ",
+          bold("Durbin-Conover test"),
+          "; Adjustment (p-value): ",
+          bold("Holm")
+        )
+      ))
+    )
+    testthat::expect_identical(
+      p2$labels$caption,
+      ggplot2::expr(atop(
+        displaystyle(NULL),
+        expr = paste(
+          "Pairwise comparisons: ",
+          bold("Yuen's trimmed means test"),
+          "; Adjustment (p-value): ",
+          bold("Holm")
+        )
+      ))
+    )
     testthat::expect_null(p3$labels$caption, NULL)
     testthat::expect_null(p4$labels$caption, NULL)
 
@@ -519,6 +540,12 @@ testthat::test_that(
       )
 
     testthat::expect_is(p5, "ggplot")
+
+    # checking changes made to ggsignif geom work
+    testthat::expect_equal(pb1$data[[7]]$textsize[[1]], 6L)
+    testthat::expect_equal(pb1$data[[7]]$shape[[1]], 19L)
+    testthat::expect_identical(pb1$data[[7]]$colour[[1]], "black")
+    testthat::expect_equal(pb1$data[[7]]$size[[1]], 0.5, tolerance = 0.001)
   }
 )
 

@@ -1,5 +1,5 @@
 ---
-title: "Frequently asked questions about `ggstatsplot`"
+title: "Frequently asked questions"
 author: "Indrajeet Patil"
 date: "`r Sys.Date()`"
 output:
@@ -58,14 +58,13 @@ set.seed(123)
 library(ggstatsplot)
 library(plotly)
 
-# creating ggplot object with ggstatsplot
-p <- 
+# creating ggplot object with `ggstatsplot`
+p <-
   ggstatsplot::ggbetweenstats(
-  data = mtcars,
-  x = cyl,
-  y = mpg,
-  messages = FALSE
-)
+    data = mtcars,
+    x = cyl,
+    y = mpg
+  )
 
 # converting to plotly object
 plotly::ggplotly(p, width = 480, height = 480)
@@ -88,7 +87,8 @@ library(ggstatsplot)
 
 # creating a list by splitting dataframe by combination of two different
 # grouping variables
-df_list <- mpg %>%
+df_list <-
+  mpg %>%
   dplyr::filter(drv %in% c("4", "f"), fl %in% c("p", "r")) %>%
   split(x = ., f = list(.$drv, .$fl), drop = TRUE)
 
@@ -104,8 +104,7 @@ plot_list <-
       x = "displ",
       y = "hwy",
       results.subtitle = FALSE,
-      marginal.type = "densigram",
-      messages = FALSE
+      marginal.type = "densigram"
     ),
     .f = ggstatsplot::ggscatterstats
   )
@@ -118,6 +117,38 @@ ggstatsplot::combine_plots(
 )
 ```
 
+## How can I include statistical expressions in facet labels?
+
+```{r facet_expr, fig.width = 6, fig.height = 10}
+set.seed(123)
+library(ggplot2)
+library(ggstatsplot)
+
+# data
+mtcars1 <- mtcars
+statistics <-
+  grouped_ggbetweenstats(
+    data = mtcars1,
+    x = cyl,
+    y = mpg,
+    grouping.var = am,
+    output = "subtitle"
+  )
+mtcars1$am <-
+  factor(mtcars1$am, levels = c(0, 1), labels = statistics)
+
+# plot
+mtcars1 %>%
+  ggplot(aes(x = cyl, y = mpg)) +
+  geom_jitter() +
+  facet_wrap(
+    vars(am),
+    ncol = 1,
+    strip.position = "top",
+    labeller = ggplot2::label_parsed
+  )
+```
+
 ## Can you customize which pairs are shown in pairwise comparisons?
 
 Currently, for `ggbetweenstats` and `ggwithinstats`, you can either display all
@@ -126,13 +157,13 @@ comparisons. But what if I am only interested in just one particular comparison?
 
 Here is a workaround using `ggsignif`:
 
-```{r custom_pairwise}
+```{r custom_pairwise, fig.width = 7, fig.height = 6}
 set.seed(123)
 library(ggstatsplot)
 library(ggsignif)
 
 # displaying only one comparison
-ggbetweenstats(mtcars, cyl, wt, messages = FALSE) +
+ggbetweenstats(mtcars, cyl, wt) +
   geom_signif(comparisons = list(c("4", "6")))
 ```
 
@@ -176,8 +207,7 @@ p <-
     data = iris,
     x = Species,
     y = Sepal.Length,
-    mean.plotting = FALSE,
-    messages = FALSE
+    mean.plotting = FALSE
   )
 
 # delete geom corresponding to points
@@ -187,7 +217,7 @@ gginnards::delete_layers(x = p, match_type = "GeomPoint")
 This can be helpful to add a new layer with aesthetic specifications of your
 liking.
 
-```{r gginnards2, fig.width = 6, fig.height = 5}
+```{r gginnards2, fig.width = 7, fig.height = 5}
 set.seed(123)
 
 # needed libraries
@@ -201,15 +231,44 @@ p <-
     data = bugs_long,
     x = condition,
     y = desire,
-    mean.plotting = FALSE,
-    messages = FALSE
+    mean.plotting = FALSE
   )
 
 # delete the geom_point layer
 p <- gginnards::delete_layers(x = p, match_type = "GeomPoint")
 
-# add a new layers for points with a different `pch`
+# add a new layers for points with a different shape
 p + geom_point(shape = 23, aes(color = condition))
+```
+
+## How can I modify `grouped_` outputs using `ggplot2` functions?
+
+All `ggstatsplot` are `ggplot` objects, which can be further modified, just like
+any other `ggplot` object. But exception to these are all plots returned by
+`grouped_` functions, but there is a way to tackle this.
+
+```{r grouped_modify, fig.width = 10, fig.height = 5}
+# needed libraries
+set.seed(123)
+library(ggstatsplot)
+library(paletteer)
+library(ggplot2)
+library(palmerpenguins)
+
+# plot
+grouped_ggbetweenstats(
+  penguins,
+  species,
+  body_mass_g,
+  grouping.var = sex,
+  type = "np",
+  ggplot.component =
+    # modify further with `ggplot2` functions
+  list(
+    scale_color_manual(values = paletteer::paletteer_c("viridis::viridis", 3)),
+    theme(axis.text.x = element_text(angle = 90))
+  )
+)
 ```
 
 # Suggestions

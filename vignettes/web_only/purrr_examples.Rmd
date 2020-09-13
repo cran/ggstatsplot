@@ -13,7 +13,7 @@ output:
     warning: FALSE
     message: FALSE
 vignette: >
-  %\VignetteIndexEntry{using `ggstatsplot` with `purrr` package}
+  %\VignetteIndexEntry{using `ggstatsplot` with the `purrr` package}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -79,13 +79,13 @@ You can pass:
    `nboot = 25` in which case it will be reused/recycled as many times as
    needed.
 
- * A vector of values such as `mean.label.size = c(3, 4, 5)` in which case it
+ * A vector of values such as `notch = c(TRUE, FALSE, TRUE)` in which case it
    will be coerced to a list and checked for the right class (in this case
    integer) and the right quantity of entries in the vector i.e.,
-   `mean.label.size = c(3, 4)` will fail if we're trying to make three plots.
+   `notch = c(TRUE, FALSE)` will fail if we're trying to make three plots.
 
  * A list; either named `data = year_list` or created as you go
-   `outlier.label.color = list("#56B4E9", "#009E73", "#F0E442")`. Any list will
+   `palette = list("Dark2", "Set1")`. Any list will
    be checked for the right class (in this case character) and the right
    quantity of entries in the list.
 
@@ -106,10 +106,6 @@ year_list <-
   gapminder::gapminder %>%
   dplyr::filter(.data = ., year %in% c(1967, 1987, 2007), continent != "Oceania") %>%
   split(x = ., f = .$year, drop = TRUE)
-
-# this created a list with 3 elements, one for each year we want
-# you can check the structure of the file for yourself
-# str(year_list[1])
 
 # checking the length of the list and the names of each element
 length(year_list)
@@ -176,8 +172,7 @@ plot_list <-
         ggplot2::theme_classic(),
         ggthemes::theme_fivethirtyeight()
       ),
-      ggstatsplot.layer = list(FALSE, FALSE, FALSE),
-      messages = FALSE
+      ggstatsplot.layer = list(FALSE, FALSE, FALSE)
     ),
     .f = ggstatsplot::ggbetweenstats
   )
@@ -212,12 +207,7 @@ data("ANT") # loading data from `ez` package
 set.seed(123)
 
 # let's split the dataframe and create a list by years of interest
-cue_list <- ANT %>%
-  split(x = ., f = .$cue, drop = TRUE)
-
-# this created a list with 4 elements, one for each year we want
-# you can check the structure of the file for yourself
-# str(cue_list[1])
+cue_list <- ANT %>% split(x = ., f = .$cue, drop = TRUE)
 
 # checking the length of the list and the names of each element
 length(cue_list)
@@ -268,8 +258,7 @@ plot_list <-
         ggthemes::theme_solarized(),
         ggthemes::theme_gdocs()
       ),
-      ggstatsplot.layer = FALSE,
-      messages = FALSE
+      ggstatsplot.layer = FALSE
     ),
     .f = ggstatsplot::ggwithinstats
   )
@@ -337,8 +326,7 @@ plot_list <-
         ggplot2::theme_classic(),
         ggplot2::theme_light()
       ),
-      ggstatsplot.layer = list(FALSE, TRUE, TRUE),
-      messages = FALSE
+      ggstatsplot.layer = list(FALSE, TRUE, TRUE)
     ),
     .f = ggstatsplot::ggscatterstats
   )
@@ -371,10 +359,6 @@ cut_list <-
   dplyr::sample_frac(tbl = ., size = 0.05) %>%
   dplyr::filter(.data = ., cut != "Fair") %>%
   split(x = ., f = .$cut, drop = TRUE)
-
-# this created a list with 4 elements, one for each quality of cut
-# you can check the structure of the file for yourself
-# str(cut_list)
 
 # checking the length and names of each element
 length(cut_list)
@@ -414,8 +398,7 @@ plot_list <-
         ggplot2::theme_classic(),
         ggthemes::theme_fivethirtyeight(),
         ggthemes::theme_tufte()
-      ),
-      messages = FALSE
+      )
     ),
     .f = ggstatsplot::ggcorrmat
   )
@@ -446,10 +429,6 @@ continent_list <-
   gapminder::gapminder %>%
   dplyr::filter(.data = ., year == 2007, continent != "Oceania") %>%
   split(x = ., f = .$continent, drop = TRUE)
-
-# this created a list with 4 elements, one for each continent
-# you can check the structure of the file for yourself
-# str(continent_list)
 
 # checking the length and names of each element
 length(continent_list)
@@ -488,8 +467,7 @@ plot_list <-
         ggplot2::theme_minimal(),
         hrbrthemes::theme_modern_rc()
       ),
-      ggstatsplot.layes = FALSE,
-      messages = FALSE
+      ggstatsplot.layes = FALSE
     ),
     .f = ggstatsplot::gghistostats
   )
@@ -517,10 +495,6 @@ continent_list <-
   gapminder::gapminder %>%
   dplyr::filter(.data = ., continent != "Oceania") %>%
   split(x = ., f = .$continent, drop = TRUE)
-
-# this created a list with 4 elements, one for each continent
-# you can check the structure of the file for yourself
-# str(continent_list)
 
 # checking the length and names of each element
 length(continent_list)
@@ -566,8 +540,7 @@ plot_list <-
         ggthemes::theme_tufte(),
         hrbrthemes::theme_ipsum_rc(axis_title_size = 10),
         ggthemes::theme_hc(bgcolor = "darkunica")
-      ),
-      messages = FALSE
+      )
     ),
     .f = ggstatsplot::ggdotplotstats
   )
@@ -589,10 +562,6 @@ set.seed(123)
 # let's split the dataframe and create a list by passenger class
 class_list <- ggstatsplot::Titanic_full %>% split(x = ., f = .$Class, drop = TRUE)
 
-# this created a list with 4 elements, one for each class
-# you can check the structure of the file for yourself
-# str(class_list)
-
 # checking the length and names of each element
 length(class_list)
 names(class_list)
@@ -629,8 +598,7 @@ plot_list <-
         ggthemes::theme_economist()
       ),
       ggstatsplot.layer = list(TRUE, TRUE, FALSE, FALSE),
-      proportion.test = list(TRUE, FALSE, TRUE, FALSE),
-      messages = FALSE
+      proportion.test = list(TRUE, FALSE, TRUE, FALSE)
     ),
     .f = ggstatsplot::ggpiestats
   )
@@ -652,10 +620,6 @@ set.seed(123)
 # let's split the dataframe and create a list by passenger class
 class_list <- ggstatsplot::Titanic_full %>% split(x = ., f = .$Class, drop = TRUE)
 
-# this created a list with 4 elements, one for each class
-# you can check the structure of the file for yourself
-# str(class_list)
-
 # checking the length and names of each element
 length(class_list)
 names(class_list)
@@ -691,8 +655,7 @@ plot_list <-
         ggthemes::theme_tufte(),
         ggthemes::theme_economist()
       ),
-      ggstatsplot.layer = list(TRUE, TRUE, FALSE, FALSE),
-      messages = FALSE
+      ggstatsplot.layer = list(TRUE, TRUE, FALSE, FALSE)
     ),
     .f = ggstatsplot::ggbarstats
   )
@@ -726,8 +689,7 @@ plotlist <-
       x = alist(wt, Sepal.Length, len),
       results.subtitle = list(FALSE),
       grouping.var = alist(am, Species, supp),
-      title.text = list("Dataset: mtcars", "Dataset: iris", "Dataset: ToothGrowth"),
-      messages = list(FALSE)
+      title.text = list("Dataset: mtcars", "Dataset: iris", "Dataset: ToothGrowth")
     ),
     .f = ggstatsplot::grouped_gghistostats
   )
@@ -752,8 +714,7 @@ plotlist <-
       data = list(movies_long),
       x = "mpaa",
       y = list("rating", "length"),
-      title = list("IMDB score by MPAA rating", "Movie length by MPAA rating"),
-      messages = FALSE
+      title = list("IMDB score by MPAA rating", "Movie length by MPAA rating")
     ),
     .f = ggstatsplot::ggbetweenstats
   )

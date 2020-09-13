@@ -104,13 +104,13 @@ ggwithinstats <- function(data,
                           outlier.label.args = list(),
                           outlier.point.args = list(),
                           violin.args = list(width = 0.5, alpha = 0.2),
+                          ggsignif.args = list(textsize = 3, tip_length = 0.01),
                           ggtheme = ggplot2::theme_bw(),
                           ggstatsplot.layer = TRUE,
                           package = "RColorBrewer",
                           palette = "Dark2",
                           ggplot.component = NULL,
                           output = "plot",
-                          messages = TRUE,
                           ...) {
 
   # convert entered stats type to a standard notation
@@ -202,8 +202,7 @@ ggwithinstats <- function(data,
         tr = tr,
         nboot = nboot,
         conf.level = conf.level,
-        k = k,
-        messages = messages
+        k = k
       )
   }
 
@@ -353,7 +352,8 @@ ggwithinstats <- function(data,
         data = data,
         x = {{ x }},
         y = {{ y }},
-        pairwise.display = pairwise.display
+        pairwise.display = pairwise.display,
+        ggsignif.args = ggsignif.args
       )
 
     # preparing the caption for pairwise comparisons test
@@ -370,22 +370,18 @@ ggwithinstats <- function(data,
   # ------------------------ annotations and themes -------------------------
 
   # specifying annotations and other aesthetic aspects for the plot
-  plot <-
-    aesthetic_addon(
-      plot = plot,
-      x = data %>% dplyr::pull({{ x }}),
-      xlab = xlab,
-      ylab = ylab,
-      title = title,
-      subtitle = subtitle,
-      caption = caption,
-      ggtheme = ggtheme,
-      ggstatsplot.layer = ggstatsplot.layer,
-      package = package,
-      palette = palette,
-      ggplot.component = ggplot.component
-    )
-
-  # return the final plot
-  return(plot)
+  aesthetic_addon(
+    plot = plot,
+    x = data %>% dplyr::pull({{ x }}),
+    xlab = xlab,
+    ylab = ylab,
+    title = title,
+    subtitle = subtitle,
+    caption = caption,
+    ggtheme = ggtheme,
+    ggstatsplot.layer = ggstatsplot.layer,
+    package = package,
+    palette = palette,
+    ggplot.component = ggplot.component
+  )
 }

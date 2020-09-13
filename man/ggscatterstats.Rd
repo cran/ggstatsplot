@@ -40,20 +40,18 @@ ggscatterstats(
   title = NULL,
   subtitle = NULL,
   caption = NULL,
-  nboot = 100,
   beta = 0.1,
-  k = 2,
+  k = 2L,
   ggtheme = ggplot2::theme_bw(),
   ggstatsplot.layer = TRUE,
   ggplot.component = NULL,
   output = "plot",
-  messages = TRUE,
   ...
 )
 }
 \arguments{
-\item{data}{for use with \code{formula}, a data frame containing all the
-data}
+\item{data}{A dataframe (or a tibble) from which variables specified are to
+be taken. A matrix or tables will \strong{not} be accepted.}
 
 \item{x}{The column in \code{data} containing the explanatory variable to be
 plotted on the \code{x}-axis. Can be entered either as a character string (e.g.,
@@ -68,7 +66,7 @@ be plotted on the \code{y}-axis. Can be entered either as a character string
 "\code{"nonparametric"}: Spearman's rho" or "\code{"robust"}: percentage bend
 correlation coefficient" or "\code{"bayes"}: Bayes Factor for Pearson's \emph{r}").
 Corresponding abbreviations are also accepted: \code{"p"} (for
-parametric/pearson's), \code{"np"} (nonparametric/spearman), \code{"r"} (robust),
+parametric/pearson), \code{"np"} (nonparametric/spearman), \code{"r"} (robust),
 \code{"bf"} (for bayes factor), resp.}
 
 \item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
@@ -183,13 +181,10 @@ variable names for \code{x} and \code{y} will be used.}
 
 \item{caption}{The text for the plot caption.}
 
-\item{nboot}{Number of bootstrap samples for computing confidence interval
-for the effect size (Default: \code{100}).}
-
 \item{beta}{bending constant (Default: \code{0.1}). For more, see \code{?WRS2::pbcor}.}
 
 \item{k}{Number of digits after decimal point (should be an integer)
-(Default: \code{k = 2}).}
+(Default: \code{k = 2L}).}
 
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
 \code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
@@ -216,9 +211,6 @@ about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
 \code{ggpiestats} and \code{ggbarstats}, setting \code{output = "proptest"} will return a
 dataframe containing results from proportion tests.}
 
-\item{messages}{Decides whether messages references, notes, and warnings are
-to be displayed (Default: \code{TRUE}).}
-
 \item{...}{Currently ignored.}
 }
 \description{
@@ -227,10 +219,16 @@ histograms/boxplots/density plots with statistical details added as a
 subtitle.
 }
 \note{
-The plot uses \code{ggrepel::geom_label_repel} to attempt to keep labels
+\itemize{
+\item If you set \code{marginal = TRUE}, the resulting plot can't be further modified
+with \code{ggplot2} functions since it is no longer a \code{ggplot} object. In case you
+want a \code{ggplot} object, set \code{marginal = FALSE}. Also have a look at the
+\code{ggplot.component} argument.
+\item The plot uses \code{ggrepel::geom_label_repel} to attempt to keep labels
 from over-lapping to the largest degree possible.  As a consequence plot
 times will slow down massively (and the plot file will grow in size) if you
 have a lot of labels that overlap.
+}
 }
 \examples{
 \donttest{

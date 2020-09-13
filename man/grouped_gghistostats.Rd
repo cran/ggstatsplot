@@ -81,8 +81,6 @@ argument can be \code{"d"} (for Cohen's \emph{d}) or \code{"g"} (for Hedge's \em
 for the effect size (Default: \code{100}).}
     \item{\code{k}}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2}).}
-    \item{\code{messages}}{Decides whether messages references, notes, and warnings are
-to be displayed (Default: \code{TRUE}).}
     \item{\code{test.k}}{Integer denoting the number of decimal places expected for
 \code{test.value} label. (Default: \code{0} ).}
     \item{\code{test.value.line}}{Logical that decides whether a line corresponding to

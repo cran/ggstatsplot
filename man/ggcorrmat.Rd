@@ -10,7 +10,7 @@ ggcorrmat(
   cor.vars.names = NULL,
   output = "plot",
   matrix.type = "full",
-  method = "square",
+  matrix.method = "square",
   type = "parametric",
   beta = 0.1,
   k = 2L,
@@ -18,7 +18,7 @@ ggcorrmat(
   conf.level = 0.95,
   bf.prior = 0.707,
   p.adjust.method = "none",
-  pch = 4,
+  pch = "cross",
   ggcorrplot.args = list(outline.color = "black"),
   package = "RColorBrewer",
   palette = "Dark2",
@@ -53,21 +53,21 @@ values, \emph{p}-values, no. of observations, etc.) will be returned.}
 \item{matrix.type}{Character, \code{"full"} (default), \code{"upper"} or \code{"lower"},
 display full matrix, lower triangular or upper triangular matrix.}
 
-\item{method}{character, the visualization method of correlation matrix to be
-used. Allowed values are "square" (default), "circle".}
+\item{matrix.method}{The visualization method of correlation matrix to be
+used. Allowed values are \code{"square"} (default) or \code{"circle"}.}
 
 \item{type}{Type of association between paired samples required
 ("\code{"parametric"}: Pearson's product moment correlation coefficient" or
 "\code{"nonparametric"}: Spearman's rho" or "\code{"robust"}: percentage bend
 correlation coefficient" or "\code{"bayes"}: Bayes Factor for Pearson's \emph{r}").
 Corresponding abbreviations are also accepted: \code{"p"} (for
-parametric/pearson's), \code{"np"} (nonparametric/spearman), \code{"r"} (robust),
+parametric/pearson), \code{"np"} (nonparametric/spearman), \code{"r"} (robust),
 \code{"bf"} (for bayes factor), resp.}
 
 \item{beta}{bending constant (Default: \code{0.1}). For more, see \code{?WRS2::pbcor}.}
 
 \item{k}{Number of digits after decimal point (should be an integer)
-(Default: \code{k = 2}).}
+(Default: \code{k = 2L}).}
 
 \item{sig.level}{Significance level (Default: \code{0.05}). If the \emph{p}-value in
 \emph{p}-value matrix is bigger than \code{sig.level}, then the corresponding
@@ -89,9 +89,8 @@ width to use in calculating Bayes factors.}
 \strong{unadjusted} \emph{p}-values will be used for the \strong{lower} triangle of the
 matrix.}
 
-\item{pch}{Decides the glyphs (or point shapes) to be used for
-insignificant correlation coefficients (only valid when \code{insig = "pch"}).
-Default value is \code{pch = 4}.}
+\item{pch}{Decides the point shape to be used for insignificant correlation
+coefficients (only valid when \code{insig = "pch"}). Default: \code{pch = "cross"}.}
 
 \item{ggcorrplot.args}{A list of additional (mostly aesthetic) arguments that
 will be passed to \code{ggcorrplot::ggcorrplot} function. The list should avoid
@@ -99,10 +98,13 @@ any of the following arguments since they are already internally being used
 by \code{ggstatsplot}: \code{corr}, \code{method}, \code{p.mat}, \code{sig.level}, \code{ggtheme},
 \code{colors}, \code{matrix.type}, \code{lab}, \code{pch}, \code{legend.title}, \code{digits}.}
 
-\item{package}{Name of package from which the palette is desired as string
-or symbol.}
+\item{package}{Name of the package from which the given palette is to
+be extracted. The available palettes and packages can be checked by running
+\code{View(paletteer::palettes_d_names)}.}
 
-\item{palette}{Name of palette as string or symbol.}
+\item{palette}{Name of the package from which the given palette is to
+be extracted. The available palettes and packages can be checked by running
+\code{View(paletteer::palettes_d_names)}.}
 
 \item{colors}{A vector of 3 colors for low, mid, and high correlation values.
 If set to \code{NULL}, manual specification of colors will be turned off and 3
@@ -128,8 +130,7 @@ as a function.}
 \item{subtitle}{The text for the plot subtitle. Will work only if
 \code{results.subtitle = FALSE}.}
 
-\item{caption}{The text for the plot caption. If \code{NULL}, a default caption
-will be shown.}
+\item{caption}{The text for the plot caption.}
 
 \item{messages}{Decides whether messages references, notes, and warnings are
 to be displayed (Default: \code{TRUE}).}

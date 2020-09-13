@@ -161,6 +161,8 @@ passed to \code{ggplot2::geom_point} and \code{ggrepel::geom_label_repel} geoms
 involved outlier value plotting.}
     \item{\code{violin.args}}{A list of additional aesthetic arguments to be passed to
 the \code{geom_violin}.}
+    \item{\code{ggsignif.args}}{A list of additional aesthetic
+arguments to be passed to \code{ggsignif::geom_signif}.}
     \item{\code{ggtheme}}{A function, \code{ggplot2} theme name. Default value is
 \code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
 extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
@@ -169,15 +171,16 @@ extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
 theme elements are to be displayed along with the selected \code{ggtheme}
 (Default: \code{TRUE}). \code{theme_ggstatsplot} is an opinionated theme layer that
 override some aspects of the selected \code{ggtheme}.}
-    \item{\code{package}}{Name of package from which the palette is desired as string
-or symbol.}
-    \item{\code{palette}}{Name of palette as string or symbol.}
+    \item{\code{package}}{Name of the package from which the given palette is to
+be extracted. The available palettes and packages can be checked by running
+\code{View(paletteer::palettes_d_names)}.}
+    \item{\code{palette}}{Name of the package from which the given palette is to
+be extracted. The available palettes and packages can be checked by running
+\code{View(paletteer::palettes_d_names)}.}
     \item{\code{ggplot.component}}{A \code{ggplot} component to be added to the plot prepared
 by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
 of the current function. Default is \code{NULL}. The argument should be entered
 as a function.}
-    \item{\code{messages}}{Decides whether messages references, notes, and warnings are
-to be displayed (Default: \code{TRUE}).}
     \item{\code{sphericity.correction}}{Logical that decides whether to apply correction
 to account for violation of sphericity in a repeated measures design ANOVA
 (Default: \code{TRUE}).}
