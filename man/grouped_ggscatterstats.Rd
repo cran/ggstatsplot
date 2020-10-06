@@ -118,7 +118,7 @@ parametric/pearson), \code{"np"} (nonparametric/spearman), \code{"r"} (robust),
 \verb{95\%} lower and upper confidence intervals (\code{0.95}).}
     \item{\code{bf.prior}}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
 width to use in calculating Bayes factors.}
-    \item{\code{beta}}{bending constant (Default: \code{0.1}). For more, see \code{?WRS2::pbcor}.}
+    \item{\code{beta}}{bending constant (Default: \code{0.1}). For more, see \code{\link[WRS2:pbcor]{WRS2::pbcor()}}.}
     \item{\code{k}}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2L}).}
     \item{\code{formula}}{Formula to use in smoothing function, eg. \code{y ~ x},
@@ -204,7 +204,6 @@ histograms/boxplots/density plots with statistical details added as a
 subtitle.
 }
 \examples{
-\donttest{
 # to ensure reproducibility
 set.seed(123)
 library(ggstatsplot)
@@ -251,7 +250,6 @@ ggstatsplot::grouped_ggscatterstats(
   title.prefix = "Genre",
   caption.text = "All movies have IMDB rating equal to 7."
 )
-}
 }
 \references{
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggscatterstats.html}

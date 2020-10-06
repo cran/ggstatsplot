@@ -1,10 +1,27 @@
+# ggstatsplot 0.6.1
+
+MAJOR CHANGES
+
+  - `ggbetweenstats` and `ggwithinstats` functions now default to
+    `pairwise.comparisons = TRUE`.
+
+MINOR CHANGES
+
+  - Plot borders are now removed from the default theme.
+  
+  - Small *p*-values (< 0.001) are now displayed in scientific notation.
+  
+BREAKING CHANGES
+
+  - `pairwiseComparisons` re-exports are deprecated.
+
 # ggstatsplot 0.6.0
 
 NEW FEATURES
 
   - More models supported in `ggcoefstats`: `BFBayesFactor`, `betamfx`, `crq`,
     `coxph.penal`, `geeglm`, `glht`, `glmm`, `lm_robust`, `lqm`, `lqmm`,
-    `manova`, `maov`, `negbinmfx`, `logitmfx`, `logitsf`, `margins`,
+    `manova`, `maov`, `margins`, `negbinmfx`, `logitmfx`, `logitsf`, `margins`,
     `poissonmfx`, `betaor`, `negbinirr`, `logitor`, `metafor`, `metaplus`,
     `orm`, `poissonirr`, `semLm`, `semLme`, `vgam`.
     

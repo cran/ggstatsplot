@@ -23,7 +23,7 @@ ggcoefstats_label_maker <- function(tidy_df,
   # formatting the p-values
   tidy_df %<>%
     signif_column(data = ., p = p.value) %>%
-    ipmisc::p_value_formatter(data = ., k = k)
+    dplyr::rowwise()
 
   #--------------------------- t-statistic ------------------------------------
 
@@ -33,9 +33,8 @@ ggcoefstats_label_maker <- function(tidy_df,
     if ("df.error" %in% names(tidy_df)) {
       # adding a new column with residual `df`
       tidy_df %<>%
-        dplyr::rowwise() %>%
         dplyr::mutate(
-          label = paste(
+          label = paste0(
             "list(~widehat(italic(beta))==",
             specify_decimal_p(x = estimate, k = k),
             ", ~italic(t)",
@@ -43,27 +42,23 @@ ggcoefstats_label_maker <- function(tidy_df,
             specify_decimal_p(x = df.error, k = 0L),
             ")==",
             specify_decimal_p(x = statistic, k = k),
-            ", ~italic(p)",
-            p.value.formatted,
-            ")",
-            sep = ""
+            ", ~italic(p)==",
+            specify_decimal_p(x = p.value, k = k, p.value = TRUE),
+            ")"
           )
         )
     } else {
       # for objects like `rlm` there will be no parameter
       tidy_df %<>%
-        dplyr::rowwise() %>%
         dplyr::mutate(
-          label = paste(
+          label = paste0(
             "list(~widehat(italic(beta))==",
             specify_decimal_p(x = estimate, k = k),
-            ", ~italic(t)",
-            "==",
+            ", ~italic(t)==",
             specify_decimal_p(x = statistic, k = k),
-            ", ~italic(p)",
-            p.value.formatted,
-            ")",
-            sep = ""
+            ", ~italic(p)==",
+            specify_decimal_p(x = p.value, k = k, p.value = TRUE),
+            ")"
           )
         )
     }
@@ -74,17 +69,15 @@ ggcoefstats_label_maker <- function(tidy_df,
   # if the statistic is z-value
   if (statistic == "z") {
     tidy_df %<>%
-      dplyr::rowwise() %>%
       dplyr::mutate(
-        label = paste(
+        label = paste0(
           "list(~widehat(italic(beta))==",
           specify_decimal_p(x = estimate, k = k),
           ", ~italic(z)==",
           specify_decimal_p(x = statistic, k = k),
-          ", ~italic(p)",
-          p.value.formatted,
-          ")",
-          sep = ""
+          ", ~italic(p)==",
+          specify_decimal_p(x = p.value, k = k, p.value = TRUE),
+          ")"
         )
       )
   }
@@ -94,17 +87,16 @@ ggcoefstats_label_maker <- function(tidy_df,
   # if the statistic is chi^2-value
   if (statistic %in% c("c", "chi")) {
     tidy_df %<>%
-      dplyr::rowwise() %>%
+
       dplyr::mutate(
-        label = paste(
+        label = paste0(
           "list(~widehat(italic(beta))==",
           specify_decimal_p(x = estimate, k = k),
           ", ~italic(chi)^2==",
           specify_decimal_p(x = statistic, k = k),
-          ", ~italic(p)",
-          p.value.formatted,
-          ")",
-          sep = ""
+          ", ~italic(p)==",
+          specify_decimal_p(x = p.value, k = k, p.value = TRUE),
+          ")"
         )
       )
   }
@@ -131,9 +123,8 @@ ggcoefstats_label_maker <- function(tidy_df,
 
     # which effect size is needed?
     tidy_df %<>%
-      dplyr::rowwise() %>%
       dplyr::mutate(
-        label = paste(
+        label = paste0(
           "list(~italic(F)",
           "(",
           df1,
@@ -141,14 +132,13 @@ ggcoefstats_label_maker <- function(tidy_df,
           df2,
           ")==",
           specify_decimal_p(x = statistic, k = k),
-          ", ~italic(p)",
-          p.value.formatted,
+          ", ~italic(p)==",
+          specify_decimal_p(x = p.value, k = k, p.value = TRUE),
           ", ~",
           effsize.text,
           "==",
           specify_decimal_p(x = estimate, k = k),
-          ")",
-          sep = ""
+          ")"
         )
       )
   }
@@ -181,11 +171,7 @@ extract_statistic <- function(x, ...) {
 
   # extracting statistic value
   purrr::pmap(
-    .l =
-      list(
-        pattern = list("^t", "^f", "^z", "^chi"),
-        x = list(statistic)
-      ),
+    .l = list(pattern = list("^t", "^f", "^z", "^chi"), x = list(statistic)),
     .f = grep_stat
   ) %>%
     purrr::keep(.x = ., .p = ~ !is.na(.)) %>%
@@ -217,9 +203,8 @@ extract_statistic <- function(x, ...) {
 #'
 #' @importFrom effectsize eta_squared omega_squared
 #' @importFrom broomExtra tidy_parameters
-#' @importFrom stats anova na.omit lm
 #' @importFrom rlang exec
-#' @importFrom dplyr matches everything contains
+#' @importFrom dplyr matches
 #'
 #' @examples
 #' # for reproducibility
@@ -242,9 +227,6 @@ lm_effsize_standardizer <- function(object,
                                     partial = TRUE,
                                     conf.level = 0.95,
                                     ...) {
-  # for `lm` objects, `anova` object should be created
-  if (class(object)[[1]] == "lm") object <- stats::anova(object)
-
   # stats details
   stats_df <- broomExtra::tidy_parameters(object, ...)
 
@@ -280,20 +262,5 @@ lm_effsize_standardizer <- function(object,
     y = effsize_df,
     by = "term"
   ) %>% # renaming to standard term 'estimate'
-    dplyr::rename(
-      .data = .,
-      "estimate" = dplyr::matches("eta|omega"),
-      "df1" = "df",
-      "conf.level" = "ci",
-      "F.value" = "statistic"
-    ) %>%
-    dplyr::select(
-      .data = .,
-      term,
-      F.value,
-      dplyr::contains("df"),
-      p.value,
-      dplyr::everything(),
-      -dplyr::contains("square")
-    )
+    dplyr::rename(.data = ., "estimate" = dplyr::matches("eta|omega"), "df1" = "df")
 }

@@ -78,21 +78,16 @@ cat_counter <- function(data, x, y = NULL, ...) {
   purrr::discard(.x = dots, .p = rlang::quo_is_null)
 
   # creating a dataframe with counts
-  return(
-    data %>%
-      dplyr::group_by_at(.tbl = ., .vars = dots, .drop = TRUE) %>%
-      dplyr::summarize(.data = ., counts = dplyr::n()) %>%
-      dplyr::mutate(.data = ., perc = (counts / sum(counts)) * 100) %>%
-      dplyr::ungroup(x = .) %>%
-      dplyr::arrange(.data = ., dplyr::desc(!!rlang::ensym(x))) %>%
-      dplyr::filter(.data = ., counts != 0L)
-  )
+  data %>%
+    dplyr::group_by_at(.tbl = ., .vars = dots, .drop = TRUE) %>%
+    dplyr::summarize(.data = ., counts = dplyr::n()) %>%
+    dplyr::mutate(.data = ., perc = (counts / sum(counts)) * 100) %>%
+    dplyr::ungroup(x = .) %>%
+    dplyr::arrange(.data = ., dplyr::desc(!!rlang::ensym(x))) %>%
+    dplyr::filter(.data = ., counts != 0L)
 }
 
 #' @noRd
-#'
-#' @importFrom ipmisc p_value_formatter
-#'
 #' @keywords internal
 
 # combine info about sample size plus
@@ -100,7 +95,7 @@ df_facet_label <- function(data, x, y, k = 3L) {
   data %>% {
     dplyr::full_join(
       x = cat_counter(data = ., x = {{ y }}) %>%
-        dplyr::mutate(.data = ., N = paste0("(n = ", counts, ")", sep = "")),
+        dplyr::mutate(N = paste0("(n = ", prettyNum(counts, big.mark = ",", scientific = FALSE), ")")),
       y = grouped_proptest(
         data = .,
         grouping.vars = {{ y }},
@@ -109,26 +104,22 @@ df_facet_label <- function(data, x, y, k = 3L) {
         dplyr::filter(.data = ., !is.na(significance)),
       by = rlang::as_name(rlang::ensym(y))
     ) %>%
-      ipmisc::p_value_formatter(data = ., k = k) %>%
       dplyr::rowwise() %>%
       dplyr::mutate(
-        label = paste(
+        label = paste0(
           "list(~chi['gof']^2~",
           "(",
           parameter,
           ")==",
           specify_decimal_p(x = statistic, k = k),
-          ", ~italic(p)",
-          p.value.formatted,
-          ", ~italic(n)",
-          "==",
+          ", ~italic(p)==",
+          specify_decimal_p(x = p.value, k = k, p.value = TRUE),
+          ", ~italic(n)==",
           counts,
-          ")",
-          sep = " "
+          ")"
         )
       ) %>%
-      dplyr::ungroup() %>%
-      dplyr::select(.data = ., -dplyr::matches("p.value.formatted"))
+      dplyr::ungroup()
   }
 }
 
