@@ -3,7 +3,6 @@
 #'
 #' @param ... Currently ignored.
 #' @param tidy_df A tidy dataframe.
-#' @param ... Currently ignored.
 #' @inheritParams ggcoefstats
 #'
 #' @importFrom dplyr mutate rowwise
@@ -15,7 +14,6 @@ ggcoefstats_label_maker <- function(tidy_df,
                                     statistic = NULL,
                                     k = 2L,
                                     effsize = "eta",
-                                    partial = TRUE,
                                     ...) {
 
   #----------------------- p-value cleanup ------------------------------------
@@ -85,9 +83,8 @@ ggcoefstats_label_maker <- function(tidy_df,
   #--------------------------- chi^2-statistic ---------------------------------
 
   # if the statistic is chi^2-value
-  if (statistic %in% c("c", "chi")) {
+  if (statistic == "c") {
     tidy_df %<>%
-
       dplyr::mutate(
         label = paste0(
           "list(~widehat(italic(beta))==",
@@ -105,21 +102,8 @@ ggcoefstats_label_maker <- function(tidy_df,
 
   if (statistic == "f") {
     # which effect size is needed?
-    if (effsize == "eta") {
-      if (isTRUE(partial)) {
-        effsize.text <- list(quote(widehat(italic(eta)[p]^2)))
-      } else {
-        effsize.text <- list(quote(widehat(italic(eta)^2)))
-      }
-    }
-
-    if (effsize == "omega") {
-      if (isTRUE(partial)) {
-        effsize.text <- list(quote(widehat(italic(omega)[p]^2)))
-      } else {
-        effsize.text <- list(quote(widehat(italic(omega)^2)))
-      }
-    }
+    if (effsize == "eta") effsize.text <- list(quote(widehat(italic(eta)[p]^2)))
+    if (effsize == "omega") effsize.text <- list(quote(widehat(italic(omega)[p]^2)))
 
     # which effect size is needed?
     tidy_df %<>%
@@ -148,37 +132,6 @@ ggcoefstats_label_maker <- function(tidy_df,
 }
 
 
-#' @name extract_statistic
-#'
-#' @importFrom insight find_statistic
-#' @importFrom purrr pmap keep
-#'
-#' @noRd
-
-extract_statistic <- function(x, ...) {
-  # if not a dataframe, figure out what's the relevant statistic
-  statistic <- insight::find_statistic(x)
-
-  # standardize statistic type symbol for regression models
-  # checking entered strings to extract the statistic
-  grep_stat <- function(x, pattern) {
-    if (isTRUE(grepl(pattern, x, ignore.case = TRUE))) {
-      return(tolower(substring(x, 1, 1)))
-    } else {
-      return(NA_character_)
-    }
-  }
-
-  # extracting statistic value
-  purrr::pmap(
-    .l = list(pattern = list("^t", "^f", "^z", "^chi"), x = list(statistic)),
-    .f = grep_stat
-  ) %>%
-    purrr::keep(.x = ., .p = ~ !is.na(.)) %>%
-    .[[1]]
-}
-
-
 #' @title Confidence intervals for (partial) eta-squared and omega-squared for
 #'   linear models.
 #' @name lm_effsize_standardizer
@@ -203,6 +156,7 @@ extract_statistic <- function(x, ...) {
 #'
 #' @importFrom effectsize eta_squared omega_squared
 #' @importFrom broomExtra tidy_parameters
+#' @importFrom insight standardize_names
 #' @importFrom rlang exec
 #' @importFrom dplyr matches
 #'
@@ -252,9 +206,7 @@ lm_effsize_standardizer <- function(object,
       partial = partial,
       ci = conf.level
     ) %>%
-    broomExtra::easystats_to_tidy_names(.) %>%
-    dplyr::filter(.data = ., !grepl(pattern = "Residuals", x = term, ignore.case = TRUE)) %>%
-    dplyr::select(.data = ., -dplyr::matches("group"))
+    insight::standardize_names(data = ., style = "broom")
 
   # combine them in the same place
   dplyr::right_join(
@@ -262,5 +214,5 @@ lm_effsize_standardizer <- function(object,
     y = effsize_df,
     by = "term"
   ) %>% # renaming to standard term 'estimate'
-    dplyr::rename(.data = ., "estimate" = dplyr::matches("eta|omega"), "df1" = "df")
+    dplyr::rename(.data = ., "df1" = "df")
 }

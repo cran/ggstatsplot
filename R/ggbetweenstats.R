@@ -11,7 +11,7 @@
 #' @param xlab,ylab Labels for `x` and `y` axis variables. If `NULL` (default),
 #'   variable names for `x` and `y` will be used.
 #' @param pairwise.comparisons Logical that decides whether pairwise comparisons
-#'   are to be displayed (default: `FALSE`). Please note that only
+#'   are to be displayed (default: `TRUE`). Please note that only
 #'   **significant** comparisons will be shown by default. To change this
 #'   behavior, select appropriate option with `pairwise.display` argument. The
 #'   pairwise comparison dataframes are prepared using the
@@ -118,21 +118,6 @@
 #' @seealso \code{\link{grouped_ggbetweenstats}}, \code{\link{ggwithinstats}},
 #'  \code{\link{grouped_ggwithinstats}}
 #'
-#' @details
-#' For parametric tests, Welch's ANOVA/*t*-test are used as a default (i.e.,
-#' `var.equal = FALSE`).
-#'
-#'  If robust tests are selected, following tests are used is .
-#' \itemize{
-#'  \item ANOVA: one-way ANOVA on trimmed means (see `?WRS2::t1way`)
-#'  \item *t*-test: Yuen's test for trimmed means (see `?WRS2::yuen`)
-#'  }
-#'
-#'  For more about how the effect size measures (for nonparametric tests) and
-#'  their confidence intervals are computed, see `?rcompanion::wilcoxonR`.
-#'
-#'  For repeated measures designs, use `ggwithinstats`.
-#'
 #' @references
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggbetweenstats.html}
 #'
@@ -180,7 +165,6 @@ ggbetweenstats <- function(data,
                            pairwise.display = "significant",
                            p.adjust.method = "holm",
                            effsize.type = "unbiased",
-                           partial = TRUE,
                            bf.prior = 0.707,
                            bf.message = TRUE,
                            results.subtitle = TRUE,
@@ -193,7 +177,7 @@ ggbetweenstats <- function(data,
                            k = 2L,
                            var.equal = FALSE,
                            conf.level = 0.95,
-                           nboot = 100,
+                           nboot = 100L,
                            tr = 0.1,
                            mean.plotting = TRUE,
                            mean.ci = FALSE,
@@ -280,7 +264,7 @@ ggbetweenstats <- function(data,
           x = rlang::as_string(x),
           y = rlang::as_string(y),
           bf.prior = bf.prior,
-          caption = caption,
+          top.text = caption,
           paired = FALSE,
           output = "caption",
           k = k
@@ -299,7 +283,6 @@ ggbetweenstats <- function(data,
         y = {{ y }},
         paired = FALSE,
         effsize.type = effsize.type,
-        partial = partial,
         var.equal = var.equal,
         bf.prior = bf.prior,
         tr = tr,
@@ -426,37 +409,20 @@ ggbetweenstats <- function(data,
 
   # ---------------- mean value tagging -------------------------------------
 
-  # computing mean and confidence interval for mean using helper function
-  # creating label column based on whether just mean is to be displayed or
-  # mean plus its CI
-  mean_dat <-
-    mean_labeller(
-      data = data,
-      x = {{ x }},
-      y = {{ y }},
-      mean.ci = mean.ci,
-      k = k
-    )
-
   # add labels for mean values
   if (isTRUE(mean.plotting)) {
     plot <-
       mean_ggrepel(
-        mean.data = mean_dat,
+        plot = plot,
+        data = data,
         x = {{ x }},
         y = {{ y }},
-        plot = plot,
+        mean.ci = mean.ci,
+        k = k,
+        sample.size.label = sample.size.label,
         mean.point.args = mean.point.args,
-        mean.label.args = mean.label.args,
-        inherit.aes = TRUE
+        mean.label.args = mean.label.args
       )
-  }
-
-  # ----------------- sample size labels --------------------------------------
-
-  # adding sample size labels to the x axes
-  if (isTRUE(sample.size.label)) {
-    plot <- plot + ggplot2::scale_x_discrete(labels = c(unique(mean_dat$n_label)))
   }
 
   # ggsignif labels -----------------------------------------------------------

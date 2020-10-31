@@ -11,25 +11,26 @@ testthat::test_that(
     ## expecting error message
     testthat::expect_error(ggstatsplot::grouped_ggbarstats(
       data = mpg_short,
-      main = cyl,
+      x = cyl,
       grouping.var = class,
       messages = FALSE
     ))
 
     testthat::expect_error(ggstatsplot::grouped_ggbarstats(
       data = mpg_short,
-      main = cyl,
+      x = cyl,
       messages = FALSE
     ))
 
-    testthat::expect_output(
+    testthat::expect_is(
       ggstatsplot::grouped_ggbarstats(
         data = mpg_short,
-        main = cyl,
-        condition = class,
+        x = cyl,
+        y = class,
         grouping.var = class,
         messages = FALSE
-      )
+      ),
+      "ggplot"
     )
 
     # when arguments are entered as bare expressions
@@ -37,8 +38,8 @@ testthat::test_that(
     testthat::expect_true(inherits(suppressWarnings(
       ggstatsplot::grouped_ggbarstats(
         data = mpg_short,
-        main = "cyl",
-        condition = class,
+        x = "cyl",
+        y = class,
         grouping.var = drv,
         x.axis.orientation = "horizontal",
         messages = FALSE
@@ -52,8 +53,8 @@ testthat::test_that(
     testthat::expect_true(inherits(suppressWarnings(
       ggstatsplot::grouped_ggbarstats(
         data = mpg_short,
-        main = cyl,
-        condition = "class",
+        x = cyl,
+        y = "class",
         grouping.var = "drv",
         x.axis.orientation = "slant",
         messages = FALSE
@@ -70,8 +71,8 @@ testthat::test_that(
       ggstatsplot::grouped_ggbarstats(
         data = as.data.frame(Titanic),
         grouping.var = Class,
-        main = Sex,
-        condition = Survived,
+        x = Sex,
+        y = Survived,
         counts = Freq,
         messages = FALSE
       )
@@ -85,8 +86,8 @@ testthat::test_that(
       ggstatsplot::grouped_ggbarstats(
         data = as.data.frame(Titanic),
         grouping.var = "Class",
-        main = "Sex",
-        condition = "Survived",
+        x = "Sex",
+        y = "Survived",
         counts = "Freq",
         messages = FALSE
       )
@@ -108,99 +109,27 @@ testthat::test_that(
     ls_results <-
       suppressWarnings(ggstatsplot::grouped_ggbarstats(
         data = dplyr::sample_frac(tbl = forcats::gss_cat, size = 0.1),
-        main = relig,
-        condition = marital,
+        x = relig,
+        y = marital,
         grouping.var = "race",
         output = "subtitle",
         k = 3,
         messages = FALSE
       ))
 
+    set.seed(123)
+    sexpr_results <-
+      suppressWarnings(statsExpressions::expr_contingency_tab(
+        data = dplyr::sample_frac(tbl = forcats::gss_cat, size = 0.1) %>%
+          dplyr::filter(race == "Other"),
+        x = relig,
+        y = marital,
+        output = "subtitle",
+        k = 3,
+        messages = FALSE
+      ))
+
     # checking subtitle
-    testthat::expect_equal(
-      ls_results,
-      list(
-        Other = ggplot2::expr(paste(
-          NULL,
-          chi["Pearson"]^2,
-          "(",
-          "40",
-          ") = ",
-          "40.274",
-          ", ",
-          italic("p"),
-          " = ",
-          "0.458",
-          ", ",
-          widehat(italic("V"))["Cramer"],
-          " = ",
-          "0.009",
-          ", CI"["95%"],
-          " [",
-          "-0.295",
-          ", ",
-          "-0.020",
-          "]",
-          ", ",
-          italic("n")["obs"],
-          " = ",
-          182L
-        )),
-        Black = ggplot2::expr(paste(
-          NULL,
-          chi["Pearson"]^
-            2,
-          "(",
-          "32",
-          ") = ",
-          "25.113",
-          ", ",
-          italic("p"),
-          " = ",
-          "0.801",
-          ", ",
-          widehat(italic("V"))["Cramer"],
-          " = ",
-          "0.000",
-          ", CI"["95%"],
-          " [",
-          "-0.168",
-          ", ",
-          "0.006",
-          "]",
-          ", ",
-          italic("n")["obs"],
-          " = ",
-          317L
-        )),
-        White = ggplot2::expr(paste(
-          NULL,
-          chi["Pearson"]^
-            2,
-          "(",
-          "52",
-          ") = ",
-          "109.652",
-          ", ",
-          italic("p"),
-          " = ",
-          "5.33e-06",
-          ", ",
-          widehat(italic("V"))["Cramer"],
-          " = ",
-          "0.094",
-          ", CI"["95%"],
-          " [",
-          "0.032",
-          ", ",
-          "0.100",
-          "]",
-          ", ",
-          italic("n")["obs"],
-          " = ",
-          1649L
-        ))
-      )
-    )
+    testthat::expect_equal(ls_results$Other, sexpr_results)
   }
 )

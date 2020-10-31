@@ -22,7 +22,6 @@
 #' @inherit ggbarstats return return
 #'
 #' @examples
-#' \donttest{
 #' # for reproducibility
 #' set.seed(123)
 #'
@@ -33,28 +32,27 @@
 #'   dplyr::sample_frac(tbl = ., size = 0.05)
 #'
 #' # plot
+#' # let's skip statistical analysis
 #' ggstatsplot::grouped_ggbarstats(
 #'   data = diamonds_short,
 #'   x = color,
 #'   y = clarity,
 #'   grouping.var = cut,
+#'   results.subtitle = FALSE,
 #'   title.prefix = "Quality",
 #'   bar.label = "both",
 #'   plotgrid.args = list(nrow = 2)
 #' )
-#' }
 #' @export
 
 # defining the function
 grouped_ggbarstats <- function(data,
-                               main,
-                               condition,
+                               x,
+                               y,
                                counts = NULL,
                                grouping.var,
                                title.prefix = NULL,
                                output = "plot",
-                               x = NULL,
-                               y = NULL,
                                ...,
                                plotgrid.args = list(),
                                title.text = NULL,
@@ -68,12 +66,8 @@ grouped_ggbarstats <- function(data,
 
   # ensure the grouping variable works quoted or unquoted
   grouping.var <- rlang::ensym(grouping.var)
-  main <- rlang::ensym(main)
-  condition <- if (!rlang::quo_is_null(rlang::enquo(condition))) rlang::ensym(condition)
-  x <- if (!rlang::quo_is_null(rlang::enquo(x))) rlang::ensym(x)
+  x <- rlang::ensym(x)
   y <- if (!rlang::quo_is_null(rlang::enquo(y))) rlang::ensym(y)
-  x <- x %||% main
-  y <- y %||% condition
   counts <- if (!rlang::quo_is_null(rlang::enquo(counts))) rlang::ensym(counts)
 
   # if `title.prefix` is not provided, use the variable `grouping.var` name

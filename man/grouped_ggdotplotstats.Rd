@@ -36,15 +36,9 @@ bare name \code{x} or as a string \code{"x"}).}
 plot title (name of each factor level) (Default: \code{NULL}). If \code{NULL}, the
 variable name entered for \code{grouping.var} will be used.}
 
-\item{output}{Character that describes what is to be returned: can be
-\code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
-\code{"subtitle"} will return the expression containing statistical results. If
-you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
-Setting this to \code{"caption"} will return the expression containing details
-about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
-\code{bf.message = TRUE}, otherwise this will return a \code{NULL}. For functions
-\code{ggpiestats} and \code{ggbarstats}, setting \code{output = "proptest"} will return a
-dataframe containing results from proportion tests.}
+\item{output}{If \code{"expression"}, will return expression with statistical
+details, while \code{"dataframe"} will return a dataframe containing the
+results.}
 
 \item{...}{
   Arguments passed on to \code{\link[=ggdotplotstats]{ggdotplotstats}}
@@ -91,11 +85,11 @@ parametric test} (Default: \code{TRUE}).}
     \item{\code{effsize.type}}{Type of effect size needed for \emph{parametric} tests. The
 argument can be \code{"d"} (for Cohen's \emph{d}) or \code{"g"} (for Hedge's \emph{g}).}
     \item{\code{conf.level}}{Scalar between 0 and 1. If unspecified, the defaults return
-\verb{95\%} lower and upper confidence intervals (\code{0.95}).}
+\verb{95\%} confidence/credible intervals (\code{0.95}).}
     \item{\code{nboot}}{Number of bootstrap samples for computing confidence interval
 for the effect size (Default: \code{100}).}
     \item{\code{k}}{Number of digits after decimal point (should be an integer)
-(Default: \code{k = 2}).}
+(Default: \code{k = 2L}).}
     \item{\code{results.subtitle}}{Decides whether the results of statistical tests are
 to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
 the plot will be returned.}

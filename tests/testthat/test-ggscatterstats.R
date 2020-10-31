@@ -19,8 +19,6 @@ testthat::test_that(
         type = "p",
         xfill = "red",
         yfill = "orange",
-        messages = TRUE,
-        centrality.parameter = "mean",
         marginal = FALSE,
         bf.message = TRUE,
         caption = "ggplot2 dataset",
@@ -31,51 +29,14 @@ testthat::test_that(
     pb <- ggplot2::ggplot_build(p)
 
     # checking layer data
-    testthat::expect_equal(length(pb$data), 7L)
+    testthat::expect_equal(length(pb$data), 3L)
     testthat::expect_equal(dim(pb$data[[1]]), c(83L, 10L))
     testthat::expect_equal(dim(pb$data[[2]]), c(80L, 14L))
-    testthat::expect_equal(dim(pb$data[[3]]), c(1L, 7L))
-    testthat::expect_equal(dim(pb$data[[4]]), c(1L, 7L))
-    testthat::expect_equal(dim(pb$data[[5]]), c(83L, 15L))
-    testthat::expect_equal(dim(pb$data[[6]]), c(83L, 15L))
+    testthat::expect_equal(dim(pb$data[[3]]), c(2L, 15L))
 
-    # checking intercepts
+    # checking outliers
     testthat::expect_equal(
       pb$data[[3]],
-      structure(
-        list(
-          xintercept = 10.433734939759,
-          PANEL = structure(1L, .Label = "1", class = "factor"),
-          group = structure(-1L, n = 1L),
-          colour = "red",
-          size = 1,
-          linetype = "dashed",
-          alpha = NA
-        ),
-        row.names = c(NA, -1L),
-        class = "data.frame"
-      )
-    )
-
-    testthat::expect_equal(
-      pb$data[[4]],
-      structure(
-        list(
-          yintercept = 166.13634939759,
-          PANEL = structure(1L, .Label = "1", class = "factor"),
-          group = structure(-1L, n = 1L),
-          colour = "orange",
-          size = 1,
-          linetype = "dashed",
-          alpha = NA
-        ),
-        row.names = c(NA, -1L),
-        class = "data.frame"
-      )
-    )
-
-    testthat::expect_equal(
-      pb$data[[7]],
       structure(
         list(
           x = c(3.9, 3.3),
@@ -99,33 +60,6 @@ testthat::test_that(
       )
     )
 
-
-    # checking geoms
-    testthat::expect_equal(
-      class(pb$data[[5]]$label[[1]]),
-      "call"
-    )
-    testthat::expect_equal(
-      pb$data[[5]]$label[[1]],
-      ggplot2::expr("mean" == "10.43")
-    )
-    testthat::expect_equal(pb$data[[5]]$x[[1]], 10.43373, tolerance = 0.001)
-    testthat::expect_equal(pb$data[[5]]$y[[1]], 3693.693, tolerance = 0.001)
-    testthat::expect_equal(
-      class(pb$data[[6]]$label[[1]]),
-      "call"
-    )
-    testthat::expect_equal(
-      pb$data[[6]]$label[[1]],
-      ggplot2::expr("mean" == "166.14")
-    )
-    testthat::expect_equal(pb$data[[6]]$x[[1]], 13.625, tolerance = 0.001)
-    testthat::expect_equal(pb$data[[6]]$y[[1]], 166.1363, tolerance = 0.001)
-
-    # checking intercepts
-    testthat::expect_equal(pb$data[[3]]$xintercept[[1]], 10.43373, tolerance = 0.001)
-    testthat::expect_equal(pb$data[[4]]$yintercept[[1]], 166.1363, tolerance = 0.001)
-
     # subtitle
     set.seed(123)
     p_subtitle <-
@@ -133,8 +67,7 @@ testthat::test_that(
         data = ggplot2::msleep,
         x = "sleep_total",
         y = bodywt,
-        type = "p",
-        messages = FALSE
+        type = "p"
       )
 
     # subtitle
@@ -144,19 +77,18 @@ testthat::test_that(
         data = ggplot2::msleep,
         x = "sleep_total",
         y = bodywt,
-        caption = "ggplot2 dataset",
-        messages = FALSE,
-        output = "caption"
+        top.text = "ggplot2 dataset",
+        output = "expression"
       )
 
     # checking plot labels
     testthat::expect_identical(pb$plot$labels$caption, p_cap)
-    testthat::expect_identical(p$plot_env$title, "Mammalian sleep")
-    testthat::expect_identical(p$plot_env$subtitle, p_subtitle)
+    testthat::expect_identical(pb$plot$labels$title, "Mammalian sleep")
+    testthat::expect_identical(pb$plot$labels$subtitle, p_subtitle)
     testthat::expect_identical(pb$plot$labels$x, "sleep (total)")
     testthat::expect_identical(pb$plot$labels$y, "body weight")
     testthat::expect_identical(
-      pb$data[[7]]$label,
+      pb$data[[3]]$label,
       c("Asian elephant", "African elephant")
     )
   }
@@ -179,8 +111,7 @@ testthat::test_that(
         centrality.parameter = "none",
         type = "np",
         conf.level = 0.99,
-        marginal = FALSE,
-        messages = FALSE
+        marginal = FALSE
       )
 
     # build the plot
@@ -200,7 +131,7 @@ testthat::test_that(
 
     # testing data and annotations
     testthat::expect_equal(length(pb$data), 2L)
-    testthat::expect_identical(p$plot_env$subtitle, p_subtitle)
+    testthat::expect_identical(pb$plot$labels$subtitle, p_subtitle)
     testthat::expect_null(pb$plot$labels$caption, NULL)
   }
 )
@@ -224,8 +155,6 @@ testthat::test_that(
         centrality.parameter = "mean",
         conf.level = 0.90,
         point.args = list(color = "red", size = 5),
-        point.height.jitter = 0.40,
-        point.width.jitter = 0.20,
         marginal = FALSE,
         messages = FALSE
       )
@@ -245,83 +174,12 @@ testthat::test_that(
     # built plot
     pb <- ggplot2::ggplot_build(p)
 
-    testthat::expect_identical(p$plot_env$subtitle, p_subtitle)
-
-    testthat::expect_equal(pb$data[[3]]$xintercept[[1]],
-      mean(ggplot2::msleep$sleep_total, na.rm = TRUE),
-      tolerance = 1e-3
-    )
-    testthat::expect_equal(pb$data[[4]]$yintercept[[1]],
-      mean(ggplot2::msleep$bodywt, na.rm = TRUE),
-      tolerance = 1e-3
-    )
+    testthat::expect_identical(pb$plot$labels$subtitle, p_subtitle)
 
     # checking layered data
     testthat::expect_equal(unique(pb$data[[1]]$size), 5L)
     testthat::expect_equal(unique(pb$data[[1]]$shape), 19L)
     testthat::expect_identical(unique(pb$data[[1]]$colour), "red")
-
-    testthat::expect_equal(pb$plot$plot_env$pos$height, 0.4, tolerance = 0.01)
-    testthat::expect_equal(pb$plot$plot_env$pos$width, 0.2, tolerance = 0.01)
-  }
-)
-
-# checking median display ---------------------------------------------
-
-testthat::test_that(
-  desc = "checking median display",
-  code = {
-    testthat::skip_on_cran()
-
-    # creating the plot
-    set.seed(123)
-    p <-
-      ggstatsplot::ggscatterstats(
-        data = ggplot2::msleep,
-        x = sleep_cycle,
-        y = awake,
-        marginal = FALSE,
-        bf.message = FALSE,
-        centrality.parameter = "median",
-        ggplot.component = ggplot2::scale_y_continuous(breaks = seq(0, 20, 2)),
-        messages = FALSE
-      )
-
-    # built plot
-    pb <- ggplot2::ggplot_build(p)
-
-    # checking intercepts
-    testthat::expect_equal(
-      pb$plot$plot_env$x_label_pos,
-      0.8083333,
-      tolerance = 1e-3
-    )
-    testthat::expect_equal(
-      pb$plot$plot_env$y_label_pos,
-      13.39839,
-      tolerance = 1e-3
-    )
-    testthat::expect_equal(
-      pb$data[[3]]$xintercept[[1]],
-      median(ggplot2::msleep$sleep_cycle, na.rm = TRUE),
-      tolerance = 1e-3
-    )
-    testthat::expect_equal(
-      pb$data[[4]]$yintercept[[1]],
-      median(ggplot2::msleep$awake, na.rm = TRUE),
-      tolerance = 1e-3
-    )
-
-    # checking panel parameters
-    testthat::expect_equal(pb$layout$panel_params[[1]]$x.range,
-      c(0.0472, 1.5748),
-      tolerance = 0.01
-    )
-    testthat::expect_equal(pb$layout$panel_params[[1]]$y.range,
-      c(3.17, 23.63),
-      tolerance = 0.001
-    )
-    testthat::expect_null(pb$plot$labels$caption, NULL)
   }
 )
 
@@ -355,8 +213,7 @@ testthat::test_that(
         data = ggplot2::msleep,
         x = sleep_total,
         y = bodywt,
-        type = "bf",
-        messages = FALSE
+        type = "bf"
       )
 
     testthat::expect_identical(class(p)[[1]], "ggExtraPlot")
@@ -401,8 +258,7 @@ testthat::test_that(
         label.var = "order",
         point.label.args = list(size = 4, color = "blue", alpha = 0.5),
         results.subtitle = FALSE,
-        marginal = FALSE,
-        messages = TRUE
+        marginal = FALSE
       ) +
       ggplot2::coord_cartesian(ylim = c(0, 7000)) +
       ggplot2::scale_y_continuous(breaks = seq(0, 7000, 1000))
@@ -456,8 +312,7 @@ testthat::test_that(
         label.expression = "sleep_total > 17",
         label.var = "order",
         results.subtitle = FALSE,
-        marginal = FALSE,
-        messages = TRUE
+        marginal = FALSE
       ),
       what = "gg"
     ))
@@ -471,8 +326,7 @@ testthat::test_that(
         label.expression = sleep_total > 17,
         label.var = order,
         results.subtitle = FALSE,
-        marginal = FALSE,
-        messages = TRUE
+        marginal = FALSE
       ),
       what = "gg"
     ))
@@ -486,8 +340,7 @@ testthat::test_that(
         label.expression = NULL,
         label.var = order,
         results.subtitle = FALSE,
-        marginal = FALSE,
-        messages = TRUE
+        marginal = FALSE
       ),
       what = "gg"
     ))
@@ -509,8 +362,7 @@ testthat::test_that(
         x = sleep_total,
         y = bodywt,
         margins = "y",
-        results.subtitle = FALSE,
-        messages = TRUE
+        results.subtitle = FALSE
       )
 
     testthat::expect_identical(
@@ -604,8 +456,7 @@ testthat::test_that(
         y = height,
         conf.level = 0.90,
         type = "r",
-        output = "subtitle",
-        messages = FALSE
+        output = "subtitle"
       )
 
     fun_sub <-
@@ -615,8 +466,7 @@ testthat::test_that(
         y = height,
         conf.level = 0.90,
         type = "r",
-        output = "subtitle",
-        messages = FALSE
+        output = "subtitle"
       )
 
     # checking captured messages

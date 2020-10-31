@@ -6,11 +6,6 @@
 #' @param xlab Custom text for the `x` axis label (Default: `NULL`, which
 #'   will cause the `x` axis label to be the `x` variable).
 #' @param ylab Custom text for the `y` axis label (Default: `NULL`).
-#' @param proportion.test Decides whether proportion test for `main` variable is
-#'   to be carried out for each level of `y` (Default: `TRUE`).
-#' @param label Character decides what information needs to be
-#'   displayed on the label in each pie slice. Possible options are
-#'   `"percentage"` (default), `"counts"`, `"both"`.
 #' @param sample.size.label Logical that decides whether sample size information
 #'   should be displayed for each level of the grouping variable `y`
 #'   (Default: `TRUE`).
@@ -43,8 +38,8 @@
 
 # defining the function
 ggbarstats <- function(data,
-                       main,
-                       condition,
+                       x,
+                       y,
                        counts = NULL,
                        ratio = NULL,
                        paired = FALSE,
@@ -53,7 +48,6 @@ ggbarstats <- function(data,
                        label = "percentage",
                        label.args = list(alpha = 1, fill = "white"),
                        conf.level = 0.95,
-                       nboot = 100L,
                        k = 2L,
                        proportion.test = TRUE,
                        perc.k = 0,
@@ -73,17 +67,11 @@ ggbarstats <- function(data,
                        palette = "Dark2",
                        ggplot.component = NULL,
                        output = "plot",
-                       x = NULL,
-                       y = NULL,
                        ...) {
 
   # ensure the variables work quoted or unquoted
-  main <- rlang::ensym(main)
-  condition <- rlang::ensym(condition)
-  x <- if (!rlang::quo_is_null(rlang::enquo(x))) rlang::ensym(x)
-  y <- if (!rlang::quo_is_null(rlang::enquo(y))) rlang::ensym(y)
-  x <- x %||% main
-  y <- y %||% condition
+  x <- rlang::ensym(x)
+  y <- rlang::ensym(y)
   counts <- if (!rlang::quo_is_null(rlang::enquo(counts))) rlang::ensym(counts)
 
   # ================= extracting column names as labels  =====================
@@ -119,10 +107,15 @@ ggbarstats <- function(data,
   # also drop the unused levels of the factors
   data %<>%
     dplyr::mutate(
-      .data = .,
       {{ x }} := droplevels(as.factor({{ x }})),
       {{ y }} := droplevels(as.factor({{ y }}))
     )
+
+  # TO DO: until one-way table is supported by `BayesFactor`
+  if (nlevels(data %>% dplyr::pull({{ y }})) == 1L) {
+    bf.message <- FALSE
+    proportion.test <- FALSE
+  }
 
   # ========================= statistical analysis ===========================
 
@@ -136,12 +129,8 @@ ggbarstats <- function(data,
           x = {{ x }},
           y = {{ y }},
           ratio = ratio,
-          nboot = nboot,
           paired = paired,
-          legend.title = legend.title,
           conf.level = conf.level,
-          conf.type = "norm",
-          bias.correct = TRUE,
           k = k
         ),
         error = function(e) NULL
@@ -150,16 +139,19 @@ ggbarstats <- function(data,
     # preparing the BF message for null hypothesis support
     if (isTRUE(bf.message) && !is.null(subtitle)) {
       caption <-
-        statsExpressions::bf_contingency_tab(
-          data = data,
-          x = {{ x }},
-          y = {{ y }},
-          sampling.plan = sampling.plan,
-          fixed.margin = fixed.margin,
-          prior.concentration = prior.concentration,
-          caption = caption,
-          output = "caption",
-          k = k
+        tryCatch(
+          expr = bf_contingency_tab(
+            data = data,
+            x = {{ x }},
+            y = {{ y }},
+            sampling.plan = sampling.plan,
+            fixed.margin = fixed.margin,
+            prior.concentration = prior.concentration,
+            top.text = caption,
+            output = "caption",
+            k = k
+          ),
+          error = function(e) NULL
         )
     }
   }

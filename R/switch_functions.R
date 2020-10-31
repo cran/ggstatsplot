@@ -12,21 +12,15 @@
 #' @importFrom statsExpressions expr_t_robust expr_t_bayes
 #' @importFrom statsExpressions expr_anova_parametric expr_anova_nonparametric
 #' @importFrom statsExpressions expr_anova_robust expr_anova_bayes
-#' @importFrom statsExpressions expr_meta_parametric
-#' @importFrom statsExpressions expr_meta_robust expr_meta_bayes
 #' @importFrom rlang eval_bare parse_expr
 #' @importFrom ipmisc stats_type_switch
-#' @importFrom dplyr case_when
 #'
 #' @keywords internal
 #' @noRd
 
 subtitle_function_switch <- function(test, type, ...) {
-  # figuring out type of test needed to run
-  type <- ipmisc::stats_type_switch(type)
-
   # make a function character string
-  .f_string <- paste("statsExpressions::expr_", test, "_", type, "(...)", sep = "")
+  .f_string <- paste0("statsExpressions::expr_", test, "_", type, "(...)")
 
   # evaluate it
   return(rlang::eval_bare(rlang::parse_expr(.f_string)))
@@ -46,12 +40,9 @@ subtitle_function_switch <- function(test, type, ...) {
 
 caption_function_switch <- function(test, ...) {
   # choosing the appropriate test
-  if (test == "t") {
-    .f <- statsExpressions::bf_ttest
-  } else {
-    .f <- statsExpressions::bf_oneway_anova
-  }
+  if (test == "t") .f <- statsExpressions::bf_ttest
+  if (test == "anova") .f <- statsExpressions::bf_oneway_anova
 
-  # preparing the BF message for null
+  # preparing the BF message
   rlang::exec(.fn = .f, ...)
 }

@@ -14,7 +14,6 @@ ggcoefstats(
   exclude.intercept = TRUE,
   exponentiate = FALSE,
   effsize = "eta",
-  partial = TRUE,
   meta.analytic.effect = FALSE,
   meta.type = "parametric",
   bf.message = TRUE,
@@ -59,9 +58,8 @@ dataframe of results from \code{broom::tidy}) or \code{"glance"} (object from
 \item{conf.int}{Logical. Decides whether to display confidence intervals as
 error bars (Default: \code{TRUE}).}
 
-\item{conf.level}{Numeric deciding level of confidence intervals (Default:
-\code{0.95}). For \code{MCMC} model objects (\code{Stan}, \code{JAGS}, etc.), this will be
-probability level for CI.}
+\item{conf.level}{Numeric deciding level of confidence or credible intervals
+(Default: \code{0.95}).}
 
 \item{k}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2L}).}
@@ -79,10 +77,6 @@ exponentiation.}
 \item{effsize}{Character describing the effect size to be displayed: \code{"eta"}
 (default) or \code{"omega"}. This argument is relevant only for models objects
 of class \code{aov}, \code{anova}, \code{aovlist}, \code{"Gam"}, and \code{"manova"}.}
-
-\item{partial}{Logical that decides if partial eta-squared or partial
-omega-squared are returned (Default: \code{TRUE}). If \code{FALSE}, eta-squared or
-omega-squared will be returned.}
 
 \item{meta.analytic.effect}{Logical that decides whether subtitle for
 meta-analysis via linear (mixed-effects) models (default: \code{FALSE}). If
@@ -165,7 +159,7 @@ theme elements are to be displayed along with the selected \code{ggtheme}
 override some aspects of the selected \code{ggtheme}.}
 
 \item{...}{Additional arguments to tidying method. For more, see
-\code{?parameters::model_parameters} and \code{broom::tidy}.}
+\code{parameters::model_parameters} and \code{broom::tidy}.}
 }
 \value{
 Plot with the regression coefficients' point estimates as dots with

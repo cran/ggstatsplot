@@ -81,23 +81,32 @@ also supported by `ggcoefstats`. For example-
 
 `aareg`, `anova`, `aov`, `aovlist`, `Arima`, `BFBayesFactor`, `bayesx`,
 `bayesGARCH`, `BBmm`, `BBreg`, `bcplm`, `betamfx`, `betaor`, `bglmerMod`,
-`bife`, `bigglm`, `biglm`, `blavaan`, `bmlm`, `blmerMod`, `bracl`, `brglm2`,
-`brmsfit`, `brmultinom`, `btergm`, `cch`, `cgam`, `cgamm`, `cglm`, `clm`,
-`clm2`, `clmm`, `clmm2`, `coeftest`, `complmrob`, `confusionMatrix`, `coxme`,
-`coxph`, `coxph.penal`, `cpglm`, `cpglmm`, `crch`, `crq`, `DirichReg`, `drc`,
-`emmGrid`, `epi.2by2`, `ergm`, `feis`, `felm`, `fitdistr`, `flexsurvreg`, `gam`,
-`Gam`, `gamlss`, `garch`, `geeglm`, `glmc`, `glmerMod`, `glmmTMB`, `gls`,
+`bife`, `bigglm`, `biglm`, `blavaan`, `bmlm`, `blmerMod`, `bracl`, `brglm`,
+`brglm2`, `brmsfit`, `brmultinom`, `btergm`, `cch`, `cgam`, `cgamm`, `cglm`,
+`clm`, `clm2`, `clmm`, `clmm2`, `coeftest`, `complmrob`, `confusionMatrix`,
+`coxme`, `coxph`, `coxph.penal`, `cpglm`, `cpglmm`, `crch`, `crq`, `DirichReg`,
+`drc`, `emmGrid`, `epi.2by2`, `ergm`, `feis`, `felm`, `fitdistr`, `flexsurvreg`,
+`gam`, `Gam`, `gamlss`, `garch`, `geeglm`, `glmc`, `glmerMod`, `glmmTMB`, `gls`,
 `glht`, `glm`, `glmm`, `glmmadmb`, `glmmPQL`, `glmRob`, `glmrob`, `glmx`, `gmm`,
-`hurdle`, `ivreg`, `iv_robust`, `lavaan`, `lm`, `lm.beta`, `lmerMod`,
+`HLfit`, `hurdle`, `ivreg`, `iv_robust`, `lavaan`, `lm`, `lm.beta`, `lmerMod`,
 `lmerModLmerTest`, `lmodel2`, `lmRob`, `lmrob`, `lm_robust`, `logitmfx`,
 `logitor`, `logitsf`, `LORgee`, `lqm`, `lqmm`, `lrm`, `manova`, `maov`,
 `margins`, `mcmc`, `mcmc.list`, `MCMCglmm`, `mclogit`, `mmclogit`, `mediate`,
-`metafor`, `metaplus`, `mixor`, `mjoint`, `mle2`, `mlm`, `multinom`, `negbin`,
-`negbinmfx`, `negbinirr`, `nlmerMod`, `nlrq`, `nlreg`, `nls`, `orcutt`, `orm`,
-`plm`, `poissonmfx`, `poissonirr`, `polr`, `ridgelm`, `rjags`, `rlm`,
-`rlmerMod`, `robmixglm`, `rq`, `rqss`, `semLm`, `semLme`, `slm`, `speedglm`,
-`speedlm`, `stanfit`, `stanreg`, `survreg`, `svyglm`, `svyolr`, `svyglm`,
-`tobit`, `truncreg`, `vgam`, `vglm`, `wbgee`, `wblm`, `zcpglm`, `zeroinfl`, etc.
+`metafor`, `merMod`, `merModList`, `metaplus`, `mixor`, `mjoint`, `mle2`, `mlm`,
+`multinom`, `negbin`, `negbinmfx`, `negbinirr`, `nlmerMod`, `nlrq`, `nlreg`,
+`nls`, `orcutt`, `orm`, `plm`, `poissonmfx`, `poissonirr`, `polr`, `ridgelm`,
+`rjags`, `rlm`, `rlmerMod`, `robmixglm`, `rq`, `rqss`, `rrvglm`, `scam`, `semLm`,
+`semLme`, `slm`, `speedglm`, `speedlm`, `stanfit`, `stanreg`, `survreg`,
+`svyglm`, `svyolr`, `svyglm`, `tobit`, `truncreg`, `vgam`, `vglm`, `wbgee`,
+`wblm`, `zeroinfl`, etc.
+
+# Summary of meta-analyis tests
+
+Type | Test | Effect size | 95% CI available? | Function
+----------- | -------------------- | -------- | ---  | -----
+Parametric | Meta-analysis via random-effects models | $\beta$ | <font color="green">$\checkmark$</font> | `metafor::metafor`
+Robust | Meta-analysis via robust random-effects models | $\beta$ | <font color="green">$\checkmark$</font> | `metaplus::metaplus`
+Bayes | Meta-analysis via robust random-effects models | $\beta$ | <font color="green">$\checkmark$</font> | `metaBMA::meta_random`
 
 # Examples of supported models
 
@@ -119,8 +128,7 @@ mod <- stats::aov(formula = rating ~ mpaa * genre, data = movies_long)
 # plot
 ggstatsplot::ggcoefstats(
   x = mod,
-  effsize = "eta", # changing the effect size estimate being displayed
-  partial = FALSE, # just eta-squared
+  effsize = "omega", # changing the effect size estimate being displayed
   point.args = list(color = "red", size = 4, shape = 15), # changing the point geom
   package = "dutchmasters", # package from which color palette is to be taken
   palette = "milkmaid", # color palette for labels
@@ -253,6 +261,92 @@ ggstatsplot::ggcoefstats(
   )) +
   ggplot2::labs(y = "Genre compared to Action movies)") +
   ggplot2::theme(axis.title.y = ggplot2::element_text(size = 14, face = "bold"))
+```
+
+## standardized regression coefficients with `lm` (`lm.beta`)
+
+```{r lm.beta, fig.width=10, fig.height=6}
+# setup
+set.seed(123)
+library(MASS)
+library(lm.beta)
+
+# model
+mod <- stats::lm(formula = mpg ~ wt, data = mtcars)
+mod.robust <- MASS::rlm(formula = mpg ~ wt, data = mtcars)
+mod.beta <- lm.beta::lm.beta(mod)
+mod.robust.beta <- lm.beta::lm.beta(mod.robust)
+
+# plot
+ggstatsplot::combine_plots(
+  ggstatsplot::ggcoefstats(mod.beta),
+  ggstatsplot::ggcoefstats(mod.robust.beta, stats.labels = FALSE),
+  title.text = "standardized regression coefficients with `lm`"
+)
+```
+
+## Bayes Factor (`BFBayesFactor`)
+
+```{r BFBayesFactor, fig.width=10, fig.height=10}
+# setup
+set.seed(123)
+library(BayesFactor)
+library(ggstatsplot)
+
+# one sample t-test
+mod1 <- ttestBF(mtcars$wt, mu = 3)
+
+# independent t-test
+mod2 <- ttestBF(formula = wt ~ am, data = mtcars)
+
+# paired t-test
+mod3 <- ttestBF(x = sleep$extra[1:10], y = sleep$extra[11:20], paired = TRUE)
+
+# correlation
+mod4 <- correlationBF(y = iris$Sepal.Length, x = iris$Sepal.Width)
+
+# contingency tabs (not supported)
+# data("raceDolls")
+# mod5 <-
+#   contingencyTableBF(
+#     raceDolls,
+#     sampleType = "indepMulti",
+#     fixedMargin = "cols"
+#   )
+
+# anova
+data("puzzles")
+mod6 <-
+  anovaBF(
+    formula = RT ~ shape * color + ID,
+    data = puzzles,
+    whichRandom = "ID",
+    whichModels = "top",
+    progress = FALSE
+  )
+
+# regression-1
+mod7 <- regressionBF(rating ~ ., data = attitude, progress = FALSE)
+
+# meta-analysis
+t <- c(-.15, 2.39, 2.42, 2.43, -.15, 2.39, 2.42, 2.43)
+N <- c(100, 150, 97, 99, 99, 97, 100, 150)
+
+# Using rscale=1 and one-sided test to be
+# consistent with Rouder & Morey (2011)
+mod8 <- meta.ttestBF(t, N, rscale = 1, nullInterval = c(0, Inf))
+
+# list of plots
+ggstatsplot::combine_plots(
+  ggcoefstats(mod1, title = "one sample t-test"),
+  ggcoefstats(mod2, title = "independent t-test"),
+  ggcoefstats(mod3, title = "paired t-test"),
+  ggcoefstats(mod4, title = "correlation"),
+  ggcoefstats(mod6, title = "anova"),
+  ggcoefstats(mod7, title = "regression-1"),
+  ggcoefstats(mod8, title = "meta-analysis"),
+  title.text = "Example from `BayesFactor` package"
+)
 ```
 
 ## linear mixed-effects model (`lmer`/`lmerMod`)
@@ -432,6 +526,31 @@ ggstatsplot::ggcoefstats(
 )
 ```
 
+## inference in spatial GLMMs (`HLfit`)
+
+```{r HLfit, width = 4, height = 4}
+# setup
+set.seed(123)
+library(spaMM)
+data("wafers")
+data("scotlip")
+
+# model
+mod <-
+  fitme(
+    formula = y ~ 1 + (1 | batch),
+    family = Gamma(log),
+    data = wafers
+  )
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = mod,
+  exclude.intercept = FALSE,
+  title = "Inference in spatial GLMMs"
+)
+```
+
 ## robust linear mixed-effects models (`rlmer`)
 
 Robust version of `lmer` (as implemented in `robustlmm` package) is also
@@ -461,7 +580,7 @@ ggstatsplot::ggcoefstats(
 
 ## linear mixed-effects models with `lmerTest` (`lmerModLmerTest`)
 
-```{r lmerModLmerTest, width = 6, height = 12}
+```{r lmerModLmerTest, width = 6, height = 16}
 # setup
 set.seed(123)
 library(lmerTest)
@@ -513,7 +632,7 @@ Note that you need to choose some non-linear function, which will be based on
 prior exploratory data analysis (`y ~ k/x + c` implemented here, but you can try
 out other non-linear functions, e.g. `Y ~ k * exp(-b*c)`).
 
-```{r nls, fig.height = 6, fig.width = 6}
+```{r nls, fig.height = 5, fig.width = 5}
 # setup
 set.seed(123)
 library(ggstatsplot)
@@ -521,7 +640,7 @@ library(ggstatsplot)
 # model
 mod <-
   stats::nls(
-    formula = rating ~ k / budget + c, # try toying around with the form of non-linear function
+    formula = rating ~ k / budget + c,
     data = movies_long,
     start = list(k = 1, c = 0)
   )
@@ -778,6 +897,27 @@ ggstatsplot::combine_plots(
   ncol = 2,
   title.text = "Exploring models with different `glm` families",
   title.color = "blue"
+)
+```
+
+The version of `glm` implemented in `rms` is also supported.
+
+```{r rms_Glm, fig.height = 5, fig.width = 5, eval = FALSE}
+# setup
+set.seed(123)
+library(ggstatsplot)
+library(rms)
+
+# Dobson (1990) Page 93: Randomized Controlled Trial :
+counts <- c(18, 17, 15, 20, 10, 20, 25, 13, 12)
+outcome <- gl(3, 1, 9)
+treatment <- gl(3, 3)
+f <- rms::Glm(counts ~ outcome + treatment, family = poisson())
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = f,
+  title = "rms' implementation of glm"
 )
 ```
 
@@ -1110,36 +1250,14 @@ mod <-
     tune.iter = 2000,
     n.iter = 6000,
     n.burnin = 1000,
-    n.thin = 5
+    n.thin = 5,
+    n.report = 0
   )
 
 # plot
 ggstatsplot::ggcoefstats(
   x = mod,
   title = "Bayesian Compound Poisson Linear Models"
-)
-```
-
-## Zero-inflated Compound Poisson Generalized Linear Models (`zcpglm`)
-
-```{r zcpglm, fig.height = 6, fig.width = 10}
-# set up
-set.seed(123)
-library(cplm)
-da <- subset(AutoClaim, IN_YY == 1) # use data in the Yip and Yau paper
-da <- transform(da, CLM_AMT5 = CLM_AMT5 / 1000, INCOME = INCOME / 10000)
-
-# model
-mod <- zcpglm(
-  formula = CLM_AMT5 ~ CAR_USE + MARRIED + AREA + MVR_PTS || MVR_PTS + INCOME,
-  data = da
-)
-
-# plot
-ggstatsplot::ggcoefstats(
-  x = mod,
-  title = "Zero-inflated Compound Poisson Generalized Linear Models",
-  standardize = TRUE
 )
 ```
 
@@ -1217,6 +1335,41 @@ ggstatsplot::ggcoefstats(
 )
 ```
 
+## Reduced-Rank Vector Generalized Linear Models (`rrvglm`)
+
+```{r rrvglm, fig.height = 6, fig.width = 6}
+# setup
+set.seed(123)
+library(VGAM)
+
+# data
+nn <- 1000 # Number of observations
+delta1 <- 3.0 # Specify this
+delta2 <- 1.5 # Specify this; should be greater than unity
+a21 <- 2 - delta2
+mydata <- data.frame(x2 = runif(nn), x3 = runif(nn))
+mydata <- transform(mydata, mu = exp(2 + 3 * x2 + 0 * x3))
+mydata <- transform(mydata,
+  y2 = rnbinom(nn, mu = mu, size = (1 / delta1) * mu^a21)
+)
+
+# model
+rrnb2 <-
+  rrvglm(
+    formula = y2 ~ x2 + x3,
+    family = negbinomial(zero = NULL),
+    data = mydata,
+    trace = FALSE
+  )
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = rrnb2,
+  exclude.intercept = FALSE,
+  title = "Reduced-Rank Vector Generalized Linear Models"
+)
+```
+
 ## Constrained Generalized Additive Model Fitting (`cgam`)
 
 ```{r cgam, fig.height = 4, fig.width = 6}
@@ -1281,6 +1434,41 @@ ggstatsplot::ggcoefstats(
   x = ans,
   title = "Constrained Generalized Additive Mixed-Effects Model Fitting",
   exclude.intercept = FALSE
+)
+```
+
+## shape constrained additive models (`scam`)
+
+```{r scam, eval=FALSE}
+# setup
+set.seed(123)
+library(scam)
+
+# data
+n <- 200
+x1 <- runif(n) * 6 - 3
+f1 <- 3 * exp(-x1^2) # unconstrained term
+f1 <- (f1 - min(f1)) / (max(f1) - min(f1)) # function scaled to have range [0,1]
+x2 <- runif(n) * 4 - 1
+f2 <- exp(4 * x2) / (1 + exp(4 * x2)) # monotone increasing smooth
+f2 <- (f2 - min(f2)) / (max(f2) - min(f2)) # function scaled to have range [0,1]
+f <- f1 + f2
+y <- f + rnorm(n) * 0.1
+dat <- data.frame(x1 = x1, x2 = x2, y = y)
+
+# model
+b <-
+  scam(
+    y ~ s(x1, k = 15, bs = "cr", m = 2) + s(x2, k = 25, bs = "mpi", m = 2),
+    family = gaussian(link = "identity"),
+    data = dat,
+    not.exp = FALSE
+  )
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = b,
+  title = "Shape constrained additive models"
 )
 ```
 
@@ -1593,8 +1781,6 @@ ggstatsplot::ggcoefstats(
 
 ## generalized linear mixed models using AD Model Builder (`glmmadmb`)
 
-Another option is to use `glmmadmb` package.
-
 ```{r glmmadmb, fig.height = 5, fig.width = 5}
 # setup
 if (isFALSE("glmmADMB" %in% installed.packages())) {
@@ -1630,6 +1816,33 @@ zipmodel <-
 ggstatsplot::ggcoefstats(
   x = zipmodel,
   title = "generalized linear mixed models using AD Model Builder"
+)
+```
+
+## multilevel model to a list of data frames (`merModList`)
+
+```{r merModList, fig.height = 4, fig.width = 4}
+# setup
+set.seed(123)
+library(lme4)
+library(merTools)
+
+# data
+sim_list <-
+  replicate(
+    n = 10,
+    expr = sleepstudy[sample(row.names(sleepstudy), 180), ],
+    simplify = FALSE
+  )
+fml <- "Reaction ~ Days + (Days | Subject)"
+
+# model
+mod <- lmerModList(fml, data = sim_list)
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = mod,
+  title = "a multilevel model to a list of data frames"
 )
 ```
 
@@ -1756,6 +1969,7 @@ ggstatsplot::ggcoefstats(
   title = "marginal effects estimation"
 )
 ```
+
 ## Linear Regression with Interval-Censored Dependent Variable (`semLm`)
 
 ```{r semLm, fig.height = 5, fig.width = 6}
@@ -1838,14 +2052,34 @@ ggstatsplot::ggcoefstats(
 )
 ```
 
-## bias reduction in generalized linear models (`brglm2`)
-
-Note that we can also choose to display labels only for the significant effects.
-This can be helpful when a large number of regression coefficients are to be
-displayed in a single plot and we would like to focus only on the significant
-ones.
+## bias reduction in Binomial-response GLMs (`brglm``)
 
 ```{r brglm, fig.height = 6, fig.width = 5}
+# setup
+set.seed(123)
+library(brglm)
+data("lizards")
+
+# fit the model using maximum likelihood mean bias-reduced fit:
+lizards.brglm <-
+  brglm::brglm(
+    cbind(grahami, opalinus) ~ height + diameter + light + time,
+    family = binomial(logit),
+    data = lizards,
+    method = "brglm.fit"
+  )
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = lizards.brglm,
+  only.significant = TRUE,
+  title = "bias reduction in Binomial-response GLMs"
+)
+```
+
+## bias reduction in generalized linear models (`brglm2`)
+
+```{r brglm2, fig.height = 6, fig.width = 5}
 # setup
 set.seed(123)
 library(brglm2)
@@ -2060,6 +2294,9 @@ ggstatsplot::ggcoefstats(
 ## multiple linear regression models (`mlm`)
 
 ```{r mlm, fig.height = 5, fig.width = 6}
+# setup
+set.seed(123)
+
 # model (converting all numeric columns in data to z-scores)
 mod <-
   stats::lm(
@@ -2074,6 +2311,26 @@ ggstatsplot::ggcoefstats(
   x = mod,
   title = "multiple linear regression models",
   exclude.intercept = FALSE
+)
+```
+
+## anova on multiple linear regression models (`maov`)
+
+```{r maov, fig.height = 8, fig.width = 6}
+# setup
+set.seed(123)
+
+# model
+fit <- lm(cbind(mpg, disp, hp) ~ factor(cyl), data = mtcars)
+m <- aov(fit)
+
+# plot
+ggstatsplot::ggcoefstats(
+  x = m,
+  title = "anova on multiple linear regression models",
+  package = "ggsci",
+  palette = "springfield_simpsons",
+  conf.level = 0.90
 )
 ```
 
@@ -2434,7 +2691,8 @@ data(Transport)
 mod <-
   mclogit::mclogit(
     formula = cbind(resp, suburb) ~ distance + cost,
-    data = Transport
+    data = Transport,
+    control = mclogit::mclogit.control(trace = FALSE)
   )
 
 # plot
@@ -2457,7 +2715,8 @@ mod <-
   mclogit::mclogit(
     formula = cbind(Freq, interaction(time, class)) ~ econ.left / class + welfare / class + auth / class,
     random = ~ 1 | party.time,
-    data = within(electors, party.time <- interaction(party, time))
+    data = within(electors, party.time <- interaction(party, time)),
+    control = mclogit::mclogit.control(trace = FALSE)
   )
 
 # plot
@@ -3482,7 +3741,7 @@ Another example with output containing effect sizes
 set.seed(123)
 library(emmeans)
 
-# model and effect sizes 
+# model and effect sizes
 fiber.lm <- lm(strength ~ diameter + machine, data = fiber)
 emm <- emmeans(fiber.lm, "machine")
 es <- eff_size(emm, sigma = sigma(fiber.lm), edf = df.residual(fiber.lm))
@@ -4047,70 +4306,6 @@ fit <-
 ggstatsplot::ggcoefstats(
   x = fit,
   title = "Bayesian latent variable model"
-)
-```
-
-## Bayes Factor (`BFBayesFactor`)
-
-```{r BFBayesFactor, fig.width=10, fig.height=10, error=TRUE}
-# setup
-set.seed(123)
-library(BayesFactor)
-library(ggstatsplot)
-
-# one sample t-test
-mod1 <- ttestBF(mtcars$wt, mu = 3)
-
-# independent t-test
-mod2 <- ttestBF(formula = wt ~ am, data = mtcars)
-
-# paired t-test
-mod3 <- ttestBF(x = sleep$extra[1:10], y = sleep$extra[11:20], paired = TRUE)
-
-# correlation
-mod4 <- correlationBF(y = iris$Sepal.Length, x = iris$Sepal.Width)
-
-# contingency tabs (not supported)
-# data("raceDolls")
-# mod5 <-
-#   contingencyTableBF(
-#     raceDolls,
-#     sampleType = "indepMulti",
-#     fixedMargin = "cols"
-#   )
-
-# anova
-data("puzzles")
-mod6 <-
-  anovaBF(
-    formula = RT ~ shape * color + ID,
-    data = puzzles,
-    whichRandom = "ID",
-    whichModels = "top",
-    progress = FALSE
-  )
-
-# regression-1
-mod7 <- regressionBF(rating ~ ., data = attitude, progress = FALSE)
-
-# meta-analysis
-t <- c(-.15, 2.39, 2.42, 2.43, -.15, 2.39, 2.42, 2.43)
-N <- c(100, 150, 97, 99, 99, 97, 100, 150)
-
-# Using rscale=1 and one-sided test to be
-# consistent with Rouder & Morey (2011)
-mod8 <- meta.ttestBF(t, N, rscale = 1, nullInterval = c(0, Inf))
-
-# list of plots
-ggstatsplot::combine_plots(
-  ggcoefstats(mod1, title = "one sample t-test"),
-  ggcoefstats(mod2, title = "independent t-test"),
-  # ggcoefstats(mod3, title = "paired t-test"),
-  ggcoefstats(mod4, title = "correlation"),
-  ggcoefstats(mod6, title = "anova"),
-  ggcoefstats(mod7, title = "regression-1"),
-  ggcoefstats(mod8, title = "meta-analysis"),
-  title.text = "Example from `BayesFactor` package"
 )
 ```
 

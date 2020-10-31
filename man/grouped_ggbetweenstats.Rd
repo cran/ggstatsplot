@@ -63,7 +63,7 @@ variable names for \code{x} and \code{y} will be used.}
     \item{\code{ylab}}{Labels for \code{x} and \code{y} axis variables. If \code{NULL} (default),
 variable names for \code{x} and \code{y} will be used.}
     \item{\code{pairwise.comparisons}}{Logical that decides whether pairwise comparisons
-are to be displayed (default: \code{FALSE}). Please note that only
+are to be displayed (default: \code{TRUE}). Please note that only
 \strong{significant} comparisons will be shown by default. To change this
 behavior, select appropriate option with \code{pairwise.display} argument. The
 pairwise comparison dataframes are prepared using the
@@ -154,12 +154,11 @@ theme elements are to be displayed along with the selected \code{ggtheme}
 override some aspects of the selected \code{ggtheme}.}
     \item{\code{effsize.type}}{Type of effect size needed for \emph{parametric} tests. The
 argument can be \code{"biased"} (equivalent to \code{"d"} for Cohen's \emph{d} for
-\strong{t-test}; \code{"partial_eta"} for partial eta-squared for \strong{anova}) or
+\strong{t-test}; \code{"eta"} for partial eta-squared for \strong{anova}) or
 \code{"unbiased"} (equivalent to \code{"g"} Hedge's \emph{g} for \strong{t-test};
-\code{"partial_omega"} for partial omega-squared for \strong{anova})).}
-    \item{\code{partial}}{If \code{TRUE}, return partial indices.}
+\code{"omega"} for partial omega-squared for \strong{anova})).}
     \item{\code{k}}{Number of digits after decimal point (should be an integer)
-(Default: \code{k = 2}).}
+(Default: \code{k = 2L}).}
     \item{\code{var.equal}}{a logical variable indicating whether to treat the
     variances in the samples as equal.  If \code{TRUE}, then a simple F
     test for the equality of means in a one-way analysis of variance is
@@ -167,7 +166,7 @@ argument can be \code{"biased"} (equivalent to \code{"d"} for Cohen's \emph{d} f
     is used, which generalizes the commonly known 2-sample Welch test to
     the case of arbitrarily many samples.}
     \item{\code{conf.level}}{Scalar between 0 and 1. If unspecified, the defaults return
-\verb{95\%} lower and upper confidence intervals (\code{0.95}).}
+\verb{95\%} confidence/credible intervals (\code{0.95}).}
     \item{\code{type}}{Type of statistic expected (\code{"parametric"} or \code{"nonparametric"}
 or \code{"robust"} or \code{"bayes"}).Corresponding abbreviations are also accepted:
 \code{"p"} (for parametric), \code{"np"} (nonparametric), \code{"r"} (robust), or
@@ -205,21 +204,6 @@ provided to \code{title}, \code{caption} and \code{sub}, resp.}
 A combined plot of comparison plot created for levels of a
 grouping variable.
 }
-\details{
-For parametric tests, Welch's ANOVA/\emph{t}-test are used as a default (i.e.,
-\code{var.equal = FALSE}).
-
-If robust tests are selected, following tests are used is .
-\itemize{
-\item ANOVA: one-way ANOVA on trimmed means (see \code{?WRS2::t1way})
-\item \emph{t}-test: Yuen's test for trimmed means (see \code{?WRS2::yuen})
-}
-
-For more about how the effect size measures (for nonparametric tests) and
-their confidence intervals are computed, see \code{?rcompanion::wilcoxonR}.
-
-For repeated measures designs, use \code{ggwithinstats}.
-}
 \examples{
 \donttest{
 # to get reproducible results from bootstrapping
@@ -248,8 +232,7 @@ ggstatsplot::grouped_ggbetweenstats(
   ggplot.component = ggplot2::scale_y_continuous(
     breaks = seq(1, 9, 1),
     limits = (c(1, 9))
-  ),
-  messages = FALSE
+  )
 )
 }
 }

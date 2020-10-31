@@ -6,14 +6,12 @@
 \usage{
 grouped_ggpiestats(
   data,
-  main,
-  condition = NULL,
+  x,
+  y = NULL,
   counts = NULL,
   grouping.var,
   title.prefix = NULL,
   output = "plot",
-  x = NULL,
-  y = NULL,
   ...,
   plotgrid.args = list(),
   title.text = NULL,
@@ -28,16 +26,16 @@ grouped_ggpiestats(
 \item{data}{A dataframe (or a tibble) from which variables specified are to
 be taken. A matrix or tables will \strong{not} be accepted.}
 
-\item{main}{The variable to use as the \strong{rows} in the contingency table.}
+\item{x}{The variable to use as the \strong{rows} in the contingency table.}
 
-\item{condition}{The variable to use as the \strong{columns} in the contingency
+\item{y}{The variable to use as the \strong{columns} in the contingency
 table. Default is \code{NULL}. If \code{NULL}, one-sample proportion test (a goodness
 of fit test) will be run for the \code{x} variable. Otherwise an appropriate
 association test will be run. This argument can not be \code{NULL} for
 \code{ggbarstats} function.}
 
 \item{counts}{A string naming a variable in data containing counts, or \code{NULL}
-if each row represents a single observation (Default).}
+if each row represents a single observation.}
 
 \item{grouping.var}{A single grouping variable (can be entered either as a
 bare name \code{x} or as a string \code{"x"}).}
@@ -56,19 +54,11 @@ about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
 \code{ggpiestats} and \code{ggbarstats}, setting \code{output = "proptest"} will return a
 dataframe containing results from proportion tests.}
 
-\item{x}{The variable to use as the \strong{rows} in the contingency table.}
-
-\item{y}{The variable to use as the \strong{columns} in the contingency
-table. Default is \code{NULL}. If \code{NULL}, one-sample proportion test (a goodness
-of fit test) will be run for the \code{x} variable. Otherwise an appropriate
-association test will be run. This argument can not be \code{NULL} for
-\code{ggbarstats} function.}
-
 \item{...}{
   Arguments passed on to \code{\link[=ggpiestats]{ggpiestats}}
   \describe{
-    \item{\code{proportion.test}}{Decides whether proportion test for \code{main} variable is
-to be carried out for each level of \code{condition} (Default: \code{TRUE}).}
+    \item{\code{proportion.test}}{Decides whether proportion test for \code{x} variable is
+to be carried out for each level of \code{y} (Default: \code{TRUE}).}
     \item{\code{perc.k}}{Numeric that decides number of decimal places for percentage
 labels (Default: \code{0}).}
     \item{\code{label}}{Character decides what information needs to be displayed
@@ -83,11 +73,9 @@ This can be helpful in case the labels are overlapping.}
 to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
 the plot will be returned.}
     \item{\code{conf.level}}{Scalar between 0 and 1. If unspecified, the defaults return
-\verb{95\%} lower and upper confidence intervals (\code{0.95}).}
-    \item{\code{nboot}}{Number of bootstrap samples for computing confidence interval
-for the effect size (Default: \code{100}).}
+\verb{95\%} confidence/credible intervals (\code{0.95}).}
     \item{\code{k}}{Number of digits after decimal point (should be an integer)
-(Default: \code{k = 2}).}
+(Default: \code{k = 2L}).}
     \item{\code{bf.message}}{Logical that decides whether to display Bayes Factor in
 favor of the \emph{null} hypothesis. This argument is relevant only \strong{for
 parametric test} (Default: \code{TRUE}).}
@@ -153,57 +141,20 @@ Can be a plotmath expression.}
 \item{sub.args}{A list of additional arguments
 provided to \code{title}, \code{caption} and \code{sub}, resp.}
 }
-\value{
-Unlike a number of statistical softwares, \code{ggstatsplot} doesn't
-provide the option for Yates' correction for the Pearson's chi-squared
-statistic. This is due to compelling amount of Monte-Carlo simulation
-research which suggests that the Yates' correction is overly conservative,
-even in small sample sizes. As such it is recommended that it should not
-ever be applied in practice (Camilli & Hopkins, 1978, 1979; Feinberg, 1980;
-Larntz, 1978; Thompson, 1988).
-
-For more about how the effect size measures and their confidence intervals
-are computed, see \code{?rcompanion::cohenG}, \code{?rcompanion::cramerV}, and
-\code{?rcompanion::cramerVFit}.
-}
 \description{
 Helper function for \code{ggstatsplot::ggpiestats} to apply this
 function across multiple levels of a given factor and combining the
 resulting plots using \code{ggstatsplot::combine_plots}.
 }
 \examples{
-\donttest{
-# grouped one-sample proportion tests
+# grouped one-sample proportion test
+# let's skip statistical analysis
 ggstatsplot::grouped_ggpiestats(
   data = mtcars,
   grouping.var = am,
-  x = cyl
+  x = cyl,
+  results.subtitle = FALSE
 )
-
-# the following will take slightly more amount of time
-# for reproducibility
-set.seed(123)
-
-# let's create a smaller dataframe
-diamonds_short <- ggplot2::diamonds \%>\%
-  dplyr::filter(.data = ., cut \%in\% c("Fair", "Very Good", "Ideal")) \%>\%
-  dplyr::sample_frac(tbl = ., size = 0.10)
-
-# plot
-ggstatsplot::grouped_ggpiestats(
-  data = diamonds_short,
-  x = color,
-  y = clarity,
-  grouping.var = cut,
-  nboot = 20,
-  sampling.plan = "poisson",
-  title.prefix = "Quality",
-  slice.label = "both",
-  messages = FALSE,
-  perc.k = 1,
-  plotgrid.args = list(nrow = 3)
-)
-}
 }
 \references{
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html}

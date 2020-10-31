@@ -5,6 +5,9 @@
 #'   (unjittered) data points for within-subjects designs with statistical
 #'   details included in the plot as a subtitle.
 #'
+#' @note **Important**: Please note that the function expects that the data is
+#'   already sorted by subject/repeated measures ID.
+#'
 #' @inheritParams ggbetweenstats
 #' @param point.path,mean.path Logical that decides whether individual data
 #'   points and means, respectively, should be connected using `geom_path`. Both
@@ -26,12 +29,8 @@
 #' @importFrom ipmisc outlier_df
 #' @importFrom dplyr select mutate row_number group_by ungroup anti_join
 #'
-#' @details
-#'
-#'  For more about how the effect size measures (for nonparametric tests) and
-#'  their confidence intervals are computed, see `?rcompanion::wilcoxonPairedR`.
-#'
-#'  For independent measures designs, use `ggbetweenstats`.
+#' @references
+#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggwithinstats.html}
 #'
 #' @examples
 #' \donttest{
@@ -52,11 +51,10 @@
 #' library(WRS2)
 #'
 #' ggstatsplot::ggwithinstats(
-#'   data = as_tibble(WineTasting),
+#'   data = WineTasting,
 #'   x = Wine,
 #'   y = Taste,
 #'   type = "np",
-#'   conf.level = 0.99,
 #'   pairwise.comparisons = TRUE,
 #'   outlier.tagging = TRUE,
 #'   outlier.label = Taster
@@ -73,10 +71,8 @@ ggwithinstats <- function(data,
                           pairwise.display = "significant",
                           p.adjust.method = "holm",
                           effsize.type = "unbiased",
-                          partial = TRUE,
                           bf.prior = 0.707,
                           bf.message = TRUE,
-                          sphericity.correction = TRUE,
                           results.subtitle = TRUE,
                           xlab = NULL,
                           ylab = NULL,
@@ -84,9 +80,9 @@ ggwithinstats <- function(data,
                           title = NULL,
                           subtitle = NULL,
                           sample.size.label = TRUE,
-                          k = 2,
+                          k = 2L,
                           conf.level = 0.95,
-                          nboot = 100,
+                          nboot = 100L,
                           tr = 0.1,
                           mean.plotting = TRUE,
                           mean.ci = FALSE,
@@ -176,7 +172,7 @@ ggwithinstats <- function(data,
           x = rlang::as_string(x),
           y = rlang::as_string(y),
           bf.prior = bf.prior,
-          caption = caption,
+          top.text = caption,
           paired = TRUE,
           output = "caption",
           k = k
@@ -195,9 +191,7 @@ ggwithinstats <- function(data,
         y = {{ y }},
         paired = TRUE,
         effsize.type = effsize.type,
-        partial = partial,
-        var.equal = TRUE,
-        sphericity.correction = sphericity.correction,
+        var.equal = TRUE, ,
         bf.prior = bf.prior,
         tr = tr,
         nboot = nboot,
@@ -280,50 +274,22 @@ ggwithinstats <- function(data,
 
   # ---------------- mean value tagging -------------------------------------
 
-  # computing mean and confidence interval for mean using helper function
-  # creating label column based on whether just mean is to be displayed or
-  # mean plus its CI
-  mean_dat <-
-    mean_labeller(
-      data = data,
-      x = {{ x }},
-      y = {{ y }},
-      mean.ci = mean.ci,
-      k = k
-    )
-
   # add labels for mean values
   if (isTRUE(mean.plotting)) {
-    # if there should be lines connecting mean values across groups
-    if (isTRUE(mean.path)) {
-      plot <- plot +
-        rlang::exec(
-          .fn = ggplot2::geom_path,
-          data = mean_dat,
-          mapping = ggplot2::aes(x = {{ x }}, y = {{ y }}, group = 1),
-          inherit.aes = FALSE,
-          !!!mean.path.args
-        )
-    }
-
-    # add mean points
     plot <-
       mean_ggrepel(
-        mean.data = mean_dat,
+        plot = plot,
+        data = data,
         x = {{ x }},
         y = {{ y }},
-        plot = plot,
+        mean.ci = mean.ci,
+        k = k,
+        sample.size.label = sample.size.label,
+        mean.path = mean.path,
+        mean.path.args = mean.path.args,
         mean.point.args = mean.point.args,
-        mean.label.args = mean.label.args,
-        inherit.aes = FALSE
+        mean.label.args = mean.label.args
       )
-  }
-
-  # ----------------- sample size labels --------------------------------------
-
-  # adding sample size labels to the x axes
-  if (isTRUE(sample.size.label)) {
-    plot <- plot + ggplot2::scale_x_discrete(labels = c(unique(mean_dat$n_label)))
   }
 
   # ggsignif labels -----------------------------------------------------------

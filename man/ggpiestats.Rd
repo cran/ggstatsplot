@@ -6,8 +6,8 @@
 \usage{
 ggpiestats(
   data,
-  main,
-  condition = NULL,
+  x,
+  y = NULL,
   counts = NULL,
   ratio = NULL,
   paired = FALSE,
@@ -16,7 +16,6 @@ ggpiestats(
   label.args = list(direction = "both"),
   label.repel = FALSE,
   conf.level = 0.95,
-  nboot = 100L,
   k = 2L,
   proportion.test = TRUE,
   perc.k = 0,
@@ -34,8 +33,6 @@ ggpiestats(
   palette = "Dark2",
   ggplot.component = NULL,
   output = "plot",
-  x = NULL,
-  y = NULL,
   ...
 )
 }
@@ -43,8 +40,16 @@ ggpiestats(
 \item{data}{A dataframe (or a tibble) from which variables specified are to
 be taken. A matrix or tables will \strong{not} be accepted.}
 
+\item{x}{The variable to use as the \strong{rows} in the contingency table.}
+
+\item{y}{The variable to use as the \strong{columns} in the contingency
+table. Default is \code{NULL}. If \code{NULL}, one-sample proportion test (a goodness
+of fit test) will be run for the \code{x} variable. Otherwise an appropriate
+association test will be run. This argument can not be \code{NULL} for
+\code{ggbarstats} function.}
+
 \item{counts}{A string naming a variable in data containing counts, or \code{NULL}
-if each row represents a single observation (Default).}
+if each row represents a single observation.}
 
 \item{ratio}{A vector of proportions: the expected proportions for the
 proportion test (should sum to 1). Default is \code{NULL}, which means the null
@@ -72,16 +77,13 @@ on the label in each pie slice. Possible options are \code{"percentage"}
 This can be helpful in case the labels are overlapping.}
 
 \item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
-\verb{95\%} lower and upper confidence intervals (\code{0.95}).}
-
-\item{nboot}{Number of bootstrap samples for computing confidence interval
-for the effect size (Default: \code{100}).}
+\verb{95\%} confidence/credible intervals (\code{0.95}).}
 
 \item{k}{Number of digits after decimal point (should be an integer)
-(Default: \code{k = 2}).}
+(Default: \code{k = 2L}).}
 
-\item{proportion.test}{Decides whether proportion test for \code{main} variable is
-to be carried out for each level of \code{condition} (Default: \code{TRUE}).}
+\item{proportion.test}{Decides whether proportion test for \code{x} variable is
+to be carried out for each level of \code{y} (Default: \code{TRUE}).}
 
 \item{perc.k}{Numeric that decides number of decimal places for percentage
 labels (Default: \code{0}).}
@@ -145,34 +147,14 @@ about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
 \code{ggpiestats} and \code{ggbarstats}, setting \code{output = "proptest"} will return a
 dataframe containing results from proportion tests.}
 
-\item{x, main}{The variable to use as the \strong{rows} in the contingency table.}
-
-\item{y, condition}{The variable to use as the \strong{columns} in the contingency
-table. Default is \code{NULL}. If \code{NULL}, one-sample proportion test (a goodness
-of fit test) will be run for the \code{x} variable. Otherwise an appropriate
-association test will be run. This argument can not be \code{NULL} for
-\code{ggbarstats} function.}
-
 \item{...}{Currently ignored.}
-}
-\value{
-Unlike a number of statistical softwares, \code{ggstatsplot} doesn't
-provide the option for Yates' correction for the Pearson's chi-squared
-statistic. This is due to compelling amount of Monte-Carlo simulation
-research which suggests that the Yates' correction is overly conservative,
-even in small sample sizes. As such it is recommended that it should not
-ever be applied in practice (Camilli & Hopkins, 1978, 1979; Feinberg, 1980;
-Larntz, 1978; Thompson, 1988).
-
-For more about how the effect size measures and their confidence intervals
-are computed, see \code{?rcompanion::cohenG}, \code{?rcompanion::cramerV}, and
-\code{?rcompanion::cramerVFit}.
 }
 \description{
 Pie charts for categorical data with statistical details
 included in the plot as a subtitle.
 }
 \examples{
+\donttest{
 # for reproducibility
 set.seed(123)
 
@@ -183,9 +165,9 @@ ggstatsplot::ggpiestats(ggplot2::msleep, vore)
 ggstatsplot::ggpiestats(
   data = mtcars,
   x = vs,
-  y = cyl,
-  legend.title = "Engine"
+  y = cyl
 )
+}
 }
 \references{
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html}

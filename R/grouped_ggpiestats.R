@@ -20,50 +20,24 @@
 #' @inherit ggpiestats return return
 #'
 #' @examples
-#' \donttest{
-#' # grouped one-sample proportion tests
+#' # grouped one-sample proportion test
+#' # let's skip statistical analysis
 #' ggstatsplot::grouped_ggpiestats(
 #'   data = mtcars,
 #'   grouping.var = am,
-#'   x = cyl
+#'   x = cyl,
+#'   results.subtitle = FALSE
 #' )
-#'
-#' # the following will take slightly more amount of time
-#' # for reproducibility
-#' set.seed(123)
-#'
-#' # let's create a smaller dataframe
-#' diamonds_short <- ggplot2::diamonds %>%
-#'   dplyr::filter(.data = ., cut %in% c("Fair", "Very Good", "Ideal")) %>%
-#'   dplyr::sample_frac(tbl = ., size = 0.10)
-#'
-#' # plot
-#' ggstatsplot::grouped_ggpiestats(
-#'   data = diamonds_short,
-#'   x = color,
-#'   y = clarity,
-#'   grouping.var = cut,
-#'   nboot = 20,
-#'   sampling.plan = "poisson",
-#'   title.prefix = "Quality",
-#'   slice.label = "both",
-#'   messages = FALSE,
-#'   perc.k = 1,
-#'   plotgrid.args = list(nrow = 3)
-#' )
-#' }
 #' @export
 
 # defining the function
 grouped_ggpiestats <- function(data,
-                               main,
-                               condition = NULL,
+                               x,
+                               y = NULL,
                                counts = NULL,
                                grouping.var,
                                title.prefix = NULL,
                                output = "plot",
-                               x = NULL,
-                               y = NULL,
                                ...,
                                plotgrid.args = list(),
                                title.text = NULL,
@@ -77,12 +51,8 @@ grouped_ggpiestats <- function(data,
 
   # ensure the grouping variable works quoted or unquoted
   grouping.var <- rlang::ensym(grouping.var)
-  main <- rlang::ensym(main)
-  condition <- if (!rlang::quo_is_null(rlang::enquo(condition))) rlang::ensym(condition)
-  x <- if (!rlang::quo_is_null(rlang::enquo(x))) rlang::ensym(x)
+  x <- rlang::ensym(x)
   y <- if (!rlang::quo_is_null(rlang::enquo(y))) rlang::ensym(y)
-  x <- x %||% main
-  y <- y %||% condition
   counts <- if (!rlang::quo_is_null(rlang::enquo(counts))) rlang::ensym(counts)
 
   # if `title.prefix` is not provided, use the variable `grouping.var` name

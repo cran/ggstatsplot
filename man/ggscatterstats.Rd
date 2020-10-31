@@ -12,6 +12,8 @@ ggscatterstats(
   conf.level = 0.95,
   bf.prior = 0.707,
   bf.message = TRUE,
+  beta = 0.1,
+  k = 2L,
   label.var = NULL,
   label.expression = NULL,
   point.label.args = list(size = 3),
@@ -30,18 +32,12 @@ ggscatterstats(
   yfill = "#D55E00",
   xparams = list(fill = xfill),
   yparams = list(fill = yfill),
-  centrality.parameter = "none",
-  centrality.label.args = list(size = 3),
-  vline.args = list(color = xfill, size = 1, linetype = "dashed"),
-  hline.args = list(color = yfill, size = 1, linetype = "dashed"),
   results.subtitle = TRUE,
   xlab = NULL,
   ylab = NULL,
   title = NULL,
   subtitle = NULL,
   caption = NULL,
-  beta = 0.1,
-  k = 2L,
   ggtheme = ggplot2::theme_bw(),
   ggstatsplot.layer = TRUE,
   ggplot.component = NULL,
@@ -70,7 +66,7 @@ parametric/pearson), \code{"np"} (nonparametric/spearman), \code{"r"} (robust),
 \code{"bf"} (for bayes factor), resp.}
 
 \item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
-\verb{95\%} lower and upper confidence intervals (\code{0.95}).}
+\verb{95\%} confidence/credible intervals (\code{0.95}).}
 
 \item{bf.prior}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
 width to use in calculating Bayes factors.}
@@ -78,6 +74,11 @@ width to use in calculating Bayes factors.}
 \item{bf.message}{Logical that decides whether to display Bayes Factor in
 favor of the \emph{null} hypothesis. This argument is relevant only \strong{for
 parametric test} (Default: \code{TRUE}).}
+
+\item{beta}{bending constant (Default: \code{0.1}). For more, see \code{\link[WRS2:pbcor]{WRS2::pbcor()}}.}
+
+\item{k}{Number of digits after decimal point (should be an integer)
+(Default: \code{k = 2L}).}
 
 \item{label.var}{Variable to use for points labels. Can be entered either as
 a character string (e.g., \code{"var1"}) or as a bare expression (e.g, \code{var1}).}
@@ -141,28 +142,13 @@ plots compared to the main plot. A size of \code{5} means that the main plot is
 
 \item{xfill, yfill}{Character describing color fill for \code{x} and \code{y} axes
 marginal distributions (default: \code{"#009E73"} (for \code{x}) and \code{"#D55E00"} (for
-\code{y})). The same colors will also be used for the lines denoting centrality
-parameters if \code{centrality.parameter} argument is set to \code{TRUE}. Note that
-the defaults are colorblind-friendly.}
+\code{y})). Note that the defaults are colorblind-friendly.}
 
 \item{xparams}{List of extra parameters to use only for the marginal plot along
 the x axis.}
 
 \item{yparams}{List of extra parameters to use only for the marginal plot along
 the y axis.}
-
-\item{centrality.parameter}{Decides \emph{which} measure of central tendency (\code{"mean"}
-or \code{"median"}) is to be displayed as vertical (for \code{x}) and horizontal (for
-\code{y}) lines. Note that mean values corresponds to arithmetic mean and not
-geometric mean.}
-
-\item{centrality.label.args}{A list of additional
-aesthetic arguments to be passed to the \code{geom_label} used to display the
-label corresponding to the centrality parameter and test value.}
-
-\item{vline.args, hline.args}{A list of additional aesthetic arguments to be
-passed to \code{ggplot2::geom_vline} and \code{ggplot2::geom_hline} geoms used to
-display the centrality parameter labels on vertical and horizontal lines.}
 
 \item{results.subtitle}{Decides whether the results of statistical tests are
 to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
@@ -181,11 +167,6 @@ variable names for \code{x} and \code{y} will be used.}
 
 \item{caption}{The text for the plot caption.}
 
-\item{beta}{bending constant (Default: \code{0.1}). For more, see \code{\link[WRS2:pbcor]{WRS2::pbcor()}}.}
-
-\item{k}{Number of digits after decimal point (should be an integer)
-(Default: \code{k = 2L}).}
-
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
 \code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
 extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
@@ -201,15 +182,9 @@ by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} va
 of the current function. Default is \code{NULL}. The argument should be entered
 as a function.}
 
-\item{output}{Character that describes what is to be returned: can be
-\code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
-\code{"subtitle"} will return the expression containing statistical results. If
-you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
-Setting this to \code{"caption"} will return the expression containing details
-about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
-\code{bf.message = TRUE}, otherwise this will return a \code{NULL}. For functions
-\code{ggpiestats} and \code{ggbarstats}, setting \code{output = "proptest"} will return a
-dataframe containing results from proportion tests.}
+\item{output}{If \code{"expression"}, will return expression with statistical
+details, while \code{"dataframe"} will return a dataframe containing the
+results.}
 
 \item{...}{Currently ignored.}
 }
@@ -228,10 +203,11 @@ want a \code{ggplot} object, set \code{marginal = FALSE}. Also have a look at th
 from over-lapping to the largest degree possible.  As a consequence plot
 times will slow down massively (and the plot file will grow in size) if you
 have a lot of labels that overlap.
+\item The statistical analysis is available only for linear model (\code{formula = y ~ x}
+and \code{method = 'lm'}. If these arguments are different, only plot will be returned.
 }
 }
 \examples{
-\donttest{
 # to get reproducible results from bootstrapping
 set.seed(123)
 library(ggstatsplot)
@@ -244,12 +220,9 @@ ggstatsplot::ggscatterstats(
   data = mtcars_new,
   x = wt,
   y = mpg,
-  type = "np",
   label.var = car,
-  label.expression = wt < 4 & mpg < 20,
-  centrality.parameter = "median"
+  label.expression = wt < 4 & mpg < 20
 )
-}
 }
 \references{
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggscatterstats.html}

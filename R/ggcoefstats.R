@@ -30,15 +30,11 @@
 #'   know more about these arguments.
 #' @param conf.int Logical. Decides whether to display confidence intervals as
 #'   error bars (Default: `TRUE`).
-#' @param conf.level Numeric deciding level of confidence intervals (Default:
-#'   `0.95`). For `MCMC` model objects (`Stan`, `JAGS`, etc.), this will be
-#'   probability level for CI.
+#' @param conf.level Numeric deciding level of confidence or credible intervals
+#'   (Default: `0.95`).
 #' @param effsize Character describing the effect size to be displayed: `"eta"`
 #'   (default) or `"omega"`. This argument is relevant only for models objects
 #'   of class `aov`, `anova`, `aovlist`, `"Gam"`, and `"manova"`.
-#' @param partial Logical that decides if partial eta-squared or partial
-#'   omega-squared are returned (Default: `TRUE`). If `FALSE`, eta-squared or
-#'   omega-squared will be returned.
 #' @param meta.analytic.effect Logical that decides whether subtitle for
 #'   meta-analysis via linear (mixed-effects) models (default: `FALSE`). If
 #'   `TRUE`, input to argument `subtitle` will be ignored. This will be mostly
@@ -80,11 +76,11 @@
 #'   regression coefficients are to be displayed in a single plot. Relevant only
 #'   when the `output` is a plot.
 #' @param ... Additional arguments to tidying method. For more, see
-#'   `?parameters::model_parameters` and `broom::tidy`.
-#' @inheritParams statsExpressions::bf_meta
+#'   `parameters::model_parameters` and `broom::tidy`.
+#' @inheritParams statsExpressions::bf_meta_random
 #' @inheritParams parameters::model_parameters
 #' @inheritParams theme_ggstatsplot
-#' @inheritParams statsExpressions::expr_meta_parametric
+#' @inheritParams statsExpressions::expr_meta_random
 #' @inheritParams ggbetweenstats
 #'
 #' @import ggplot2
@@ -94,8 +90,8 @@
 #' @importFrom stats qnorm lm
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom tidyr unite
-#' @importFrom insight is_model
-#' @importFrom statsExpressions expr_meta_parametric bf_meta
+#' @importFrom insight is_model find_statistic
+#' @importFrom statsExpressions expr_meta_random bf_meta_random
 #'
 #' @references
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcoefstats.html}
@@ -214,7 +210,6 @@ ggcoefstats <- function(x,
                         exclude.intercept = TRUE,
                         exponentiate = FALSE,
                         effsize = "eta",
-                        partial = TRUE,
                         meta.analytic.effect = FALSE,
                         meta.type = "parametric",
                         bf.message = TRUE,
@@ -263,34 +258,27 @@ ggcoefstats <- function(x,
   # =========================== tidy it ====================================
 
   if (isTRUE(insight::is_model(x))) {
-    if (class(x)[[1]] %in% c("aov", "aovlist", "anova", "Gam", "manova")) {
+    if (class(x)[[1]] %in% c("aov", "aovlist", "anova", "Gam", "manova", "maov")) {
       # creating dataframe
       tidy_df <-
         lm_effsize_standardizer(
           object = x,
           effsize = effsize,
-          partial = partial,
           conf.level = conf.level
         )
 
-      # prefix for effect size
-      if (isTRUE(partial)) {
-        effsize.prefix <- "partial"
-      } else {
-        effsize.prefix <- NULL
-      }
-
       # renaming the `xlab` according to the estimate chosen
-      xlab <- paste(effsize.prefix, " ", effsize, "-squared", sep = "")
+      xlab <- paste("partial", " ", effsize, "-squared", sep = "")
     } else {
       tidy_df <-
         broomExtra::tidy_parameters(
           x = x,
-          conf.int = conf.int,
-          conf.level = conf.level,
+          conf.int = conf.int, # remove when only `parameters`
+          conf.level = conf.level, # remove when only `parameters`
           ci = conf.level,
           exponentiate = exponentiate,
           effects = "fixed",
+          verbose = FALSE,
           parametric = TRUE, # for `gam` objects
           ...
         )
@@ -402,7 +390,11 @@ ggcoefstats <- function(x,
   # adding a column with labels to be used with `ggrepel`
   if (isTRUE(stats.labels)) {
     # in case a dataframe was entered, `x` and `tidy_df` are going to be same
-    if (isTRUE(insight::is_model(x))) statistic <- extract_statistic(x)
+    if (isTRUE(insight::is_model(x))) {
+      statistic <- substring(tolower(insight::find_statistic(x)), 1, 1)
+    } else {
+      statistic <- substring(tolower(statistic), 1, 1)
+    }
 
     # adding a column with labels using custom function
     tidy_df %<>%
@@ -410,8 +402,7 @@ ggcoefstats <- function(x,
         tidy_df = .,
         statistic = statistic,
         k = k,
-        effsize = effsize,
-        partial = partial
+        effsize = effsize
       )
   }
 
@@ -420,7 +411,7 @@ ggcoefstats <- function(x,
   # for non-dataframe objects
   if (isTRUE(insight::is_model(x))) {
     # creating glance dataframe
-    glance_df <- broomExtra::glance_performance(x)
+    glance_df <- broomExtra::glance_performance(x, verbose = FALSE)
     meta.analytic.effect <- FALSE
 
     # if glance is not available, inform the user
@@ -448,10 +439,9 @@ ggcoefstats <- function(x,
 
     # results from frequentist random-effects meta-analysis
     subtitle <-
-      subtitle_function_switch(
-        test = "meta",
-        type = meta.type,
+      expr_meta_random(
         data = tidy_df,
+        type = meta.type,
         k = k
       )
 
@@ -460,8 +450,8 @@ ggcoefstats <- function(x,
       # results from Bayesian random-effects meta-analysis
       if (isTRUE(bf.message)) {
         caption <-
-          statsExpressions::bf_meta(
-            caption = caption,
+          statsExpressions::bf_meta_random(
+            top.text = caption,
             output = "caption",
             data = tidy_df,
             k = k
@@ -470,7 +460,7 @@ ggcoefstats <- function(x,
 
       # caption with heterogeneity test results
       caption <-
-        statsExpressions::expr_meta_parametric(
+        statsExpressions::expr_meta_random(
           data = tidy_df,
           k = k,
           caption = caption,

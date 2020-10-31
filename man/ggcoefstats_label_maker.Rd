@@ -9,7 +9,6 @@ ggcoefstats_label_maker(
   statistic = NULL,
   k = 2L,
   effsize = "eta",
-  partial = TRUE,
   ...
 )
 }
@@ -26,10 +25,6 @@ ggcoefstats_label_maker(
 \item{effsize}{Character describing the effect size to be displayed: \code{"eta"}
 (default) or \code{"omega"}. This argument is relevant only for models objects
 of class \code{aov}, \code{anova}, \code{aovlist}, \code{"Gam"}, and \code{"manova"}.}
-
-\item{partial}{Logical that decides if partial eta-squared or partial
-omega-squared are returned (Default: \code{TRUE}). If \code{FALSE}, eta-squared or
-omega-squared will be returned.}
 
 \item{...}{Currently ignored.}
 }

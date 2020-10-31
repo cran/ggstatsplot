@@ -51,15 +51,9 @@ expression (e.g., \code{y < 4 & z < 20}).}
 plot title (name of each factor level) (Default: \code{NULL}). If \code{NULL}, the
 variable name entered for \code{grouping.var} will be used.}
 
-\item{output}{Character that describes what is to be returned: can be
-\code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
-\code{"subtitle"} will return the expression containing statistical results. If
-you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
-Setting this to \code{"caption"} will return the expression containing details
-about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
-\code{bf.message = TRUE}, otherwise this will return a \code{NULL}. For functions
-\code{ggpiestats} and \code{ggbarstats}, setting \code{output = "proptest"} will return a
-dataframe containing results from proportion tests.}
+\item{output}{If \code{"expression"}, will return expression with statistical
+details, while \code{"dataframe"} will return a dataframe containing the
+results.}
 
 \item{...}{
   Arguments passed on to \code{\link[=ggscatterstats]{ggscatterstats}}
@@ -89,24 +83,10 @@ plots compared to the main plot. A size of \code{5} means that the main plot is
 5x wider and 5x taller than the marginal plots.}
     \item{\code{xfill}}{Character describing color fill for \code{x} and \code{y} axes
 marginal distributions (default: \code{"#009E73"} (for \code{x}) and \code{"#D55E00"} (for
-\code{y})). The same colors will also be used for the lines denoting centrality
-parameters if \code{centrality.parameter} argument is set to \code{TRUE}. Note that
-the defaults are colorblind-friendly.}
+\code{y})). Note that the defaults are colorblind-friendly.}
     \item{\code{yfill}}{Character describing color fill for \code{x} and \code{y} axes
 marginal distributions (default: \code{"#009E73"} (for \code{x}) and \code{"#D55E00"} (for
-\code{y})). The same colors will also be used for the lines denoting centrality
-parameters if \code{centrality.parameter} argument is set to \code{TRUE}. Note that
-the defaults are colorblind-friendly.}
-    \item{\code{centrality.parameter}}{Decides \emph{which} measure of central tendency (\code{"mean"}
-or \code{"median"}) is to be displayed as vertical (for \code{x}) and horizontal (for
-\code{y}) lines. Note that mean values corresponds to arithmetic mean and not
-geometric mean.}
-    \item{\code{vline.args}}{A list of additional aesthetic arguments to be
-passed to \code{ggplot2::geom_vline} and \code{ggplot2::geom_hline} geoms used to
-display the centrality parameter labels on vertical and horizontal lines.}
-    \item{\code{hline.args}}{A list of additional aesthetic arguments to be
-passed to \code{ggplot2::geom_vline} and \code{ggplot2::geom_hline} geoms used to
-display the centrality parameter labels on vertical and horizontal lines.}
+\code{y})). Note that the defaults are colorblind-friendly.}
     \item{\code{type}}{Type of association between paired samples required
 ("\code{"parametric"}: Pearson's product moment correlation coefficient" or
 "\code{"nonparametric"}: Spearman's rho" or "\code{"robust"}: percentage bend
@@ -115,7 +95,7 @@ Corresponding abbreviations are also accepted: \code{"p"} (for
 parametric/pearson), \code{"np"} (nonparametric/spearman), \code{"r"} (robust),
 \code{"bf"} (for bayes factor), resp.}
     \item{\code{conf.level}}{Scalar between 0 and 1. If unspecified, the defaults return
-\verb{95\%} lower and upper confidence intervals (\code{0.95}).}
+\verb{95\%} confidence/credible intervals (\code{0.95}).}
     \item{\code{bf.prior}}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
 width to use in calculating Bayes factors.}
     \item{\code{beta}}{bending constant (Default: \code{0.1}). For more, see \code{\link[WRS2:pbcor]{WRS2::pbcor()}}.}
@@ -173,9 +153,6 @@ as a function.}
 the x axis.}
     \item{\code{yparams}}{List of extra parameters to use only for the marginal plot along
 the y axis.}
-    \item{\code{centrality.label.args}}{A list of additional
-aesthetic arguments to be passed to the \code{geom_label} used to display the
-label corresponding to the centrality parameter and test value.}
   }}
 
 \item{plotgrid.args}{A list of additional arguments to \code{cowplot::plot_grid}.}
@@ -229,8 +206,7 @@ grouped_ggscatterstats(
   type = "robust",
   label.var = manufacturer,
   label.expression = hwy > 25 & displ > 2.5,
-  ggplot.component = ggplot2::scale_y_continuous(sec.axis = ggplot2::dup_axis()),
-  messages = FALSE
+  ggplot.component = ggplot2::scale_y_continuous(sec.axis = ggplot2::dup_axis())
 )
 
 # labeling without expression

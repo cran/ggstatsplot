@@ -88,13 +88,13 @@ parametric test} (Default: \code{TRUE}).}
 argument can be \code{"d"} (for Cohen's \emph{d}) or \code{"g"} (for Hedge's \emph{g}).}
 
 \item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
-\verb{95\%} lower and upper confidence intervals (\code{0.95}).}
+\verb{95\%} confidence/credible intervals (\code{0.95}).}
 
 \item{nboot}{Number of bootstrap samples for computing confidence interval
 for the effect size (Default: \code{100}).}
 
 \item{k}{Number of digits after decimal point (should be an integer)
-(Default: \code{k = 2}).}
+(Default: \code{k = 2L}).}
 
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
 \code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
@@ -153,15 +153,9 @@ by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} va
 of the current function. Default is \code{NULL}. The argument should be entered
 as a function.}
 
-\item{output}{Character that describes what is to be returned: can be
-\code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
-\code{"subtitle"} will return the expression containing statistical results. If
-you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
-Setting this to \code{"caption"} will return the expression containing details
-about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
-\code{bf.message = TRUE}, otherwise this will return a \code{NULL}. For functions
-\code{ggpiestats} and \code{ggbarstats}, setting \code{output = "proptest"} will return a
-dataframe containing results from proportion tests.}
+\item{output}{If \code{"expression"}, will return expression with statistical
+details, while \code{"dataframe"} will return a dataframe containing the
+results.}
 
 \item{...}{Currently ignored.}
 }
