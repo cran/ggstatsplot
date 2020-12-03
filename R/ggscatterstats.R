@@ -42,6 +42,7 @@
 #' @import ggplot2
 #'
 #' @importFrom dplyr filter pull
+#' @importFrom stats lm
 #' @importFrom rlang !! enquo quo_name parse_expr ensym as_name enexpr exec !!!
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom ggExtra ggMarginal
@@ -241,10 +242,7 @@ ggscatterstats <- function(data,
   # --------------------------------- basic plot ---------------------------
 
   # creating jittered positions
-  pos <- ggplot2::position_jitter(
-    width = point.width.jitter,
-    height = point.height.jitter
-  )
+  pos <- ggplot2::position_jitter(width = point.width.jitter, height = point.height.jitter)
 
   # preparing the scatterplot
   plot <-
@@ -317,5 +315,5 @@ ggscatterstats <- function(data,
   }
 
   # return the final plot
-  return(plot)
+  plot
 }

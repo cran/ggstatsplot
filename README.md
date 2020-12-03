@@ -6,10 +6,10 @@
 | Package                                                                                                                                                         | Status                                                                                                                                                                                       | Usage                                                                                                                                             | GitHub                                                                                                                                                         | References                                                                                                                                                      |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [![CRAN\_Release\_Badge](https://www.r-pkg.org/badges/version-ago/ggstatsplot)](https://CRAN.R-project.org/package=ggstatsplot)                                 | [![Travis Build Status](https://travis-ci.org/IndrajeetPatil/ggstatsplot.svg?branch=master)](https://travis-ci.org/IndrajeetPatil/ggstatsplot)                                               | [![Daily downloads badge](https://cranlogs.r-pkg.org/badges/last-day/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot)     | [![GitHub version](https://img.shields.io/badge/GitHub-0.6.5.9000-orange.svg?style=flat-square)](https://github.com/IndrajeetPatil/ggstatsplot/)               | [![Website](https://img.shields.io/badge/website-ggstatsplot-orange.svg?colorB=E91E63)](https://indrajeetpatil.github.io/ggstatsplot/)                          |
-| [![CRAN Checks](https://cranchecks.info/badges/summary/ggstatsplot)](https://cran.r-project.org/web/checks/check_results_ggstatsplot.html)                      | [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/IndrajeetPatil/ggstatsplot?branch=master&svg=true)](https://ci.appveyor.com/project/IndrajeetPatil/ggstatsplot) | [![Weekly downloads badge](https://cranlogs.r-pkg.org/badges/last-week/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot)   | [![Forks](https://img.shields.io/badge/forks-119-blue.svg)](https://github.com/IndrajeetPatil/ggstatsplot/)                                                    | [![Features](https://img.shields.io/badge/features-ggstatsplot-orange.svg?colorB=2196F3)](https://indrajeetpatil.github.io/ggstatsplot/reference/index.html)    |
-| [![minimal R version](https://img.shields.io/badge/R%3E%3D-3.6.0-6666ff.svg)](https://cran.r-project.org/)                                                      | [![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/)                                                                               | [![Monthly downloads badge](https://cranlogs.r-pkg.org/badges/last-month/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot) | [![Github Issues](https://img.shields.io/badge/issues-25-red.svg)](https://github.com/IndrajeetPatil/ggstatsplot/issues)                                       | [![vignettes](https://img.shields.io/badge/vignettes-0.6.5-orange.svg?colorB=FF5722)](https://CRAN.R-project.org/package=ggstatsplot/vignettes/)                |
+| [![CRAN Checks](https://cranchecks.info/badges/summary/ggstatsplot)](https://cran.r-project.org/web/checks/check_results_ggstatsplot.html)                      | [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/IndrajeetPatil/ggstatsplot?branch=master&svg=true)](https://ci.appveyor.com/project/IndrajeetPatil/ggstatsplot) | [![Weekly downloads badge](https://cranlogs.r-pkg.org/badges/last-week/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot)   | [![Forks](https://img.shields.io/badge/forks-124-blue.svg)](https://github.com/IndrajeetPatil/ggstatsplot/)                                                    | [![Features](https://img.shields.io/badge/features-ggstatsplot-orange.svg?colorB=2196F3)](https://indrajeetpatil.github.io/ggstatsplot/reference/index.html)    |
+| [![minimal R version](https://img.shields.io/badge/R%3E%3D-3.6.0-6666ff.svg)](https://cran.r-project.org/)                                                      | [![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/)                                                                               | [![Monthly downloads badge](https://cranlogs.r-pkg.org/badges/last-month/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot) | [![Github Issues](https://img.shields.io/badge/issues-17-red.svg)](https://github.com/IndrajeetPatil/ggstatsplot/issues)                                       | [![vignettes](https://img.shields.io/badge/vignettes-0.6.5-orange.svg?colorB=FF5722)](https://CRAN.R-project.org/package=ggstatsplot/vignettes/)                |
 | [![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/IndrajeetPatil/ggstatsplot.svg)](https://github.com/IndrajeetPatil/ggstatsplot) | [![Coverage Status](https://coveralls.io/repos/github/IndrajeetPatil/ggstatsplot/badge.svg?branch=master)](https://coveralls.io/github/IndrajeetPatil/ggstatsplot?branch=master)             | [![Total downloads badge](https://cranlogs.r-pkg.org/badges/grand-total/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot)  | [![Github Stars](https://img.shields.io/github/stars/IndrajeetPatil/ggstatsplot.svg?style=social&label=Github)](https://github.com/IndrajeetPatil/ggstatsplot) | [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2074621.svg)](https://doi.org/10.5281/zenodo.2074621)                                                       |
-| [![Licence](https://img.shields.io/badge/licence-GPL--3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)                                                | [![Codecov test coverage](https://codecov.io/gh/IndrajeetPatil/ggstatsplot/branch/master/graph/badge.svg)](https://codecov.io/gh/IndrajeetPatil/ggstatsplot?branch=master)                   | [![HitCount](https://hits.dwyl.com/IndrajeetPatil/ggstatsplot.svg)](https://hits.dwyl.com/IndrajeetPatil/ggstatsplot)                             | [![Last-changedate](https://img.shields.io/badge/last%20change-2020--10--31-yellowgreen.svg)](https://github.com/IndrajeetPatil/ggstatsplot/commits/master)    | [![GitHub last commit](https://img.shields.io/github/last-commit/IndrajeetPatil/ggstatsplot.svg)](https://github.com/IndrajeetPatil/ggstatsplot/commits/master) |
+| [![Licence](https://img.shields.io/badge/licence-GPL--3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)                                                | [![Codecov test coverage](https://codecov.io/gh/IndrajeetPatil/ggstatsplot/branch/master/graph/badge.svg)](https://codecov.io/gh/IndrajeetPatil/ggstatsplot?branch=master)                   | [![HitCount](https://hits.dwyl.com/IndrajeetPatil/ggstatsplot.svg)](https://hits.dwyl.com/IndrajeetPatil/ggstatsplot)                             | [![Last-changedate](https://img.shields.io/badge/last%20change-2020--12--02-yellowgreen.svg)](https://github.com/IndrajeetPatil/ggstatsplot/commits/master)    | [![GitHub last commit](https://img.shields.io/github/last-commit/IndrajeetPatil/ggstatsplot.svg)](https://github.com/IndrajeetPatil/ggstatsplot/commits/master) |
 | [![status](https://tinyverse.netlify.com/badge/ggstatsplot)](https://CRAN.R-project.org/package=ggstatsplot)                                                    | [![R build status](https://github.com/IndrajeetPatil/ggstatsplot/workflows/R-CMD-check/badge.svg)](https://github.com/IndrajeetPatil/ggstatsplot)                                            | [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/ggstatsplot/community)                                           | [![Project Status](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)                                                   | [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/IndrajeetPatil/ggstatsplot/issues) |
 
 # Raison d’être <img src="man/figures/logo.png" align="right" width="360" />
@@ -108,18 +108,13 @@ install.packages("ggstatsplot")
 
 *Note*:
 
--   If you are on a linux machine, you will need to have OpenGL
-    libraries installed (specifically, `libx11`, `mesa` and Mesa OpenGL
-    Utility library - `glu`) for the dependency package `rgl` to work.
+Linux users may encounter some installation problems, as several R
+packages require external libraries on the system, especially for
+`PMCMRplus` package. The following `README` file briefly describes the
+installation procedure:
+<https://CRAN.R-project.org/package=PMCMRplus/readme/README.html>
 
--   Additionally, `ggstatsplot` depends on `Rrmpfr`, which requires an
-    OS library that might not be installed by default on TSD mpfr-devel:
-    <https://rmpfr.r-forge.r-project.org/>
-
-You can get the **development** version of the package from `GitHub`. To
-see what new changes (and bug fixes) have been made to the package since
-the last release on `CRAN`, you can check the detailed log of changes
-here: <https://indrajeetpatil.github.io/ggstatsplot/news/index.html>
+You can get the **development** version of the package from `GitHub`.
 
 If you are in hurry and want to reduce the time of installation, prefer-
 
@@ -144,6 +139,11 @@ remotes::install_github(
   upgrade_dependencies = TRUE # updates any out of date dependencies
 )
 ```
+
+To see what new changes (and bug fixes) have been made to the package
+since the last release on `CRAN`, you can check the detailed log of
+changes here:
+<https://indrajeetpatil.github.io/ggstatsplot/news/index.html>
 
 # Citation
 
@@ -255,7 +255,6 @@ ggstatsplot::ggbetweenstats(
   data = ToothGrowth,
   x = supp,
   y = len,
-  notch = TRUE, # show notched box plot
   mean.ci = TRUE, # whether to display confidence interval for means
   k = 3, # number of decimal places for statistical results
   outlier.tagging = TRUE, # whether outliers need to be tagged
@@ -329,7 +328,7 @@ each type of test-
 | Parametric     | &gt; 2        | ![\\eta\_{p}^2](https://chart.apis.google.com/chart?cht=tx&chl=%5Ceta_%7Bp%7D%5E2 "\eta_{p}^2"), ![\\omega\_{p}^2](https://chart.apis.google.com/chart?cht=tx&chl=%5Comega_%7Bp%7D%5E2 "\omega_{p}^2") | <font color="green">Yes<font> | `effectsize::omega_squared`, `effectsize::eta_squared` |
 | Non-parametric | &gt; 2        | ![\\eta\_{H}^2](https://chart.apis.google.com/chart?cht=tx&chl=%5Ceta_%7BH%7D%5E2 "\eta_{H}^2") (*H*-statistic based eta-squared)                                                                      | <font color="green">Yes<font> | `rcompanion::epsilonSquared`                           |
 | Robust         | &gt; 2        | ![\\xi](https://chart.apis.google.com/chart?cht=tx&chl=%5Cxi "\xi") (Explanatory measure of effect size)                                                                                               | <font color="green">Yes<font> | `WRS2::t1way`                                          |
-| Bayes Factor   | &gt; 2        | ![\\R\_{posterior}^2](https://chart.apis.google.com/chart?cht=tx&chl=%5CR_%7Bposterior%7D%5E2 "\R_{posterior}^2")                                                                                      | <font color="green">Yes<font> | `performance::r2_bayes`                                |
+| Bayes Factor   | &gt; 2        | ![R\_{posterior}^2](https://chart.apis.google.com/chart?cht=tx&chl=R_%7Bposterior%7D%5E2 "R_{posterior}^2")                                                                                            | <font color="green">Yes<font> | `performance::r2_bayes`                                |
 | Parametric     | 2             | Cohen’s *d*, Hedge’s *g*                                                                                                                                                                               | <font color="green">Yes<font> | `effectsize::cohens_d`, `effectsize::hedges_g`         |
 | Non-parametric | 2             | *r* (computed as ![Z/\\sqrt{N}](https://chart.apis.google.com/chart?cht=tx&chl=Z%2F%5Csqrt%7BN%7D "Z/\sqrt{N}"))                                                                                       | <font color="green">Yes<font> | `rcompanion::wilcoxonR`                                |
 | Robust         | 2             | ![\\xi](https://chart.apis.google.com/chart?cht=tx&chl=%5Cxi "\xi") (Explanatory measure of effect size)                                                                                               | <font color="green">Yes<font> | `WRS2::yuen.effect.ci`                                 |
@@ -431,7 +430,7 @@ each type of test-
 | Parametric     | &gt; 2        | ![\\eta\_{p}^2](https://chart.apis.google.com/chart?cht=tx&chl=%5Ceta_%7Bp%7D%5E2 "\eta_{p}^2"), ![\\omega\_{p}^2](https://chart.apis.google.com/chart?cht=tx&chl=%5Comega_%7Bp%7D%5E2 "\omega_{p}^2") | <font color="green">Yes<font> | `effectsize::omega_squared`, `effectsize::eta_squared` |
 | Non-parametric | &gt; 2        | ![W\_{Kendall}](https://chart.apis.google.com/chart?cht=tx&chl=W_%7BKendall%7D "W_{Kendall}") (Kendall’s coefficient of concordance)                                                                   | <font color="green">Yes<font> | `rcompanion::kendallW`                                 |
 | Robust         | &gt; 2        | <font color="red">No<font>                                                                                                                                                                             | <font color="red">No<font>    | `NA`                                                   |
-| Bayes Factor   | &gt; 2        | ![\\R\_{posterior}^2](https://chart.apis.google.com/chart?cht=tx&chl=%5CR_%7Bposterior%7D%5E2 "\R_{posterior}^2")                                                                                      | <font color="green">Yes<font> | `performance::r2_bayes`                                |
+| Bayes Factor   | &gt; 2        | ![R\_{posterior}^2](https://chart.apis.google.com/chart?cht=tx&chl=R_%7Bposterior%7D%5E2 "R_{posterior}^2")                                                                                            | <font color="green">Yes<font> | `performance::r2_bayes`                                |
 | Parametric     | 2             | Cohen’s *d*, Hedge’s *g*                                                                                                                                                                               | <font color="green">Yes<font> | `effectsize::cohens_d`, `effectsize::hedges_g`         |
 | Non-parametric | 2             | *r* (computed as ![Z/\\sqrt{N}](https://chart.apis.google.com/chart?cht=tx&chl=Z%2F%5Csqrt%7BN%7D "Z/\sqrt{N}"))                                                                                       | <font color="green">Yes<font> | `rcompanion::wilcoxonR`                                |
 | Robust         | 2             | ![\\delta\_{R}](https://chart.apis.google.com/chart?cht=tx&chl=%5Cdelta_%7BR%7D "\delta_{R}") (robust standardized difference)                                                                         | <font color="green">Yes<font> | `WRS2::dep.effect`                                     |
@@ -528,8 +527,6 @@ ggstatsplot::grouped_ggscatterstats(
   grouping.var = genre, # grouping variable
   label.var = title,
   label.expression = length > 200,
-  xfill = "#E69F00",
-  yfill = "#8b3058",
   xlab = "IMDB rating",
   title.prefix = "Movie genre",
   ggtheme = ggplot2::theme_grey(),
@@ -576,7 +573,6 @@ set.seed(123)
 ggstatsplot::ggcorrmat(
   data = ggplot2::msleep,
   type = "robust", # correlation method
-  p.adjust.method = "holm", # p-value adjustment method for multiple comparisons
   cor.vars = c(sleep_rem, awake:bodywt), # a range of variables can be selected
   cor.vars.names = c(
     "REM sleep", # variable names
@@ -584,7 +580,6 @@ ggstatsplot::ggcorrmat(
     "brain weight",
     "body weight"
   ),
-  matrix.type = "upper", # type of visualization matrix
   colors = c("#B2182B", "white", "#4D4D4D"),
   title = "Correlalogram for mammals sleep dataset",
   subtitle = "sleep units: hours; weight units: kilograms",
@@ -618,6 +613,7 @@ ggstatsplot::grouped_ggcorrmat(
   cor.vars = length:votes,
   colors = c("#cbac43", "white", "#550000"),
   grouping.var = genre, # grouping variable
+  matrix.type = "lower", # type of visualization matrix
   k = 3L, # number of digits after decimal point
   title.prefix = "Movie genre",
   plotgrid.args = list(nrow = 2)
@@ -723,8 +719,7 @@ ggstatsplot::ggpiestats(
   y = cyl,
   title = "Dataset: Motor Trend Car Road Tests", # title for the plot
   legend.title = "Transmission", # title for the legend
-  caption = substitute(paste(italic("Source"), ": 1974 Motor Trend US magazine")),
-  messages = FALSE
+  caption = substitute(paste(italic("Source"), ": 1974 Motor Trend US magazine"))
 )
 ```
 
@@ -819,18 +814,19 @@ ggstatsplot::ggbarstats(
   data = ggstatsplot::movies_long,
   x = mpaa,
   y = genre,
-  sampling.plan = "jointMulti",
   title = "MPAA Ratings by Genre",
   xlab = "movie genre",
   legend.title = "MPAA rating",
   ggtheme = hrbrthemes::theme_ipsum_pub(),
-  ggplot.component = list(scale_x_discrete(guide = guide_axis(n.dodge = 2))),
-  palette = "Set2",
-  messages = FALSE
+  ggplot.component = list(ggplot2::scale_x_discrete(guide = ggplot2::guide_axis(n.dodge = 2))),
+  palette = "Set2"
 )
 ```
 
 <img src="man/figures/README-ggbarstats1-1.png" width="100%" />
+
+(The *p*-values from one-sample proportion test are displayed on top of
+each column.)
 
 And, needless to say, there is also a `grouped_` variant of this
 function-
@@ -855,6 +851,7 @@ ggstatsplot::grouped_ggbarstats(
   y = partyid,
   grouping.var = race,
   title.prefix = "Race",
+  label = "both",
   xlab = "Party affiliation",
   package = "wesanderson",
   palette = "Darjeeling2",
@@ -1027,10 +1024,9 @@ This is identical to summary of tests for `gghistostats`.
 
 The function `ggstatsplot::ggcoefstats` generates **dot-and-whisker
 plots** for regression models saved in a tidy data frame. The tidy
-dataframes are prepared using the following packages: `broom`,
-`broom.mixed`, and `parameters`. Additionally, if available, the model
-summary indices are also extracted from the following packages: `broom`,
-`broom.mixed`, and `performance`.
+dataframes are prepared using `parameters::model_parameters`.
+Additionally, if available, the model summary indices are also extracted
+from `performance::model_performance`.
 
 Although the statistical models displayed in the plot may differ based
 on the class of models being investigated, there are few aspects of the
@@ -1080,7 +1076,6 @@ ggstatsplot::ggcoefstats(
   x = MASS::rlm(formula = mpg ~ am * cyl, data = mtcars),
   point.args = list(color = "red", size = 3, shape = 15),
   vline.args = list(size = 1, color = "#CC79A7", linetype = "dotdash"),
-  stats.label.color = c("#0072B2", "#D55E00", "darkgreen"),
   title = "Car performance predicted by transmission & cylinder count",
   subtitle = "Source: 1974 Motor Trend US magazine",
   ggtheme = hrbrthemes::theme_ipsum_ps(),
@@ -1097,25 +1092,26 @@ ggstatsplot::ggcoefstats(
 Most of the regression models that are supported in the underlying
 packages are also supported by `ggcoefstats`. For example-
 
-`aareg`, `anova`, `aov`, `aovlist`, `Arima`, `BFBayesFactor`, `bayesx`,
+`aareg`, `anova`, `aov`, `aovlist`, `Arima`, `bam`, `bayesx`,
 `bayesGARCH`, `BBmm`, `BBreg`, `bcplm`, `betamfx`, `betaor`,
-`bglmerMod`, `bife`, `bigglm`, `biglm`, `blavaan`, `bmlm`, `blmerMod`,
-`bracl`, `brglm`, `brglm2`, `brmsfit`, `brmultinom`, `btergm`, `cch`,
-`cgam`, `cgamm`, `cglm`, `clm`, `clm2`, `clmm`, `clmm2`, `coeftest`,
-`complmrob`, `confusionMatrix`, `coxme`, `coxph`, `coxph.penal`,
-`cpglm`, `cpglmm`, `crch`, `crq`, `DirichReg`, `drc`, `emmGrid`,
-`epi.2by2`, `ergm`, `feis`, `felm`, `fitdistr`, `flexsurvreg`, `gam`,
-`Gam`, `gamlss`, `garch`, `geeglm`, `glmc`, `glmerMod`, `glmmTMB`,
-`gls`, `glht`, `glm`, `glmm`, `glmmadmb`, `glmmPQL`, `glmRob`, `glmrob`,
-`glmx`, `gmm`, `HLfit`, `hurdle`, `ivreg`, `iv_robust`, `lavaan`, `lm`,
-`lm.beta`, `lmerMod`, `lmerModLmerTest`, `lmodel2`, `lmRob`, `lmrob`,
-`lm_robust`, `logitmfx`, `logitor`, `logitsf`, `LORgee`, `lqm`, `lqmm`,
-`lrm`, `manova`, `maov`, `margins`, `mcmc`, `mcmc.list`, `MCMCglmm`,
-`mclogit`, `mmclogit`, `mediate`, `metafor`, `merMod`, `merModList`,
-`metaplus`, `mixor`, `mjoint`, `mle2`, `mlm`, `multinom`, `negbin`,
-`negbinmfx`, `negbinirr`, `nlmerMod`, `nlrq`, `nlreg`, `nls`, `orcutt`,
-`orm`, `plm`, `poissonmfx`, `poissonirr`, `polr`, `ridgelm`, `rjags`,
-`rlm`, `rlmerMod`, `robmixglm`, `rq`, `rqss`, `rrvglm`, `scam`, `semLm`,
+`BFBayesFactor`, `bglmerMod`, `bife`, `bigglm`, `biglm`, `blavaan`,
+`bmlm`, `blmerMod`, `bracl`, `brglm`, `brglm2`, `brmsfit`, `brmultinom`,
+`btergm`, `cch`, `censReg`, `cgam`, `cgamm`, `cglm`, `clm`, `clm2`,
+`clmm`, `clmm2`, `coeftest`, `complmrob`, `confusionMatrix`, `coxme`,
+`coxph`, `coxph.penal`, `cpglm`, `cpglmm`, `crch`, `crq`, `DirichReg`,
+`drc`, `emmGrid`, `epi.2by2`, `ergm`, `feis`, `felm`, `fitdistr`,
+`flexsurvreg`, `gam`, `Gam`, `gamlss`, `garch`, `geeglm`, `glmc`,
+`glmerMod`, `glmmTMB`, `gls`, `glht`, `glm`, `glmm`, `glmmadmb`,
+`glmmPQL`, `glmRob`, `glmrob`, `glmx`, `gmm`, `HLfit`, `hurdle`,
+`ivreg`, `iv_robust`, `lavaan`, `lm`, `lm.beta`, `lmerMod`,
+`lmerModLmerTest`, `lmodel2`, `lmRob`, `lmrob`, `lm_robust`, `logitmfx`,
+`logitor`, `logitsf`, `LORgee`, `lqm`, `lqmm`, `lrm`, `manova`, `maov`,
+`margins`, `mcmc`, `mcmc.list`, `MCMCglmm`, `mclogit`, `mice`,
+`mmclogit`, `mediate`, `metafor`, `merMod`, `merModList`, `metaplus`,
+`mixor`, `mjoint`, `mle2`, `mlm`, `multinom`, `negbin`, `negbinmfx`,
+`negbinirr`, `nlmerMod`, `nlrq`, `nlreg`, `nls`, `orcutt`, `orm`, `plm`,
+`poissonmfx`, `poissonirr`, `polr`, `ridgelm`, `rjags`, `rlm`,
+`rlmerMod`, `robmixglm`, `rq`, `rqss`, `rrvglm`, `scam`, `semLm`,
 `semLme`, `slm`, `speedglm`, `speedlm`, `stanfit`, `stanreg`, `survreg`,
 `svyglm`, `svyolr`, `svyglm`, `tobit`, `truncreg`, `vgam`, `vglm`,
 `wbgee`, `wblm`, `zeroinfl`, etc.

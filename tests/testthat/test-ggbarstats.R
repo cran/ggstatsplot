@@ -26,8 +26,7 @@ testthat::test_that(
         xlab = "Passenger sex",
         ylab = "proportion",
         label.separator = "\n",
-        bf.message = FALSE,
-        messages = TRUE
+        bf.message = FALSE
       )
 
     # build plot
@@ -40,9 +39,7 @@ testthat::test_that(
         data = as.data.frame(Titanic),
         x = "Sex",
         y = "Survived",
-        counts = Freq,
-        conf.level = 0.95,
-        messages = FALSE
+        counts = Freq
       )
 
     # checking geom data
@@ -162,11 +159,11 @@ testthat::test_that(
             "mapped_discrete",
             "numeric"
           )),
-          label = c("ns", "***"),
+          label = c("list(~italic(p)=='0.388')", "list(~italic(p)=='1.08e-225')"),
           PANEL = structure(c(1L, 1L), class = "factor", .Label = "1"),
           group = structure(2:1, n = 2L),
           colour = c("black", "black"),
-          size = c(5, 5),
+          size = c(2.8, 2.8),
           angle = c(0, 0),
           hjust = c(0.5, 0.5),
           vjust = c(0.5, 0.5),
@@ -243,8 +240,7 @@ testthat::test_that(
         label = "both",
         package = "wesanderson",
         palette = "Royal2",
-        legend.title = "Engine",
-        messages = FALSE
+        legend.title = "Engine"
       ))
 
     p1 <-
@@ -253,8 +249,7 @@ testthat::test_that(
         x = vs,
         y = cyl,
         label = "counts",
-        bf.message = FALSE,
-        messages = FALSE
+        bf.message = FALSE
       ))
 
     # build plot
@@ -269,11 +264,8 @@ testthat::test_that(
         .funs = ~ as.character(.)
       )
 
-    # checking dimensions of data
-    data_dims <- dim(dat)
-
     # testing everything is okay with data
-    testthat::expect_equal(data_dims, c(5L, 5L))
+    testthat::expect_equal(dim(dat), c(5L, 5L))
     testthat::expect_identical(
       pb$data[[2]]$label,
       c(
@@ -481,65 +473,55 @@ testthat::test_that(
         )),
         caption = NULL,
         fill = "cyl",
-        label = "label",
+        label = ".label",
         group = "cyl"
       )
     )
   }
 )
-# subtitle output --------------------------------------------------
+
+# other outputs --------------------------------------------------
 
 testthat::test_that(
-  desc = "subtitle output",
+  desc = "other outputs",
   code = {
     testthat::skip_on_cran()
+
+    set.seed(123)
+    df <- dplyr::sample_frac(tbl = forcats::gss_cat, size = 0.1) %>%
+      dplyr::mutate_if(., is.factor, droplevels)
+
 
     # subtitle output
     set.seed(123)
     p_sub <-
       ggstatsplot::ggbarstats(
-        data = dplyr::sample_frac(tbl = forcats::gss_cat, size = 0.1),
+        data = df,
         x = race,
         y = marital,
         output = "subtitle",
-        k = 4,
-        messages = FALSE
+        k = 4
       )
 
     set.seed(123)
     stats_output <-
       statsExpressions::expr_contingency_tab(
-        data = dplyr::sample_frac(tbl = forcats::gss_cat, size = 0.1),
+        data = df,
         x = race,
         y = marital,
-        k = 4,
-        messages = FALSE
+        k = 4
       )
 
     # tests
     testthat::expect_identical(p_sub, stats_output)
-  }
-)
 
-# proptest output ---------------------------------------------------------
-
-testthat::test_that(
-  desc = "proptest output",
-  code = {
-    testthat::skip_on_cran()
-
-    df <-
-      suppressWarnings(ggbarstats(
-        mtcars,
-        am,
-        cyl,
-        results.subtitle = FALSE,
-        output = "proptest",
-        messages = FALSE
-      ))
-
-    # tests
-    testthat::expect_equal(dim(df), c(3L, 12L))
+    testthat::expect_null(ggstatsplot::ggbarstats(
+      data = mtcars,
+      x = cyl,
+      y = am,
+      paired = TRUE,
+      output = "caption"
+    ))
   }
 )
 
@@ -558,7 +540,7 @@ testthat::test_that(
     )
 
     # should not work
-    testthat::expect_is(
+    testthat::expect_s3_class(
       suppressWarnings(ggstatsplot::ggbarstats(
         data = df,
         x = x,

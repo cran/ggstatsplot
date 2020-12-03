@@ -14,7 +14,7 @@
 #' @importFrom dplyr select group_by matches mutate rowwise group_modify arrange ungroup
 #' @importFrom rlang !! enquo ensym :=
 #' @importFrom tidyr drop_na
-#' @importFrom ipmisc specify_decimal_p signif_column
+#' @importFrom ipmisc specify_decimal_p
 #'
 #' @examples
 #' # this internal function may not have much utility outside of the package
@@ -41,14 +41,13 @@ mean_ggrepel <- function(plot,
                          y,
                          mean.ci = FALSE,
                          k = 3L,
+                         inherit.aes = TRUE,
                          sample.size.label = TRUE,
                          mean.path = FALSE,
                          mean.path.args = list(color = "red", size = 1, alpha = 0.5),
                          mean.point.args = list(size = 5, color = "darkred"),
                          mean.label.args = list(size = 3),
                          ...) {
-  # are the means to be connected?
-  inherit.aes <- !mean.path
 
   # ------------------------ dataframe -------------------------------------
 
@@ -61,7 +60,7 @@ mean_ggrepel <- function(plot,
     as_tibble(.) %>%
     dplyr::group_by(.data = ., {{ x }}) %>%
     dplyr::group_modify(
-      .f = ~ insight::standardize_names(
+      .f = ~ parameters::standardize_names(
         data = as.data.frame(parameters::describe_distribution(
           x = .,
           centrality = "mean",
@@ -79,21 +78,21 @@ mean_ggrepel <- function(plot,
     mean_df %<>%
       dplyr::mutate(
         label = paste0(
-          "list(~italic(widehat(mu))==",
+          "list(~italic(widehat(mu))=='",
           specify_decimal_p(mean, k),
-          ",",
+          "',",
           "CI[95*'%']",
-          "*'['*",
+          "*'['*'",
           specify_decimal_p(conf.low, k),
-          ",",
+          "','",
           specify_decimal_p(conf.high, k),
-          "*']')"
+          "'*']')"
         )
       )
   } else {
     mean_df %<>%
       dplyr::mutate(
-        label = paste0("list(~italic(widehat(mu))==", specify_decimal_p(mean, k), ")")
+        label = paste0("list(~italic(widehat(mu))=='", specify_decimal_p(mean, k), "')")
       )
   }
 
@@ -150,7 +149,7 @@ mean_ggrepel <- function(plot,
   }
 
   # return the plot
-  return(plot)
+  plot
 }
 
 #' @title Adding `geom_signif` to `ggplot`
@@ -203,17 +202,17 @@ ggsignif_adder <- function(plot,
   # creating a column for group combinations
   df_pairwise %<>% dplyr::mutate(groups = purrr::pmap(.l = list(group1, group2), .f = c))
 
-  # for Bayes Factor, there will be no "significance" column
-  if ("significance" %in% names(df_pairwise)) {
+  # for Bayes Factor, there will be no "p.value" column
+  if ("p.value" %in% names(df_pairwise)) {
     # decide what needs to be displayed:
     # only significant comparisons shown
     if (pairwise.display %in% c("s", "significant")) {
-      df_pairwise %<>% dplyr::filter(.data = ., significance != "ns")
+      df_pairwise %<>% dplyr::filter(.data = ., p.value < 0.05)
     }
 
     # only non-significant comparisons shown
     if (pairwise.display %in% c("ns", "nonsignificant", "non-significant")) {
-      df_pairwise %<>% dplyr::filter(.data = ., significance == "ns")
+      df_pairwise %<>% dplyr::filter(.data = ., p.value >= 0.05)
     }
 
     # proceed only if there are any significant comparisons to display
@@ -318,5 +317,61 @@ aesthetic_addon <- function(plot,
   # ---------------- adding ggplot component ---------------------------------
 
   # return with any additional modification that needs to be made to the plot
-  return(plot + ggplot.component)
+  plot + ggplot.component
+}
+
+
+#' @title Adding a column to dataframe describing outlier status
+#' @name outlier_df
+#'
+#' @inheritParams long_to_wide_converter
+#' @param outlier.label Label to put on the outliers that have been tagged. This
+#'   can't be the same as x argument.
+#' @param outlier.coef Coefficient for outlier detection using Tukey's method.
+#'   With Tukey's method, outliers are below (1st Quartile) or above (3rd
+#'   Quartile) `coef` times the Inter-Quartile Range (IQR) (Default: `1.5`).
+#' @param ... Additional arguments.
+#'
+#' @return The dataframe entered as `data` argument is returned with two
+#'   additional columns: `isanoutlier` and `outlier` denoting which observation
+#'   are outliers and their corresponding labels.
+#'
+#' @importFrom rlang enquo ensym
+#' @importFrom stats quantile
+#' @importFrom dplyr group_by mutate ungroup
+#'
+#'
+#' @examples
+#' # adding column for outlier and a label for that outlier
+#' ggstatsplot:::outlier_df(
+#'   data = morley,
+#'   x = Expt,
+#'   y = Speed,
+#'   outlier.label = Run,
+#'   outlier.coef = 2
+#' ) %>%
+#'   dplyr::arrange(outlier)
+#' @noRd
+
+# function body
+outlier_df <- function(data,
+                       x,
+                       y,
+                       outlier.label,
+                       outlier.coef = 1.5,
+                       ...) {
+  # defining function to detect outliers based on interquartile range
+  check_outlier <- function(var, coef = 1.5) {
+    quantiles <- stats::quantile(x = var, probs = c(0.25, 0.75), na.rm = TRUE)
+    IQR <- quantiles[2] - quantiles[1]
+    (var < (quantiles[1] - coef * IQR)) | (var > (quantiles[2] + coef * IQR))
+  }
+
+  # add a logical column indicating whether a point is or is not an outlier
+  dplyr::group_by(.data = data, {{ x }}) %>%
+    dplyr::mutate(
+      isanoutlier = ifelse(check_outlier({{ y }}, outlier.coef), TRUE, FALSE),
+      outlier = ifelse(isanoutlier, {{ outlier.label }}, NA)
+    ) %>%
+    dplyr::ungroup(.)
 }

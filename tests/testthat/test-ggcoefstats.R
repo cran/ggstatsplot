@@ -38,9 +38,9 @@ testthat::test_that(
           x = c(-0.780044678205957, 2.29400668890043, -0.556439259603544),
           y = structure(1:3, class = c("mapped_discrete", "numeric")),
           label = c(
-            "list(~widehat(italic(beta))==-0.78, ~italic(z)==-3.47, ~italic(p)==0.001)",
-            "list(~widehat(italic(beta))==2.29, ~italic(z)==19.13, ~italic(p)==1.54e-81)",
-            "list(~widehat(italic(beta))==-0.56, ~italic(z)==-2.44, ~italic(p)==0.014)"
+            "list(~widehat(italic(beta))==-0.78, ~italic(z)==-3.47, ~italic(p)=='0.001')",
+            "list(~widehat(italic(beta))==2.29, ~italic(z)==19.13, ~italic(p)=='1.54e-81')",
+            "list(~widehat(italic(beta))==-0.56, ~italic(z)==-2.44, ~italic(p)=='0.014')"
           ),
           PANEL = structure(c(1L, 1L, 1L), .Label = "1", class = "factor"),
           group = structure(1:3, n = 3L),
@@ -140,8 +140,8 @@ testthat::test_that(
           x = c(0.0170335066199796, -0.511668342705175),
           y = structure(1:2, class = c("mapped_discrete", "numeric")),
           label = c(
-            "list(~widehat(italic(beta))==0.02, ~italic(chi)^2==3.40, ~italic(p)==0.065)",
-            "list(~widehat(italic(beta))==-0.51, ~italic(chi)^2==9.31, ~italic(p)==0.002)"
+            "list(~widehat(italic(beta))==0.02, ~italic(chi)^2==3.40, ~italic(p)=='0.065')",
+            "list(~widehat(italic(beta))==-0.51, ~italic(chi)^2==9.31, ~italic(p)=='0.002')"
           ),
           PANEL = structure(c(1L, 1L), .Label = "1", class = "factor"),
           group = structure(1:2, n = 2L),
@@ -208,15 +208,15 @@ testthat::test_that(
     testthat::expect_equal(dim(pb$data[[3]]), c(4L, 10L))
 
     # checking ggrepel label layer
-    # testthat::expect_identical(
-    #   pb$data[[4]]$label,
-    #   c(
-    #     "list(~widehat(italic(beta))==6.438, ~italic(t)(28)==13.765, ~italic(p)==5.48e-14)",
-    #     "list(~widehat(italic(beta))==-0.156, ~italic(t)(28)==-5.840, ~italic(p)==2.81e-06)",
-    #     "list(~widehat(italic(beta))==-1.809, ~italic(t)(28)==-2.615, ~italic(p)==0.014)",
-    #     NA_character_
-    #   )
-    # )
+    testthat::expect_identical(
+      pb$data[[4]]$label,
+      c(
+        "list(~widehat(italic(beta))==6.438, ~italic(t)(28)==13.765, ~italic(p)=='5.48e-14')",
+        "list(~widehat(italic(beta))==-0.156, ~italic(t)(28)==-5.840, ~italic(p)=='2.81e-06')",
+        "list(~widehat(italic(beta))==-1.809, ~italic(t)(28)==-2.615, ~italic(p)=='0.014')",
+        NA_character_
+      )
+    )
     testthat::expect_identical(
       unclass(pb$data[[4]]$colour),
       c("#1B9E77FF", "#D95F02FF", "#7570B3FF", "#E7298AFF")
@@ -301,14 +301,12 @@ testthat::test_that(
     )
     testthat::expect_null(p$labels$title, NULL)
     testthat::expect_null(p$labels$subtitle, NULL)
-
-    testthat::expect_identical(tidy_df$significance, c("***", "*", "ns"))
     testthat::expect_identical(
       tidy_df$label,
       c(
-        "list(~italic(F)(1*\",\"*28)==118.89, ~italic(p)==1.38e-11, ~widehat(italic(eta)[p]^2)==0.81)",
-        "list(~italic(F)(1*\",\"*28)==7.30, ~italic(p)==0.012, ~widehat(italic(eta)[p]^2)==0.21)",
-        "list(~italic(F)(1*\",\"*28)==3.73, ~italic(p)==0.064, ~widehat(italic(eta)[p]^2)==0.12)"
+        "list(~italic(F)(1*\",\"*28)==118.89, ~italic(p)=='1.38e-11', ~widehat(italic(eta)[p]^2)==0.81)",
+        "list(~italic(F)(1*\",\"*28)==7.30, ~italic(p)=='0.012', ~widehat(italic(eta)[p]^2)==0.21)",
+        "list(~italic(F)(1*\",\"*28)==3.73, ~italic(p)=='0.064', ~widehat(italic(eta)[p]^2)==0.12)"
       )
     )
 
@@ -353,10 +351,7 @@ testthat::test_that(
       p$labels$caption,
       ggplot2::expr(atop(
         displaystyle(paste(italic("Note"), ": From `tidyverse`")),
-        expr = paste(
-          "AIC = ", "126", ", BIC = ",
-          "142"
-        )
+        expr = paste("AIC = ", "126", ", BIC = ", "142")
       ))
     )
     testthat::expect_identical(p$labels$title, "mammalian sleep")
@@ -386,12 +381,11 @@ testthat::test_that(
     testthat::expect_identical(
       tidy_df$label,
       c(
-        "list(~italic(F)(3*\",\"*35)==7.388, ~italic(p)==0.001, ~widehat(italic(omega)[p]^2)==0.308)",
-        "list(~italic(F)(1*\",\"*35)==2.034, ~italic(p)==0.163, ~widehat(italic(omega)[p]^2)==0.023)",
-        "list(~italic(F)(3*\",\"*35)==4.012, ~italic(p)==0.015, ~widehat(italic(omega)[p]^2)==0.174)"
+        "list(~italic(F)(3*\",\"*35)==7.388, ~italic(p)=='0.001', ~widehat(italic(omega)[p]^2)==0.308)",
+        "list(~italic(F)(1*\",\"*35)==2.034, ~italic(p)=='0.163', ~widehat(italic(omega)[p]^2)==0.023)",
+        "list(~italic(F)(3*\",\"*35)==4.012, ~italic(p)=='0.015', ~widehat(italic(omega)[p]^2)==0.174)"
       )
     )
-    testthat::expect_identical(tidy_df$significance, c("***", "ns", "*"))
   }
 )
 
@@ -574,17 +568,17 @@ testthat::test_that(
     testthat::expect_identical(
       pb1$data[[4]]$label,
       c(
-        "list(~widehat(italic(beta))==0.07, ~italic(t)(5)==0.16, ~italic(p)==0.875)",
-        "list(~widehat(italic(beta))==0.54, ~italic(t)(10)==1.33, ~italic(p)==0.191)",
-        "list(~widehat(italic(beta))==0.04, ~italic(t)(12)==1.24, ~italic(p)==0.001)"
+        "list(~widehat(italic(beta))==0.07, ~italic(t)(5)==0.16, ~italic(p)=='0.875')",
+        "list(~widehat(italic(beta))==0.54, ~italic(t)(10)==1.33, ~italic(p)=='0.191')",
+        "list(~widehat(italic(beta))==0.04, ~italic(t)(12)==1.24, ~italic(p)=='0.001')"
       )
     )
     testthat::expect_identical(
       pb5$data[[4]]$label,
       c(
-        "list(~widehat(italic(beta))==0.07, ~italic(t)==0.16, ~italic(p)==0.875)",
-        "list(~widehat(italic(beta))==0.54, ~italic(t)==1.33, ~italic(p)==0.191)",
-        "list(~widehat(italic(beta))==0.04, ~italic(t)==1.24, ~italic(p)==0.001)"
+        "list(~widehat(italic(beta))==0.07, ~italic(t)(Inf)==0.16, ~italic(p)=='0.875')",
+        "list(~widehat(italic(beta))==0.54, ~italic(t)(Inf)==1.33, ~italic(p)=='0.191')",
+        "list(~widehat(italic(beta))==0.04, ~italic(t)(Inf)==1.24, ~italic(p)=='0.001')"
       )
     )
 
@@ -595,9 +589,9 @@ testthat::test_that(
     testthat::expect_identical(
       pb2$data[[4]]$label,
       c(
-        "list(~widehat(italic(beta))==0.07, ~italic(z)==0.16, ~italic(p)==0.875)",
-        "list(~widehat(italic(beta))==0.54, ~italic(z)==1.33, ~italic(p)==0.191)",
-        "list(~widehat(italic(beta))==0.04, ~italic(z)==1.24, ~italic(p)==0.001)"
+        "list(~widehat(italic(beta))==0.07, ~italic(z)==0.16, ~italic(p)=='0.875')",
+        "list(~widehat(italic(beta))==0.54, ~italic(z)==1.33, ~italic(p)=='0.191')",
+        "list(~widehat(italic(beta))==0.04, ~italic(z)==1.24, ~italic(p)=='0.001')"
       )
     )
 
@@ -646,61 +640,27 @@ testthat::test_that(
   }
 )
 
-# check confidence intervals ----------------------------------------------
+# check tidy output ----------------------------------------------
 
 testthat::test_that(
-  desc = "check computing confidence intervals",
+  desc = "check tidy output",
   code = {
     testthat::skip_on_cran()
 
-    # creating broom dataframes
     set.seed(123)
     mod <- stats::lm(data = iris, formula = Sepal.Length ~ Species)
-    df1 <-
-      broomExtra::tidy(
-        x = mod,
-        conf.int = TRUE,
-        conf.level = 0.95
-      )
-    df2 <-
-      broomExtra::tidy(
-        x = mod,
-        conf.int = TRUE,
-        conf.level = 0.50
-      )
 
     # computed dataframes
-    tidy_df1 <-
+    tidy_df <-
       ggstatsplot::ggcoefstats(
-        x = dplyr::select(df1, -conf.low, -conf.high),
-        exclude.intercept = FALSE,
+        x = mod,
+        exclude.intercept = TRUE,
         statistic = "t",
         output = "tidy"
       )
-    tidy_df2 <-
-      ggstatsplot::ggcoefstats(
-        x = dplyr::select(df2, -conf.low, -conf.high),
-        exclude.intercept = FALSE,
-        statistic = "t",
-        output = "tidy",
-        conf.level = 0.50
-      )
-    tidy_df3 <-
-      ggstatsplot::ggcoefstats(
-        x = dplyr::select(df2, -conf.low, -conf.high, -std.error),
-        exclude.intercept = FALSE,
-        statistic = "t",
-        output = "tidy",
-        conf.level = 0.50
-      )
 
     # checking confidence intervals
-    testthat::expect_equal(df1$conf.low, tidy_df1$conf.low, tolerance = 0.001)
-    testthat::expect_equal(df2$conf.high, tidy_df2$conf.high, tolerance = 0.001)
-    testthat::expect_identical(tidy_df3$conf.low[1], NA_character_)
-    testthat::expect_identical(tidy_df3$conf.high[1], NA_character_)
-    testthat::expect_is(tidy_df1, "tbl_df")
-    testthat::expect_is(tidy_df2, "tbl_df")
+    testthat::expect_s3_class(tidy_df, "tbl_df")
   }
 )
 
@@ -711,116 +671,62 @@ testthat::test_that(
   code = {
     testthat::skip_on_cran()
 
-    # creating broom and ggstatsplot output
     # lm
     set.seed(123)
     mod1 <- stats::lm(data = iris, formula = Sepal.Length ~ Species)
     glance_df1 <- ggstatsplot::ggcoefstats(x = mod1, output = "glance")
 
-    # checking if they are equal
+    # checking if they are present
     testthat::expect_true(all(c("aic", "bic") %in% names(glance_df1)))
   }
 )
 
-
-# check if augment works ----------------------------------------------
+# CIs missing and palette change message -------------------------------------
 
 testthat::test_that(
-  desc = "check if augment works",
+  desc = "CIs missing and palette change message",
   code = {
     testthat::skip_on_cran()
 
-    # linear model
-    set.seed(123)
-    mod1 <- stats::lm(
-      formula = mpg ~ wt + qsec,
-      data = mtcars
-    )
-    df1.broom <- broomExtra::augment(mod1)
-    df1.ggstats <-
-      ggstatsplot::ggcoefstats(x = mod1, output = "augment")
-
-    # model with F-statistic
-    set.seed(123)
-    mod3 <- stats::aov(
-      data = ggplot2::msleep,
-      formula = sleep_rem ~ brainwt * vore
-    )
-    df3.broom <- tibble::as_tibble(broomExtra::augment(mod3))
-    df3.ggstats <-
-      ggstatsplot::ggcoefstats(x = mod3, output = "augment")
-
-    # checking if they are equal
-    testthat::expect_identical(df1.broom, df1.ggstats)
-    testthat::expect_identical(df3.broom, df3.ggstats)
-    testthat::expect_true(inherits(df1.ggstats, what = "tbl_df"))
-    testthat::expect_true(inherits(df3.ggstats, what = "tbl_df"))
-  }
-)
-
-# testing aesthetic modifications --------------------------------------------
-
-testthat::test_that(
-  desc = "testing aesthetic modifications",
-  code = {
-    testthat::skip_on_cran()
-
-    # model
-    set.seed(123)
-    mod <-
-      stats::lm(
-        formula = wt ~ am * cyl * vs,
-        data = mtcars
-      )
-
-    # plot
-    suppressWarnings(suppressMessages(
-      p <-
-        ggstatsplot::ggcoefstats(
-          x = mod,
-          exclude.intercept = FALSE,
-          exponentiate = TRUE,
-          point.args = list(
-            size = 6,
-            shape = 5,
-            color = "red"
-          ),
-          package = "ggsci",
-          palette = "alternating_igv"
+    df <-
+      structure(list(
+        term = c(
+          "(Intercept)", "CuCu035", "CuCu175",
+          "Time", "I(Time^2)", "I(Time^3)", "CuCu035:Time", "CuCu175:Time",
+          "CuCu035:I(Time^2)", "CuCu175:I(Time^2)", "CuCu035:I(Time^3)",
+          "CuCu175:I(Time^3)"
+        ), estimate = c(
+          21.8578677803274, 0.526733674732889,
+          0.0427835422515209, 2.8851574385696, 0.614042414524674, -0.0262947719084166,
+          -0.40542426165259, 0.85694067753032, 0.0182862906307392, -0.0960713284650128,
+          0.000546698056168512, 0.00269961148409459
+        ), std.error = c(
+          0.693144489488905,
+          0.941360576277464, 1.01964740267859, 0.360257238194542, 0.0701643241562136,
+          0.00382178339260795, 0.637125037623185, 0.615624385440062, 0.11543261090741,
+          0.110799697486582, 0.00598959833358501, 0.00565019761578672
+        ),
+        statistic = c(
+          994.415853036382, 0.313090691524612, 0.00176057059261262,
+          64.1377326818143, 76.5885855307124, 47.337648230833, 0.404920835633417,
+          1.93762571038971, 0.0250954043758227, 0.751814059246073,
+          0.00833104846354157, 0.228283887066837
+        ), p.value = c(
+          0, 0.57578977738106,
+          0.966531259919043, 1.11022302462516e-15, 0, 5.97533134083506e-12,
+          0.524558812161593, 0.16392656280827, 0.874129565558699, 0.38590249597292,
+          0.927274418017278, 0.632799230168403
         )
-    ))
+      ), class = c(
+        "tbl_df",
+        "tbl", "data.frame"
+      ), row.names = c(NA, -12L))
 
-    # plot build
+
+    p <- ggcoefstats(df, statistic = "chi")
+
     pb <- ggplot2::ggplot_build(p)
 
-    # checking layered data
-    testthat::expect_identical(unique(pb$data[[3]]$colour), "red")
-    testthat::expect_equal(unique(pb$data[[3]]$shape), 5L)
-    testthat::expect_equal(unique(pb$data[[3]]$size), 6L)
-  }
-)
-
-# unsupported model objects -----------------------------------------------
-
-testthat::test_that(
-  desc = "unsupported model objects",
-  code = {
-    # mod-1
-    testthat::expect_error(ggstatsplot::ggcoefstats(x = list(x = "1", y = 2L)))
-
-    # mod-2
-    mod2 <- stats::aov(
-      formula = value ~ attribute * measure + Error(id / (attribute * measure)),
-      data = ggstatsplot::iris_long
-    )
-
-    # plot
-    p <- ggstatsplot::ggcoefstats(mod2)
-    pb <- ggplot2::ggplot_build(p)
-
-    # test failures
-    testthat::expect_error(ggstatsplot::ggcoefstats(stats::acf(lh, plot = FALSE)))
-    testthat::expect_null(pb$plot$labels$subtitle, NULL)
-    testthat::expect_null(pb$plot$labels$caption, NULL)
+    testthat::expect_equal(length(pb$data), 3L)
   }
 )

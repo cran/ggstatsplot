@@ -17,12 +17,15 @@ vignette: >
 ---
 
 ```{r setup, include = FALSE}
+# show me all columns
+options(tibble.width = Inf, pillar.bold = TRUE, pillar.subtle_num = TRUE)
+
 knitr::opts_chunk$set(
-  dpi = 300,
-  out.width = "100%",
   collapse = TRUE,
-  message = FALSE,
+  dpi = 300,
   warning = FALSE,
+  message = FALSE,
+  out.width = "100%",
   comment = "#>"
 )
 ```
@@ -47,6 +50,7 @@ include. For example, here only statistic and *p*-values are included:
 ```{r custom_expr}
 # setup
 set.seed(123)
+library(ggstatsplot)
 library(ggplot2)
 library(statsExpressions)
 
@@ -63,6 +67,21 @@ ggplot(iris, aes(x = Species, y = Sepal.Length)) +
   )))
 ```
 
+## I am getting `Error in grid.Call` error
+
+Sometimes, if you are working in `RStudio`, you might see the following error-
+
+```r
+Error in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+polygon edge not found
+```
+
+There is no unique solution for this. Just Google this error and see if any of
+those solutions solve your problem.
+
+If not, pray to the old and the new gods, and try again. It might just solve
+your problem. `r emo::ji("shrug")`
+
 ## What statistical test was carried out?
 
 In case you are not sure what was the statistical test that produced the results
@@ -70,8 +89,68 @@ shown in the subtitle of the plot, the best way to get that information is to
 either look at the documentation for the function used or check out the
 associated vignette. 
 
-Summary table: 
-<https://indrajeetpatil.github.io/statsExpressions/articles/stats_details.html>
+Summary of all analysis is handily available in `README`: 
+<https://github.com/IndrajeetPatil/ggstatsplot/blob/master/README.md>
+
+## How can I use `ggstatsplot` functions in a `for` loop?
+
+Given that all functions in `ggstatsplot` use tidy evaluation, running these
+functions in a `for` loop requires minor adjustment to how inputs are entered:
+
+```{r loop, eval=FALSE}
+# setup
+data(mtcars)
+library(ggstatsplot)
+col.name <- colnames(mtcars)
+
+# executing the function in a `for` loop
+for (i in 3:length(col.name)) {
+  ggbetweenstats(
+    data = mtcars,
+    x = cyl,
+    y = !!col.name[i]
+  )
+}
+```
+
+That said, if repeating function execution across multiple columns in a
+dataframe in what you want to do, I will recommend you to have a look at
+`purrr`-based solution:
+
+<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/purrr_examples.html#repeating-function-execution-across-multiple-columns-in-a-dataframe-1>
+
+## How can I have uniform Y-axes ranges in `grouped_` functions?
+
+```{r grouped_y_axes, fig.height=10, fig.width=8}
+# setup
+set.seed(123)
+library(ggstatsplot)
+
+combine_plots2(
+  list(
+  # with unequal Y-axes ranges
+  grouped_ggscatterstats(
+    mtcars,
+    disp,
+    hp,
+    grouping.var = am,
+    results.subtitle = FALSE,
+    title.text = "before"
+  ),
+  # with equal Y-axes ranges
+  grouped_ggscatterstats(
+    mtcars,
+    disp,
+    hp,
+    grouping.var = am,
+    results.subtitle = FALSE,
+    ggplot.component =
+      list(ggplot2::scale_y_continuous(breaks = seq(50, 350, 50), limits = (c(50, 350)))),
+    title.text = "after"
+  )),
+  plotgrid.args = list(nrow = 2)
+)
+```
 
 ## Does `ggstatsplot` work with `plotly`?
 
@@ -110,7 +189,6 @@ Here is an example-
 ```{r grouped_2, fig.width = 6, fig.height = 6}
 # setup
 set.seed(123)
-library(tidyverse, warn.conflicts = FALSE)
 library(ggstatsplot)
 
 # creating a list by splitting dataframe by combination of two different
@@ -215,13 +293,33 @@ library(pairwiseComparisons)
 pairwise_comparisons(mtcars, cyl, wt)
 ```
 
+## How to access dataframe with results from `ggpiestats` and `ggbarstats`?
+
+```{r proptest_df}
+# setup
+set.seed(123)
+library(ggplot2)
+
+# plot
+p <- ggpiestats(mtcars, am, cyl)
+
+# build ggplot object
+pb <- ggplot2::ggplot_build(p)
+
+# dataframe with proportion test results
+pb$plot$plot_env$df_proptest
+
+# dataframe with counts and proportions details
+pb$plot$plot_env$df_descriptive
+```
+
 ## How can I remove a a particular `geom` layer from the plot?
 
 Sometimes you may not want a particular `geom` layer to be displayed. You can
 remove them using `gginnards`. 
 
 For example, let's say we want to remove the `geom_point()` from
-`ggbetweenstats` default plot.
+`ggwithinstats` default plot.
 
 ```{r gginnards, fig.width = 7, fig.height = 5}
 # needed libraries
@@ -230,15 +328,16 @@ library(gginnards)
 
 # plot with all geoms
 p <-
-  ggbetweenstats(
-    data = iris,
-    x = Species,
-    y = Sepal.Length,
-    mean.plotting = FALSE
+  ggwithinstats(
+    data = bugs_long,
+    x = condition,
+    y = desire,
+    results.subtitle = FALSE,
+    pairwise.comparisons = FALSE
   )
 
-# delete geom corresponding to points
-gginnards::delete_layers(x = p, match_type = "GeomPoint")
+# delete `geom` corresponding to violin
+gginnards::delete_layers(x = p, match_type = "GeomViolin")
 ```
 
 This can be helpful to add a new layer with aesthetic specifications of your

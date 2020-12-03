@@ -48,9 +48,7 @@ variable name entered for \code{grouping.var} will be used.}
 you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
 Setting this to \code{"caption"} will return the expression containing details
 about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
-\code{bf.message = TRUE}, otherwise this will return a \code{NULL}. For functions
-\code{ggpiestats} and \code{ggbarstats}, setting \code{output = "proptest"} will return a
-dataframe containing results from proportion tests.}
+\code{bf.message = TRUE}, otherwise this will return a \code{NULL}.}
 
 \item{...}{
   Arguments passed on to \code{\link[=ggbetweenstats]{ggbetweenstats}}
@@ -97,8 +95,8 @@ should be displayed for each level of the grouping variable \code{x} (Default:
 displayed. If \code{TRUE}, a notched box plot will be used. Notches are used to
 compare groups; if the notches of two boxes do not overlap, this suggests
 that the medians are significantly different. In a notched box plot, the
-notches extend \code{1.58 * IQR / sqrt(n)}. This gives a roughly \verb{95\%}
-confidence interval for comparing medians. IQR: Inter-Quartile Range.}
+notches extend \code{1.58 * IQR / sqrt(n)}, where IQR: Inter-Quartile Range.
+This gives a roughly \verb{95\%} confidence interval for comparing medians.}
     \item{\code{notchwidth}}{For a notched box plot, width of the notch relative to the
 body (default \code{0.5}).}
     \item{\code{outlier.color}}{Default aesthetics for outliers (Default: \code{"black"}).}
@@ -108,12 +106,8 @@ body (default \code{0.5}).}
 \code{outlier.shape = NA}. Importantly, this does not remove the outliers,
 it only hides them, so the range calculated for the \code{y}-axis will be
 the same with outliers shown and outliers hidden.}
-    \item{\code{outlier.point.args}}{A list of additional aesthetic arguments to be
-passed to \code{ggplot2::geom_point} and \code{ggrepel::geom_label_repel} geoms
-involved outlier value plotting.}
     \item{\code{outlier.label.args}}{A list of additional aesthetic arguments to be
-passed to \code{ggplot2::geom_point} and \code{ggrepel::geom_label_repel} geoms
-involved outlier value plotting.}
+passed to \code{ggrepel::geom_label_repel} for outlier label plotting.}
     \item{\code{outlier.coef}}{Coefficient for outlier detection using Tukey's method.
 With Tukey's method, outliers are below (1st Quartile) or above (3rd
 Quartile) \code{outlier.coef} times the Inter-Quartile Range (IQR) (Default:
@@ -153,10 +147,8 @@ theme elements are to be displayed along with the selected \code{ggtheme}
 (Default: \code{TRUE}). \code{theme_ggstatsplot} is an opinionated theme layer that
 override some aspects of the selected \code{ggtheme}.}
     \item{\code{effsize.type}}{Type of effect size needed for \emph{parametric} tests. The
-argument can be \code{"biased"} (equivalent to \code{"d"} for Cohen's \emph{d} for
-\strong{t-test}; \code{"eta"} for partial eta-squared for \strong{anova}) or
-\code{"unbiased"} (equivalent to \code{"g"} Hedge's \emph{g} for \strong{t-test};
-\code{"omega"} for partial omega-squared for \strong{anova})).}
+argument can be \code{"eta"} (partial eta-squared) or \code{"omega"} (partial
+omega-squared).}
     \item{\code{k}}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2L}).}
     \item{\code{var.equal}}{a logical variable indicating whether to treat the

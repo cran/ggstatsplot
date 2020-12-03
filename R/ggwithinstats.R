@@ -5,8 +5,14 @@
 #'   (unjittered) data points for within-subjects designs with statistical
 #'   details included in the plot as a subtitle.
 #'
-#' @note **Important**: Please note that the function expects that the data is
+#' @note
+#' 1. Please note that the function expects that the data is
 #'   already sorted by subject/repeated measures ID.
+#'
+#' 2. To get the Bayes Factor message, you are going to need to install
+#'   the development version of `BayesFactor` (`0.9.12-4.3`).
+#'   You can download it by running:
+#' `remotes::install_github("richarddmorey/BayesFactor/pkg/BayesFactor")`.
 #'
 #' @inheritParams ggbetweenstats
 #' @param point.path,mean.path Logical that decides whether individual data
@@ -26,7 +32,6 @@
 #' @importFrom rlang exec !! enquo := !!! exec
 #' @importFrom statsExpressions bf_ttest bf_oneway_anova
 #' @importFrom pairwiseComparisons pairwise_comparisons pairwise_caption
-#' @importFrom ipmisc outlier_df
 #' @importFrom dplyr select mutate row_number group_by ungroup anti_join
 #'
 #' @references
@@ -97,8 +102,7 @@ ggwithinstats <- function(data,
                           outlier.tagging = FALSE,
                           outlier.label = NULL,
                           outlier.coef = 1.5,
-                          outlier.label.args = list(),
-                          outlier.point.args = list(),
+                          outlier.label.args = list(size = 3),
                           violin.args = list(width = 0.5, alpha = 0.2),
                           ggsignif.args = list(textsize = 3, tip_length = 0.01),
                           ggtheme = ggplot2::theme_bw(),
@@ -135,11 +139,7 @@ ggwithinstats <- function(data,
     dplyr::group_by(.data = ., {{ x }}) %>%
     dplyr::mutate(.data = ., rowid = dplyr::row_number()) %>%
     dplyr::ungroup(.) %>%
-    dplyr::anti_join(
-      x = .,
-      y = dplyr::filter(., is.na({{ y }})),
-      by = "rowid"
-    )
+    dplyr::anti_join(x = ., y = dplyr::filter(., is.na({{ y }})), by = "rowid")
 
   # if `outlier.label` column is not present, just use the values from `y` column
   if (rlang::quo_is_null(rlang::enquo(outlier.label))) {
@@ -148,7 +148,7 @@ ggwithinstats <- function(data,
 
   # add a logical column indicating whether a point is or is not an outlier
   data %<>%
-    ipmisc::outlier_df(
+    outlier_df(
       data = .,
       x = {{ x }},
       y = {{ y }},
@@ -159,6 +159,12 @@ ggwithinstats <- function(data,
   # figure out which test to run based on the number of levels of the
   # independent variables
   test <- ifelse(nlevels(data %>% dplyr::pull({{ x }}))[[1]] < 3, "t", "anova")
+
+  if (type == "parametric" && test == "anova" &&
+    utils::packageVersion("BayesFactor") < package_version("0.9.12-4.3")) {
+    message('To get Bayes Factor, install GitHub version of `BayesFactor`:\n remotes::install_github("richarddmorey/BayesFactor/pkg/BayesFactor")')
+    bf.message <- FALSE
+  }
 
   # --------------------- subtitle/caption preparation ------------------------
 
@@ -185,7 +191,7 @@ ggwithinstats <- function(data,
         # switch based on
         type = type,
         test = test,
-        # arguments relevant for subtitle helper functions
+        # arguments relevant for expression helper functions
         data = data,
         x = {{ x }},
         y = {{ y }},
@@ -200,13 +206,9 @@ ggwithinstats <- function(data,
       )
   }
 
-  # quit early if only subtitle is needed
-  if (output %in% c("subtitle", "caption")) {
-    return(switch(
-      EXPR = output,
-      "subtitle" = subtitle,
-      "caption" = caption
-    ))
+  # return early if anything other than plot
+  if (output != "plot") {
+    return(switch(EXPR = output, "caption" = caption, subtitle))
   }
 
   # --------------------------------- basic plot ------------------------------
@@ -251,14 +253,14 @@ ggwithinstats <- function(data,
       )
   }
 
-  # ---------------------------- outlier tagging -----------------------------
+  # ---------------------------- outlier labeling -----------------------------
 
   # If `outlier.label` is not provided, outlier labels will just be values of
   # the `y` vector. If the outlier tag has been provided, just use the dataframe
   # already created.
 
   if (isTRUE(outlier.tagging)) {
-    # applying the labels to tagged outliers with ggrepel
+    # applying the labels to tagged outliers with `ggrepel`
     plot <- plot +
       rlang::exec(
         .fn = ggrepel::geom_label_repel,
@@ -284,6 +286,7 @@ ggwithinstats <- function(data,
         y = {{ y }},
         mean.ci = mean.ci,
         k = k,
+        inherit.aes = FALSE,
         sample.size.label = sample.size.label,
         mean.path = mean.path,
         mean.path.args = mean.path.args,
@@ -304,10 +307,8 @@ ggwithinstats <- function(data,
         type = type,
         tr = tr,
         paired = TRUE,
-        var.equal = TRUE,
         p.adjust.method = p.adjust.method,
-        k = k,
-        messages = FALSE
+        k = k
       )
 
     # adding the layer for pairwise comparisons

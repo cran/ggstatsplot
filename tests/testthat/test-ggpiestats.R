@@ -200,7 +200,7 @@ testthat::test_that(
         y = am
       )
 
-    testthat::expect_is(
+    testthat::expect_s3_class(
       suppressWarnings(ggstatsplot::ggpiestats(
         data = mtcars_small,
         y = cyl,
@@ -269,7 +269,7 @@ testthat::test_that(
     testthat::expect_null(pb$plot$labels$x, NULL)
     testthat::expect_null(pb$plot$labels$y, NULL)
     testthat::expect_identical(pb$plot$guides$fill$title[1], "transmission")
-    testthat::expect_is(pb1$plot$labels$subtitle, "call")
+    testthat::expect_type(pb1$plot$labels$subtitle, "language")
 
     # checking labels
     testthat::expect_identical(
@@ -279,9 +279,9 @@ testthat::test_that(
     testthat::expect_identical(
       pb$data[[3]]$label,
       c(
-        "list(~chi['gof']^2~(1)==2.27, ~italic(p)==0.132, ~italic(n)==11)",
-        "list(~chi['gof']^2~(1)==0.14, ~italic(p)==0.705, ~italic(n)==7)",
-        "list(~chi['gof']^2~(1)==7.14, ~italic(p)==0.008, ~italic(n)==14)"
+        "list(~chi['gof']^2~(1)==2.27, ~italic(p)=='0.132', ~italic(n)==11)",
+        "list(~chi['gof']^2~(1)==0.14, ~italic(p)=='0.705', ~italic(n)==7)",
+        "list(~chi['gof']^2~(1)==7.14, ~italic(p)=='0.008', ~italic(n)==14)"
       )
     )
 
@@ -313,29 +313,27 @@ testthat::test_that(
 
     # plot
     set.seed(123)
-    p <- ggstatsplot::ggpiestats(
-      data = as.data.frame(Titanic),
-      x = Sex,
-      y = Survived,
-      bf.message = FALSE,
-      counts = "Freq",
-      perc.k = 2,
-      legend.title = NULL,
-      ggtheme = ggplot2::theme_minimal(),
-      conf.level = 0.95,
-      messages = TRUE
-    )
+    p <-
+      ggstatsplot::ggpiestats(
+        data = as.data.frame(Titanic),
+        x = Sex,
+        y = Survived,
+        bf.message = FALSE,
+        counts = "Freq",
+        perc.k = 2,
+        legend.title = NULL,
+        ggtheme = ggplot2::theme_minimal()
+      )
 
     # subtitle
     set.seed(123)
-    p_subtitle <- statsExpressions::expr_contingency_tab(
-      data = as.data.frame(Titanic),
-      x = Sex,
-      y = Survived,
-      counts = Freq,
-      conf.level = 0.95,
-      messages = FALSE
-    )
+    p_subtitle <-
+      statsExpressions::expr_contingency_tab(
+        data = as.data.frame(Titanic),
+        x = Sex,
+        y = Survived,
+        counts = Freq
+      )
 
     # build the plot
     pb <- ggplot2::ggplot_build(p)
@@ -348,11 +346,8 @@ testthat::test_that(
         .funs = ~ as.character(.)
       )
 
-    # checking dimensions of data
-    data_dims <- dim(dat)
-
     # testing everything is okay with data
-    testthat::expect_equal(data_dims, c(4L, 5L))
+    testthat::expect_equal(dim(dat), c(4L, 5L))
     testthat::expect_equal(dat$perc, c(8.46, 48.38, 91.54, 51.62), tolerance = 1e-3)
     testthat::expect_equal(dat$Survived[1], "No")
     testthat::expect_equal(dat$Survived[4], "Yes")
@@ -385,15 +380,15 @@ testthat::test_that(
 
     # plot
     set.seed(123)
-    p <- ggstatsplot::ggpiestats(
-      data = survey.data,
-      x = `1st survey`,
-      y = `2nd survey`,
-      counts = Counts,
-      paired = TRUE,
-      conf.level = 0.90,
-      messages = FALSE
-    )
+    p <-
+      ggstatsplot::ggpiestats(
+        data = survey.data,
+        x = `1st survey`,
+        y = `2nd survey`,
+        counts = Counts,
+        paired = TRUE,
+        conf.level = 0.90
+      )
 
     # build the plot
     pb <- ggplot2::ggplot_build(p)
@@ -407,25 +402,30 @@ testthat::test_that(
         y = `2nd survey`,
         counts = Counts,
         paired = TRUE,
-        conf.level = 0.90,
-        messages = FALSE
+        conf.level = 0.90
       )
 
     # checking plot labels
-    testthat::expect_identical(pb$plot$labels$subtitle, p_subtitle)
-    testthat::expect_identical(pb$plot$labels$group, "1st survey")
-    testthat::expect_identical(pb$plot$labels$fill, "1st survey")
-    testthat::expect_identical(pb$plot$labels$label, "label")
-    testthat::expect_null(pb$plot$labels$x, NULL)
-    testthat::expect_null(pb$plot$labels$y, NULL)
-    testthat::expect_null(pb$plot$labels$title, NULL)
+    testthat::expect_identical(
+      pb$plot$labels,
+      list(
+        x = NULL,
+        y = NULL,
+        title = NULL,
+        subtitle = p_subtitle,
+        caption = NULL,
+        fill = "1st survey",
+        label = ".label",
+        group = "1st survey"
+      )
+    )
 
     # labels
     testthat::expect_identical(
       pb$data[[3]]$label,
       c(
-        "list(~chi['gof']^2~(1)==569.62, ~italic(p)==6.8e-126, ~italic(n)==880)",
-        "list(~chi['gof']^2~(1)==245.00, ~italic(p)==3.2e-55, ~italic(n)==720)"
+        "list(~chi['gof']^2~(1)==569.62, ~italic(p)=='6.8e-126', ~italic(n)==880)",
+        "list(~chi['gof']^2~(1)==245.00, ~italic(p)=='3.2e-55', ~italic(n)==720)"
       )
     )
   }
@@ -560,29 +560,6 @@ testthat::test_that(
   }
 )
 
-# proptest output ---------------------------------------------------------
-
-testthat::test_that(
-  desc = "proptest output",
-  code = {
-    testthat::skip_on_cran()
-
-    df <-
-      suppressWarnings(ggpiestats(
-        mtcars,
-        am,
-        cyl,
-        results.subtitle = FALSE,
-        output = "proptest",
-        messages = FALSE
-      ))
-
-    # tests
-    testthat::expect_equal(dim(df), c(3L, 12L))
-    testthat::expect_null(ggpiestats(mtcars, am, results.subtitle = FALSE, output = "proptest"))
-  }
-)
-
 # subtitle output --------------------------------------------------
 
 testthat::test_that(
@@ -590,33 +567,35 @@ testthat::test_that(
   code = {
     testthat::skip_on_cran()
 
+    set.seed(123)
+    df <- dplyr::sample_frac(tbl = forcats::gss_cat, size = 0.1) %>%
+      dplyr::mutate_if(., is.factor, droplevels)
+
     # subtitle output
     set.seed(123)
     p_sub <-
       ggstatsplot::ggpiestats(
-        data = dplyr::sample_frac(tbl = forcats::gss_cat, size = 0.1),
+        data = df,
         x = race,
         y = marital,
         output = "subtitle",
-        k = 4,
-        messages = FALSE
+        k = 4
       )
 
     set.seed(123)
     stats_output <-
       statsExpressions::expr_contingency_tab(
-        data = dplyr::sample_frac(tbl = forcats::gss_cat, size = 0.1),
+        data = df,
         x = race,
         y = marital,
-        k = 4,
-        messages = FALSE
+        k = 4
       )
 
     # caption output
     set.seed(123)
     p_cap <-
       ggstatsplot::ggpiestats(
-        data = dplyr::sample_frac(tbl = forcats::gss_cat, size = 0.1),
+        data = df,
         x = race,
         y = "marital",
         output = "caption",
@@ -627,7 +606,7 @@ testthat::test_that(
     set.seed(123)
     p_cap_exp <-
       statsExpressions::bf_contingency_tab(
-        data = dplyr::sample_frac(tbl = forcats::gss_cat, size = 0.1),
+        data = df,
         x = "race",
         y = marital,
         output = "caption",

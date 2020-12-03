@@ -40,13 +40,16 @@ ggpiestats(
 \item{data}{A dataframe (or a tibble) from which variables specified are to
 be taken. A matrix or tables will \strong{not} be accepted.}
 
-\item{x}{The variable to use as the \strong{rows} in the contingency table.}
+\item{x}{The variable to use as the \strong{rows} in the contingency table. Please
+note that if there are empty factor levels in your variable, they will be
+dropped.}
 
-\item{y}{The variable to use as the \strong{columns} in the contingency
-table. Default is \code{NULL}. If \code{NULL}, one-sample proportion test (a goodness
-of fit test) will be run for the \code{x} variable. Otherwise an appropriate
-association test will be run. This argument can not be \code{NULL} for
-\code{ggbarstats} function.}
+\item{y}{The variable to use as the \strong{columns} in the contingency table.
+Please note that if there are empty factor levels in your variable, they
+will be dropped. Default is \code{NULL}. If \code{NULL}, one-sample proportion test
+(a goodness of fit test) will be run for the \code{x} variable. Otherwise an
+appropriate association test will be run. This argument can not be \code{NULL}
+for \code{ggbarstats} function.}
 
 \item{counts}{A string naming a variable in data containing counts, or \code{NULL}
 if each row represents a single observation.}
@@ -82,8 +85,9 @@ This can be helpful in case the labels are overlapping.}
 \item{k}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2L}).}
 
-\item{proportion.test}{Decides whether proportion test for \code{x} variable is
-to be carried out for each level of \code{y} (Default: \code{TRUE}).}
+\item{proportion.test}{Decides whether proportion test for \code{x} variable is to
+be carried out for each level of \code{y} (Default: \code{TRUE}). In \code{ggbarstats},
+only \emph{p}-values from this test will be displayed.}
 
 \item{perc.k}{Numeric that decides number of decimal places for percentage
 labels (Default: \code{0}).}
@@ -143,9 +147,7 @@ as a function.}
 you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
 Setting this to \code{"caption"} will return the expression containing details
 about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
-\code{bf.message = TRUE}, otherwise this will return a \code{NULL}. For functions
-\code{ggpiestats} and \code{ggbarstats}, setting \code{output = "proptest"} will return a
-dataframe containing results from proportion tests.}
+\code{bf.message = TRUE}, otherwise this will return a \code{NULL}.}
 
 \item{...}{Currently ignored.}
 }

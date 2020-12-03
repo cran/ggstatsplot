@@ -40,8 +40,7 @@ ggwithinstats(
   outlier.tagging = FALSE,
   outlier.label = NULL,
   outlier.coef = 1.5,
-  outlier.label.args = list(),
-  outlier.point.args = list(),
+  outlier.label.args = list(size = 3),
   violin.args = list(width = 0.5, alpha = 0.2),
   ggsignif.args = list(textsize = 3, tip_length = 0.01),
   ggtheme = ggplot2::theme_bw(),
@@ -88,10 +87,8 @@ comparisons. Possible methods are: \code{"holm"} (default), \code{"hochberg"},
 \code{"hommel"}, \code{"bonferroni"}, \code{"BH"}, \code{"BY"}, \code{"fdr"}, \code{"none"}.}
 
 \item{effsize.type}{Type of effect size needed for \emph{parametric} tests. The
-argument can be \code{"biased"} (equivalent to \code{"d"} for Cohen's \emph{d} for
-\strong{t-test}; \code{"eta"} for partial eta-squared for \strong{anova}) or
-\code{"unbiased"} (equivalent to \code{"g"} Hedge's \emph{g} for \strong{t-test};
-\code{"omega"} for partial omega-squared for \strong{anova})).}
+argument can be \code{"eta"} (partial eta-squared) or \code{"omega"} (partial
+omega-squared).}
 
 \item{bf.prior}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
 width to use in calculating Bayes factors.}
@@ -165,8 +162,8 @@ points.}
 displayed. If \code{TRUE}, a notched box plot will be used. Notches are used to
 compare groups; if the notches of two boxes do not overlap, this suggests
 that the medians are significantly different. In a notched box plot, the
-notches extend \code{1.58 * IQR / sqrt(n)}. This gives a roughly \verb{95\%}
-confidence interval for comparing medians. IQR: Inter-Quartile Range.}
+notches extend \code{1.58 * IQR / sqrt(n)}, where IQR: Inter-Quartile Range.
+This gives a roughly \verb{95\%} confidence interval for comparing medians.}
 
 \item{notchwidth}{For a notched box plot, width of the notch relative to the
 body (default \code{0.5}).}
@@ -183,12 +180,7 @@ Quartile) \code{outlier.coef} times the Inter-Quartile Range (IQR) (Default:
 \code{1.5}).}
 
 \item{outlier.label.args}{A list of additional aesthetic arguments to be
-passed to \code{ggplot2::geom_point} and \code{ggrepel::geom_label_repel} geoms
-involved outlier value plotting.}
-
-\item{outlier.point.args}{A list of additional aesthetic arguments to be
-passed to \code{ggplot2::geom_point} and \code{ggrepel::geom_label_repel} geoms
-involved outlier value plotting.}
+passed to \code{ggrepel::geom_label_repel} for outlier label plotting.}
 
 \item{violin.args}{A list of additional aesthetic arguments to be passed to
 the \code{geom_violin}.}
@@ -225,9 +217,7 @@ as a function.}
 you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
 Setting this to \code{"caption"} will return the expression containing details
 about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
-\code{bf.message = TRUE}, otherwise this will return a \code{NULL}. For functions
-\code{ggpiestats} and \code{ggbarstats}, setting \code{output = "proptest"} will return a
-dataframe containing results from proportion tests.}
+\code{bf.message = TRUE}, otherwise this will return a \code{NULL}.}
 
 \item{...}{Currently ignored.}
 }
@@ -237,8 +227,14 @@ A combination of box and violin plots along with raw
 details included in the plot as a subtitle.
 }
 \note{
-\strong{Important}: Please note that the function expects that the data is
+\enumerate{
+\item Please note that the function expects that the data is
 already sorted by subject/repeated measures ID.
+\item To get the Bayes Factor message, you are going to need to install
+the development version of \code{BayesFactor} (\verb{0.9.12-4.3}).
+You can download it by running:
+\code{remotes::install_github("richarddmorey/BayesFactor/pkg/BayesFactor")}.
+}
 }
 \examples{
 \donttest{

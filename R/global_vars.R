@@ -27,7 +27,11 @@ utils::globalVariables(
     "significance",
     "statistic",
     "std.error",
-    "term"
+    "term",
+    "df",
+    ".label",
+    ".counts",
+    ".p.label"
   ),
   package = "ggstatsplot",
   add = FALSE

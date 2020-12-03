@@ -3,14 +3,18 @@
 #' @description Pie charts for categorical data with statistical details
 #'   included in the plot as a subtitle.
 #'
-#' @param x The variable to use as the **rows** in the contingency table.
-#' @param y The variable to use as the **columns** in the contingency
-#'   table. Default is `NULL`. If `NULL`, one-sample proportion test (a goodness
-#'   of fit test) will be run for the `x` variable. Otherwise an appropriate
-#'   association test will be run. This argument can not be `NULL` for
-#'   `ggbarstats` function.
-#' @param proportion.test Decides whether proportion test for `x` variable is
-#'   to be carried out for each level of `y` (Default: `TRUE`).
+#' @param x The variable to use as the **rows** in the contingency table. Please
+#'   note that if there are empty factor levels in your variable, they will be
+#'   dropped.
+#' @param y The variable to use as the **columns** in the contingency table.
+#'   Please note that if there are empty factor levels in your variable, they
+#'   will be dropped. Default is `NULL`. If `NULL`, one-sample proportion test
+#'   (a goodness of fit test) will be run for the `x` variable. Otherwise an
+#'   appropriate association test will be run. This argument can not be `NULL`
+#'   for `ggbarstats` function.
+#' @param proportion.test Decides whether proportion test for `x` variable is to
+#'   be carried out for each level of `y` (Default: `TRUE`). In `ggbarstats`,
+#'   only *p*-values from this test will be displayed.
 #' @param perc.k Numeric that decides number of decimal places for percentage
 #'   labels (Default: `0`).
 #' @param label Character decides what information needs to be displayed
@@ -26,7 +30,6 @@
 #' @inheritParams statsExpressions::expr_contingency_tab
 #' @inheritParams theme_ggstatsplot
 #' @inheritParams gghistostats
-#' @inheritParams cat_label_df
 #'
 #' @seealso \code{\link{grouped_ggpiestats}}, \code{\link{ggbarstats}},
 #'  \code{\link{grouped_ggbarstats}}
@@ -94,7 +97,12 @@ ggpiestats <- function(data,
   # ensure the variables work quoted or unquoted
   x <- rlang::ensym(x)
   y <- if (!rlang::quo_is_null(rlang::enquo(y))) rlang::ensym(y)
-  counts <- if (!rlang::quo_is_null(rlang::enquo(counts))) rlang::ensym(counts)
+
+  # one-way or two-way table?
+  test <- ifelse(!rlang::quo_is_null(rlang::enquo(y)), "two.way", "one.way")
+
+  # this is currently not supported in `BayesFactor`
+  if (isTRUE(paired)) bf.message <- FALSE
 
   # saving the column label for the 'x' variables
   if (rlang::is_null(legend.title)) legend.title <- rlang::as_name(x)
@@ -103,23 +111,14 @@ ggpiestats <- function(data,
 
   # creating a dataframe
   data %<>%
-    dplyr::select(.data = ., {{ x }}, {{ y }}, {{ counts }}) %>%
+    dplyr::select(.data = ., {{ x }}, {{ y }}, .counts = {{ counts }}) %>%
     tidyr::drop_na(data = .) %>%
-    as_tibble(.)
+    as_tibble(x = .)
 
   # untable the dataframe based on the count for each observation
-  if (!rlang::quo_is_null(rlang::enquo(counts))) {
-    data %<>%
-      tidyr::uncount(
-        data = .,
-        weights = {{ counts }},
-        .remove = TRUE,
-        .id = "id"
-      )
-  }
+  if (".counts" %in% names(data)) data %<>% tidyr::uncount(data = ., weights = .counts)
 
-  # x and y need to be a factor for this analysis
-  # also drop the unused levels of the factors
+  # x and y need to be a factor; also drop the unused levels of the factors
 
   # x
   data %<>% dplyr::mutate(.data = ., {{ x }} := droplevels(as.factor({{ x }})))
@@ -178,41 +177,18 @@ ggpiestats <- function(data,
     }
   }
 
-  # convert the data into percentages and add labels
-  df <-
-    cat_label_df(
-      data = cat_counter(data = data, x = {{ x }}, y = {{ y }}),
-      label.content = label,
-      perc.k = perc.k
-    )
-
-  # dataframe containing all details needed for sample size and prop test
-  if (!rlang::quo_is_null(rlang::enquo(y))) {
-    df_labels <-
-      df_facet_label(
-        data = data,
-        x = {{ x }},
-        y = {{ y }},
-        k = k
-      )
-  } else {
-    df_labels <- NULL
-  }
-
-  # reorder the category factor levels to order the legend
-  df %<>% dplyr::mutate(.data = ., {{ x }} := factor({{ x }}, unique({{ x }})))
-
   # return early if anything other than plot
   if (output != "plot") {
-    return(switch(
-      EXPR = output,
-      "subtitle" = subtitle,
-      "caption" = caption,
-      "proptest" = df_labels
-    ))
+    return(switch(EXPR = output, "caption" = caption, subtitle))
   }
 
   # =================================== plot =================================
+
+  # dataframe with summary labels
+  df_descriptive <- df_descriptive(data, {{ x }}, {{ y }}, label, perc.k)
+
+  # dataframe containing all details needed for prop test
+  if (test == "two.way") df_proptest <- df_proptest(data, {{ x }}, {{ y }}, k)
 
   # if no. of factor levels is greater than the default palette color count
   palette_message(
@@ -223,7 +199,7 @@ ggpiestats <- function(data,
 
   # creating the basic plot
   p <-
-    ggplot2::ggplot(data = df, mapping = ggplot2::aes(x = "", y = perc)) +
+    ggplot2::ggplot(data = df_descriptive, mapping = ggplot2::aes(x = "", y = perc)) +
     ggplot2::geom_col(
       mapping = ggplot2::aes(fill = {{ x }}),
       position = "fill",
@@ -233,17 +209,14 @@ ggpiestats <- function(data,
     )
 
   # whether labels need to be repelled
-  if (isTRUE(label.repel)) {
-    .fn <- ggrepel::geom_label_repel
-  } else {
-    .fn <- ggplot2::geom_label
-  }
+  if (isTRUE(label.repel)) .fn <- ggrepel::geom_label_repel
+  if (isFALSE(label.repel)) .fn <- ggplot2::geom_label
 
   # adding label with percentages and/or counts
   suppressWarnings(suppressMessages(p <- p +
     rlang::exec(
       .fn = .fn,
-      mapping = ggplot2::aes(label = label, group = {{ x }}),
+      mapping = ggplot2::aes(label = .label, group = {{ x }}),
       position = ggplot2::position_fill(vjust = 0.5),
       min.segment.length = 0,
       fill = "white",
@@ -253,9 +226,7 @@ ggpiestats <- function(data,
     )))
 
   # if facet_wrap *is* happening
-  if (isTRUE(facet)) {
-    p <- p + ggplot2::facet_wrap(facets = dplyr::vars({{ y }}))
-  }
+  if (isTRUE(facet)) p <- p + ggplot2::facet_wrap(facets = dplyr::vars({{ y }}))
 
   # polar coordinates plus formatting
   p <- p +
@@ -272,8 +243,8 @@ ggpiestats <- function(data,
     p <- p +
       rlang::exec(
         .fn = ggplot2::geom_text,
-        data = df_labels,
-        mapping = ggplot2::aes(label = label, x = 1.65, y = 0.5),
+        data = df_proptest,
+        mapping = ggplot2::aes(label = .label, x = 1.65, y = 0.5),
         position = ggplot2::position_fill(vjust = 1),
         size = 2.8,
         na.rm = TRUE,

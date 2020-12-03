@@ -45,8 +45,7 @@ testthat::test_that(
         y = desire,
         k = 4,
         paired = TRUE,
-        conf.level = 0.99,
-        messages = FALSE
+        conf.level = 0.99
       )
 
     # dataframe used for visualization
@@ -173,8 +172,8 @@ testthat::test_that(
           )),
           y = c(7.86666666666667, 6.73888888888889),
           label = c(
-            "list(~italic(widehat(mu))==7.8667)",
-            "list(~italic(widehat(mu))==6.7389)"
+            "list(~italic(widehat(mu))=='7.8667')",
+            "list(~italic(widehat(mu))=='6.7389')"
           ),
           PANEL = structure(c(1L, 1L), class = "factor", .Label = "1"),
           group = structure(1:2, n = 2L),
@@ -551,7 +550,7 @@ testthat::test_that(
           pairwise.comparisons = TRUE
         )
 
-      testthat::expect_is(p5, "ggplot")
+      testthat::expect_s3_class(p5, "ggplot")
 
       # checking changes made to ggsignif geom work
       testthat::expect_equal(pb1$data[[7]]$textsize[[1]], 6L)
@@ -589,5 +588,46 @@ testthat::test_that(
 
     # test
     testthat::expect_identical(p$labels$y, "Taste rating")
+  }
+)
+
+# turning off mean path works ------------------------------------------
+
+testthat::test_that(
+  desc = "turning off mean path works",
+  code = {
+    set.seed(123)
+    library(ggstatsplot)
+
+    p1 <-
+      ggwithinstats(
+        iris_long,
+        condition,
+        value,
+        mean.point.args = list(size = 5, alpha = 0.5, color = "darkred"),
+        mean.path = TRUE,
+        results.subtitle = FALSE,
+        pairwise.comparisons = FALSE
+      )
+
+    p2 <-
+      ggwithinstats(
+        iris_long,
+        condition,
+        value,
+        mean.point.args = list(size = 5, alpha = 0.5, color = "darkred"),
+        mean.path = FALSE,
+        results.subtitle = FALSE,
+        pairwise.comparisons = FALSE
+      )
+
+    pb1 <- ggplot2::ggplot_build(p1)
+    pb2 <- ggplot2::ggplot_build(p2)
+
+    testthat::expect_equal(pb1$data[[1]], pb2$data[[1]])
+    testthat::expect_equal(pb1$data[[2]], pb2$data[[2]])
+    testthat::expect_equal(pb1$data[[3]], pb2$data[[3]])
+    testthat::expect_equal(pb1$data[[5]], pb2$data[[4]])
+    testthat::expect_equal(pb1$data[[6]], pb2$data[[5]])
   }
 )

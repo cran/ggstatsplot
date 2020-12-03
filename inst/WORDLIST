@@ -52,9 +52,9 @@ NSE
 NumGenre
 ORCID
 Oneway
-OpenGL
 Orcutt
 Otterstetter
+PMCMRplus
 Quartile
 README
 RPubs
@@ -66,7 +66,6 @@ SMT
 Shachar
 StackOverflow
 TERGM
-TSD
 Tufte
 Welch
 Welch's
@@ -93,7 +92,6 @@ behaviour
 binwidth
 blogposts
 boxviolin
-brglm
 btnG
 cNJIMwtLWv
 cbcbbfa
@@ -155,11 +153,10 @@ labelled
 ldhf
 ldlf
 lifecycle
-linux
 machiavellianism
+md
 modelling
 mpaa
-mpfr
 nd
 netlify
 noncentral
@@ -174,14 +171,12 @@ plotgrid
 plotmath
 pre
 preferrred
-priori
 pseudolikelihood
 purrr
 readme
 reproducibility
 ridgeplot
 rlbt
-rmpfr
 rpubs
 scisbd
 sdt
@@ -199,7 +194,6 @@ tobit
 tskam
 uInetiC
 uber
-unadjusted
 unjittered
 versicolor
 virginica

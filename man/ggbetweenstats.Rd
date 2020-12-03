@@ -41,7 +41,6 @@ ggbetweenstats(
   outlier.shape = 19,
   outlier.color = "black",
   outlier.label.args = list(size = 3),
-  outlier.point.args = list(),
   point.args = list(position = ggplot2::position_jitterdodge(dodge.width = 0.6), alpha
     = 0.4, size = 3, stroke = 0),
   violin.args = list(width = 0.5, alpha = 0.2),
@@ -94,10 +93,8 @@ comparisons. Possible methods are: \code{"holm"} (default), \code{"hochberg"},
 \code{"hommel"}, \code{"bonferroni"}, \code{"BH"}, \code{"BY"}, \code{"fdr"}, \code{"none"}.}
 
 \item{effsize.type}{Type of effect size needed for \emph{parametric} tests. The
-argument can be \code{"biased"} (equivalent to \code{"d"} for Cohen's \emph{d} for
-\strong{t-test}; \code{"eta"} for partial eta-squared for \strong{anova}) or
-\code{"unbiased"} (equivalent to \code{"g"} Hedge's \emph{g} for \strong{t-test};
-\code{"omega"} for partial omega-squared for \strong{anova})).}
+argument can be \code{"eta"} (partial eta-squared) or \code{"omega"} (partial
+omega-squared).}
 
 \item{bf.prior}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
 width to use in calculating Bayes factors.}
@@ -160,8 +157,8 @@ arguments to be passed to \code{ggplot2::geom_point} and
 displayed. If \code{TRUE}, a notched box plot will be used. Notches are used to
 compare groups; if the notches of two boxes do not overlap, this suggests
 that the medians are significantly different. In a notched box plot, the
-notches extend \code{1.58 * IQR / sqrt(n)}. This gives a roughly \verb{95\%}
-confidence interval for comparing medians. IQR: Inter-Quartile Range.}
+notches extend \code{1.58 * IQR / sqrt(n)}, where IQR: Inter-Quartile Range.
+This gives a roughly \verb{95\%} confidence interval for comparing medians.}
 
 \item{notchwidth}{For a notched box plot, width of the notch relative to the
 body (default \code{0.5}).}
@@ -184,9 +181,8 @@ the same with outliers shown and outliers hidden.}
 
 \item{outlier.color}{Default aesthetics for outliers (Default: \code{"black"}).}
 
-\item{outlier.point.args, outlier.label.args}{A list of additional aesthetic arguments to be
-passed to \code{ggplot2::geom_point} and \code{ggrepel::geom_label_repel} geoms
-involved outlier value plotting.}
+\item{outlier.label.args}{A list of additional aesthetic arguments to be
+passed to \code{ggrepel::geom_label_repel} for outlier label plotting.}
 
 \item{point.args}{A list of additional aesthetic arguments to be passed to
 the \code{geom_point} displaying the raw data.}
@@ -222,9 +218,7 @@ as a function.}
 you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
 Setting this to \code{"caption"} will return the expression containing details
 about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
-\code{bf.message = TRUE}, otherwise this will return a \code{NULL}. For functions
-\code{ggpiestats} and \code{ggbarstats}, setting \code{output = "proptest"} will return a
-dataframe containing results from proportion tests.}
+\code{bf.message = TRUE}, otherwise this will return a \code{NULL}.}
 
 \item{...}{Currently ignored.}
 }

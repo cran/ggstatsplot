@@ -11,8 +11,7 @@ ggcoefstats(
   conf.int = TRUE,
   conf.level = 0.95,
   k = 2L,
-  exclude.intercept = TRUE,
-  exponentiate = FALSE,
+  exclude.intercept = FALSE,
   effsize = "eta",
   meta.analytic.effect = FALSE,
   meta.type = "parametric",
@@ -41,15 +40,15 @@ ggcoefstats(
 \arguments{
 \item{x}{A model object to be tidied, or a tidy data frame containing results
 from a regression model. Function internally uses
-\code{parameters::model_parameters} or \code{broom::tidy} to get a tidy dataframe. If
+\code{parameters::model_parameters} to get a tidy dataframe. If
 a data frame is used, it \emph{must} contain columns named \code{term} (names of
 predictors) and \code{estimate} (corresponding estimates of coefficients or
 other quantities of interest).}
 
 \item{output}{Character describing the expected output from this function:
 \code{"plot"} (visualization of regression coefficients) or \code{"tidy"} (tidy
-dataframe of results from \code{broom::tidy}) or \code{"glance"} (object from
-\code{broom::glance}) or \code{"augment"} (object from \code{broom::augment}).}
+dataframe of results \code{parameters::model_parameters}) or \code{"glance"} (object
+from \code{performance::model_performance}).}
 
 \item{statistic}{Which statistic is to be displayed (either \code{"t"} or \code{"f"}or
 \code{"z"} or \code{"chi"}) in the label. This is relevant if the \code{x} argument is a
@@ -65,14 +64,7 @@ error bars (Default: \code{TRUE}).}
 (Default: \code{k = 2L}).}
 
 \item{exclude.intercept}{Logical that decides whether the intercept should be
-excluded from the plot (Default: \code{TRUE}).}
-
-\item{exponentiate}{If \code{TRUE}, the \code{x}-axis will be logarithmic (Default:
-\code{FALSE}). Note that exponents for the coefficient estimates and associated
-standard errors plus confidence intervals are computed by the underlying
-tidying packages (\code{broom}/\code{parameters}) and not done by \code{ggcoefstats}. So
-this might not work if the underlying packages don't support
-exponentiation.}
+excluded from the plot (Default: \code{FALSE}).}
 
 \item{effsize}{Character describing the effect size to be displayed: \code{"eta"}
 (default) or \code{"omega"}. This argument is relevant only for models objects
@@ -159,7 +151,7 @@ theme elements are to be displayed along with the selected \code{ggtheme}
 override some aspects of the selected \code{ggtheme}.}
 
 \item{...}{Additional arguments to tidying method. For more, see
-\code{parameters::model_parameters} and \code{broom::tidy}.}
+\code{parameters::model_parameters}.}
 }
 \value{
 Plot with the regression coefficients' point estimates as dots with
@@ -170,9 +162,14 @@ labels.
 Dot-and-whisker plots for regression analyses
 }
 \note{
-All rows of regression estimates where either of the following
+\enumerate{
+\item All rows of regression estimates where either of the following
 quantities is \code{NA} will be removed if labels are requested: \code{estimate},
 \code{statistic}, \code{p.value}.
+\item Given the rapid pace at which new methods are added to these packages, it
+is recommended that you install the GitHub versions of \code{parameters} and
+\code{performance} in order to make most of this function.
+}
 }
 \examples{
 \donttest{
@@ -192,9 +189,6 @@ ggstatsplot::ggcoefstats(x = mod, output = "tidy")
 
 # to get a glance summary
 ggstatsplot::ggcoefstats(x = mod, output = "glance")
-
-# to get augmented dataframe
-ggstatsplot::ggcoefstats(x = mod, output = "augment")
 
 # -------------- with custom dataframe -----------------------------------
 

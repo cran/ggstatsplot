@@ -1,9 +1,3 @@
-# ----------------------- ipmisc -----------------------------------
-
-#' @export
-#' @importFrom ipmisc set_cwd
-ipmisc::set_cwd
-
 # ----------------------- tidyverse -------------------------------------
 
 #' @export
@@ -21,14 +15,6 @@ ipmisc::`%$%`
 #' @export
 #' @importFrom ipmisc "%<-%"
 ipmisc::`%<-%`
-
-#' @export
-#' @importFrom ipmisc "%||%"
-ipmisc::`%||%`
-
-#' @export
-#' @importFrom ipmisc "%|%"
-ipmisc::`%|%`
 
 #' @export
 #' @importFrom ipmisc tibble
