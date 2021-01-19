@@ -1,9 +1,14 @@
 #' @title Box/Violin plots for group or condition comparisons in
 #'   within-subjects (or repeated measures) designs.
 #' @name ggwithinstats
-#' @description A combination of box and violin plots along with raw
-#'   (unjittered) data points for within-subjects designs with statistical
-#'   details included in the plot as a subtitle.
+#'
+#' @description
+#'
+#' \Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+#'
+#' A combination of box and violin plots along with raw (unjittered) data points
+#' for within-subjects designs with statistical details included in the plot as
+#' a subtitle.
 #'
 #' @note
 #' 1. Please note that the function expects that the data is
@@ -15,22 +20,21 @@
 #' `remotes::install_github("richarddmorey/BayesFactor/pkg/BayesFactor")`.
 #'
 #' @inheritParams ggbetweenstats
-#' @param point.path,mean.path Logical that decides whether individual data
+#' @param point.path,centrality.path Logical that decides whether individual data
 #'   points and means, respectively, should be connected using `geom_path`. Both
 #'   default to `TRUE`. Note that `point.path` argument is relevant only when
 #'   there are two groups (i.e., in case of a *t*-test). In case of large number
 #'   of data points, it is advisable to set `point.path = FALSE` as these lines
 #'   can overwhelm the plot.
-#' @param mean.path.args,point.path.args A list of additional aesthetic
+#' @param centrality.path.args,point.path.args A list of additional aesthetic
 #'   arguments passed on to `geom_path` connecting raw data points and mean
 #'   points.
-#' @inheritParams statsExpressions::expr_anova_parametric
+#' @inheritParams statsExpressions::expr_oneway_anova
 #'
 #' @seealso \code{\link{grouped_ggbetweenstats}}, \code{\link{ggbetweenstats}},
 #'  \code{\link{grouped_ggwithinstats}}
 #'
 #' @importFrom rlang exec !! enquo := !!! exec
-#' @importFrom statsExpressions bf_ttest bf_oneway_anova
 #' @importFrom pairwiseComparisons pairwise_comparisons pairwise_caption
 #' @importFrom dplyr select mutate row_number group_by ungroup anti_join
 #'
@@ -89,14 +93,13 @@ ggwithinstats <- function(data,
                           conf.level = 0.95,
                           nboot = 100L,
                           tr = 0.1,
-                          mean.plotting = TRUE,
-                          mean.ci = FALSE,
-                          mean.point.args = list(size = 5, color = "darkred"),
-                          mean.label.args = list(size = 3),
+                          centrality.plotting = TRUE,
+                          centrality.point.args = list(size = 5, color = "darkred"),
+                          centrality.label.args = list(size = 3, nudge_x = 0.4, segment.linetype = 4),
                           point.path = TRUE,
                           point.path.args = list(alpha = 0.5, linetype = "dashed"),
-                          mean.path = TRUE,
-                          mean.path.args = list(color = "red", size = 1, alpha = 0.5),
+                          centrality.path = TRUE,
+                          centrality.path.args = list(color = "red", size = 1, alpha = 0.5),
                           notch = FALSE,
                           notchwidth = 0.5,
                           outlier.tagging = FALSE,
@@ -133,17 +136,17 @@ ggwithinstats <- function(data,
 
   # creating a dataframe
   data %<>%
-    dplyr::select(.data = ., {{ x }}, {{ y }}, outlier.label = {{ outlier.label }}) %>%
-    dplyr::mutate(.data = ., {{ x }} := droplevels(as.factor({{ x }}))) %>%
+    dplyr::select({{ x }}, {{ y }}, outlier.label = {{ outlier.label }}) %>%
+    dplyr::mutate({{ x }} := droplevels(as.factor({{ x }}))) %>%
     as_tibble(.) %>%
-    dplyr::group_by(.data = ., {{ x }}) %>%
-    dplyr::mutate(.data = ., rowid = dplyr::row_number()) %>%
+    dplyr::group_by({{ x }}) %>%
+    dplyr::mutate(rowid = dplyr::row_number()) %>%
     dplyr::ungroup(.) %>%
     dplyr::anti_join(x = ., y = dplyr::filter(., is.na({{ y }})), by = "rowid")
 
   # if `outlier.label` column is not present, just use the values from `y` column
   if (rlang::quo_is_null(rlang::enquo(outlier.label))) {
-    data %<>% dplyr::mutate(.data = ., outlier.label = {{ y }})
+    data %<>% dplyr::mutate(outlier.label = {{ y }})
   }
 
   # add a logical column indicating whether a point is or is not an outlier
@@ -172,11 +175,13 @@ ggwithinstats <- function(data,
     # preparing the bayes factor message
     if (type == "parametric" && isTRUE(bf.message)) {
       caption <-
-        caption_function_switch(
+        function_switch(
           test = test,
+          # arguments relevant for expression helper functions
           data = data,
           x = rlang::as_string(x),
           y = rlang::as_string(y),
+          type = "bayes",
           bf.prior = bf.prior,
           top.text = caption,
           paired = TRUE,
@@ -187,17 +192,16 @@ ggwithinstats <- function(data,
 
     # extracting the subtitle using the switch function
     subtitle <-
-      subtitle_function_switch(
-        # switch based on
-        type = type,
+      function_switch(
         test = test,
         # arguments relevant for expression helper functions
         data = data,
-        x = {{ x }},
-        y = {{ y }},
+        x = rlang::as_string(x),
+        y = rlang::as_string(y),
         paired = TRUE,
+        type = type,
         effsize.type = effsize.type,
-        var.equal = TRUE, ,
+        var.equal = TRUE,
         bf.prior = bf.prior,
         tr = tr,
         nboot = nboot,
@@ -208,7 +212,7 @@ ggwithinstats <- function(data,
 
   # return early if anything other than plot
   if (output != "plot") {
-    return(switch(EXPR = output, "caption" = caption, subtitle))
+    return(switch(output, "caption" = caption, subtitle))
   }
 
   # --------------------------------- basic plot ------------------------------
@@ -274,24 +278,24 @@ ggwithinstats <- function(data,
       )
   }
 
-  # ---------------- mean value tagging -------------------------------------
+  # ---------------- centrality tagging -------------------------------------
 
   # add labels for mean values
-  if (isTRUE(mean.plotting)) {
+  if (isTRUE(centrality.plotting)) {
     plot <-
-      mean_ggrepel(
+      centrality_ggrepel(
         plot = plot,
         data = data,
         x = {{ x }},
         y = {{ y }},
-        mean.ci = mean.ci,
         k = k,
-        inherit.aes = FALSE,
+        type = type,
+        tr = tr,
         sample.size.label = sample.size.label,
-        mean.path = mean.path,
-        mean.path.args = mean.path.args,
-        mean.point.args = mean.point.args,
-        mean.label.args = mean.label.args
+        centrality.path = centrality.path,
+        centrality.path.args = centrality.path.args,
+        centrality.point.args = centrality.point.args,
+        centrality.label.args = centrality.label.args
       )
   }
 

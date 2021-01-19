@@ -1,10 +1,14 @@
 #' @title Visualization of a correlation matrix
 #' @name ggcorrmat
-#' @return Correlation matrix plot or a dataframe containing results from
-#'   pairwise correlation tests. The package internally uses
-#'   `ggcorrplot::ggcorrplot` for creating the visualization matrix, while the
-#'   correlation analysis is carried out using the `correlation::correlation`
-#'   function.
+#'
+#' @description
+#'
+#' \Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+#'
+#' Correlation matrix plot or a dataframe containing results from pairwise
+#' correlation tests. The package internally uses `ggcorrplot::ggcorrplot` for
+#' creating the visualization matrix, while the correlation analysis is carried
+#' out using the `correlation::correlation` function.
 #'
 #' @param ... Currently ignored.
 #' @param data Dataframe from which variables specified are preferentially to be
@@ -14,6 +18,9 @@
 #'   `data` will be used.
 #' @param cor.vars.names Optional list of names to be used for `cor.vars`. The
 #'   names should be entered in the same order.
+#' @param partial Can be `TRUE` for partial correlations. For Bayesian partial
+#'   correlations, "full" instead of pseudo-Bayesian partial correlations (i.e.,
+#'   Bayesian correlation based on frequentist partialization) are returned.
 #' @param output Character that decides expected output from this function. If
 #'   `"plot"`, the visualization matrix will be returned. If `"dataframe"` (or
 #'   literally anything other than `"plot"`), a dataframe containing all details
@@ -49,6 +56,7 @@
 #' @importFrom rlang !! enquo quo_name is_null
 #' @importFrom pairwiseComparisons p_adjust_text
 #' @importFrom statsExpressions correlation
+#' @importFrom parameters standardize_names
 #'
 #' @seealso \code{\link{grouped_ggcorrmat}} \code{\link{ggscatterstats}}
 #'   \code{\link{grouped_ggscatterstats}}
@@ -79,6 +87,7 @@
 #' ggstatsplot::ggcorrmat(
 #'   data = ggplot2::msleep,
 #'   cor.vars = sleep_total:bodywt,
+#'   partial = TRUE,
 #'   output = "dataframe"
 #' )
 #' }
@@ -92,6 +101,7 @@ ggcorrmat <- function(data,
                       matrix.type = "upper",
                       type = "parametric",
                       beta = 0.1,
+                      partial = FALSE,
                       k = 2L,
                       sig.level = 0.05,
                       conf.level = 0.95,
@@ -129,30 +139,24 @@ ggcorrmat <- function(data,
     }
   }
 
-  # ============================ checking corr.method =======================
-
-  # see which method was used to specify type of correlation
-  stats_type <- ipmisc::stats_type_switch(type)
+  # ============================ checking r.method =======================
 
   # if any of the abbreviations have been entered, change them
-  corr.method <-
+  stats_type <- ipmisc::stats_type_switch(type)
+
+  # see which method was used to specify type of correlation
+  # create unique name for each method
+  c(r.method, r.method.text) %<-%
     switch(
       EXPR = stats_type,
-      "parametric" = "pearson",
-      "nonparametric" = "spearman",
-      "robust" = "percentage",
-      "bayes" = "pearson"
+      "parametric" = c("pearson", "Pearson"),
+      "nonparametric" = c("spearman", "Spearman"),
+      "robust" = c("percentage", "robust (% bend)"),
+      "bayes" = c("pearson", "Pearson (Bayesian)")
     )
 
-  # create unique name for each method
-  corr.method.text <-
-    switch(
-      EXPR = corr.method,
-      "pearson" = "Pearson",
-      "spearman" = "Spearman",
-      "percentage" = "robust (% bend)",
-      "bayes" = "Pearson"
-    )
+  # is it a partial correlation?
+  corr.nature <- ifelse(isTRUE(partial), "correlation (partial):", "correlation:")
 
   # ===================== statistics ========================================
 
@@ -160,20 +164,20 @@ ggcorrmat <- function(data,
   df_corr <-
     statsExpressions::correlation(
       data = df,
-      method = corr.method,
+      method = r.method,
       p_adjust = p.adjust.method,
       ci = conf.level,
-      bayesian = ifelse(stats_type == "bayes", yes = TRUE, no = FALSE),
+      bayesian = ifelse(stats_type == "bayes", TRUE, FALSE),
       bayesian_prior = bf.prior,
       bayesian_test = c("pd", "rope", "bf"),
-      beta = beta
+      beta = beta,
+      partial = partial,
+      partial_bayesian = ifelse(stats_type == "bayes" && isTRUE(partial), TRUE, FALSE)
     )
 
   # early stats return
   if (output != "plot") {
-    return(tibble::as_tibble(df_corr) %>%
-      dplyr::rename_all(., tolower) %>%
-      dplyr::rename(., nobs = n_obs))
+    return(as_tibble(parameters::standardize_names(df_corr, "broom")))
   }
 
   # ========================== plot =========================================
@@ -184,14 +188,7 @@ ggcorrmat <- function(data,
 
   # creating the basic plot
   # if user has not specified colors, then use a color palette
-  if (is.null(colors)) {
-    colors <-
-      paletteer::paletteer_d(
-        palette = paste0(package, "::", palette),
-        n = 3L,
-        type = "discrete"
-      )
-  }
+  if (is.null(colors)) colors <- paletteer::paletteer_d(paste0(package, "::", palette), 3L)
 
   # in case of NAs, compute minimum and maximum sample sizes of pairs
   # also compute mode
@@ -201,16 +198,14 @@ ggcorrmat <- function(data,
   }
 
   # legend title with information about correlation type and sample
-  if (isFALSE(any(is.na(df)))) {
+  if (isFALSE(any(is.na(df))) || isTRUE(partial)) {
     legend.title.text <-
       bquote(atop(
         atop(
-          scriptstyle(bold("sample size:")),
-          italic(n) ~ "=" ~ .(nrow(df))
+          scriptstyle(bold("sample sizes:")), italic(n) ~ "=" ~ .(.prettyNum(df_corr$n_Obs[[1]]))
         ),
         atop(
-          scriptstyle(bold("correlation:")),
-          .(corr.method.text)
+          scriptstyle(bold(.(corr.nature))), .(r.method.text)
         )
       ))
   } else {
@@ -219,20 +214,21 @@ ggcorrmat <- function(data,
       bquote(atop(
         atop(
           atop(
-            scriptstyle(bold("sample size:")),
-            italic(n)[min] ~ "=" ~ .(min(df_corr$n_Obs))
+            scriptstyle(bold("sample sizes:")), italic(n)[min] ~ "=" ~ .(.prettyNum(min(df_corr$n_Obs)))
           ),
           atop(
-            italic(n)[mode] ~ "=" ~ .(getmode(df_corr$n_Obs)),
-            italic(n)[max] ~ "=" ~ .(max(df_corr$n_Obs))
+            italic(n)[mode] ~ "=" ~ .(.prettyNum(getmode(df_corr$n_Obs))),
+            italic(n)[max] ~ "=" ~ .(.prettyNum(max(df_corr$n_Obs)))
           )
         ),
         atop(
-          scriptstyle(bold("correlation:")),
-          .(corr.method.text)
+          scriptstyle(bold(.(corr.nature))), .(r.method.text)
         )
       ))
   }
+
+  # special treatment for Bayes
+  if (stats_type == "bayes") sig.level <- Inf
 
   # plotting the correlalogram
   plot <-
@@ -254,7 +250,7 @@ ggcorrmat <- function(data,
   # =========================== labels ==================================
 
   # preparing the `pch` caption
-  if (pch == "cross" || pch == 4) {
+  if ((pch == "cross" || pch == 4) && stats_type != "bayes") {
     caption <-
       substitute(
         atop(
@@ -290,8 +286,6 @@ ggcorrmat <- function(data,
 
   # adding `ggstatsplot` theme for correlation matrix
   if (isTRUE(ggstatsplot.layer)) plot <- plot + theme_corrmat()
-
-  # ---------------- adding ggplot component ---------------------------------
 
   # if any additional modification needs to be made to the plot
   # this is primarily useful for grouped_ variant of this function

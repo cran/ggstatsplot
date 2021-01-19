@@ -1,5 +1,8 @@
+AKP
 APA
+APA's
 Aalen's
+Algina
 Anova
 AppVeyor
 BayesX
@@ -31,7 +34,9 @@ HitCount
 IMDB
 IndrajeetPatil
 Iyad
+JASP
 Kass
+Keselman
 LDHF
 LDLF
 LFHD
@@ -48,13 +53,13 @@ McNemar's
 McNemar’s
 Mina
 NHST
-NSE
 NumGenre
 ORCID
 Oneway
 Orcutt
 Otterstetter
 PMCMRplus
+Penfield
 Quartile
 README
 RPubs
@@ -63,6 +68,7 @@ Rahwan
 Raison
 RepeatedMs
 SMT
+Satterthwaite
 Shachar
 StackOverflow
 TERGM
@@ -88,8 +94,8 @@ au
 bayes
 bayesian
 bbolker
-behaviour
 binwidth
+biserial
 blogposts
 boxviolin
 btnG
@@ -105,13 +111,12 @@ correlalogram
 customizable
 d'être
 densigram
+descriptives
 disgustingness
-djnavarro
 ds
 dsquintana
 d’être
 effsize
-eg
 elasticnet
 et
 exressions
@@ -148,6 +153,7 @@ interpretable
 io
 ipmisc
 issuecomment
+jamovi
 jitter
 labelled
 ldhf
@@ -155,13 +161,13 @@ ldlf
 lifecycle
 machiavellianism
 md
-modelling
 mpaa
 nd
 netlify
 noncentral
 nz
 pairwiseComparisons
+partialization
 patilindrajeets
 paulvanderlaken
 pearson
@@ -169,6 +175,7 @@ pearson's
 piechart
 plotgrid
 plotmath
+posteriori
 pre
 preferrred
 pseudolikelihood

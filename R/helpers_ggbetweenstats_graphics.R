@@ -1,5 +1,5 @@
 #' @title Adding labels for mean values.
-#' @name mean_ggrepel
+#' @name centrality_ggrepel
 #'
 #' @param plot A `ggplot` object for which means are to be displayed.
 #' @param ... Additional arguments.
@@ -14,7 +14,7 @@
 #' @importFrom dplyr select group_by matches mutate rowwise group_modify arrange ungroup
 #' @importFrom rlang !! enquo ensym :=
 #' @importFrom tidyr drop_na
-#' @importFrom ipmisc specify_decimal_p
+#' @importFrom ipmisc format_num
 #'
 #' @examples
 #' # this internal function may not have much utility outside of the package
@@ -26,7 +26,7 @@
 #'   geom_boxplot()
 #'
 #' # add means
-#' ggstatsplot:::mean_ggrepel(
+#' ggstatsplot:::centrality_ggrepel(
 #'   data = iris,
 #'   plot = p,
 #'   x = Species,
@@ -35,83 +35,32 @@
 #' @keywords internal
 
 # function body
-mean_ggrepel <- function(plot,
-                         data,
-                         x,
-                         y,
-                         mean.ci = FALSE,
-                         k = 3L,
-                         inherit.aes = TRUE,
-                         sample.size.label = TRUE,
-                         mean.path = FALSE,
-                         mean.path.args = list(color = "red", size = 1, alpha = 0.5),
-                         mean.point.args = list(size = 5, color = "darkred"),
-                         mean.label.args = list(size = 3),
-                         ...) {
-
-  # ------------------------ dataframe -------------------------------------
-
+centrality_ggrepel <- function(plot,
+                               data,
+                               x,
+                               y,
+                               type = "parametric",
+                               tr = 0.1,
+                               k = 2L,
+                               sample.size.label = TRUE,
+                               centrality.path = FALSE,
+                               centrality.path.args = list(color = "red", size = 1, alpha = 0.5),
+                               centrality.point.args = list(size = 5, color = "darkred"),
+                               centrality.label.args = list(size = 3, nudge_x = 0.4, segment.linetype = 4),
+                               ...) {
   # creating the dataframe
-  mean_df <-
-    data %>%
-    dplyr::select(.data = ., {{ x }}, {{ y }}) %>%
-    tidyr::drop_na(.) %>%
-    dplyr::mutate(.data = ., {{ x }} := droplevels(as.factor({{ x }}))) %>%
-    as_tibble(.) %>%
-    dplyr::group_by(.data = ., {{ x }}) %>%
-    dplyr::group_modify(
-      .f = ~ parameters::standardize_names(
-        data = as.data.frame(parameters::describe_distribution(
-          x = .,
-          centrality = "mean",
-          ci = 0.95
-        )),
-        style = "broom"
-      )
-    ) %>%
-    dplyr::rename(mean = estimate) %>%
-    dplyr::ungroup(.) %>%
-    dplyr::rowwise()
-
-  # prepare label
-  if (isTRUE(mean.ci)) {
-    mean_df %<>%
-      dplyr::mutate(
-        label = paste0(
-          "list(~italic(widehat(mu))=='",
-          specify_decimal_p(mean, k),
-          "',",
-          "CI[95*'%']",
-          "*'['*'",
-          specify_decimal_p(conf.low, k),
-          "','",
-          specify_decimal_p(conf.high, k),
-          "'*']')"
-        )
-      )
-  } else {
-    mean_df %<>%
-      dplyr::mutate(
-        label = paste0("list(~italic(widehat(mu))=='", specify_decimal_p(mean, k), "')")
-      )
-  }
-
-  # add label about sample size
-  mean_df %<>%
-    dplyr::ungroup(.) %>%
-    dplyr::mutate(n_label = paste0({{ x }}, "\n(n = ", n, ")")) %>%
-    dplyr::arrange({{ x }}) %>%
-    dplyr::select({{ x }}, !!as.character(rlang::ensym(y)) := mean, dplyr::matches("label"))
+  centrality_df <-
+    centrality_data(data, {{ x }}, {{ y }}, type = type, tr = tr, k = k)
 
   # if there should be lines connecting mean values across groups
-  if (isTRUE(mean.path)) {
+  if (isTRUE(centrality.path)) {
     plot <- plot +
       rlang::exec(
         .fn = ggplot2::geom_path,
-        data = mean_df,
+        data = centrality_df,
         mapping = ggplot2::aes(x = {{ x }}, y = {{ y }}, group = 1),
         inherit.aes = FALSE,
-        !!!mean.path.args
+        !!!centrality.path.args
       )
   }
 
@@ -120,36 +69,79 @@ mean_ggrepel <- function(plot,
   # highlight the mean of each group
   plot <- plot +
     rlang::exec(
-      .fn = ggplot2::stat_summary,
+      .fn = ggplot2::geom_point,
       mapping = ggplot2::aes(x = {{ x }}, y = {{ y }}),
-      fun = mean,
-      geom = "point",
-      inherit.aes = inherit.aes,
+      data = centrality_df,
+      inherit.aes = FALSE,
       na.rm = TRUE,
-      !!!mean.point.args
+      !!!centrality.point.args
     )
 
   # attach the labels with means to the plot
   plot <- plot +
     rlang::exec(
       .fn = ggrepel::geom_label_repel,
-      data = mean_df,
+      data = centrality_df,
       mapping = ggplot2::aes(x = {{ x }}, y = {{ y }}, label = label),
       show.legend = FALSE,
       min.segment.length = 0,
       inherit.aes = FALSE,
       parse = TRUE,
       na.rm = TRUE,
-      !!!mean.label.args
+      !!!centrality.label.args
     )
 
   # adding sample size labels to the x axes
   if (isTRUE(sample.size.label)) {
-    plot <- plot + ggplot2::scale_x_discrete(labels = c(unique(mean_df$n_label)))
+    plot <- plot + ggplot2::scale_x_discrete(labels = c(unique(centrality_df$n_label)))
   }
 
   # return the plot
   plot
+}
+
+#' @noRd
+
+centrality_data <- function(data, x, y, type = "parametric", tr = 0.1, k = 2L, ...) {
+
+  # ------------------------ measure -------------------------------------
+
+  # which centrality measure?
+  centrality <-
+    dplyr::case_when(
+      type == "parametric" ~ "mean",
+      type == "nonparametric" ~ "median",
+      type == "robust" ~ "trimmed",
+      type == "bayes" ~ "MAP"
+    )
+
+  # ------------------------ dataframe -------------------------------------
+
+  # creating the dataframe
+  data %>%
+    dplyr::select({{ x }}, {{ y }}) %>%
+    tidyr::drop_na() %>%
+    dplyr::mutate({{ x }} := droplevels(as.factor({{ x }}))) %>%
+    dplyr::group_by({{ x }}) %>%
+    dplyr::group_modify(
+      .f = ~ parameters::standardize_names(
+        data = as.data.frame(suppressWarnings(parameters::describe_distribution(
+          x = .,
+          centrality = centrality,
+          threshold = tr
+        ))),
+        style = "broom"
+      )
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+      label = paste0("list(~widehat(mu)[", centrality, "]=='", format_num(estimate, k), "')")
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(n_label = paste0({{ x }}, "\n(n = ", n, ")")) %>%
+    dplyr::arrange({{ x }}) %>%
+    dplyr::select({{ x }}, !!as.character(rlang::ensym(y)) := estimate, dplyr::matches("label"))
 }
 
 #' @title Adding `geom_signif` to `ggplot`
@@ -162,7 +154,7 @@ mean_ggrepel <- function(plot,
 #' @inheritParams ggbetweenstats
 #'
 #' @importFrom purrr pmap
-#' @importFrom dplyr mutate rename filter arrange pull
+#' @importFrom dplyr mutate filter arrange pull
 #' @importFrom ggsignif geom_signif
 #'
 #' @examples
@@ -207,12 +199,12 @@ ggsignif_adder <- function(plot,
     # decide what needs to be displayed:
     # only significant comparisons shown
     if (pairwise.display %in% c("s", "significant")) {
-      df_pairwise %<>% dplyr::filter(.data = ., p.value < 0.05)
+      df_pairwise %<>% dplyr::filter(p.value < 0.05)
     }
 
     # only non-significant comparisons shown
     if (pairwise.display %in% c("ns", "nonsignificant", "non-significant")) {
-      df_pairwise %<>% dplyr::filter(.data = ., p.value >= 0.05)
+      df_pairwise %<>% dplyr::filter(p.value >= 0.05)
     }
 
     # proceed only if there are any significant comparisons to display
@@ -222,7 +214,7 @@ ggsignif_adder <- function(plot,
   }
 
   # arrange the dataframe so that annotations are properly aligned
-  df_pairwise %<>% dplyr::arrange(.data = ., group1, group2)
+  df_pairwise %<>% dplyr::arrange(group1, group2)
 
   # adding ggsignif comparisons to the plot
   plot +
@@ -306,10 +298,7 @@ aesthetic_addon <- function(plot,
       caption = caption,
       color = xlab
     ) +
-    ggstatsplot::theme_ggstatsplot(
-      ggtheme = ggtheme,
-      ggstatsplot.layer = ggstatsplot.layer
-    ) +
+    theme_ggstatsplot(ggtheme = ggtheme, ggstatsplot.layer = ggstatsplot.layer) +
     ggplot2::theme(legend.position = "none") +
     paletteer::scale_color_paletteer_d(paste0(package, "::", palette)) +
     paletteer::scale_fill_paletteer_d(paste0(package, "::", palette))
@@ -354,12 +343,7 @@ aesthetic_addon <- function(plot,
 #' @noRd
 
 # function body
-outlier_df <- function(data,
-                       x,
-                       y,
-                       outlier.label,
-                       outlier.coef = 1.5,
-                       ...) {
+outlier_df <- function(data, x, y, outlier.label, outlier.coef = 1.5, ...) {
   # defining function to detect outliers based on interquartile range
   check_outlier <- function(var, coef = 1.5) {
     quantiles <- stats::quantile(x = var, probs = c(0.25, 0.75), na.rm = TRUE)

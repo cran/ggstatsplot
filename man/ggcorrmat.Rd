@@ -12,6 +12,7 @@ ggcorrmat(
   matrix.type = "upper",
   type = "parametric",
   beta = 0.1,
+  partial = FALSE,
   k = 2L,
   sig.level = 0.05,
   conf.level = 0.95,
@@ -60,6 +61,10 @@ parametric/pearson), \code{"np"} (nonparametric/spearman), \code{"r"} (robust),
 \code{"bf"} (for bayes factor), resp.}
 
 \item{beta}{bending constant (Default: \code{0.1}). For more, see \code{\link[WRS2:pbcor]{WRS2::pbcor()}}.}
+
+\item{partial}{Can be \code{TRUE} for partial correlations. For Bayesian partial
+correlations, "full" instead of pseudo-Bayesian partial correlations (i.e.,
+Bayesian correlation based on frequentist partialization) are returned.}
 
 \item{k}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2L}).}
@@ -111,9 +116,9 @@ theme elements are to be displayed along with the selected \code{ggtheme}
 override some aspects of the selected \code{ggtheme}.}
 
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
-by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
-of the current function. Default is \code{NULL}. The argument should be entered
-as a function.}
+by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_}
+variants of all primary functions. Default is \code{NULL}. The argument should
+be entered as a \code{ggplot2} function or a list of \code{ggplot2} functions.}
 
 \item{title}{The text for the plot title.}
 
@@ -124,15 +129,13 @@ as a function.}
 
 \item{...}{Currently ignored.}
 }
-\value{
-Correlation matrix plot or a dataframe containing results from
-pairwise correlation tests. The package internally uses
-\code{ggcorrplot::ggcorrplot} for creating the visualization matrix, while the
-correlation analysis is carried out using the \code{correlation::correlation}
-function.
-}
 \description{
-Visualization of a correlation matrix
+\Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+
+Correlation matrix plot or a dataframe containing results from pairwise
+correlation tests. The package internally uses \code{ggcorrplot::ggcorrplot} for
+creating the visualization matrix, while the correlation analysis is carried
+out using the \code{correlation::correlation} function.
 }
 \examples{
 \donttest{
@@ -157,6 +160,7 @@ ggstatsplot::ggcorrmat(
 ggstatsplot::ggcorrmat(
   data = ggplot2::msleep,
   cor.vars = sleep_total:bodywt,
+  partial = TRUE,
   output = "dataframe"
 )
 }

@@ -82,8 +82,8 @@ ggstatsplot::ggscatterstats(
   y = rating, # dependent variable
   xlab = "Budget (in millions of US dollars)", # label for the x-axis
   ylab = "Rating on IMDB", # label for the y-axis
-  label.var = "title", # variable to use for labeling data points
-  label.expression = "rating < 5 & budget > 100", # expression for deciding which points to label
+  label.var = title, # variable to use for labeling data points
+  label.expression = rating < 5 & budget > 75, # expression for deciding which points to label
   point.label.args = list(alpha = 0.7, size = 4, color = "grey50"),
   marginal.type = "density", # type of plot for marginal distribution
   xfill = "#CC79A7", # fill for marginals on the x-axis
@@ -144,8 +144,8 @@ ggstatsplot::grouped_ggscatterstats(
   x = budget,
   y = rating,
   grouping.var = mpaa,
-  label.var = "title",
-  label.expression = "rating < 5 & budget > 75",
+  label.var = title,
+  label.expression = rating < 5 & budget < 20,
   marginal.type = "boxplot",
   ggtheme = ggthemes::theme_tufte(),
   ggstatsplot.layer = FALSE,
@@ -190,63 +190,6 @@ Bayes Factor | Pearson's correlation coefficient | <font color="green">Yes</font
 
 To see how the effect sizes displayed in these tests can be interpreted, see:
 <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/effsize_interpretation.html>
-
-## Different smoothing methods
-
-Additionally, different smoothing methods can be specified. For example, if a
-robust correlation (percentage bend correlation coefficient) is used, we can use
-a robust smoothing function (`MASS::rlm`). Additionally, we can also specify
-different formulas to use for smoothing function. It is **important** that you
-set `results.subtitle = FALSE` since the results will no longer be relevant for
-the smoothing function used. Below, four different examples are given for how to
-use different smoothing functions.
-
-```{r grouped3, fig.height = 12, fig.width = 12}
-# for reproducibility
-set.seed(123)
-library(mgcv)
-
-# creating a list of plots with different smoothing functions
-plot_list2 <-
-  purrr::pmap(
-    .l = list(
-      # let's use only 5% of the data to speed up the calculations
-      data = list(dplyr::sample_frac(tbl = movies_wide, size = 0.025)),
-      x = "budget",
-      y = "rating",
-      title = list(
-        "Robust linear model using an M estimator (rlm)",
-        "Generalized additive model (GAM) with a penalized smoother",
-        "Local Polynomial Regression Fitting",
-        "Quadratic fit"
-      ),
-      method = list(
-        MASS::rlm,
-        "gam",
-        "loess",
-        "lm"
-      ),
-      formula = list(
-        y ~ x,
-        y ~ s(x, k = 3),
-        y ~ x,
-        y ~ x + I(x^2)
-      ),
-      label.var = list("title"),
-      label.expression = list("budget > 70"),
-      marginal = FALSE
-    ),
-    .f = ggstatsplot::ggscatterstats
-  )
-
-# combining all individual plots from the list into a single plot using combine_plots function
-ggstatsplot::combine_plots(
-  plotlist = plot_list2,
-  title.text = "Trying out different smoothing functions with ggscatterstats",
-  caption.text = "Source: www.imdb.com",
-  nrow = 2
-)
-```
 
 # Suggestions
 

@@ -1,9 +1,14 @@
 #' @title Box/Violin plots for group or condition comparisons in
 #'   between-subjects designs.
 #' @name ggbetweenstats
-#' @description A combination of box and violin plots along with jittered data
-#'   points for between-subjects designs with statistical details included in
-#'   the plot as a subtitle.
+#'
+#' @description
+#'
+#' \Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+#'
+#' A combination of box and violin plots along with jittered data points for
+#' between-subjects designs with statistical details included in the plot as a
+#' subtitle.
 #'
 #' @param plot.type Character describing the *type* of plot. Currently supported
 #'   plots are `"box"` (for pure boxplots), `"violin"` (for pure violin plots),
@@ -65,18 +70,19 @@
 #'   With Tukey's method, outliers are below (1st Quartile) or above (3rd
 #'   Quartile) `outlier.coef` times the Inter-Quartile Range (IQR) (Default:
 #'   `1.5`).
-#' @param mean.plotting Logical that decides whether mean is to be highlighted
-#'   and its value to be displayed (Default: `TRUE`).
-#' @param mean.ci Logical that decides whether `95%` confidence interval for
-#'   mean is to be displayed (Default: `FALSE`).
+#' @param centrality.plotting Logical that decides whether centrality tendency measure
+#'   is to be displayed as a point with a label (Default: `TRUE`). Function
+#'   decides which central tendency measure to show depending on the `type`
+#'   argument (**mean** for parametric, **median** for non-parametric,
+#'   **trimmed mean** for robust, and **MAP estimator** for Bayes).
 #' @param point.args A list of additional aesthetic arguments to be passed to
 #'   the `geom_point` displaying the raw data.
 #' @param violin.args A list of additional aesthetic arguments to be passed to
 #'   the `geom_violin`.
 #' @param ggplot.component A `ggplot` component to be added to the plot prepared
-#'   by `ggstatsplot`. This argument is primarily helpful for `grouped_` variant
-#'   of the current function. Default is `NULL`. The argument should be entered
-#'   as a function.
+#'   by `ggstatsplot`. This argument is primarily helpful for `grouped_`
+#'   variants of all primary functions. Default is `NULL`. The argument should
+#'   be entered as a `ggplot2` function or a list of `ggplot2` functions.
 #' @param package,palette Name of the package from which the given palette is to
 #'   be extracted. The available palettes and packages can be checked by running
 #'   `View(paletteer::palettes_d_names)`.
@@ -89,26 +95,24 @@
 #'   `bf.message = TRUE`, otherwise this will return a `NULL`.
 #' @param ... Currently ignored.
 #' @inheritParams theme_ggstatsplot
-#' @param mean.point.args,mean.label.args A list of additional aesthetic
+#' @param centrality.point.args,centrality.label.args A list of additional aesthetic
 #'   arguments to be passed to `ggplot2::geom_point` and
-#'   `ggrepel::geom_label_repel` geoms involved mean value plotting.
+#'   `ggrepel::geom_label_repel` geoms, which are involved in mean plotting.
 #' @param  ggsignif.args A list of additional aesthetic
 #'   arguments to be passed to `ggsignif::geom_signif`.
-#' @inheritParams statsExpressions::expr_anova_parametric
-#' @inheritParams statsExpressions::expr_t_parametric
+#' @inheritParams statsExpressions::expr_oneway_anova
+#' @inheritParams statsExpressions::expr_t_twosample
 #' @inheritParams statsExpressions::expr_t_onesample
-#' @inheritParams statsExpressions::expr_anova_robust
 #'
 #' @import ggplot2
 #'
-#' @importFrom dplyr select group_by arrange mutate mutate_at mutate_if
+#' @importFrom dplyr select group_by arrange mutate
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom stats t.test oneway.test
-#' @importFrom rlang enquo quo_name as_name !! as_string
+#' @importFrom rlang enquo as_name !! as_string
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom paletteer scale_color_paletteer_d scale_fill_paletteer_d
 #' @importFrom ggsignif geom_signif
-#' @importFrom statsExpressions bf_ttest bf_oneway_anova
 #' @importFrom pairwiseComparisons pairwise_comparisons pairwise_caption
 #'
 #' @seealso \code{\link{grouped_ggbetweenstats}}, \code{\link{ggwithinstats}},
@@ -175,10 +179,9 @@ ggbetweenstats <- function(data,
                            conf.level = 0.95,
                            nboot = 100L,
                            tr = 0.1,
-                           mean.plotting = TRUE,
-                           mean.ci = FALSE,
-                           mean.point.args = list(size = 5, color = "darkred"),
-                           mean.label.args = list(size = 3),
+                           centrality.plotting = TRUE,
+                           centrality.point.args = list(size = 5, color = "darkred"),
+                           centrality.label.args = list(size = 3, nudge_x = 0.4, segment.linetype = 4),
                            notch = FALSE,
                            notchwidth = 0.5,
                            outlier.tagging = FALSE,
@@ -223,14 +226,14 @@ ggbetweenstats <- function(data,
 
   # creating a dataframe
   data %<>%
-    dplyr::select(.data = ., {{ x }}, {{ y }}, outlier.label = {{ outlier.label }}) %>%
+    dplyr::select({{ x }}, {{ y }}, outlier.label = {{ outlier.label }}) %>%
     tidyr::drop_na(data = .) %>%
-    dplyr::mutate(.data = ., {{ x }} := droplevels(as.factor({{ x }}))) %>%
+    dplyr::mutate({{ x }} := droplevels(as.factor({{ x }}))) %>%
     as_tibble(x = .)
 
   # if outlier.label column is not present, just use the values from `y` column
   if (rlang::quo_is_null(rlang::enquo(outlier.label))) {
-    data %<>% dplyr::mutate(.data = ., outlier.label = {{ y }})
+    data %<>% dplyr::mutate(outlier.label = {{ y }})
   }
 
   # add a logical column indicating whether a point is or is not an outlier
@@ -253,11 +256,13 @@ ggbetweenstats <- function(data,
     # preparing the Bayes factor message
     if (type == "parametric" && isTRUE(bf.message)) {
       caption <-
-        caption_function_switch(
+        function_switch(
           test = test,
+          # arguments relevant for expression helper functions
           data = data,
           x = rlang::as_string(x),
           y = rlang::as_string(y),
+          type = "bayes",
           bf.prior = bf.prior,
           top.text = caption,
           paired = FALSE,
@@ -268,15 +273,14 @@ ggbetweenstats <- function(data,
 
     # extracting the subtitle using the switch function
     subtitle <-
-      subtitle_function_switch(
-        # switch based on
-        type = type,
+      function_switch(
         test = test,
         # arguments relevant for expression helper functions
         data = data,
-        x = {{ x }},
-        y = {{ y }},
+        x = rlang::as_string(x),
+        y = rlang::as_string(y),
         paired = FALSE,
+        type = type,
         effsize.type = effsize.type,
         var.equal = var.equal,
         bf.prior = bf.prior,
@@ -289,7 +293,7 @@ ggbetweenstats <- function(data,
 
   # return early if anything other than plot
   if (output != "plot") {
-    return(switch(EXPR = output, "caption" = caption, subtitle))
+    return(switch(output, "caption" = caption, subtitle))
   }
 
   # -------------------------- basic plot -----------------------------------
@@ -398,22 +402,22 @@ ggbetweenstats <- function(data,
       )
   }
 
-  # ---------------- mean value tagging -------------------------------------
+  # ---------------- centrality tagging -------------------------------------
 
-  # add labels for mean values
-  if (isTRUE(mean.plotting)) {
+  # add labels for centrality measure
+  if (isTRUE(centrality.plotting)) {
     plot <-
-      mean_ggrepel(
+      centrality_ggrepel(
         plot = plot,
         data = data,
         x = {{ x }},
         y = {{ y }},
-        mean.ci = mean.ci,
         k = k,
-        inherit.aes = TRUE,
+        type = type,
+        tr = tr,
         sample.size.label = sample.size.label,
-        mean.point.args = mean.point.args,
-        mean.label.args = mean.label.args
+        centrality.point.args = centrality.point.args,
+        centrality.label.args = centrality.label.args
       )
   }
 

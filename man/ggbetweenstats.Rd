@@ -29,10 +29,9 @@ ggbetweenstats(
   conf.level = 0.95,
   nboot = 100L,
   tr = 0.1,
-  mean.plotting = TRUE,
-  mean.ci = FALSE,
-  mean.point.args = list(size = 5, color = "darkred"),
-  mean.label.args = list(size = 3),
+  centrality.plotting = TRUE,
+  centrality.point.args = list(size = 5, color = "darkred"),
+  centrality.label.args = list(size = 3, nudge_x = 0.4, segment.linetype = 4),
   notch = FALSE,
   notchwidth = 0.5,
   outlier.tagging = FALSE,
@@ -125,11 +124,9 @@ should be displayed for each level of the grouping variable \code{x} (Default:
 (Default: \code{k = 2L}).}
 
 \item{var.equal}{a logical variable indicating whether to treat the
-    variances in the samples as equal.  If \code{TRUE}, then a simple F
-    test for the equality of means in a one-way analysis of variance is
-    performed.  If \code{FALSE}, an approximate method of Welch (1951)
-    is used, which generalizes the commonly known 2-sample Welch test to
-    the case of arbitrarily many samples.}
+    two variances as being equal. If \code{TRUE} then the pooled
+    variance is used to estimate the variance otherwise the Welch
+    (or Satterthwaite) approximation to the degrees of freedom is used.}
 
 \item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
 \verb{95\%} confidence/credible intervals (\code{0.95}).}
@@ -143,15 +140,15 @@ variance of 0 (e.g., due to ties). Try to decrease the trimming level.",
 try to play around with the value of \code{tr}, which is by default set to
 \code{0.1}. Lowering the value might help.}
 
-\item{mean.plotting}{Logical that decides whether mean is to be highlighted
-and its value to be displayed (Default: \code{TRUE}).}
+\item{centrality.plotting}{Logical that decides whether centrality tendency measure
+is to be displayed as a point with a label (Default: \code{TRUE}). Function
+decides which central tendency measure to show depending on the \code{type}
+argument (\strong{mean} for parametric, \strong{median} for non-parametric,
+\strong{trimmed mean} for robust, and \strong{MAP estimator} for Bayes).}
 
-\item{mean.ci}{Logical that decides whether \verb{95\%} confidence interval for
-mean is to be displayed (Default: \code{FALSE}).}
-
-\item{mean.point.args, mean.label.args}{A list of additional aesthetic
+\item{centrality.point.args, centrality.label.args}{A list of additional aesthetic
 arguments to be passed to \code{ggplot2::geom_point} and
-\code{ggrepel::geom_label_repel} geoms involved mean value plotting.}
+\code{ggrepel::geom_label_repel} geoms, which are involved in mean plotting.}
 
 \item{notch}{A logical. If \code{FALSE} (default), a standard box plot will be
 displayed. If \code{TRUE}, a notched box plot will be used. Notches are used to
@@ -208,9 +205,9 @@ be extracted. The available palettes and packages can be checked by running
 \code{View(paletteer::palettes_d_names)}.}
 
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
-by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
-of the current function. Default is \code{NULL}. The argument should be entered
-as a function.}
+by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_}
+variants of all primary functions. Default is \code{NULL}. The argument should
+be entered as a \code{ggplot2} function or a list of \code{ggplot2} functions.}
 
 \item{output}{Character that describes what is to be returned: can be
 \code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
@@ -223,9 +220,11 @@ about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
 \item{...}{Currently ignored.}
 }
 \description{
-A combination of box and violin plots along with jittered data
-points for between-subjects designs with statistical details included in
-the plot as a subtitle.
+\Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+
+A combination of box and violin plots along with jittered data points for
+between-subjects designs with statistical details included in the plot as a
+subtitle.
 }
 \examples{
 \donttest{

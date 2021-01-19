@@ -83,10 +83,10 @@ You can pass:
    `nboot = 25` in which case it will be reused/recycled as many times as
    needed.
 
- * A vector of values such as `mean.ci = c(TRUE, FALSE, TRUE)` in which case it
+ * A vector of values such as `nboot = c(50, 100, 200)` in which case it
    will be coerced to a list and checked for the right class (in this case
    integer) and the right quantity of entries in the vector i.e.,
-   `mean.ci = c(TRUE, FALSE)` will fail if we're trying to make three plots.
+   `nboot = c(50, 100)` will fail if we're trying to make three plots.
 
  * A list; either named `data = year_list` or created as you go
    `palette = list("Dark2", "Set1")`. Any list will
@@ -96,7 +96,7 @@ You can pass:
 # `ggbetweenstats`
 
 Let's start with `ggebtweenstats`. We'll use the `gapminder` dataset. We'll make
-a 3 item named `list` called `data_list` using `dplyr::filter` and `split`.
+a 3 item `list` called `year_list` using `dplyr::filter` and `split`.
 
 ```{r purrr_ggbetweenstats1, fig.height = 12, fig.width = 7}
 # for reproducibility
@@ -145,7 +145,7 @@ plot_list <-
       outlier.label.args = list(
         list(size = 3, color = "#56B4E9"),
         list(size = 2.5, color = "#009E73"),
-        list(size = 4, color = "#F0E442")
+        list(size = 3.5, color = "#F0E442")
       ),
       xlab = "Continent",
       ylab = "Life expectancy",
@@ -155,7 +155,6 @@ plot_list <-
         "Year: 2007"
       ),
       type = list("r", "bf", "np"),
-      pairwise.comparisons = TRUE,
       pairwise.display = list("s", "ns", "all"),
       p.adjust.method = list("hommel", "bonferroni", "BH"),
       conf.level = list(0.99, 0.95, 0.90),
@@ -166,7 +165,6 @@ plot_list <-
         "partial_eta"
       ),
       plot.type = list("box", "boxviolin", "violin"),
-      mean.ci = list(TRUE, FALSE, FALSE),
       package = list("nord", "ochRe", "awtools"),
       palette = list("aurora", "parliament", "bpalette"),
       ggtheme = list(
@@ -174,7 +172,7 @@ plot_list <-
         ggplot2::theme_classic(),
         ggthemes::theme_fivethirtyeight()
       ),
-      ggstatsplot.layer = list(FALSE, FALSE, FALSE)
+      ggstatsplot.layer = list(FALSE, FALSE, TRUE)
     ),
     .f = ggstatsplot::ggbetweenstats
   )
@@ -238,7 +236,6 @@ plot_list <-
         "Cue: Spatial"
       ),
       type = list("p", "r", "bf", "np"),
-      pairwise.comparisons = TRUE,
       pairwise.display = list("ns", "s", "ns", "all"),
       p.adjust.method = list("fdr", "hommel", "bonferroni", "BH"),
       conf.level = list(0.99, 0.99, 0.95, 0.90),
@@ -249,7 +246,6 @@ plot_list <-
         "partial_omega",
         "partial_eta"
       ),
-      mean.ci = list(FALSE, TRUE, FALSE, FALSE),
       package = list("ggsci", "palettetown", "palettetown", "wesanderson"),
       palette = list("lanonc_lancet", "venomoth", "blastoise", "GrandBudapest1"),
       ggtheme = list(
@@ -310,8 +306,7 @@ plot_list <-
       ),
       label.var = list("title"),
       label.expression = list(
-        "rating > 7.5 &
-         budget < 100",
+        "rating > 7.5 & budget < 100",
         "rating > 8 & budget < 50",
         "rating > 8 & budget < 10"
       ),
@@ -370,13 +365,10 @@ plot_list <-
     .l = list(
       data = cut_list,
       cor.vars = list(c("carat", "depth", "table", "price")),
-      corr.method = list("pearson", "np", "robust", "robust"),
+      type = list("pearson", "np", "robust", "bf"),
+      partial = list(TRUE, FALSE, TRUE, FALSE),
       title = list("Cut: Good", "Cut: Very Good", "Cut: Premium", "Cut: Ideal"),
-      # note that we are changing both p-value adjustment method *and*
-      # significance level to display the significant correlations in the
-      # visualization matrix
       p.adjust.method = list("hommel", "fdr", "BY", "hochberg"),
-      sig.level = list(0.001, 0.01, 0.05, 0.003),
       lab.size = 3.5,
       colors = list(
         c("#56B4E9", "white", "#999999"),
@@ -384,13 +376,13 @@ plot_list <-
         c("#56B4E9", "white", "#D55E00"),
         c("#999999", "white", "#0072B2")
       ),
-      ggstatsplot.layer = FALSE,
       ggtheme = list(
         sjPlot::theme_sjplot(),
         ggplot2::theme_classic(),
         ggthemes::theme_fivethirtyeight(),
         ggthemes::theme_tufte()
-      )
+      ),
+      ggstatsplot.layer = FALSE
     ),
     .f = ggstatsplot::ggcorrmat
   )
@@ -444,15 +436,9 @@ plot_list <-
         "Continent: Asia",
         "Continent: Europe"
       ),
-      bar.measure = list("proportion", "count", "mix", "density"),
       bar.fill = list("white", "red", "orange", "blue"),
       effsize.type = list("d", "d", "g", "g"),
       normal.curve = TRUE,
-      normal.curve.args = list(list(
-        color = "darkred",
-        linetype = "dashed",
-        size = 0.8
-      )),
       ggtheme = list(
         ggplot2::theme_classic(),
         hrbrthemes::theme_ipsum_tw(),
@@ -517,14 +503,6 @@ plot_list <-
         list(color = "#D55E00"),
         list(color = "#CC79A7")
       ),
-      test.value.line = TRUE,
-      test.value.line.args = list(
-        list(color = "#E69F00", size = 1),
-        list(color = "#56B4E9", size = 0.8),
-        list(color = "#009E73", size = 1.5),
-        list(color = "blue", size = 0.4)
-      ),
-      centrality.parameter = list("median", "mean", "mean", "none"),
       ggtheme = list(
         ggplot2::theme_minimal(base_family = "serif"),
         ggthemes::theme_tufte(),

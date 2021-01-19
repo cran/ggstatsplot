@@ -20,6 +20,7 @@
 #' @inherit ggpiestats return return
 #'
 #' @examples
+#' \donttest{
 #' # grouped one-sample proportion test
 #' # let's skip statistical analysis
 #' ggstatsplot::grouped_ggpiestats(
@@ -28,6 +29,7 @@
 #'   x = cyl,
 #'   results.subtitle = FALSE
 #' )
+#' }
 #' @export
 
 # defining the function
@@ -47,18 +49,10 @@ grouped_ggpiestats <- function(data,
                                sub.text = NULL,
                                sub.args = list(size = 12)) {
 
-  # ======================== check user input =============================
-
-  # ensure the grouping variable works quoted or unquoted
-  grouping.var <- rlang::ensym(grouping.var)
-  x <- rlang::ensym(x)
-  y <- if (!rlang::quo_is_null(rlang::enquo(y))) rlang::ensym(y)
-  counts <- if (!rlang::quo_is_null(rlang::enquo(counts))) rlang::ensym(counts)
+  # ======================== preparing dataframe =============================
 
   # if `title.prefix` is not provided, use the variable `grouping.var` name
-  if (is.null(title.prefix)) title.prefix <- rlang::as_name(grouping.var)
-
-  # ======================== preparing dataframe =============================
+  if (is.null(title.prefix)) title.prefix <- rlang::as_name(rlang::ensym(grouping.var))
 
   # creating a dataframe
   df <-

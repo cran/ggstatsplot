@@ -64,7 +64,7 @@ there are four levels this will be \code{ratio = c(0.25,0.25,0.25,0.25)}, etc.}
 
 \item{paired}{Logical indicating whether data came from a within-subjects or
 repeated measures design study (Default: \code{FALSE}). If \code{TRUE}, McNemar's
-test subtitle will be returned. If \code{FALSE}, Pearson's chi-square test will
+test expression will be returned. If \code{FALSE}, Pearson's chi-square test will
 be returned.}
 
 \item{results.subtitle}{Decides whether the results of statistical tests are
@@ -145,9 +145,9 @@ be extracted. The available palettes and packages can be checked by running
 \code{View(paletteer::palettes_d_names)}.}
 
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
-by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
-of the current function. Default is \code{NULL}. The argument should be entered
-as a function.}
+by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_}
+variants of all primary functions. Default is \code{NULL}. The argument should
+be entered as a \code{ggplot2} function or a list of \code{ggplot2} functions.}
 
 \item{output}{Character that describes what is to be returned: can be
 \code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
@@ -160,10 +160,13 @@ about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
 \item{...}{Currently ignored.}
 }
 \description{
-Bar charts for categorical data with statistical details
-included in the plot as a subtitle.
+\Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+
+Bar charts for categorical data with statistical details included in the plot
+as a subtitle.
 }
 \examples{
+\donttest{
 # for reproducibility
 set.seed(123)
 
@@ -173,6 +176,7 @@ ggstatsplot::ggbarstats(
   x = vs,
   y = cyl
 )
+}
 }
 \seealso{
 \code{\link{grouped_ggbarstats}}, \code{\link{ggpiestats}},

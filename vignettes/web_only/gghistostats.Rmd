@@ -56,7 +56,7 @@ library(psych)
 library(dplyr)
 
 # looking at the structure of the data using glimpse
-dplyr::glimpse(x = psych::sat.act)
+dplyr::glimpse(psych::sat.act)
 ```
 
 To get a simple histogram with no statistics and no special information.
@@ -90,8 +90,7 @@ we'll also:
 
   1.  Change the overall theme with `ggtheme = ggthemes::theme_tufte()`
   2.  Make the histogram bars a different color with `bar.fill = "#D55E00"`
-  3.  Plot proportions on the `y` axes with `bar.measure = "proportion"`
-  4.  Compute information about the Bayes Factor (`bf.message = TRUE`, see below)
+  3.  Compute information about the Bayes Factor (`bf.message = TRUE`, see below)
 
 ```{r psychact3, fig.height = 6, fig.width = 7}
 ggstatsplot::gghistostats(
@@ -107,7 +106,6 @@ ggstatsplot::gghistostats(
   normal.curve = TRUE, # disply a normal distribution curve
   normal.curve.color = "black",
   test.value = 20, # test value
-  test.value.line = TRUE, # show a vertical line at `test.value`
   caption = "Data courtesy of: SAPA project (https://sapa-project.org)", # caption for the plot
   centrality.k = 1 # show 1 decimal places for centrality label
 )
@@ -140,17 +138,10 @@ ggstatsplot::grouped_gghistostats(
   x = ACT, # same outcome variable
   xlab = "ACT Score",
   grouping.var = gender, # grouping variable males = 1, females = 2
-  title.prefix = "Gender", # prefix for the fixed title
-  k = 1, # number of decimal places in results
   type = "robust", # robust test: one-sample percentile bootstrap
   test.value = 20, # test value against which sample mean is to be compared
-  test.value.line = TRUE, # show a vertical line at `test.value`
-  bar.measure = "density", # density
-  centrality.parameter = "median", # plotting centrality parameter
   centrality.line.args = list(color = "#D55E00"), 
   centrality.label.args = list(color = "#D55E00"),
-  test.value.line.args = list(color = "#009E73"),
-  test.value.label.args = list(color = "#009E73"),
   ggtheme = ggthemes::theme_stata(), # changing default theme
   ggstatsplot.layer = FALSE, # turn off ggstatsplot theme layer
   # arguments relevant for ggstatsplot::combine_plots
@@ -180,23 +171,34 @@ See the associated vignette here:
 
 ## Summary of tests
 
+The central tendency measure displayed will depend on the statistics:
+
+Type | Measure | Function used
+----------- | --------- | ------------------ 
+Parametric | mean | `parameters::describe_distribution`
+Non-parametric | median | `parameters::describe_distribution`
+Robust | trimmed mean | `parameters::describe_distribution`
+Bayesian | MAP estimate | `parameters::describe_distribution`
+
+MAP: maximum a posteriori probability
+
 Following tests are carried out for each type of analyses-
 
-Type | Test | Function
+Type | Test | Function used
 ------------------ | ------------------------- | -----
 Parametric | One-sample Student's *t*-test | `stats::t.test`
 Non-parametric | One-sample Wilcoxon test | `stats::wilcox.test`
-Robust | One-sample percentile bootstrap | `WRS2::onesampb`
-Bayes Factor | One-sample Student's *t*-test | `BayesFactor::ttestBF`
+Robust | Bootstrap-*t* method for one-sample test | `trimcibt` (custom)
+Bayesian | One-sample Student's *t*-test | `BayesFactor::ttestBF`
 
 Following effect sizes (and confidence intervals/CI) are available for each type
 of test-
 
-Type | Effect size | CI? | Function
+Type | Effect size | CI? | Function used
 ------------ | ----------------------- | --- | -----
 Parametric | Cohen's *d*, Hedge's *g* | <font color="green">Yes<font> | `effectsize::cohens_d`, `effectsize::hedges_g`
-Non-parametric | *r* | <font color="green">Yes<font> | `rcompanion::wilcoxonOneSampleR`
-Robust | robust location measure | <font color="green">Yes<font> | `WRS2::onesampb`
+Non-parametric | *r* (rank-biserial correlation) | <font color="green">Yes<font> | `effectsize::rank_biserial`
+Robust | trimmed mean | <font color="green">Yes<font> | `trimcibt` (custom)
 Bayes Factor | $\delta_{posterior}$ | <font color="green">Yes<font> | `bayestestR::describe_posterior`
 
 ## Effect size interpretation

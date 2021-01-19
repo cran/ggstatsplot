@@ -1,10 +1,10 @@
-testthat::test_that(
+test_that(
   desc = "grouped_ggscatterstats works",
   code = {
-    testthat::skip_on_cran()
+    skip_on_cran()
 
     # expect error if no grouping variable is specified
-    testthat::expect_error(
+    expect_error(
       grouped_ggscatterstats(
         data = iris,
         x = Sepal.Length,
@@ -14,15 +14,14 @@ testthat::test_that(
 
     # without any labelling
     set.seed(123)
-    testthat::expect_true(inherits(
+    expect_true(inherits(
       ggstatsplot::grouped_ggscatterstats(
         data = iris,
         x = Sepal.Length,
         y = Petal.Width,
         grouping.var = Species,
         results.subtitle = FALSE,
-        marginal = FALSE,
-        messages = FALSE
+        marginal = FALSE
       ),
       what = "gg"
     ))
@@ -37,7 +36,7 @@ testthat::test_that(
 
     # both quoted
     set.seed(123)
-    testthat::expect_true(inherits(
+    expect_true(inherits(
       ggstatsplot::grouped_ggscatterstats(
         data = df,
         x = length,
@@ -47,15 +46,14 @@ testthat::test_that(
         grouping.var = mpaa,
         type = "bf",
         results.subtitle = FALSE,
-        marginal = FALSE,
-        messages = FALSE
+        marginal = FALSE
       ),
       what = "gg"
     ))
 
     # both unquoted
     set.seed(123)
-    testthat::expect_true(inherits(
+    expect_true(inherits(
       ggstatsplot::grouped_ggscatterstats(
         data = df,
         x = length,
@@ -64,15 +62,14 @@ testthat::test_that(
         label.var = title,
         grouping.var = mpaa,
         results.subtitle = FALSE,
-        marginal = FALSE,
-        messages = FALSE
+        marginal = FALSE
       ),
       what = "gg"
     ))
 
     # one quoted, one unquoted
     set.seed(123)
-    testthat::expect_true(inherits(
+    expect_true(inherits(
       ggstatsplot::grouped_ggscatterstats(
         data = df,
         x = length,
@@ -82,14 +79,13 @@ testthat::test_that(
         grouping.var = mpaa,
         type = "p",
         results.subtitle = FALSE,
-        marginal = FALSE,
-        messages = FALSE
+        marginal = FALSE
       ),
       what = "gg"
     ))
 
     set.seed(123)
-    testthat::expect_true(inherits(
+    expect_true(inherits(
       ggstatsplot::grouped_ggscatterstats(
         data = df,
         x = "length",
@@ -99,7 +95,6 @@ testthat::test_that(
         label.expression = "budget > 150",
         label.var = title,
         results.subtitle = FALSE,
-        messages = FALSE,
         marginal = FALSE
       ),
       what = "gg"
@@ -107,7 +102,7 @@ testthat::test_that(
 
     # without point labelling
     set.seed(123)
-    testthat::expect_true(inherits(
+    expect_true(inherits(
       ggstatsplot::grouped_ggscatterstats(
         data = df,
         x = "length",
@@ -116,7 +111,6 @@ testthat::test_that(
         label.expression = "length > 150",
         type = "np",
         results.subtitle = FALSE,
-        messages = FALSE,
         marginal = FALSE
       ),
       what = "gg"
@@ -124,7 +118,7 @@ testthat::test_that(
 
     # labeling all points (without expression, i.e.)
     set.seed(123)
-    testthat::expect_true(inherits(
+    expect_true(inherits(
       ggstatsplot::grouped_ggscatterstats(
         data = dplyr::sample_frac(tbl = df, size = 0.1),
         x = "length",
@@ -134,7 +128,6 @@ testthat::test_that(
         label.expression = NULL,
         type = "np",
         results.subtitle = FALSE,
-        messages = FALSE,
         marginal = FALSE
       ),
       what = "gg"
@@ -142,12 +135,11 @@ testthat::test_that(
 
     # checking if ggplot component addition works
     set.seed(123)
-    testthat::expect_true(inherits(
+    expect_true(inherits(
       ggstatsplot::grouped_ggscatterstats(
         data = ggplot2::msleep,
         x = sleep_total,
         y = bodywt,
-        marginal = FALSE,
         results.subtitle = FALSE,
         grouping.var = "vore",
         xlab = "total sleep",
@@ -156,7 +148,7 @@ testthat::test_that(
         caption = "source: ggplot2 package",
         type = "bf",
         ggplot.component = scale_y_continuous(breaks = seq(0, 6000, 1000)),
-        messages = FALSE
+        marginal = FALSE
       ),
       what = "gg"
     ))
@@ -165,10 +157,10 @@ testthat::test_that(
 
 # subtitle output --------------------------------------------------
 
-testthat::test_that(
+test_that(
   desc = "subtitle output",
   code = {
-    testthat::skip_on_cran()
+    skip_on_cran()
 
     # data
     df <- dplyr::filter(.data = ggstatsplot::movies_long, genre %in% c("Action Drama"))
@@ -182,8 +174,7 @@ testthat::test_that(
         k = 3,
         conf.level = 0.99,
         grouping.var = genre,
-        output = "subtitle",
-        messages = FALSE
+        output = "subtitle"
       )
 
     set.seed(123)
@@ -194,12 +185,11 @@ testthat::test_that(
         y = length,
         k = 3,
         conf.level = 0.99,
-        output = "subtitle",
-        messages = FALSE
+        output = "subtitle"
       )
 
     # tests
-    testthat::expect_equal(length(ls_results), 1L)
-    testthat::expect_identical(ls_results$`Action Drama`, basic_results)
+    expect_equal(length(ls_results), 1L)
+    expect_identical(ls_results$`Action Drama`, basic_results)
   }
 )

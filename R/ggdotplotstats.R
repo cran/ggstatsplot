@@ -1,8 +1,12 @@
 #' @title Dot plot/chart for labeled numeric data.
 #' @name ggdotplotstats
-#' @description A dot chart (as described by William S. Cleveland) with
-#'   statistical details from one-sample test included in the plot as a
-#'   subtitle.
+#'
+#' @description
+#'
+#' \Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+#'
+#' A dot chart (as described by William S. Cleveland) with statistical details
+#' from one-sample test included in the plot as a subtitle.
 #'
 #' @param ... Currently ignored.
 #' @param y Label or grouping variable.
@@ -13,7 +17,7 @@
 #' @inheritParams ggcoefstats
 #'
 #' @importFrom dplyr row_number percent_rank pull
-#' @importFrom statsExpressions expr_t_onesample bf_ttest
+#' @importFrom statsExpressions expr_t_onesample
 #'
 #' @references
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggdotplotstats.html}
@@ -31,7 +35,6 @@
 #'   data = ggplot2::mpg,
 #'   x = cty,
 #'   y = manufacturer,
-#'   conf.level = 0.99,
 #'   test.value = 15,
 #'   test.value.line = TRUE,
 #'   test.line.labeller = TRUE,
@@ -62,14 +65,11 @@ ggdotplotstats <- function(data,
                            effsize.type = "g",
                            conf.level = 0.95,
                            nboot = 100,
+                           tr = 0.1,
                            k = 2,
                            results.subtitle = TRUE,
                            point.args = list(color = "black", size = 3, shape = 16),
-                           test.k = 0,
-                           test.value.line = FALSE,
-                           test.value.line.args = list(size = 1),
-                           test.value.label.args = list(size = 3),
-                           centrality.parameter = "mean",
+                           centrality.plotting = TRUE,
                            centrality.k = 2,
                            centrality.line.args = list(color = "blue", size = 1),
                            centrality.label.args = list(color = "blue", size = 3),
@@ -96,20 +96,18 @@ ggdotplotstats <- function(data,
 
   # creating a dataframe
   data %<>%
-    dplyr::select(.data = ., {{ x }}, {{ y }}) %>%
-    tidyr::drop_na(data = .) %>%
-    dplyr::mutate(.data = ., {{ y }} := droplevels(as.factor({{ y }}))) %>%
-    dplyr::group_by(.data = ., {{ y }}) %>%
-    dplyr::summarise(.data = ., {{ x }} := mean({{ x }}, na.rm = TRUE)) %>%
-    dplyr::ungroup(x = .) %>%
+    dplyr::select({{ x }}, {{ y }}) %>%
+    tidyr::drop_na(.) %>%
+    dplyr::mutate({{ y }} := droplevels(as.factor({{ y }}))) %>%
+    dplyr::group_by({{ y }}) %>%
+    dplyr::summarise({{ x }} := mean({{ x }}, na.rm = TRUE)) %>%
+    dplyr::ungroup(.) %>%
     # rank ordering the data
-    dplyr::arrange(.data = ., {{ x }}) %>%
+    dplyr::arrange({{ x }}) %>%
     dplyr::mutate(
-      .data = .,
       percent_rank = dplyr::percent_rank({{ x }}),
       rank = dplyr::row_number()
-    ) %>%
-    as_tibble(.)
+    )
 
   # ================ stats labels ==========================================
 
@@ -117,9 +115,10 @@ ggdotplotstats <- function(data,
     # preparing the BF message for NULL
     if (isTRUE(bf.message) && type == "parametric") {
       caption <-
-        statsExpressions::bf_ttest(
+        statsExpressions::expr_t_onesample(
           data = data,
           x = {{ x }},
+          type = "bayes",
           test.value = test.value,
           bf.prior = bf.prior,
           top.text = caption,
@@ -139,13 +138,14 @@ ggdotplotstats <- function(data,
         effsize.type = effsize.type,
         conf.level = conf.level,
         nboot = nboot,
+        tr = tr,
         k = k
       )
   }
 
   # return early if anything other than plot
   if (output != "plot") {
-    return(switch(EXPR = output, "caption" = caption, subtitle))
+    return(switch(output, "caption" = caption, subtitle))
   }
 
   # ------------------------------ basic plot ----------------------------
@@ -173,27 +173,21 @@ ggdotplotstats <- function(data,
       sec.axis = ggplot2::dup_axis(name = ggplot2::element_blank())
     )
 
-  # ====================== centrality line and label ========================
-
-  # computing statistics needed for displaying labels
-  y_label_pos <- median(ggplot2::layer_scales(plot)$y$range$range, na.rm = TRUE)
+  # ---------------- centrality tagging -------------------------------------
 
   # using custom function for adding labels
-  plot <-
-    histo_labeller(
-      plot = plot,
-      x = data %>% dplyr::pull({{ x }}),
-      y.label.position = y_label_pos,
-      test.value = test.value,
-      test.k = test.k,
-      test.value.line = test.value.line,
-      test.value.line.args = test.value.line.args,
-      test.value.label.args = test.value.label.args,
-      centrality.parameter = centrality.parameter,
-      centrality.k = centrality.k,
-      centrality.line.args = centrality.line.args,
-      centrality.label.args = centrality.label.args
-    )
+  if (isTRUE(centrality.plotting)) {
+    plot <-
+      histo_labeller(
+        plot = plot,
+        x = data %>% dplyr::pull({{ x }}),
+        type = type,
+        tr = tr,
+        centrality.k = centrality.k,
+        centrality.line.args = centrality.line.args,
+        centrality.label.args = centrality.label.args
+      )
+  }
 
   # ------------------------ annotations and themes -------------------------
 
@@ -206,10 +200,7 @@ ggdotplotstats <- function(data,
       subtitle = subtitle,
       caption = caption
     ) +
-    ggstatsplot::theme_ggstatsplot(
-      ggtheme = ggtheme,
-      ggstatsplot.layer = ggstatsplot.layer
-    ) +
+    theme_ggstatsplot(ggtheme = ggtheme, ggstatsplot.layer = ggstatsplot.layer) +
     ggplot2::theme(
       legend.position = "none",
       panel.grid.major.y = ggplot2::element_line(
@@ -219,9 +210,6 @@ ggdotplotstats <- function(data,
       )
     )
 
-  # ---------------- adding ggplot component ---------------------------------
-
-  # if any additional modification needs to be made to the plot
-  # this is primarily useful for grouped_ variant of this function
-  return(plot + ggplot.component)
+  # adding ggplot component
+  plot + ggplot.component
 }

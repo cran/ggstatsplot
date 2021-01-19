@@ -1,15 +1,21 @@
 #' @title Grouped histograms for distribution of a numeric variable
 #' @name grouped_gghistostats
-#' @description Helper function for `ggstatsplot::gghistostats` to apply this
-#'   function across multiple levels of a given factor and combining the
-#'   resulting plots using `ggstatsplot::combine_plots`.
+#'
+#'
+#' @description
+#'
+#' \Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+#'
+#' Helper function for `ggstatsplot::gghistostats` to apply this function
+#' across multiple levels of a given factor and combining the resulting plots
+#' using `ggstatsplot::combine_plots2`.
 #'
 #' @inheritParams gghistostats
 #' @inheritParams grouped_ggbetweenstats
 #' @inheritDotParams gghistostats -title
 #'
 #' @importFrom dplyr select bind_rows
-#' @importFrom rlang !! enquo quo_name ensym
+#' @importFrom rlang ensym as_name
 #' @importFrom purrr pmap
 #' @importFrom tidyr drop_na
 #'
@@ -35,7 +41,6 @@
 #'     ggplot2::scale_x_continuous(breaks = seq(3, 9, 1), limits = (c(3, 9))),
 #'     ggplot2::scale_y_continuous(breaks = seq(0, 25, 5), limits = (c(0, 25)))
 #'   ),
-#'   messages = FALSE,
 #'   plotgrid.args = list(nrow = 1, labels = c("(i)", "(ii)", "(iii)")),
 #' )
 #' }
@@ -80,9 +85,7 @@ grouped_gghistostats <- function(data,
   bincount <- as.integer(data %>% dplyr::count(.))
 
   # adding some binwidth sanity checking
-  if (is.null(binwidth)) {
-    binwidth <- (binmax - binmin) / sqrt(bincount)
-  }
+  if (is.null(binwidth)) binwidth <- (binmax - binmin) / sqrt(bincount)
 
   # ======================== preparing dataframe ============================
 

@@ -1,9 +1,9 @@
 # grouped_ggdotplotstats works -----------------------------------------------
 
-testthat::test_that(
+test_that(
   desc = "grouped_ggdotplotstats works",
   code = {
-    testthat::skip_on_cran()
+    skip_on_cran()
 
     # for reproducibility
     set.seed(123)
@@ -30,7 +30,6 @@ testthat::test_that(
       point.shape = 13,
       test.value.line = TRUE,
       ggtheme = ggplot2::theme_classic(),
-      messages = FALSE,
       title.text = "Fuel economy data"
     )
 
@@ -46,22 +45,21 @@ testthat::test_that(
       ggplot.component = ggplot2::scale_y_continuous(
         sec.axis = ggplot2::dup_axis(name = "percentile score"),
         breaks = seq(0, 12, 2)
-      ),
-      messages = FALSE
+      )
     )
 
     # testing output objects are ggplot
-    testthat::expect_true(inherits(p1, what = "gg"))
-    testthat::expect_true(inherits(p2, what = "gg"))
+    expect_true(inherits(p1, what = "gg"))
+    expect_true(inherits(p2, what = "gg"))
   }
 )
 
 # subtitle output --------------------------------------------------
 
-testthat::test_that(
+test_that(
   desc = "subtitle output",
   code = {
-    testthat::skip_on_cran()
+    skip_on_cran()
 
     # removing factor level with very few no. of observations
     df <- dplyr::filter(.data = ggplot2::mpg, cyl %in% c("4"))
@@ -75,8 +73,7 @@ testthat::test_that(
         y = manufacturer,
         grouping.var = "cyl",
         test.value = 15.5,
-        output = "subtitle",
-        messages = FALSE
+        output = "subtitle"
       )
 
     set.seed(123)
@@ -86,12 +83,11 @@ testthat::test_that(
         x = "cty",
         y = manufacturer,
         test.value = 15.5,
-        output = "subtitle",
-        messages = FALSE
+        output = "subtitle"
       )
 
     # tests
-    testthat::expect_equal(length(ls_results), 1L)
-    testthat::expect_identical(ls_results$`4`, basic_results)
+    expect_equal(length(ls_results), 1L)
+    expect_identical(ls_results$`4`, basic_results)
   }
 )

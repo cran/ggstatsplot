@@ -1,8 +1,13 @@
 #' @title Scatterplot with marginal distributions and statistical results
 #' @name ggscatterstats
-#' @description Scatterplots from `ggplot2` combined with marginal
-#'   histograms/boxplots/density plots with statistical details added as a
-#'   subtitle.
+#'
+#' @description
+#'
+#' \Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+#'
+#' Scatterplots from `ggplot2` combined with marginal
+#' histograms/boxplots/density plots with statistical details added as a
+#' subtitle.
 #'
 #' @param ... Currently ignored.
 #' @param label.var Variable to use for points labels. Can be entered either as
@@ -33,7 +38,6 @@
 #'  marginal distributions (default: `"#009E73"` (for `x`) and `"#D55E00"` (for
 #'  `y`)). Note that the defaults are colorblind-friendly.
 #' @inheritParams statsExpressions::expr_corr_test
-#' @inheritParams ggplot2::geom_smooth
 #' @inheritParams theme_ggstatsplot
 #' @inheritParams ggbetweenstats
 #' @inheritParams ggExtra::ggMarginal
@@ -46,7 +50,7 @@
 #' @importFrom rlang !! enquo quo_name parse_expr ensym as_name enexpr exec !!!
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom ggExtra ggMarginal
-#' @importFrom statsExpressions expr_corr_test bf_corr_test
+#' @importFrom statsExpressions expr_corr_test
 #'
 #' @seealso \code{\link{grouped_ggscatterstats}}, \code{\link{ggcorrmat}},
 #' \code{\link{grouped_ggcorrmat}}
@@ -65,10 +69,8 @@
 #' times will slow down massively (and the plot file will grow in size) if you
 #' have a lot of labels that overlap.
 #'
-#' - The statistical analysis is available only for linear model (`formula = y ~ x`
-#' and `method = 'lm'`. If these arguments are different, only plot will be returned.
-#'
 #' @examples
+#' \donttest{
 #' # to get reproducible results from bootstrapping
 #' set.seed(123)
 #' library(ggstatsplot)
@@ -82,8 +84,14 @@
 #'   x = wt,
 #'   y = mpg,
 #'   label.var = car,
-#'   label.expression = wt < 4 & mpg < 20
+#'   label.expression = wt < 4 & mpg < 20,
+#'   # making further customizations with `ggplot2` functions
+#'   ggplot.component = list(ggplot2::scale_y_continuous(
+#'     limits = c(5, 35),
+#'     breaks = seq(5, 35, 5)
+#'   ))
 #' )
+#' }
 #' @export
 
 # defining the function
@@ -96,25 +104,19 @@ ggscatterstats <- function(data,
                            bf.message = TRUE,
                            beta = 0.1,
                            k = 2L,
+                           results.subtitle = TRUE,
                            label.var = NULL,
                            label.expression = NULL,
                            point.label.args = list(size = 3),
-                           formula = y ~ x,
                            smooth.line.args = list(size = 1.5, color = "blue"),
-                           method = "lm",
-                           method.args = list(),
                            point.args = list(size = 3, alpha = 0.4),
                            point.width.jitter = 0,
                            point.height.jitter = 0,
                            marginal = TRUE,
-                           marginal.type = "histogram",
-                           margins = "both",
+                           marginal.type = "densigram",
                            marginal.size = 5,
                            xfill = "#009E73",
                            yfill = "#D55E00",
-                           xparams = list(fill = xfill),
-                           yparams = list(fill = yfill),
-                           results.subtitle = TRUE,
                            xlab = NULL,
                            ylab = NULL,
                            title = NULL,
@@ -140,30 +142,10 @@ ggscatterstats <- function(data,
   if (is.null(xlab)) xlab <- rlang::as_name(x)
   if (is.null(ylab)) ylab <- rlang::as_name(y)
 
-  #----------------------- linear model check ----------------------------
-
-  # subtitle statistics is valid only for linear models, so turn off the
-  # analysis if the model is not linear
-  # `method` argument can be a string (`"gam"`) or function (`MASS::rlm`)
-  method_ch <- paste(deparse(method), collapse = "")
-
-  # check the formula and the method
-  if (as.character(deparse(formula)) != "y ~ x" ||
-    if (class(method) == "function") {
-      method_ch != paste(deparse(lm), collapse = "")
-    } else {
-      method != "lm"
-    }) {
-    # turn off the analysis
-    results.subtitle <- FALSE
-  }
-
   #----------------------- dataframe ---------------------------------------
 
   # preparing the dataframe
-  data %<>%
-    dplyr::filter(.data = ., !is.na({{ x }}), !is.na({{ y }})) %>%
-    as_tibble(.)
+  data %<>% dplyr::filter(!is.na({{ x }}), !is.na({{ y }}))
 
   #----------------------- creating results subtitle ------------------------
 
@@ -172,10 +154,11 @@ ggscatterstats <- function(data,
     # preparing the BF message for null hypothesis support
     if (type == "parametric" && isTRUE(bf.message)) {
       caption <-
-        statsExpressions::bf_corr_test(
+        statsExpressions::expr_corr_test(
           data = data,
           x = {{ x }},
           y = {{ y }},
+          type = "bayes",
           bf.prior = bf.prior,
           top.text = caption,
           output = "expression",
@@ -198,11 +181,7 @@ ggscatterstats <- function(data,
 
   # quit early if only subtitle is needed
   if (output %in% c("subtitle", "caption")) {
-    return(switch(
-      EXPR = output,
-      "subtitle" = subtitle,
-      "caption" = caption
-    ))
+    return(switch(output, "subtitle" = subtitle, "caption" = caption))
   }
 
   #---------------------------- user expression -------------------------
@@ -256,9 +235,8 @@ ggscatterstats <- function(data,
     ) +
     rlang::exec(
       .fn = ggplot2::geom_smooth,
-      method = method,
-      method.args = method.args,
-      formula = formula,
+      method = "lm",
+      formula = y ~ x,
       level = conf.level,
       na.rm = TRUE,
       !!!smooth.line.args
@@ -292,25 +270,20 @@ ggscatterstats <- function(data,
       subtitle = subtitle,
       caption = caption
     ) +
-    ggstatsplot::theme_ggstatsplot(
-      ggtheme = ggtheme,
-      ggstatsplot.layer = ggstatsplot.layer
-    ) +
+    theme_ggstatsplot(ggtheme = ggtheme, ggstatsplot.layer = ggstatsplot.layer) +
     ggplot.component
 
   #------------------------- ggMarginal  ---------------------------------
 
   # creating the `ggMarginal` plot of a given `marginal.type`
   if (isTRUE(marginal)) {
-    # adding marginals to plot
     plot <-
       ggExtra::ggMarginal(
         p = plot,
         type = marginal.type,
-        margins = margins,
         size = marginal.size,
-        xparams = xparams,
-        yparams = yparams
+        xparams = list(fill = xfill),
+        yparams = list(fill = yfill)
       )
   }
 

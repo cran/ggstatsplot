@@ -1,16 +1,20 @@
 #' @title Grouped histograms for distribution of a labeled numeric variable
 #' @name grouped_ggdotplotstats
-#' @description Helper function for `ggstatsplot::ggdotplotstats` to apply this
-#'   function across multiple levels of a given factor and combining the
-#'   resulting plots using `ggstatsplot::combine_plots`.
-#' @author \href{https://github.com/IndrajeetPatil}{Indrajeet Patil}
+#'
+#' @description
+#'
+#' \Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+#'
+#' Helper function for `ggstatsplot::ggdotplotstats` to apply this function
+#' across multiple levels of a given factor and combining the resulting plots
+#' using `ggstatsplot::combine_plots2`.
 #'
 #' @inheritParams ggdotplotstats
 #' @inheritParams grouped_ggbetweenstats
 #' @inheritDotParams ggdotplotstats -title
 #'
-#' @importFrom dplyr select bind_rows summarize mutate mutate_at mutate_if group_by
-#' @importFrom rlang !! enquo quo_name ensym
+#' @importFrom dplyr select
+#' @importFrom rlang as_name ensym
 #' @importFrom purrr pmap
 #'
 #' @seealso \code{\link{grouped_gghistostats}}, \code{\link{ggdotplotstats}},
@@ -30,17 +34,16 @@
 #' # plot
 #' ggstatsplot::grouped_ggdotplotstats(
 #'   data = df,
-#'   x = "cty",
-#'   y = "manufacturer",
-#'   grouping.var = "cyl",
+#'   x = cty,
+#'   y = manufacturer,
+#'   grouping.var = cyl,
 #'   test.value = 15.5,
 #'   title.prefix = "cylinder count",
 #'   ggplot.component = ggplot2::scale_x_continuous(
 #'     sec.axis = ggplot2::dup_axis(),
 #'     limits = c(12, 24),
 #'     breaks = seq(12, 24, 2)
-#'   ),
-#'   messages = FALSE
+#'   )
 #' )
 #' }
 #' @export
@@ -63,13 +66,8 @@ grouped_ggdotplotstats <- function(data,
 
   # ======================== preparing dataframe ============================
 
-  # ensure the grouping variable works quoted or unquoted
-  x <- rlang::ensym(x)
-  y <- rlang::ensym(y)
-  grouping.var <- rlang::ensym(grouping.var)
-
   # if `title.prefix` is not provided, use the variable `grouping.var` name
-  if (is.null(title.prefix)) title.prefix <- rlang::as_name(grouping.var)
+  if (is.null(title.prefix)) title.prefix <- rlang::as_name(rlang::ensym(grouping.var))
 
   # creating a dataframe
   df <-

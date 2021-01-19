@@ -1,8 +1,13 @@
 #' @title Grouped bar (column) charts with statistical tests
 #' @name grouped_ggbarstats
-#' @description Helper function for `ggstatsplot::ggbarstats` to apply this
-#'   function across multiple levels of a given factor and combining the
-#'   resulting plots using `ggstatsplot::combine_plots`.
+#'
+#' @description
+#'
+#' \Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+#'
+#' Helper function for `ggstatsplot::ggbarstats` to apply this function across
+#' multiple levels of a given factor and combining the resulting plots using
+#' `ggstatsplot::combine_plots2`.
 #'
 #' @inheritParams ggbarstats
 #' @inheritParams grouped_ggbetweenstats
@@ -22,6 +27,7 @@
 #' @inherit ggbarstats return return
 #'
 #' @examples
+#' \donttest{
 #' # for reproducibility
 #' set.seed(123)
 #'
@@ -38,11 +44,10 @@
 #'   x = color,
 #'   y = clarity,
 #'   grouping.var = cut,
-#'   results.subtitle = FALSE,
 #'   title.prefix = "Quality",
-#'   bar.label = "both",
 #'   plotgrid.args = list(nrow = 2)
 #' )
+#' }
 #' @export
 
 # defining the function
@@ -62,18 +67,10 @@ grouped_ggbarstats <- function(data,
                                sub.text = NULL,
                                sub.args = list(size = 12)) {
 
-  # ======================== check user input =============================
-
-  # ensure the grouping variable works quoted or unquoted
-  grouping.var <- rlang::ensym(grouping.var)
-  x <- rlang::ensym(x)
-  y <- if (!rlang::quo_is_null(rlang::enquo(y))) rlang::ensym(y)
-  counts <- if (!rlang::quo_is_null(rlang::enquo(counts))) rlang::ensym(counts)
+  # ======================== preparing dataframe =============================
 
   # if `title.prefix` is not provided, use the variable `grouping.var` name
-  if (is.null(title.prefix)) title.prefix <- rlang::as_name(grouping.var)
-
-  # ======================== preparing dataframe =============================
+  if (is.null(title.prefix)) title.prefix <- rlang::as_name(rlang::ensym(grouping.var))
 
   # creating a dataframe
   df <-

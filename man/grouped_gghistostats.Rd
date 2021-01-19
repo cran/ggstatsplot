@@ -47,12 +47,6 @@ results.}
 \item{...}{
   Arguments passed on to \code{\link[=gghistostats]{gghistostats}}
   \describe{
-    \item{\code{bar.measure}}{Character describing what value needs to be represented as
-height in the bar chart. This can either be \code{"count"}, which shows number
-of points in bin, or \code{"density"}, which density of points in bin, scaled to
-integrate to 1, or "\code{proportion}", which shows relative frequencies of
-observations in each bin, or "\code{mix}", which shows \emph{both} count and
-proportion in the same plot.}
     \item{\code{normal.curve}}{A logical value that decides whether to super-impose a
 normal curve using \code{stats::dnorm(mean(x), sd(x))}. Default is \code{FALSE}.}
     \item{\code{normal.curve.args}}{A list of additional aesthetic arguments to be
@@ -73,23 +67,15 @@ argument can be \code{"d"} (for Cohen's \emph{d}) or \code{"g"} (for Hedge's \em
 \verb{95\%} confidence/credible intervals (\code{0.95}).}
     \item{\code{nboot}}{Number of bootstrap samples for computing confidence interval
 for the effect size (Default: \code{100}).}
+    \item{\code{tr}}{Trim level for the mean when carrying out \code{robust} tests. If you
+get error stating "Standard error cannot be computed because of Winsorized
+variance of 0 (e.g., due to ties). Try to decrease the trimming level.",
+try to play around with the value of \code{tr}, which is by default set to
+\code{0.1}. Lowering the value might help.}
     \item{\code{k}}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2L}).}
-    \item{\code{test.k}}{Integer denoting the number of decimal places expected for
-\code{test.value} label. (Default: \code{0} ).}
-    \item{\code{test.value.line}}{Logical that decides whether a line corresponding to
-the \code{test.value} should be superimposed on the plot.}
-    \item{\code{test.value.line.args}}{A list of additional
-aesthetic arguments to be passed to the \code{geom_line} used to display the
-lines corresponding to the centrality parameter and test value.}
-    \item{\code{test.value.label.args}}{A list of additional
-aesthetic arguments to be passed to the \code{geom_label} used to display the
-label corresponding to the centrality parameter and test value.}
-    \item{\code{centrality.parameter}}{Decides \emph{which} measure of central tendency
-(\code{"mean"} or \code{"median"}) is to be displayed as a vertical line. To not show
-any parameter, set this to \code{"none"}.}
     \item{\code{centrality.k}}{Integer denoting the number of decimal places expected
-for centrality parameter label. (Default: \code{2}).}
+for centrality parameter label. (Default: \code{2L}).}
     \item{\code{centrality.line.args}}{A list of additional
 aesthetic arguments to be passed to the \code{geom_line} used to display the
 lines corresponding to the centrality parameter and test value.}
@@ -115,10 +101,15 @@ override some aspects of the selected \code{ggtheme}.}
     \item{\code{results.subtitle}}{Decides whether the results of statistical tests are
 to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
 the plot will be returned.}
+    \item{\code{centrality.plotting}}{Logical that decides whether centrality tendency measure
+is to be displayed as a point with a label (Default: \code{TRUE}). Function
+decides which central tendency measure to show depending on the \code{type}
+argument (\strong{mean} for parametric, \strong{median} for non-parametric,
+\strong{trimmed mean} for robust, and \strong{MAP estimator} for Bayes).}
     \item{\code{ggplot.component}}{A \code{ggplot} component to be added to the plot prepared
-by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
-of the current function. Default is \code{NULL}. The argument should be entered
-as a function.}
+by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_}
+variants of all primary functions. Default is \code{NULL}. The argument should
+be entered as a \code{ggplot2} function or a list of \code{ggplot2} functions.}
   }}
 
 \item{plotgrid.args}{A list of additional arguments to \code{cowplot::plot_grid}.}
@@ -142,9 +133,11 @@ Can be a plotmath expression.}
 provided to \code{title}, \code{caption} and \code{sub}, resp.}
 }
 \description{
-Helper function for \code{ggstatsplot::gghistostats} to apply this
-function across multiple levels of a given factor and combining the
-resulting plots using \code{ggstatsplot::combine_plots}.
+\Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+
+Helper function for \code{ggstatsplot::gghistostats} to apply this function
+across multiple levels of a given factor and combining the resulting plots
+using \code{ggstatsplot::combine_plots2}.
 }
 \examples{
 \donttest{
@@ -162,7 +155,6 @@ ggstatsplot::grouped_gghistostats(
     ggplot2::scale_x_continuous(breaks = seq(3, 9, 1), limits = (c(3, 9))),
     ggplot2::scale_y_continuous(breaks = seq(0, 25, 5), limits = (c(0, 25)))
   ),
-  messages = FALSE,
   plotgrid.args = list(nrow = 1, labels = c("(i)", "(ii)", "(iii)")),
 )
 }

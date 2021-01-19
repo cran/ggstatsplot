@@ -47,7 +47,7 @@ on <http://fueleconomy.gov>.
 
 ```{r mpg}
 # looking at the structure of the data using glimpse
-dplyr::glimpse(x = ggplot2::mpg)
+dplyr::glimpse(ggplot2::mpg)
 ```
 
 Let's say we want to visualize the distribution of mileage by car manufacturer. 
@@ -80,7 +80,6 @@ ggstatsplot::ggdotplotstats(
     color = paletter_vector,
     size = 5
   ),
-  test.value.line = TRUE,
   title = "Distribution of mileage of cars",
   ggtheme = hrbrthemes::theme_ipsum_ps(),
   ggstatsplot.layer = FALSE
@@ -117,7 +116,7 @@ ggstatsplot::grouped_ggdotplotstats(
   xlab = "city miles per gallon",
   ylab = "car manufacturer",
   grouping.var = cyl, # grouping variable
-  type = "bayes", # bayes factor test
+  type = "bayes", # Bayesian test
   test.value = 15.5,
   title.prefix = "cylinder count",
   point.args = list(
@@ -125,7 +124,6 @@ ggstatsplot::grouped_ggdotplotstats(
     size = 5,
     shape = 13
   ),
-  test.value.line = TRUE,
   ggtheme = ggthemes::theme_fivethirtyeight(),
   # arguments relevant for ggstatsplot::combine_plots
   title.text = "Fuel economy data",
@@ -148,25 +146,35 @@ See the associated vignette here:
 
 ## Summary of tests
 
+The central tendency measure displayed will depend on the statistics:
+
+Type | Measure | Function used
+----------- | --------- | ------------------ 
+Parametric | mean | `parameters::describe_distribution`
+Non-parametric | median | `parameters::describe_distribution`
+Robust | trimmed mean | `parameters::describe_distribution`
+Bayesian | MAP estimate | `parameters::describe_distribution`
+
+MAP: maximum a posteriori probability
+
 Following tests are carried out for each type of analyses-
 
-Type | Test | Function
+Type | Test | Function used
 ------------------ | ------------------------- | -----
 Parametric | One-sample Student's *t*-test | `stats::t.test`
 Non-parametric | One-sample Wilcoxon test | `stats::wilcox.test`
-Robust | One-sample percentile bootstrap | `WRS2::onesampb`
-Bayes Factor | One-sample Student's *t*-test | `BayesFactor::ttestBF`
+Robust | Bootstrap-*t* method for one-sample test | `trimcibt` (custom)
+Bayesian | One-sample Student's *t*-test | `BayesFactor::ttestBF`
 
 Following effect sizes (and confidence intervals/CI) are available for each type
 of test-
 
-Type | Effect size | CI? | Function
+Type | Effect size | CI? | Function used
 ------------ | ----------------------- | --- | -----
 Parametric | Cohen's *d*, Hedge's *g* | <font color="green">Yes<font> | `effectsize::cohens_d`, `effectsize::hedges_g`
-Non-parametric | *r* | <font color="green">Yes<font> | `rcompanion::wilcoxonOneSampleR`
-Robust | robust location measure | <font color="green">Yes<font> | `WRS2::onesampb`
+Non-parametric | *r* (rank-biserial correlation) | <font color="green">Yes<font> | `effectsize::rank_biserial`
+Robust | trimmed mean | <font color="green">Yes<font> | `trimcibt` (custom)
 Bayes Factor | $\delta_{posterior}$ | <font color="green">Yes<font> | `bayestestR::describe_posterior`
-
 
 ## Effect size interpretation
 

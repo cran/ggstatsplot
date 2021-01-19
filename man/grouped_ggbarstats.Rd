@@ -71,7 +71,7 @@ This means if there are two levels this will be \code{ratio = c(0.5,0.5)} or if
 there are four levels this will be \code{ratio = c(0.25,0.25,0.25,0.25)}, etc.}
     \item{\code{paired}}{Logical indicating whether data came from a within-subjects or
 repeated measures design study (Default: \code{FALSE}). If \code{TRUE}, McNemar's
-test subtitle will be returned. If \code{FALSE}, Pearson's chi-square test will
+test expression will be returned. If \code{FALSE}, Pearson's chi-square test will
 be returned.}
     \item{\code{results.subtitle}}{Decides whether the results of statistical tests are
 to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
@@ -122,9 +122,9 @@ be extracted. The available palettes and packages can be checked by running
 be extracted. The available palettes and packages can be checked by running
 \code{View(paletteer::palettes_d_names)}.}
     \item{\code{ggplot.component}}{A \code{ggplot} component to be added to the plot prepared
-by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
-of the current function. Default is \code{NULL}. The argument should be entered
-as a function.}
+by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_}
+variants of all primary functions. Default is \code{NULL}. The argument should
+be entered as a \code{ggplot2} function or a list of \code{ggplot2} functions.}
   }}
 
 \item{plotgrid.args}{A list of additional arguments to \code{cowplot::plot_grid}.}
@@ -148,11 +148,14 @@ Can be a plotmath expression.}
 provided to \code{title}, \code{caption} and \code{sub}, resp.}
 }
 \description{
-Helper function for \code{ggstatsplot::ggbarstats} to apply this
-function across multiple levels of a given factor and combining the
-resulting plots using \code{ggstatsplot::combine_plots}.
+\Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+
+Helper function for \code{ggstatsplot::ggbarstats} to apply this function across
+multiple levels of a given factor and combining the resulting plots using
+\code{ggstatsplot::combine_plots2}.
 }
 \examples{
+\donttest{
 # for reproducibility
 set.seed(123)
 
@@ -169,11 +172,10 @@ ggstatsplot::grouped_ggbarstats(
   x = color,
   y = clarity,
   grouping.var = cut,
-  results.subtitle = FALSE,
   title.prefix = "Quality",
-  bar.label = "both",
   plotgrid.args = list(nrow = 2)
 )
+}
 }
 \seealso{
 \code{\link{ggbarstats}}, \code{\link{ggpiestats}},

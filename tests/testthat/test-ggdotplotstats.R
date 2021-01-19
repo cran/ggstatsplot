@@ -1,15 +1,14 @@
 # ggdotplotstats works ----------------------------------------------
 
-testthat::test_that(
+test_that(
   desc = "ggdotplotstats works as expected",
   code = {
-    testthat::skip_on_cran()
+    skip_on_cran()
 
     # creating a new dataset
     morley_new <-
-      morley %>%
       dplyr::mutate(
-        .data = .,
+        .data = morley,
         Expt = dplyr::case_when(
           Expt == 1 ~ "1st",
           Expt == 2 ~ "2nd",
@@ -17,13 +16,12 @@ testthat::test_that(
           Expt == 4 ~ "4th",
           Expt == 5 ~ "5th"
         )
-      ) %>%
-      as_tibble(x = .)
+      )
 
     # creating the plot
     set.seed(123)
     p <-
-      ggstatsplot::ggdotplotstats(
+      suppressMessages(ggstatsplot::ggdotplotstats(
         data = morley_new,
         x = Speed,
         y = "Expt",
@@ -31,7 +29,6 @@ testthat::test_that(
         type = "p",
         k = 4,
         effsize.type = "d",
-        effsize.noncentral = FALSE,
         title = "Michelson-Morley experiment",
         caption = "Studies carried out in 1887",
         xlab = substitute(paste("Speed of light (", italic("c"), ")")),
@@ -41,11 +38,8 @@ testthat::test_that(
           breaks = seq(800, 900, 10),
           sec.axis = ggplot2::dup_axis()
         ),
-        bf.prior = 0.88,
-        test.value.line = TRUE,
-        centrality.parameter = "mean",
-        messages = TRUE
-      )
+        bf.prior = 0.88
+      ))
 
     # build the plot
     pb <- ggplot2::ggplot_build(p)
@@ -60,34 +54,33 @@ testthat::test_that(
         test.value = 800,
         type = "p",
         k = 4,
-        effsize.type = "d",
-        effsize.noncentral = FALSE,
-        messages = FALSE
+        effsize.type = "d"
       )
 
     # testing labels
-    testthat::expect_identical(
+    expect_identical(
       p$labels$x,
       ggplot2::expr(paste("Speed of light (", italic("c"), ")"))
     )
-    testthat::expect_identical(pb$plot$labels$y, "Experimental run")
-    testthat::expect_identical(pb$plot$labels$title, "Michelson-Morley experiment")
+    expect_identical(pb$plot$labels$y, "Experimental run")
+    expect_identical(pb$plot$labels$title, "Michelson-Morley experiment")
 
     # checking panel parameters
-    testthat::expect_equal(
+    expect_equal(
       pb$layout$panel_params[[1]]$x$scale$range$range,
-      c(800, 909)
+      c(820.5, 909.0),
+      tolerance = 0.001
     )
-    testthat::expect_equal(
+    expect_equal(
       pb$layout$panel_params[[1]]$x$breaks,
-      c(800, 810, 820, 830, 840, 850, 860, 870, 880, 890, 900)
+      c(NA, NA, 820, 830, 840, 850, 860, 870, 880, 890, 900)
     )
-    testthat::expect_equal(
+    expect_equal(
       pb$layout$panel_params[[1]]$y.range,
       c(0.8, 5.2),
       tolerance = 0.001
     )
-    testthat::expect_identical(
+    expect_identical(
       pb$layout$panel_params[[1]]$y$scale$labels,
       structure(
         c(4L, 5L, 3L, 2L, 1L),
@@ -98,7 +91,7 @@ testthat::test_that(
         class = "factor"
       )
     )
-    testthat::expect_equal(
+    expect_equal(
       pb$layout$panel_params[[1]]$y.sec$break_info,
       list(
         range = c(0.8, 5.2),
@@ -137,11 +130,12 @@ testthat::test_that(
           1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5,
           5
         )
-      )
+      ),
+      tolerance = 0.01
     )
 
     # geom data
-    testthat::expect_equal(
+    expect_equal(
       pb$data[[1]],
       structure(
         list(
@@ -158,59 +152,31 @@ testthat::test_that(
         ),
         row.names = c(NA, -5L),
         class = "data.frame"
-      )
+      ),
+      tolerance = 0.001
     )
 
-    testthat::expect_equal(
+    expect_equal(
       pb$data[[2]],
       structure(
         list(
-          xintercept = 800,
+          xintercept = 852,
           PANEL = structure(1L, .Label = "1", class = "factor"),
           group = structure(c(-1L), n = 1L),
-          colour = "black",
+          colour = "blue",
           size = 1,
           linetype = "dashed",
           alpha = NA
         ),
         row.names = c(NA, -1L),
         class = "data.frame"
-      )
+      ),
+      tolerance = 0.001
     )
 
-    testthat::expect_equal(
-      pb$data[[3]],
-      structure(
-        list(
-          y = c(2.25, 2.25, 2.25, 2.25, 2.25),
-          x = c(800, 800, 800, 800, 800),
-          label = list(
-            ggplot2::expr("test" == "800"),
-            ggplot2::expr("test" == "800"),
-            ggplot2::expr("test" == "800"),
-            ggplot2::expr("test" == "800"),
-            ggplot2::expr("test" == "800")
-          ),
-          PANEL = structure(c(1L, 1L, 1L, 1L, 1L), class = "factor", .Label = "1"),
-          group = structure(c(-1L, -1L, -1L, -1L, -1L), n = 1L),
-          colour = c("black", "black", "black", "black", "black"),
-          fill = c("white", "white", "white", "white", "white"),
-          size = c(3, 3, 3, 3, 3),
-          angle = c(0, 0, 0, 0, 0),
-          hjust = c(0.5, 0.5, 0.5, 0.5, 0.5),
-          vjust = c(0.5, 0.5, 0.5, 0.5, 0.5),
-          alpha = c(0.5, 0.5, 0.5, 0.5, 0.5),
-          family = c("", "", "", "", ""),
-          fontface = c(1, 1, 1, 1, 1),
-          lineheight = c(1.2, 1.2, 1.2, 1.2, 1.2)
-        ),
-        row.names = c(NA, -5L),
-        class = "data.frame"
-      )
-    )
 
-    testthat::expect_equal(
-      pb$data[[4]],
+    expect_equal(
+      pb$data[[2]],
       structure(
         list(
           xintercept = 852.4,
@@ -223,21 +189,22 @@ testthat::test_that(
         ),
         row.names = c(NA, -1L),
         class = "data.frame"
-      )
+      ),
+      tolerance = 0.001
     )
 
-    testthat::expect_equal(
-      pb$data[[5]],
+    expect_equal(
+      pb$data[[3]],
       structure(
         list(
           y = c(3.75, 3.75, 3.75, 3.75, 3.75),
           x = c(852.4, 852.4, 852.4, 852.4, 852.4),
-          label = list(
-            ggplot2::expr("mean" == "852.40"),
-            ggplot2::expr("mean" == "852.40"),
-            ggplot2::expr("mean" == "852.40"),
-            ggplot2::expr("mean" == "852.40"),
-            ggplot2::expr("mean" == "852.40")
+          label = c(
+            "list(~widehat(mu)[mean]=='852.40')",
+            "list(~widehat(mu)[mean]=='852.40')",
+            "list(~widehat(mu)[mean]=='852.40')",
+            "list(~widehat(mu)[mean]=='852.40')",
+            "list(~widehat(mu)[mean]=='852.40')"
           ),
           PANEL = structure(c(1L, 1L, 1L, 1L, 1L), class = "factor", .Label = "1"),
           group = structure(c(-1L, -1L, -1L, -1L, -1L), n = 1L),
@@ -254,17 +221,18 @@ testthat::test_that(
         ),
         row.names = c(NA, -5L),
         class = "data.frame"
-      )
+      ),
+      tolerance = 0.001
     )
   }
 )
 
 # messing with factors --------------------------------------------------
 
-testthat::test_that(
+test_that(
   desc = "messing with factors",
   code = {
-    testthat::skip_on_cran()
+    skip_on_cran()
 
     # creating a new label for the dataset
     df_msleep <- ggplot2::msleep
@@ -285,8 +253,7 @@ testthat::test_that(
         data = df_msleep,
         y = vore,
         x = brainwt,
-        results.subtitle = FALSE,
-        messages = FALSE
+        results.subtitle = FALSE
       )
 
     # plot with modified data
@@ -295,8 +262,7 @@ testthat::test_that(
         data = dplyr::filter(ggplot2::msleep, vore != "omni"),
         y = vore,
         x = brainwt,
-        results.subtitle = FALSE,
-        messages = FALSE
+        results.subtitle = FALSE
       )
 
     # build those plots
@@ -304,30 +270,30 @@ testthat::test_that(
     pb2 <- ggplot2::ggplot_build(p2)
 
     # tests
-    testthat::expect_identical(
+    expect_identical(
       levels(pb1$plot$data$vore),
       c("herbi", "insecti", "carni")
     )
-    testthat::expect_identical(
+    expect_identical(
       levels(pb2$plot$data$vore),
       c("carni", "herbi", "insecti")
     )
-    testthat::expect_identical(
+    expect_identical(
       dplyr::select(pb1$plot$data, -vore),
       dplyr::select(pb2$plot$data, -vore)
     )
-    testthat::expect_identical(pb1$data[[1]], pb2$data[[1]])
-    testthat::expect_identical(pb1$data[[2]], pb2$data[[2]])
-    testthat::expect_identical(pb1$data[[3]], pb2$data[[3]])
+    expect_identical(pb1$data[[1]], pb2$data[[1]])
+    expect_identical(pb1$data[[2]], pb2$data[[2]])
+    expect_identical(pb1$data[[3]], pb2$data[[3]])
   }
 )
 
 # subtitle output -------------------------------------------------------
 
-testthat::test_that(
+test_that(
   desc = "subtitle output",
   code = {
-    testthat::skip_on_cran()
+    skip_on_cran()
 
     # should output a list of length 3
     set.seed(123)
@@ -338,13 +304,12 @@ testthat::test_that(
         y = Expt,
         test.value = 800,
         output = "subtitle",
-        type = "np",
-        messages = FALSE
+        type = "np"
       ))
 
     # tests
     set.seed(123)
-    testthat::expect_identical(
+    expect_identical(
       p_sub,
       suppressWarnings(ggstatsplot::gghistostats(
         data = dplyr::group_by(.data = morley, Expt) %>%
@@ -352,8 +317,7 @@ testthat::test_that(
         x = mean,
         test.value = 800,
         output = "subtitle",
-        type = "np",
-        messages = FALSE
+        type = "np"
       ))
     )
   }

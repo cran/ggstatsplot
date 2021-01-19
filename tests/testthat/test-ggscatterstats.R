@@ -1,9 +1,9 @@
 # pearson's r with NAs ---------------------------------------------
 
-testthat::test_that(
+test_that(
   desc = "checking ggscatterstats - without NAs - pearson's r",
   code = {
-    testthat::skip_on_cran()
+    skip_on_cran()
 
     # creating the plot
     set.seed(123)
@@ -29,31 +29,68 @@ testthat::test_that(
     pb <- ggplot2::ggplot_build(p)
 
     # checking layer data
-    testthat::expect_equal(length(pb$data), 3L)
-    testthat::expect_equal(dim(pb$data[[1]]), c(83L, 10L))
-    testthat::expect_equal(dim(pb$data[[2]]), c(80L, 14L))
-    testthat::expect_equal(dim(pb$data[[3]]), c(2L, 15L))
+    expect_equal(length(pb$data), 3L)
+    expect_equal(dim(pb$data[[1]]), c(83L, 10L))
+    expect_equal(dim(pb$data[[2]]), c(80L, 14L))
 
     # checking outliers
-    testthat::expect_equal(
+    expect_equal(
       pb$data[[3]],
       structure(
         list(
           x = c(3.9, 3.3),
           y = c(2547, 6654),
-          label = c("Asian elephant", "African elephant"),
-          PANEL = structure(c(1L, 1L), class = "factor", .Label = "1"),
+          label = c(
+            "Asian elephant",
+            "African elephant"
+          ),
+          PANEL = structure(c(1L, 1L), .Label = "1", class = "factor"),
           group = structure(c(-1L, -1L), n = 1L),
-          colour = c("black", "black"),
+          colour = c(
+            "black",
+            "black"
+          ),
           fill = c("white", "white"),
           size = c(3, 3),
-          angle = c(0, 0),
+          angle = c(
+            0,
+            0
+          ),
           alpha = c(NA, NA),
           family = c("", ""),
-          fontface = c(1, 1),
+          fontface = c(
+            1,
+            1
+          ),
           lineheight = c(1.2, 1.2),
           hjust = c(0.5, 0.5),
-          vjust = c(0.5, 0.5)
+          vjust = c(
+            0.5,
+            0.5
+          ),
+          point.size = c(1, 1),
+          segment.linetype = c(1, 1),
+          segment.size = c(
+            0.5,
+            0.5
+          ),
+          segment.curvature = c(0, 0),
+          segment.angle = c(
+            90,
+            90
+          ),
+          segment.ncp = c(1, 1),
+          segment.shape = c(0.5, 0.5),
+          segment.square = c(TRUE, TRUE),
+          segment.squareShape = c(
+            1,
+            1
+          ),
+          segment.inflect = c(FALSE, FALSE),
+          segment.debug = c(
+            FALSE,
+            FALSE
+          )
         ),
         row.names = c(NA, -2L),
         class = "data.frame"
@@ -73,21 +110,22 @@ testthat::test_that(
     # subtitle
     set.seed(123)
     p_cap <-
-      statsExpressions::bf_corr_test(
+      statsExpressions::expr_corr_test(
         data = ggplot2::msleep,
         x = "sleep_total",
         y = bodywt,
         top.text = "ggplot2 dataset",
-        output = "expression"
+        output = "expression",
+        type = "bayes"
       )
 
     # checking plot labels
-    testthat::expect_identical(pb$plot$labels$caption, p_cap)
-    testthat::expect_identical(pb$plot$labels$title, "Mammalian sleep")
-    testthat::expect_identical(pb$plot$labels$subtitle, p_subtitle)
-    testthat::expect_identical(pb$plot$labels$x, "sleep (total)")
-    testthat::expect_identical(pb$plot$labels$y, "body weight")
-    testthat::expect_identical(
+    expect_identical(pb$plot$labels$caption, p_cap)
+    expect_identical(pb$plot$labels$title, "Mammalian sleep")
+    expect_identical(pb$plot$labels$subtitle, p_subtitle)
+    expect_identical(pb$plot$labels$x, "sleep (total)")
+    expect_identical(pb$plot$labels$y, "body weight")
+    expect_identical(
       pb$data[[3]]$label,
       c("Asian elephant", "African elephant")
     )
@@ -96,10 +134,10 @@ testthat::test_that(
 
 # spearman's rho with NAs ---------------------------------------------
 
-testthat::test_that(
+test_that(
   desc = "checking ggscatterstats - without NAs - spearman's rho",
   code = {
-    testthat::skip_on_cran()
+    skip_on_cran()
 
     # creating the plot
     set.seed(123)
@@ -130,19 +168,19 @@ testthat::test_that(
       )
 
     # testing data and annotations
-    testthat::expect_equal(length(pb$data), 2L)
-    testthat::expect_identical(pb$plot$labels$subtitle, p_subtitle)
-    testthat::expect_null(pb$plot$labels$caption, NULL)
+    expect_equal(length(pb$data), 2L)
+    expect_identical(pb$plot$labels$subtitle, p_subtitle)
+    expect_null(pb$plot$labels$caption, NULL)
   }
 )
 
 
 # percentage bend with NAs ---------------------------------------------
 
-testthat::test_that(
+test_that(
   desc = "checking ggscatterstats - without NAs - percentage bend",
   code = {
-    testthat::skip_on_cran()
+    skip_on_cran()
 
     # creating the plot
     set.seed(123)
@@ -174,21 +212,21 @@ testthat::test_that(
     # built plot
     pb <- ggplot2::ggplot_build(p)
 
-    testthat::expect_identical(pb$plot$labels$subtitle, p_subtitle)
+    expect_identical(pb$plot$labels$subtitle, p_subtitle)
 
     # checking layered data
-    testthat::expect_equal(unique(pb$data[[1]]$size), 5L)
-    testthat::expect_equal(unique(pb$data[[1]]$shape), 19L)
-    testthat::expect_identical(unique(pb$data[[1]]$colour), "red")
+    expect_equal(unique(pb$data[[1]]$size), 5L)
+    expect_equal(unique(pb$data[[1]]$shape), 19L)
+    expect_identical(unique(pb$data[[1]]$colour), "red")
   }
 )
 
 # bayes factor plus class of object -----------------------------------------
 
-testthat::test_that(
+test_that(
   desc = "bayes factor plus class of object",
   code = {
-    testthat::skip_on_cran()
+    skip_on_cran()
 
     # creating the plot
     set.seed(123)
@@ -216,24 +254,24 @@ testthat::test_that(
         type = "bf"
       )
 
-    testthat::expect_identical(class(p)[[1]], "ggExtraPlot")
-    testthat::expect_identical(
+    expect_identical(class(p)[[1]], "ggExtraPlot")
+    expect_identical(
       enframe(p$grobs[[23]]$children)$value[[1]][[1]],
       "mammalian sleep dataset"
     )
-    testthat::expect_identical(
+    expect_identical(
       enframe(p$grobs[[17]]$children)$value[[1]][[1]],
       "source: ggplot2 package"
     )
-    testthat::expect_identical(
+    expect_identical(
       enframe(p$grobs[[12]]$children)$value[[1]][[1]],
       "total sleep"
     )
-    testthat::expect_identical(
+    expect_identical(
       enframe(p$grobs[[13]]$children)$value[[1]][[1]],
       "body weight"
     )
-    testthat::expect_identical(
+    expect_identical(
       enframe(p$grobs[[22]]$children)$value[[1]][[1]],
       p_subtitle
     )
@@ -242,10 +280,10 @@ testthat::test_that(
 
 # aesthetic modifications work ---------------------------------------------
 
-testthat::test_that(
+test_that(
   desc = "aesthetic modifications work",
   code = {
-    testthat::skip_on_cran()
+    skip_on_cran()
 
     # creating the plot
     set.seed(123)
@@ -266,25 +304,72 @@ testthat::test_that(
     # build the plot
     pb <- ggplot2::ggplot_build(p)
 
-    testthat::expect_equal(
+    expect_equal(
       pb$data[[3]],
       structure(
         list(
           y = c(0.383333333, 0.333333333, 0.116666667, 0.2),
           x = c(17.4, 18, 19.7, 19.9),
-          label = c("Cingulata", "Didelphimorphia", "Chiroptera", "Chiroptera"),
-          PANEL = structure(c(1L, 1L, 1L, 1L), class = "factor", .Label = "1"),
-          group = structure(c(-1L, -1L, -1L, -1L), n = 1L),
+          label = c(
+            "Cingulata", "Didelphimorphia",
+            "Chiroptera", "Chiroptera"
+          ),
+          PANEL = structure(c(
+            1L, 1L, 1L,
+            1L
+          ), .Label = "1", class = "factor"),
+          group = structure(c(
+            -1L,
+            -1L, -1L, -1L
+          ), n = 1L),
           colour = c("blue", "blue", "blue", "blue"),
           fill = c("white", "white", "white", "white"),
-          size = c(4, 4, 4, 4),
+          size = c(
+            4,
+            4, 4, 4
+          ),
           angle = c(0, 0, 0, 0),
           alpha = c(0.5, 0.5, 0.5, 0.5),
           family = c("", "", "", ""),
           fontface = c(1, 1, 1, 1),
-          lineheight = c(1.2, 1.2, 1.2, 1.2),
+          lineheight = c(
+            1.2,
+            1.2, 1.2, 1.2
+          ),
           hjust = c(0.5, 0.5, 0.5, 0.5),
-          vjust = c(0.5, 0.5, 0.5, 0.5)
+          vjust = c(
+            0.5,
+            0.5, 0.5, 0.5
+          ),
+          point.size = c(1, 1, 1, 1),
+          segment.linetype = c(
+            1,
+            1, 1, 1
+          ),
+          segment.size = c(0.5, 0.5, 0.5, 0.5),
+          segment.curvature = c(
+            0,
+            0, 0, 0
+          ),
+          segment.angle = c(90, 90, 90, 90),
+          segment.ncp = c(
+            1,
+            1, 1, 1
+          ),
+          segment.shape = c(0.5, 0.5, 0.5, 0.5),
+          segment.square = c(
+            TRUE,
+            TRUE, TRUE, TRUE
+          ),
+          segment.squareShape = c(1, 1, 1, 1),
+          segment.inflect = c(
+            FALSE,
+            FALSE, FALSE, FALSE
+          ),
+          segment.debug = c(
+            FALSE, FALSE, FALSE,
+            FALSE
+          )
         ),
         row.names = c(NA, -4L),
         class = "data.frame"
@@ -292,19 +377,19 @@ testthat::test_that(
     )
 
     # both quoted
-    testthat::expect_s3_class(p, "gg")
+    expect_s3_class(p, "gg")
   }
 )
 
 # labeling input variations ---------------------------------------------
 
-testthat::test_that(
+test_that(
   desc = "checking ggscatterstats with different kinds of inputs to labeling",
   code = {
-    testthat::skip_on_cran()
+    skip_on_cran()
 
     # both quoted
-    testthat::expect_true(inherits(
+    expect_true(inherits(
       ggstatsplot::ggscatterstats(
         data = ggplot2::msleep,
         x = sleep_total,
@@ -318,7 +403,7 @@ testthat::test_that(
     ))
 
     # both unquoted
-    testthat::expect_true(inherits(
+    expect_true(inherits(
       ggstatsplot::ggscatterstats(
         data = ggplot2::msleep,
         x = sleep_total,
@@ -332,7 +417,7 @@ testthat::test_that(
     ))
 
     # label.expression not specified
-    testthat::expect_true(inherits(
+    expect_true(inherits(
       ggstatsplot::ggscatterstats(
         data = dplyr::sample_frac(ggplot2::msleep, 0.1),
         x = sleep_total,
@@ -349,10 +434,10 @@ testthat::test_that(
 
 # with marginals ----------------------------------------------------------
 
-testthat::test_that(
+test_that(
   desc = "with marginals",
   code = {
-    testthat::skip_on_cran()
+    skip_on_cran()
 
     # creating the plot
     set.seed(123)
@@ -365,87 +450,19 @@ testthat::test_that(
         results.subtitle = FALSE
       )
 
-    testthat::expect_identical(
+    expect_identical(
       class(p),
       c("ggExtraPlot", "gtable", "gTree", "grob", "gDesc")
     )
   }
 )
 
-# checking formula specification -------------------------------------------
-
-testthat::test_that(
-  desc = "checking formula specification",
-  code = {
-    testthat::skip_on_cran()
-
-    # creating the messages
-    set.seed(123)
-    p1 <-
-      ggstatsplot::ggscatterstats(
-        data = dplyr::starwars,
-        x = mass,
-        y = height,
-        formula = y ~ log(x),
-        method = stats::lm,
-        marginal = FALSE
-      )
-
-    set.seed(123)
-    p2 <-
-      ggstatsplot::ggscatterstats(
-        data = dplyr::starwars,
-        x = mass,
-        y = height,
-        results.subtitle = TRUE,
-        method = "gam",
-        marginal = FALSE
-      )
-
-    p3 <-
-      ggstatsplot::ggscatterstats(
-        data = dplyr::starwars,
-        x = mass,
-        y = height,
-        results.subtitle = TRUE,
-        method = MASS::rlm,
-        marginal = FALSE
-      )
-
-    # build the plot
-    pb1 <- ggplot2::ggplot_build(p1)
-    pb2 <- ggplot2::ggplot_build(p2)
-    pb3 <- ggplot2::ggplot_build(p3)
-
-    # checking subtitle - lack thereof
-    testthat::expect_null(pb1$plot$labels$subtitle, NULL)
-    testthat::expect_identical(class(pb1$plot$layers[[2]]$stat_params$method), "function")
-    testthat::expect_identical(
-      as.character(deparse(pb1$plot$layers[[2]]$stat_params$formula)),
-      "y ~ log(x)"
-    )
-
-    testthat::expect_null(pb2$plot$labels$subtitle, NULL)
-    testthat::expect_identical(pb2$plot$layers[[2]]$stat_params$method[[1]], "gam")
-    testthat::expect_identical(
-      as.character(deparse(pb2$plot$layers[[2]]$stat_params$formula)),
-      "y ~ x"
-    )
-    testthat::expect_identical(
-      as.character(deparse(pb3$plot$layers[[2]]$stat_params$formula)),
-      "y ~ x"
-    )
-    testthat::expect_null(pb3$plot$labels$subtitle, NULL)
-    testthat::expect_identical(class(pb3$plot$layers[[2]]$stat_params$method), "function")
-  }
-)
-
 # subtitle output ----------------------------------------------------------
 
-testthat::test_that(
+test_that(
   desc = "subtitle output",
   code = {
-    testthat::skip_on_cran()
+    skip_on_cran()
 
     # creating the messages
     set.seed(123)
@@ -470,6 +487,6 @@ testthat::test_that(
       )
 
     # checking captured messages
-    testthat::expect_identical(p_sub, fun_sub)
+    expect_identical(p_sub, fun_sub)
   }
 )

@@ -20,14 +20,11 @@ ggdotplotstats(
   effsize.type = "g",
   conf.level = 0.95,
   nboot = 100,
+  tr = 0.1,
   k = 2,
   results.subtitle = TRUE,
   point.args = list(color = "black", size = 3, shape = 16),
-  test.k = 0,
-  test.value.line = FALSE,
-  test.value.line.args = list(size = 1),
-  test.value.label.args = list(size = 3),
-  centrality.parameter = "mean",
+  centrality.plotting = TRUE,
   centrality.k = 2,
   centrality.line.args = list(color = "blue", size = 1),
   centrality.label.args = list(color = "blue", size = 3),
@@ -83,6 +80,12 @@ argument can be \code{"d"} (for Cohen's \emph{d}) or \code{"g"} (for Hedge's \em
 \item{nboot}{Number of bootstrap samples for computing confidence interval
 for the effect size (Default: \code{100}).}
 
+\item{tr}{Trim level for the mean when carrying out \code{robust} tests. If you
+get error stating "Standard error cannot be computed because of Winsorized
+variance of 0 (e.g., due to ties). Try to decrease the trimming level.",
+try to play around with the value of \code{tr}, which is by default set to
+\code{0.1}. Lowering the value might help.}
+
 \item{k}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2L}).}
 
@@ -93,26 +96,14 @@ the plot will be returned.}
 \item{point.args}{A list of additional aesthetic arguments passed to
 \code{geom_point}.}
 
-\item{test.k}{Integer denoting the number of decimal places expected for
-\code{test.value} label. (Default: \code{0} ).}
-
-\item{test.value.line}{Logical that decides whether a line corresponding to
-the \code{test.value} should be superimposed on the plot.}
-
-\item{test.value.line.args}{A list of additional
-aesthetic arguments to be passed to the \code{geom_line} used to display the
-lines corresponding to the centrality parameter and test value.}
-
-\item{test.value.label.args}{A list of additional
-aesthetic arguments to be passed to the \code{geom_label} used to display the
-label corresponding to the centrality parameter and test value.}
-
-\item{centrality.parameter}{Decides \emph{which} measure of central tendency
-(\code{"mean"} or \code{"median"}) is to be displayed as a vertical line. To not show
-any parameter, set this to \code{"none"}.}
+\item{centrality.plotting}{Logical that decides whether centrality tendency measure
+is to be displayed as a point with a label (Default: \code{TRUE}). Function
+decides which central tendency measure to show depending on the \code{type}
+argument (\strong{mean} for parametric, \strong{median} for non-parametric,
+\strong{trimmed mean} for robust, and \strong{MAP estimator} for Bayes).}
 
 \item{centrality.k}{Integer denoting the number of decimal places expected
-for centrality parameter label. (Default: \code{2}).}
+for centrality parameter label. (Default: \code{2L}).}
 
 \item{centrality.line.args}{A list of additional
 aesthetic arguments to be passed to the \code{geom_line} used to display the
@@ -123,9 +114,9 @@ aesthetic arguments to be passed to the \code{geom_label} used to display the
 label corresponding to the centrality parameter and test value.}
 
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
-by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
-of the current function. Default is \code{NULL}. The argument should be entered
-as a function.}
+by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_}
+variants of all primary functions. Default is \code{NULL}. The argument should
+be entered as a \code{ggplot2} function or a list of \code{ggplot2} functions.}
 
 \item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
 \code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
@@ -144,9 +135,10 @@ results.}
 \item{...}{Currently ignored.}
 }
 \description{
-A dot chart (as described by William S. Cleveland) with
-statistical details from one-sample test included in the plot as a
-subtitle.
+\Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+
+A dot chart (as described by William S. Cleveland) with statistical details
+from one-sample test included in the plot as a subtitle.
 }
 \examples{
 \donttest{
@@ -158,7 +150,6 @@ ggdotplotstats(
   data = ggplot2::mpg,
   x = cty,
   y = manufacturer,
-  conf.level = 0.99,
   test.value = 15,
   test.value.line = TRUE,
   test.line.labeller = TRUE,

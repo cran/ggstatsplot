@@ -1,7 +1,12 @@
 #' @title Bar (column) charts with statistical tests
 #' @name ggbarstats
-#' @description Bar charts for categorical data with statistical details
-#'   included in the plot as a subtitle.
+#'
+#' @description
+#'
+#' \Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+#'
+#' Bar charts for categorical data with statistical details included in the plot
+#' as a subtitle.
 #'
 #' @param xlab Custom text for the `x` axis label (Default: `NULL`, which
 #'   will cause the `x` axis label to be the `x` variable).
@@ -16,15 +21,16 @@
 #'
 #' @import ggplot2
 #'
-#' @importFrom dplyr select group_by summarize n mutate mutate_at mutate_if
-#' @importFrom rlang !! enquo quo_name as_name ensym
+#' @importFrom dplyr select mutate
+#' @importFrom rlang !!! as_name ensym exec
 #' @importFrom paletteer scale_fill_paletteer_d
 #' @importFrom tidyr uncount drop_na
-#' @importFrom statsExpressions expr_contingency_tab bf_contingency_tab
+#' @importFrom statsExpressions expr_contingency_tab
 #'
 #' @inherit ggpiestats return details
 #'
 #' @examples
+#' \donttest{
 #' # for reproducibility
 #' set.seed(123)
 #'
@@ -34,6 +40,7 @@
 #'   x = vs,
 #'   y = cyl
 #' )
+#' }
 #' @export
 
 # defining the function
@@ -86,24 +93,18 @@ ggbarstats <- function(data,
 
   # creating a dataframe
   data %<>%
-    dplyr::select(.data = ., {{ x }}, {{ y }}, .counts = {{ counts }}) %>%
-    tidyr::drop_na(data = .) %>%
-    as_tibble(x = .)
+    dplyr::select({{ x }}, {{ y }}, .counts = {{ counts }}) %>%
+    tidyr::drop_na(.)
 
   # untable the dataframe based on the count for each observation
   if (".counts" %in% names(data)) data %<>% tidyr::uncount(data = ., weights = .counts)
 
   # x and y need to be a factor; also drop the unused levels of the factors
-  data %<>%
-    dplyr::mutate(
-      {{ x }} := droplevels(as.factor({{ x }})),
-      {{ y }} := droplevels(as.factor({{ y }}))
-    )
+  data %<>% dplyr::mutate(dplyr::across(dplyr::everything(), ~ droplevels(as.factor(.x))))
 
   # TO DO: until one-way table is supported by `BayesFactor`
   if (nlevels(data %>% dplyr::pull({{ y }})) == 1L) {
-    bf.message <- FALSE
-    proportion.test <- FALSE
+    c(bf.message, proportion.test) %<-% c(FALSE, FALSE)
   }
 
   # ========================= statistical analysis ===========================
@@ -129,10 +130,11 @@ ggbarstats <- function(data,
     if (isTRUE(bf.message) && !is.null(subtitle)) {
       caption <-
         tryCatch(
-          expr = bf_contingency_tab(
+          expr = statsExpressions::expr_contingency_tab(
             data = data,
             x = {{ x }},
             y = {{ y }},
+            type = "bayes",
             sampling.plan = sampling.plan,
             fixed.margin = fixed.margin,
             prior.concentration = prior.concentration,

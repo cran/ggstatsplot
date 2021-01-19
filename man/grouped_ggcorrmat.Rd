@@ -49,6 +49,9 @@ values, \emph{p}-values, no. of observations, etc.) will be returned.}
 \item{...}{
   Arguments passed on to \code{\link[=ggcorrmat]{ggcorrmat}}
   \describe{
+    \item{\code{partial}}{Can be \code{TRUE} for partial correlations. For Bayesian partial
+correlations, "full" instead of pseudo-Bayesian partial correlations (i.e.,
+Bayesian correlation based on frequentist partialization) are returned.}
     \item{\code{matrix.type}}{Character, \code{"upper"} (default), \code{"lower"}, or \code{"full"},
 display full matrix, lower triangular or upper triangular matrix.}
     \item{\code{sig.level}}{Significance level (Default: \code{0.05}). If the \emph{p}-value in
@@ -97,9 +100,9 @@ theme elements are to be displayed along with the selected \code{ggtheme}
 (Default: \code{TRUE}). \code{theme_ggstatsplot} is an opinionated theme layer that
 override some aspects of the selected \code{ggtheme}.}
     \item{\code{ggplot.component}}{A \code{ggplot} component to be added to the plot prepared
-by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
-of the current function. Default is \code{NULL}. The argument should be entered
-as a function.}
+by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_}
+variants of all primary functions. Default is \code{NULL}. The argument should
+be entered as a \code{ggplot2} function or a list of \code{ggplot2} functions.}
     \item{\code{subtitle}}{The text for the plot subtitle. Will work only if
 \code{results.subtitle = FALSE}.}
     \item{\code{caption}}{The text for the plot caption.}
@@ -125,17 +128,12 @@ Can be a plotmath expression.}
 \item{sub.args}{A list of additional arguments
 provided to \code{title}, \code{caption} and \code{sub}, resp.}
 }
-\value{
-Correlation matrix plot or a dataframe containing results from
-pairwise correlation tests. The package internally uses
-\code{ggcorrplot::ggcorrplot} for creating the visualization matrix, while the
-correlation analysis is carried out using the \code{correlation::correlation}
-function.
-}
 \description{
-Helper function for \code{ggstatsplot::ggcorrmat} to apply this
-function across multiple levels of a given factor and combining the
-resulting plots using \code{ggstatsplot::combine_plots}.
+\Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+
+Helper function for \code{ggstatsplot::ggcorrmat} to apply this function across
+multiple levels of a given factor and combining the resulting plots using
+\code{ggstatsplot::combine_plots2}.
 }
 \examples{
 \donttest{

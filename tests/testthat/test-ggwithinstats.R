@@ -4,10 +4,11 @@ data_bugs_2 <- ggstatsplot::bugs_long %>%
 
 # basic plotting works - two groups ---------------------------------
 
-testthat::test_that(
+test_that(
   desc = "basic plotting works - two groups",
   code = {
-    testthat::skip_on_cran()
+    skip_on_cran()
+    skip_if(getRversion() < "3.6")
 
     # plot
     set.seed(123)
@@ -26,11 +27,10 @@ testthat::test_that(
         ggsignif.args = list(textsize = 6, tip_length = 0.01),
         pairwise.annotation = "asterisk",
         point.path.args = list(color = "red"),
-        mean.path.args = list(color = "blue", size = 2, alpha = 0.8),
-        mean.point.args = list(size = 3, color = "darkgreen", alpha = 0.5),
+        centrality.path.args = list(color = "blue", size = 2, alpha = 0.8),
+        centrality.point.args = list(size = 3, color = "darkgreen", alpha = 0.5),
         title = "bugs dataset",
-        caption = "From `jmv` package",
-        messages = FALSE
+        caption = "From `jmv` package"
       )
 
     # build the plot
@@ -39,7 +39,7 @@ testthat::test_that(
     # subtitle
     set.seed(123)
     p1_subtitle <-
-      statsExpressions::expr_t_parametric(
+      statsExpressions::expr_t_twosample(
         data = data_bugs_2,
         x = condition,
         y = desire,
@@ -49,22 +49,21 @@ testthat::test_that(
       )
 
     # dataframe used for visualization
-    testthat::expect_equal(length(pb1$data), 8L)
-    testthat::expect_equal(dim(p1$data), c(180L, 6L))
-    testthat::expect_equal(dim(pb1$data[[1]]), c(180L, 10L))
-    testthat::expect_equal(dim(pb1$data[[2]]), c(2L, 26L))
-    testthat::expect_equal(dim(pb1$data[[3]]), c(1024L, 21L))
-    testthat::expect_equal(dim(pb1$data[[4]]), c(180L, 8L))
-    testthat::expect_equal(dim(pb1$data[[5]]), c(0L, 0L))
-    testthat::expect_equal(dim(pb1$data[[6]]), c(2L, 8L))
-    testthat::expect_equal(dim(pb1$data[[7]]), c(2L, 13L))
-    testthat::expect_equal(dim(pb1$data[[8]]), c(2L, 15L))
+    expect_equal(length(pb1$data), 8L)
+    expect_equal(dim(p1$data), c(180L, 6L))
+    expect_equal(dim(pb1$data[[1]]), c(180L, 10L))
+    expect_equal(dim(pb1$data[[2]]), c(2L, 26L))
+    expect_equal(dim(pb1$data[[3]]), c(1024L, 21L))
+    expect_equal(dim(pb1$data[[4]]), c(180L, 8L))
+    expect_equal(dim(pb1$data[[5]]), c(0L, 0L))
+    expect_equal(dim(pb1$data[[6]]), c(2L, 8L))
+    expect_equal(dim(pb1$data[[7]]), c(2L, 10L))
 
     # checking geom data
-    testthat::expect_identical(pb1$data[[4]]$colour[[1]], "red")
-    testthat::expect_equal(pb1$data[[4]]$linetype[[1]], 1)
-    testthat::expect_equal(pb1$data[[4]]$size[[1]], 0.5)
-    testthat::expect_equal(
+    expect_identical(pb1$data[[4]]$colour[[1]], "red")
+    expect_equal(pb1$data[[4]]$linetype[[1]], 1)
+    expect_equal(pb1$data[[4]]$size[[1]], 0.5)
+    expect_equal(
       pb1$data[[2]],
       structure(
         list(
@@ -124,7 +123,7 @@ testthat::test_that(
       )
     )
 
-    testthat::expect_equal(
+    expect_equal(
       pb1$data[[7]],
       structure(
         list(
@@ -132,67 +131,18 @@ testthat::test_that(
             "mapped_discrete",
             "numeric"
           )),
-          group = 1:2,
-          y = c(
-            7.86666666666667,
-            6.73888888888889
-          ),
-          ymin = c(NA_real_, NA_real_),
-          ymax = c(
-            NA_real_,
-            NA_real_
-          ),
-          PANEL = structure(c(1L, 1L), .Label = "1", class = "factor"),
-          flipped_aes = c(FALSE, FALSE),
+          y = c(7.86666666666667, 6.73888888888889),
+          PANEL = structure(c(
+            1L,
+            1L
+          ), .Label = "1", class = "factor"),
+          group = structure(1:2, n = 2L),
           shape = c(19, 19),
-          colour = c(
-            "darkgreen",
-            "darkgreen"
-          ),
+          colour = c("darkgreen", "darkgreen"),
           size = c(3, 3),
           fill = c(NA, NA),
-          alpha = c(
-            0.5,
-            0.5
-          ),
-          stroke = c(0.5, 0.5)
-        ),
-        row.names = c(NA, -2L),
-        class = "data.frame"
-      )
-    )
-
-    testthat::expect_equal(
-      pb1$data[[8]],
-      structure(
-        list(
-          x = structure(1:2, class = c(
-            "mapped_discrete",
-            "numeric"
-          )),
-          y = c(7.86666666666667, 6.73888888888889),
-          label = c(
-            "list(~italic(widehat(mu))=='7.8667')",
-            "list(~italic(widehat(mu))=='6.7389')"
-          ),
-          PANEL = structure(c(1L, 1L), class = "factor", .Label = "1"),
-          group = structure(1:2, n = 2L),
-          colour = c("black", "black"),
-          fill = c("white", "white"),
-          size = c(3, 3),
-          angle = c(
-            0,
-            0
-          ),
-          alpha = c(NA, NA),
-          family = c("", ""),
-          fontface = c(
-            1,
-            1
-          ),
-          lineheight = c(1.2, 1.2),
-          hjust = c(0.5, 0.5),
-          vjust = c(
+          alpha = c(0.5, 0.5),
+          stroke = c(
             0.5,
             0.5
           )
@@ -202,7 +152,72 @@ testthat::test_that(
       )
     )
 
-    testthat::expect_equal(
+    expect_equal(
+      pb1$data[[8]],
+      structure(
+        list(
+          x = structure(1:2, class = c(
+            "mapped_discrete",
+            "numeric"
+          )),
+          y = c(7.86666666666667, 6.73888888888889),
+          label = c(
+            "list(~widehat(mu)[mean]=='7.8667')",
+            "list(~widehat(mu)[mean]=='6.7389')"
+          ),
+          PANEL = structure(c(1L, 1L), .Label = "1", class = "factor"),
+          group = structure(1:2, n = 2L),
+          nudge_x = structure(c(1.4, 2.4), class = c(
+            "mapped_discrete",
+            "numeric"
+          )),
+          nudge_y = c(7.86666666666667, 6.73888888888889),
+          colour = c("black", "black"),
+          fill = c("white", "white"),
+          size = c(3, 3),
+          angle = c(0, 0),
+          alpha = c(NA, NA),
+          family = c(
+            "",
+            ""
+          ),
+          fontface = c(1, 1),
+          lineheight = c(1.2, 1.2),
+          hjust = c(
+            0.5,
+            0.5
+          ),
+          vjust = c(0.5, 0.5),
+          point.size = c(1, 1),
+          segment.linetype = c(4, 4),
+          segment.size = c(0.5, 0.5),
+          segment.curvature = c(
+            0,
+            0
+          ),
+          segment.angle = c(90, 90),
+          segment.ncp = c(1, 1),
+          segment.shape = c(
+            0.5,
+            0.5
+          ),
+          segment.square = c(TRUE, TRUE),
+          segment.squareShape = c(
+            1,
+            1
+          ),
+          segment.inflect = c(FALSE, FALSE),
+          segment.debug = c(
+            FALSE,
+            FALSE
+          )
+        ),
+        row.names = c(NA, -2L),
+        class = "data.frame"
+      )
+    )
+
+    expect_equal(
       pb1$data[[6]],
       structure(
         list(
@@ -230,31 +245,33 @@ testthat::test_that(
     )
 
     # data from difference layers
-    testthat::expect_equal(max(pb1$data[[4]]$group), 90L)
+    expect_equal(max(pb1$data[[4]]$group), 90L)
 
     # range of y variable
-    testthat::expect_equal(ggplot2::layer_scales(p1)$y$range$range, c(0L, 10L))
+    expect_equal(ggplot2::layer_scales(p1)$y$range$range, c(0L, 10L))
 
     # checking x-axis sample size labels
-    testthat::expect_identical(
+    expect_identical(
       ggplot2::layer_scales(p1)$x$labels,
       c("HDHF\n(n = 90)", "HDLF\n(n = 90)")
     )
 
     # checking plot labels
-    testthat::expect_identical(p1$labels$title, "bugs dataset")
-    testthat::expect_identical(p1$labels$subtitle, p1_subtitle)
-    testthat::expect_identical(p1$labels$x, "condition")
-    testthat::expect_identical(p1$labels$y, "desire")
+    expect_identical(p1$labels$title, "bugs dataset")
+    expect_identical(p1$labels$subtitle, p1_subtitle)
+    expect_identical(p1$labels$x, "condition")
+    expect_identical(p1$labels$y, "desire")
   }
 )
 
 # basic plotting works - more than two groups ---------------------------------
 
-testthat::test_that(
+test_that(
   desc = "basic plotting works - more than two groups",
   code = {
-    testthat::skip_on_cran()
+    skip_on_cran()
+    skip_if(getRversion() < "3.6")
+
     if (utils::packageVersion("BayesFactor") >= package_version("0.9.12-4.3")) {
       library(WRS2)
 
@@ -266,8 +283,6 @@ testthat::test_that(
           x = Wine,
           y = "Taste",
           type = "p",
-          sort = "ascending",
-          sort.fun = median,
           bf.message = TRUE,
           k = 4,
           conf.level = 0.99,
@@ -276,8 +291,7 @@ testthat::test_that(
           pairwise.comparisons = TRUE,
           pairwise.annotation = "asterisk",
           title = "wine tasting data",
-          caption = "From `WRS2` package",
-          messages = TRUE
+          caption = "From `WRS2` package"
         )
 
       # build the plot
@@ -286,66 +300,57 @@ testthat::test_that(
       # subtitle
       set.seed(123)
       p1_subtitle <-
-        statsExpressions::expr_anova_parametric(
+        statsExpressions::expr_oneway_anova(
           data = WineTasting,
           x = "Wine",
           y = Taste,
           type = "p",
           k = 4,
           paired = TRUE,
-          conf.level = 0.99,
-          messages = FALSE
+          conf.level = 0.99
         )
 
       # dataframe used for visualization
-      testthat::expect_equal(length(pb1$data), 8L)
-      testthat::expect_equal(dim(pb1$data[[1]]), c(66L, 10L))
-      testthat::expect_equal(dim(pb1$data[[2]]), c(3L, 26L))
-      testthat::expect_equal(dim(pb1$data[[3]]), c(1536L, 21L))
-      testthat::expect_equal(dim(pb1$data[[4]]), c(4L, 15L))
-      testthat::expect_equal(dim(pb1$data[[5]]), c(3L, 8L))
-      testthat::expect_equal(dim(pb1$data[[6]]), c(3L, 13L))
-      testthat::expect_equal(dim(pb1$data[[7]]), c(3L, 15L))
-      testthat::expect_equal(dim(pb1$data[[8]]), c(6L, 19L))
+      expect_equal(length(pb1$data), 8L)
+      expect_equal(dim(pb1$data[[1]]), c(66L, 10L))
+      expect_equal(dim(pb1$data[[2]]), c(3L, 26L))
+      expect_equal(dim(pb1$data[[3]]), c(1536L, 21L))
+      expect_equal(dim(pb1$data[[4]]), c(4L, 26L))
+      expect_equal(dim(pb1$data[[5]]), c(3L, 8L))
+      expect_equal(dim(pb1$data[[6]]), c(3L, 10L))
+      expect_equal(dim(pb1$data[[8]]), c(6L, 19L))
 
       # data from difference layers
-      testthat::expect_equal(
+      expect_equal(
         pb1$data[[5]]$x,
         structure(c(1L, 2L, 3L), class = c(
           "mapped_discrete",
           "numeric"
         ))
       )
-      testthat::expect_equal(
+      expect_equal(
         pb1$data[[5]]$y,
         c(5.54318181818182, 5.53409090909091, 5.45909090909091),
         tolerance = 0.001
       )
 
       # checking displayed outlier labels
-      testthat::expect_equal(
+      expect_equal(
         ggplot2::layer_grob(p1, i = 4L)$`1`$lab,
         c(5.00, 6.30, 6.30, 6.25),
         tolerance = 0.01
       )
 
-      # range of y variable
-      testthat::expect_equal(
-        ggplot2::layer_scales(p1)$y$range$range,
-        c(4.95000, 6.55875),
-        tolerance = 1e-5
-      )
-
       # checking x-axis sample size labels
-      testthat::expect_identical(
+      expect_identical(
         ggplot2::layer_scales(p1)$x$labels,
         c("Wine A\n(n = 22)", "Wine B\n(n = 22)", "Wine C\n(n = 22)")
       )
 
       # checking plot labels
-      testthat::expect_identical(p1$labels$title, "wine tasting data")
-      testthat::expect_identical(p1$labels$subtitle, p1_subtitle)
-      # testthat::expect_identical(
+      expect_identical(p1$labels$title, "wine tasting data")
+      expect_identical(p1$labels$subtitle, p1_subtitle)
+      # expect_identical(
       #   pb1$plot$labels$caption,
       #   ggplot2::expr(atop(
       #     displaystyle(atop(
@@ -379,18 +384,19 @@ testthat::test_that(
       #     )
       #   ))
       # )
-      testthat::expect_identical(p1$labels$x, "Wine")
-      testthat::expect_identical(p1$labels$y, "Taste")
+      expect_identical(p1$labels$x, "Wine")
+      expect_identical(p1$labels$y, "Taste")
     }
   }
 )
 
 # checking subtitle outputs - without NAs ------------------------------------
 
-testthat::test_that(
+test_that(
   desc = "checking subtitle outputs - without NAs",
   code = {
-    testthat::skip_on_cran()
+    skip_on_cran()
+    skip_if(getRversion() < "3.6")
 
     if (utils::packageVersion("BayesFactor") >= package_version("0.9.12-4.3")) {
       set.seed(123)
@@ -410,7 +416,7 @@ testthat::test_that(
 
       set.seed(123)
       p1_subtitle <-
-        statsExpressions::expr_anova_nonparametric(
+        statsExpressions::expr_oneway_anova(
           data = iris_long,
           x = condition,
           y = value,
@@ -434,11 +440,12 @@ testthat::test_that(
 
       set.seed(123)
       p2_subtitle <-
-        statsExpressions::expr_anova_robust(
+        statsExpressions::expr_oneway_anova(
           data = iris_long,
           x = condition,
           y = value,
           paired = TRUE,
+          type = "r",
           conf.level = 0.90
         )
 
@@ -454,20 +461,19 @@ testthat::test_that(
           pairwise.comparisons = TRUE,
           pairwise.display = "all",
           pairwise.annotation = "p",
-          messages = FALSE,
           bf.message = TRUE
         ))
 
       set.seed(123)
       p3_subtitle <-
-        suppressWarnings(statsExpressions::expr_t_robust(
+        suppressWarnings(statsExpressions::expr_t_twosample(
           data = ggstatsplot::VR_dilemma,
           x = modality,
           y = score,
           paired = TRUE,
+          type = "r",
           k = 3,
-          nboot = 25,
-          messages = FALSE
+          nboot = 25
         ))
 
       set.seed(123)
@@ -483,22 +489,21 @@ testthat::test_that(
           pairwise.comparisons = TRUE,
           pairwise.display = "all",
           pairwise.annotation = "p",
-          messages = FALSE,
           bf.message = TRUE
         )
 
       set.seed(123)
       p4_subtitle <-
-        statsExpressions::expr_t_nonparametric(
+        suppressWarnings(statsExpressions::expr_t_twosample(
           data = ggstatsplot::VR_dilemma,
           x = modality,
           y = score,
+          type = "np",
           conf.level = 0.50,
           paired = TRUE,
           k = 4,
-          nboot = 15,
-          messages = FALSE
-        )
+          nboot = 15
+        ))
 
       # built plots
       pb1 <- ggplot2::ggplot_build(p1)
@@ -507,13 +512,13 @@ testthat::test_that(
       pb4 <- ggplot2::ggplot_build(p4)
 
       # checking subtitle outputs
-      testthat::expect_identical(p1$labels$subtitle, p1_subtitle)
-      testthat::expect_identical(p2$labels$subtitle, p2_subtitle)
-      testthat::expect_identical(p3$labels$subtitle, p3_subtitle)
-      testthat::expect_identical(p4$labels$subtitle, p4_subtitle)
+      expect_identical(p1$labels$subtitle, p1_subtitle)
+      expect_identical(p2$labels$subtitle, p2_subtitle)
+      expect_identical(p3$labels$subtitle, p3_subtitle)
+      expect_identical(p4$labels$subtitle, p4_subtitle)
 
       # testing captions
-      testthat::expect_identical(
+      expect_identical(
         pb1$plot$labels$caption,
         ggplot2::expr(atop(
           displaystyle(NULL),
@@ -525,7 +530,7 @@ testthat::test_that(
           )
         ))
       )
-      testthat::expect_identical(
+      expect_identical(
         pb2$plot$labels$caption,
         ggplot2::expr(atop(
           displaystyle(NULL),
@@ -537,8 +542,8 @@ testthat::test_that(
           )
         ))
       )
-      testthat::expect_null(p3$labels$caption, NULL)
-      testthat::expect_null(p4$labels$caption, NULL)
+      expect_null(p3$labels$caption, NULL)
+      expect_null(p4$labels$caption, NULL)
 
 
       p5 <-
@@ -550,23 +555,23 @@ testthat::test_that(
           pairwise.comparisons = TRUE
         )
 
-      testthat::expect_s3_class(p5, "ggplot")
+      expect_s3_class(p5, "ggplot")
 
       # checking changes made to ggsignif geom work
-      testthat::expect_equal(pb1$data[[7]]$textsize[[1]], 6L)
-      testthat::expect_equal(pb1$data[[7]]$shape[[1]], 19L)
-      testthat::expect_identical(pb1$data[[7]]$colour[[1]], "black")
-      testthat::expect_equal(pb1$data[[7]]$size[[1]], 0.5, tolerance = 0.001)
+      expect_equal(pb1$data[[7]]$textsize[[1]], 6L)
+      expect_equal(pb1$data[[7]]$shape[[1]], 19L)
+      expect_identical(pb1$data[[7]]$colour[[1]], "black")
+      expect_equal(pb1$data[[7]]$size[[1]], 0.5, tolerance = 0.001)
     }
   }
 )
 
 # ggplot component addition works ------------------------------------------
 
-testthat::test_that(
+test_that(
   desc = "ggplot component addition works",
   code = {
-    testthat::skip_on_cran()
+    skip_on_cran()
 
     # setup
     set.seed(123)
@@ -587,13 +592,13 @@ testthat::test_that(
     pb <- ggplot2::ggplot_build(p)
 
     # test
-    testthat::expect_identical(p$labels$y, "Taste rating")
+    expect_identical(p$labels$y, "Taste rating")
   }
 )
 
 # turning off mean path works ------------------------------------------
 
-testthat::test_that(
+test_that(
   desc = "turning off mean path works",
   code = {
     set.seed(123)
@@ -604,8 +609,8 @@ testthat::test_that(
         iris_long,
         condition,
         value,
-        mean.point.args = list(size = 5, alpha = 0.5, color = "darkred"),
-        mean.path = TRUE,
+        centrality.point.args = list(size = 5, alpha = 0.5, color = "darkred"),
+        centrality.path = TRUE,
         results.subtitle = FALSE,
         pairwise.comparisons = FALSE
       )
@@ -615,8 +620,8 @@ testthat::test_that(
         iris_long,
         condition,
         value,
-        mean.point.args = list(size = 5, alpha = 0.5, color = "darkred"),
-        mean.path = FALSE,
+        centrality.point.args = list(size = 5, alpha = 0.5, color = "darkred"),
+        centrality.path = FALSE,
         results.subtitle = FALSE,
         pairwise.comparisons = FALSE
       )
@@ -624,10 +629,10 @@ testthat::test_that(
     pb1 <- ggplot2::ggplot_build(p1)
     pb2 <- ggplot2::ggplot_build(p2)
 
-    testthat::expect_equal(pb1$data[[1]], pb2$data[[1]])
-    testthat::expect_equal(pb1$data[[2]], pb2$data[[2]])
-    testthat::expect_equal(pb1$data[[3]], pb2$data[[3]])
-    testthat::expect_equal(pb1$data[[5]], pb2$data[[4]])
-    testthat::expect_equal(pb1$data[[6]], pb2$data[[5]])
+    expect_equal(pb1$data[[1]], pb2$data[[1]])
+    expect_equal(pb1$data[[2]], pb2$data[[2]])
+    expect_equal(pb1$data[[3]], pb2$data[[3]])
+    expect_equal(pb1$data[[5]], pb2$data[[4]])
+    expect_equal(pb1$data[[6]], pb2$data[[5]])
   }
 )

@@ -99,14 +99,18 @@ be extracted. The available palettes and packages can be checked by running
 be extracted. The available palettes and packages can be checked by running
 \code{View(paletteer::palettes_d_names)}.}
     \item{\code{ggplot.component}}{A \code{ggplot} component to be added to the plot prepared
-by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
-of the current function. Default is \code{NULL}. The argument should be entered
-as a function.}
+by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_}
+variants of all primary functions. Default is \code{NULL}. The argument should
+be entered as a \code{ggplot2} function or a list of \code{ggplot2} functions.}
     \item{\code{ratio}}{A vector of proportions: the expected proportions for the
 proportion test (should sum to 1). Default is \code{NULL}, which means the null
 is equal theoretical proportions across the levels of the nominal variable.
 This means if there are two levels this will be \code{ratio = c(0.5,0.5)} or if
 there are four levels this will be \code{ratio = c(0.25,0.25,0.25,0.25)}, etc.}
+    \item{\code{paired}}{Logical indicating whether data came from a within-subjects or
+repeated measures design study (Default: \code{FALSE}). If \code{TRUE}, McNemar's
+test expression will be returned. If \code{FALSE}, Pearson's chi-square test will
+be returned.}
     \item{\code{sampling.plan}}{Character describing the sampling plan. Possible options
 are \code{"indepMulti"} (independent multinomial; default), \code{"poisson"},
 \code{"jointMulti"} (joint multinomial), \code{"hypergeom"} (hypergeometric). For
@@ -117,10 +121,6 @@ margin is fixed (\code{"rows"} or \code{"cols"}). Defaults to \code{"rows"}.}
 to \code{1} by default. It indexes the expected deviation from the null
 hypothesis under the alternative, and corresponds to Gunel and Dickey's
 (1974) \code{"a"} parameter.}
-    \item{\code{paired}}{Logical indicating whether data came from a within-subjects or
-repeated measures design study (Default: \code{FALSE}). If \code{TRUE}, McNemar's
-test subtitle will be returned. If \code{FALSE}, Pearson's chi-square test will
-be returned.}
   }}
 
 \item{plotgrid.args}{A list of additional arguments to \code{cowplot::plot_grid}.}
@@ -149,6 +149,7 @@ function across multiple levels of a given factor and combining the
 resulting plots using \code{ggstatsplot::combine_plots}.
 }
 \examples{
+\donttest{
 # grouped one-sample proportion test
 # let's skip statistical analysis
 ggstatsplot::grouped_ggpiestats(
@@ -157,6 +158,7 @@ ggstatsplot::grouped_ggpiestats(
   x = cyl,
   results.subtitle = FALSE
 )
+}
 }
 \references{
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html}

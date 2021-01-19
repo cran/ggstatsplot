@@ -1,8 +1,13 @@
 #' @title Dot-and-whisker plots for regression analyses
 #' @name ggcoefstats
-#' @return Plot with the regression coefficients' point estimates as dots with
-#'   confidence interval whiskers and other statistical details included as
-#'   labels.
+#'
+#' @description
+#'
+#' \Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+#'
+#' Plot with the regression coefficients' point estimates as dots with
+#' confidence interval whiskers and other statistical details included as
+#' labels.
 #'
 #' @param x A model object to be tidied, or a tidy data frame containing results
 #'   from a regression model. Function internally uses
@@ -71,19 +76,18 @@
 #'   when the `output` is a plot.
 #' @param ... Additional arguments to tidying method. For more, see
 #'   `parameters::model_parameters`.
-#' @inheritParams statsExpressions::bf_meta_random
 #' @inheritParams parameters::model_parameters
 #' @inheritParams theme_ggstatsplot
 #' @inheritParams statsExpressions::expr_meta_random
 #' @inheritParams ggbetweenstats
 #'
 #' @import ggplot2
-#' @importFrom rlang exec !!!
-#' @importFrom dplyr select mutate matches vars all_vars filter_at row_number
+#' @importFrom rlang exec !!! !!
+#' @importFrom dplyr select mutate matches across row_number last group_by ungroup
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom tidyr unite
 #' @importFrom insight is_model find_statistic standardize_names
-#' @importFrom statsExpressions expr_meta_random bf_meta_random
+#' @importFrom statsExpressions expr_meta_random
 #' @importFrom parameters model_parameters
 #' @importFrom performance model_performance
 #'
@@ -251,46 +255,41 @@ ggcoefstats <- function(x,
   # =========================== tidy it ====================================
 
   if (isTRUE(insight::is_model(x))) {
+    # which effect size?
+    eta_squared <- omega_squared <- NULL
+    if (effsize == "eta") eta_squared <- "partial"
+    if (effsize == "omega") omega_squared <- "partial"
+
+    # converting model object to a tidy dataframe
+    tidy_df <-
+      parameters::model_parameters(
+        model = x,
+        eta_squared = eta_squared,
+        omega_squared = omega_squared,
+        ci = conf.level,
+        verbose = FALSE,
+        ...
+      ) %>%
+      insight::standardize_names(data = ., style = "broom") %>%
+      dplyr::rename_all(., ~ gsub("omega2.|eta2.", "", .x))
+
+    # anova objects need further cleaning
     if (class(x)[[1]] %in% c("aov", "aovlist", "anova", "Gam", "manova", "maov")) {
-      # which effect size?
-      eta_squared <- omega_squared <- NULL
-      if (effsize == "eta") eta_squared <- "partial"
-      if (effsize == "omega") omega_squared <- "partial"
-
-      # stats details
-      tidy_df <-
-        parameters::model_parameters(
-          model = x,
-          eta_squared = eta_squared,
-          omega_squared = omega_squared,
-          ci = conf.level,
-          verbose = FALSE,
-          ...
-        ) %>%
-        insight::standardize_names(data = ., style = "broom") %>%
-        dplyr::rename_all(., ~ gsub("omega2.|eta2.", "", .x))
-
-      # creating numerator and denominator degrees of freedom
       if (dim(dplyr::filter(tidy_df, term == "Residuals"))[[1]] > 0L) {
-        tidy_df$df2 <- tidy_df$df[nrow(tidy_df)]
+        if ("group" %in% names(tidy_df)) tidy_df %<>% group_by(group)
+        # creating a new column for residual degrees of freedom
+        tidy_df %<>% dplyr::mutate(df.error = dplyr::last(df))
       }
-
-      # final cleanup
-      tidy_df %<>%
-        dplyr::filter(!is.na(statistic)) %>% # for `aovlist` objects
-        dplyr::rename("df1" = "df")
 
       # renaming the `xlab` according to the estimate chosen
       xlab <- paste("partial", " ", effsize, "-squared", sep = "")
-    } else {
-      tidy_df <-
-        parameters::model_parameters(
-          model = x,
-          ci = conf.level,
-          verbose = FALSE,
-          ...
-        ) %>%
-        insight::standardize_names(data = ., style = "broom")
+
+      # final cleanup
+      tidy_df %<>%
+        dplyr::filter(!is.na(statistic)) %>%
+        dplyr::select(-dplyr::matches("sq$")) %>%
+        dplyr::mutate(estimate.type = xlab) %>%
+        dplyr::ungroup()
     }
   }
 
@@ -309,11 +308,10 @@ ggcoefstats <- function(x,
   # remove NAs
   if (isTRUE(stats.labels)) {
     tidy_df %<>%
-      dplyr::filter_at(
-        .tbl = .,
-        .vars = dplyr::vars(dplyr::matches("estimate|statistic|std.error|p.value")),
-        .vars_predicate = dplyr::all_vars(!is.na(.))
-      )
+      dplyr::filter(dplyr::across(
+        .cols = c(dplyr::matches("estimate|statistic|std.error|p.value")),
+        .fns = ~ !is.na(.)
+      ))
   }
 
   # create a new term column if it's not present
@@ -346,7 +344,7 @@ ggcoefstats <- function(x,
   # if `parameters` output doesn't contain p-value or statistic column
   if (sum(c("p.value", "statistic") %in% names(tidy_df)) != 2L) stats.labels <- FALSE
 
-  # ==================== confidence intervals check ===========================
+  # =========================== CIs and intercepts ===========================
 
   # if `parameters` output doesn't contain CI
   if (!"conf.low" %in% names(tidy_df)) {
@@ -361,9 +359,7 @@ ggcoefstats <- function(x,
 
   # whether to show model intercept
   # if not, remove the corresponding terms from the dataframe
-  if (isTRUE(exclude.intercept)) {
-    tidy_df %<>% dplyr::filter(!grepl(pattern = "(Intercept)", x = term, ignore.case = TRUE))
-  }
+  if (isTRUE(exclude.intercept)) tidy_df %<>% dplyr::filter(!grepl("(Intercept)", term, TRUE))
 
   # ========================== preparing label ================================
 
@@ -392,9 +388,9 @@ ggcoefstats <- function(x,
   if (isTRUE(insight::is_model(x))) {
     # creating glance dataframe
     glance_df <-
-      suppressWarnings(performance::model_performance(x, verbose = FALSE)) %>%
-      parameters::standardize_names(data = ., style = "broom") %>%
-      as_tibble(.)
+      suppressWarnings(performance::model_performance(x, verbose = FALSE) %>%
+        parameters::standardize_names(data = ., style = "broom") %>%
+        as_tibble(.))
 
     # no meta-analysis in this context
     meta.analytic.effect <- FALSE
@@ -404,14 +400,11 @@ ggcoefstats <- function(x,
       # preparing caption with model diagnostics
       caption <-
         substitute(
-          expr = atop(
-            displaystyle(top.text),
-            expr = paste("AIC = ", AIC, ", BIC = ", BIC)
-          ),
+          expr = atop(displaystyle(top.text), expr = paste("AIC = ", AIC, ", BIC = ", BIC)),
           env = list(
             top.text = caption,
-            AIC = specify_decimal_p(x = glance_df$aic[[1]], k = 0L),
-            BIC = specify_decimal_p(x = glance_df$bic[[1]], k = 0L)
+            AIC = format_num(glance_df$aic[[1]], k = 0L),
+            BIC = format_num(glance_df$bic[[1]], k = 0L)
           )
         )
     }
@@ -430,8 +423,9 @@ ggcoefstats <- function(x,
       # results from Bayesian random-effects meta-analysis
       if (isTRUE(bf.message)) {
         caption <-
-          statsExpressions::bf_meta_random(
+          statsExpressions::expr_meta_random(
             top.text = caption,
+            type = "bayes",
             output = "caption", # don't change to "expression"
             data = tidy_df,
             k = k
@@ -497,7 +491,7 @@ ggcoefstats <- function(x,
         rlang::exec(
           .fn = ggplot2::geom_errorbarh,
           data = tidy_df,
-          mapping = ggplot2::aes_string(xmin = "conf.low", xmax = "conf.high"),
+          mapping = ggplot2::aes(xmin = conf.low, xmax = conf.high),
           na.rm = TRUE,
           !!!errorbar.args
         )
@@ -576,10 +570,7 @@ ggcoefstats <- function(x,
         subtitle = subtitle,
         title = title
       ) +
-      ggstatsplot::theme_ggstatsplot(
-        ggtheme = ggtheme,
-        ggstatsplot.layer = ggstatsplot.layer
-      ) +
+      theme_ggstatsplot(ggtheme = ggtheme, ggstatsplot.layer = ggstatsplot.layer) +
       ggplot2::theme(plot.caption = ggplot2::element_text(size = 10))
   }
 

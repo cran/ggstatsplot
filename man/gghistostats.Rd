@@ -8,7 +8,6 @@ gghistostats(
   data,
   x,
   binwidth = NULL,
-  bar.measure = "count",
   xlab = NULL,
   title = NULL,
   subtitle = NULL,
@@ -20,21 +19,18 @@ gghistostats(
   effsize.type = "g",
   conf.level = 0.95,
   nboot = 100,
+  tr = 0.1,
   k = 2L,
   ggtheme = ggplot2::theme_bw(),
   ggstatsplot.layer = TRUE,
   bar.fill = "grey50",
   results.subtitle = TRUE,
-  test.k = 0,
-  test.value.line = FALSE,
-  test.value.line.args = list(size = 1),
-  test.value.label.args = list(size = 3),
-  centrality.parameter = "mean",
+  centrality.plotting = TRUE,
   centrality.k = 2,
   centrality.line.args = list(size = 1, color = "blue"),
   centrality.label.args = list(color = "blue", size = 3),
   normal.curve = FALSE,
-  normal.curve.args = list(size = 3),
+  normal.curve.args = list(size = 2),
   ggplot.component = NULL,
   output = "plot",
   ...
@@ -51,13 +47,6 @@ numeric value, or a function that calculates width from \code{x}. The default is
 to use the \code{max(x) - min(x) / sqrt(N)}. You should always check this value
 and explore multiple widths to find the best to illustrate the stories in
 your data.}
-
-\item{bar.measure}{Character describing what value needs to be represented as
-height in the bar chart. This can either be \code{"count"}, which shows number
-of points in bin, or \code{"density"}, which density of points in bin, scaled to
-integrate to 1, or "\code{proportion}", which shows relative frequencies of
-observations in each bin, or "\code{mix}", which shows \emph{both} count and
-proportion in the same plot.}
 
 \item{xlab}{Labels for \code{x} and \code{y} axis variables. If \code{NULL} (default),
 variable names for \code{x} and \code{y} will be used.}
@@ -93,6 +82,12 @@ argument can be \code{"d"} (for Cohen's \emph{d}) or \code{"g"} (for Hedge's \em
 \item{nboot}{Number of bootstrap samples for computing confidence interval
 for the effect size (Default: \code{100}).}
 
+\item{tr}{Trim level for the mean when carrying out \code{robust} tests. If you
+get error stating "Standard error cannot be computed because of Winsorized
+variance of 0 (e.g., due to ties). Try to decrease the trimming level.",
+try to play around with the value of \code{tr}, which is by default set to
+\code{0.1}. Lowering the value might help.}
+
 \item{k}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2L}).}
 
@@ -113,26 +108,14 @@ all the bars in the histogram (Default: \code{"grey50"}).}
 to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
 the plot will be returned.}
 
-\item{test.k}{Integer denoting the number of decimal places expected for
-\code{test.value} label. (Default: \code{0} ).}
-
-\item{test.value.line}{Logical that decides whether a line corresponding to
-the \code{test.value} should be superimposed on the plot.}
-
-\item{test.value.line.args}{A list of additional
-aesthetic arguments to be passed to the \code{geom_line} used to display the
-lines corresponding to the centrality parameter and test value.}
-
-\item{test.value.label.args}{A list of additional
-aesthetic arguments to be passed to the \code{geom_label} used to display the
-label corresponding to the centrality parameter and test value.}
-
-\item{centrality.parameter}{Decides \emph{which} measure of central tendency
-(\code{"mean"} or \code{"median"}) is to be displayed as a vertical line. To not show
-any parameter, set this to \code{"none"}.}
+\item{centrality.plotting}{Logical that decides whether centrality tendency measure
+is to be displayed as a point with a label (Default: \code{TRUE}). Function
+decides which central tendency measure to show depending on the \code{type}
+argument (\strong{mean} for parametric, \strong{median} for non-parametric,
+\strong{trimmed mean} for robust, and \strong{MAP estimator} for Bayes).}
 
 \item{centrality.k}{Integer denoting the number of decimal places expected
-for centrality parameter label. (Default: \code{2}).}
+for centrality parameter label. (Default: \code{2L}).}
 
 \item{centrality.line.args}{A list of additional
 aesthetic arguments to be passed to the \code{geom_line} used to display the
@@ -149,9 +132,9 @@ normal curve using \code{stats::dnorm(mean(x), sd(x))}. Default is \code{FALSE}.
 passed to the normal curve.}
 
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
-by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_} variant
-of the current function. Default is \code{NULL}. The argument should be entered
-as a function.}
+by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_}
+variants of all primary functions. Default is \code{NULL}. The argument should
+be entered as a \code{ggplot2} function or a list of \code{ggplot2} functions.}
 
 \item{output}{If \code{"expression"}, will return expression with statistical
 details, while \code{"dataframe"} will return a dataframe containing the
@@ -160,13 +143,14 @@ results.}
 \item{...}{Currently ignored.}
 }
 \description{
-Histogram with statistical details from one-sample test included
-in the plot as a subtitle.
+\Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+
+Histogram with statistical details from one-sample test included in the plot
+as a subtitle.
 }
 \examples{
 \donttest{
-# most basic function call with the defaults
-# this is the **only** function where data argument can be `NULL`
+# most basic function
 ggstatsplot::gghistostats(
   data = ToothGrowth,
   x = len,
@@ -178,9 +162,8 @@ ggstatsplot::gghistostats(
 ggstatsplot::gghistostats(
   data = iris,
   x = Sepal.Length,
-  bar.measure = "mix",
   type = "p",
-  caption = substitute(paste(italic("Note"), ": Iris dataset by Fisher.")),
+  caption = substitute(paste(italic("Note"), ": Iris dataset by Anderson")),
   bf.prior = 0.8,
   test.value = 3,
   test.value.line = TRUE,
