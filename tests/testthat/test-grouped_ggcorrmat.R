@@ -37,6 +37,7 @@ test_that(
         data = movies_filtered,
         grouping.var = "mpaa",
         cor.vars = c("length":"votes"),
+        cor.vars.names = c("w", "x", "y", "z"),
         type = "np"
       )),
       what = "gg"
@@ -88,6 +89,6 @@ test_that(
       )
 
     # testing dataframe
-    expect_equal(dim(df1), c(60L, 11L))
+    expect_equal(dim(df1), c(60L, 12L))
   }
 )

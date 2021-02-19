@@ -225,7 +225,7 @@ p4 <-
     y = desire,
     xlab = "Condition",
     ylab = "Desire to kill bugs",
-    type = "bf",
+    type = "bayes",
     title = "Bayesian Test",
     package = "ggsci",
     palette = "nrc_npg",
@@ -234,12 +234,12 @@ p4 <-
 
 # combining the individual plots into a single plot
 ggstatsplot::combine_plots(
-  p1, p2, p3, p4,
-  nrow = 2,
-  title.text = "Effect of disgust on desire to kill bugs ",
-  caption.text = "Source: Bugs dataset from `jmv` R package",
-  title.size = 14,
-  caption.size = 12
+  plotlist = list(p1, p2, p3, p4),
+  plotgrid.args = list(nrow = 2),
+  annotation.args = list(
+    title = "Effect of disgust on desire to kill bugs ",
+    caption = "Source: Bugs dataset from `jmv` R package"
+  )
 )
 ```
 
@@ -283,7 +283,7 @@ ggstatsplot::grouped_ggwithinstats(
   k = 3,
   title.prefix = "Year",
   # arguments relevant for ggstatsplot::combine_plots
-  title.text = "Desire to kill bugs across genders",
+  annotation.args = list(title = "Desire to kill bugs across genders"),
   plotgrid.args = list(ncol = 1)
 )
 ```
@@ -322,7 +322,7 @@ MAP: maximum a posteriori probability
 Following (within-subjects) tests are carried out for each type of analyses-
 
 Type | No. of groups | Test | Function used
------------ | --- | -------------------------
+----------- | --- | ------------------------- | -----
 Parametric | > 2 | One-way repeated measures ANOVA | `afex::aov_ez`
 Non-parametric | > 2 | Friedman rank sum test | `stats::friedman.test`
 Robust | > 2 | Heteroscedastic one-way repeated measures ANOVA for trimmed means | `WRS2::rmanova`
@@ -339,7 +339,7 @@ Type | No. of groups | Effect size | CI? | Function used
 ----------- | --- | ------------------------- | --- | -----
 Parametric | > 2 | $\eta_{p}^2$, $\omega_{p}^2$ | <font color="green">Yes<font> | `effectsize::omega_squared`, `effectsize::eta_squared`
 Non-parametric | > 2 | $W_{Kendall}$ (Kendall's coefficient of concordance) | <font color="green">Yes<font> | `effectsize::kendalls_w`
-Robust | > 2 | $\delta_{R-avg}^{AKP}$ <font color="green">Yes<font> | Algina-Keselman-Penfield robust standardized difference average | `wAKP.avg` (custom)
+Robust | > 2 | $\delta_{R-avg}^{AKP}$ <font color="green">Yes<font> | Algina-Keselman-Penfield robust standardized difference average | `WRS2::wmcpAKP`
 Bayes Factor | > 2 | $R_{posterior}^2$ | <font color="green">Yes<font> | `performance::r2_bayes`
 Parametric | 2 | Cohen's *d*, Hedge's *g* | <font color="green">Yes<font> | `effectsize::cohens_d`, `effectsize::hedges_g`
 Non-parametric | 2 | *r* (rank-biserial correlation) | <font color="green">Yes<font> | `effectsize::rank_biserial`

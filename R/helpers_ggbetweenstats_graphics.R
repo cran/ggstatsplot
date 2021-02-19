@@ -40,7 +40,7 @@ centrality_ggrepel <- function(plot,
                                x,
                                y,
                                type = "parametric",
-                               tr = 0.1,
+                               tr = 0.2,
                                k = 2L,
                                sample.size.label = TRUE,
                                centrality.path = FALSE,
@@ -49,8 +49,7 @@ centrality_ggrepel <- function(plot,
                                centrality.label.args = list(size = 3, nudge_x = 0.4, segment.linetype = 4),
                                ...) {
   # creating the dataframe
-  centrality_df <-
-    centrality_data(data, {{ x }}, {{ y }}, type = type, tr = tr, k = k)
+  centrality_df <- centrality_data(data, {{ x }}, {{ y }}, type = type, tr = tr, k = k)
 
   # if there should be lines connecting mean values across groups
   if (isTRUE(centrality.path)) {
@@ -73,7 +72,6 @@ centrality_ggrepel <- function(plot,
       mapping = ggplot2::aes(x = {{ x }}, y = {{ y }}),
       data = centrality_df,
       inherit.aes = FALSE,
-      na.rm = TRUE,
       !!!centrality.point.args
     )
 
@@ -87,7 +85,6 @@ centrality_ggrepel <- function(plot,
       min.segment.length = 0,
       inherit.aes = FALSE,
       parse = TRUE,
-      na.rm = TRUE,
       !!!centrality.label.args
     )
 
@@ -102,7 +99,7 @@ centrality_ggrepel <- function(plot,
 
 #' @noRd
 
-centrality_data <- function(data, x, y, type = "parametric", tr = 0.1, k = 2L, ...) {
+centrality_data <- function(data, x, y, type = "parametric", tr = 0.2, k = 2L, ...) {
 
   # ------------------------ measure -------------------------------------
 
@@ -135,9 +132,7 @@ centrality_data <- function(data, x, y, type = "parametric", tr = 0.1, k = 2L, .
     ) %>%
     dplyr::ungroup() %>%
     dplyr::rowwise() %>%
-    dplyr::mutate(
-      label = paste0("list(~widehat(mu)[", centrality, "]=='", format_num(estimate, k), "')")
-    ) %>%
+    dplyr::mutate(label = paste0("list(~widehat(mu)[", centrality, "]=='", format_num(estimate, k), "')")) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(n_label = paste0({{ x }}, "\n(n = ", n, ")")) %>%
     dplyr::arrange({{ x }}) %>%
@@ -225,7 +220,6 @@ ggsignif_adder <- function(plot,
       y_position = ggsignif_xy(data %>% dplyr::pull({{ x }}), data %>% dplyr::pull({{ y }})),
       annotations = df_pairwise$label,
       test = NULL,
-      na.rm = TRUE,
       parse = TRUE,
       vjust = 0,
       !!!ggsignif.args
@@ -282,11 +276,7 @@ aesthetic_addon <- function(plot,
                             ...) {
 
   # if no. of factor levels is greater than the default palette color count
-  palette_message(
-    package = package,
-    palette = palette,
-    min_length = length(unique(levels(x)))[[1]]
-  )
+  palette_message(package, palette, min_length = length(unique(levels(x)))[[1]])
 
   # modifying the plot
   plot <- plot +
@@ -298,7 +288,7 @@ aesthetic_addon <- function(plot,
       caption = caption,
       color = xlab
     ) +
-    theme_ggstatsplot(ggtheme = ggtheme, ggstatsplot.layer = ggstatsplot.layer) +
+    theme_ggstatsplot(ggtheme, ggstatsplot.layer) +
     ggplot2::theme(legend.position = "none") +
     paletteer::scale_color_paletteer_d(paste0(package, "::", palette)) +
     paletteer::scale_fill_paletteer_d(paste0(package, "::", palette))
@@ -358,4 +348,27 @@ outlier_df <- function(data, x, y, outlier.label, outlier.coef = 1.5, ...) {
       outlier = ifelse(isanoutlier, {{ outlier.label }}, NA)
     ) %>%
     dplyr::ungroup(.)
+}
+
+
+#' @title Switch expression making function
+#' @name function_switch
+#'
+#' @param test Decides which test to run (can be either `"t"` or
+#'   `"anova"`).
+#' @param element Which expression is needed (`"subtitle"` or `"caption"`)
+#' @param ... Arguments passed to respective subtitle helper functions.
+#'
+#' @importFrom statsExpressions expr_t_twosample expr_oneway_anova
+#' @importFrom rlang exec
+#'
+#' @noRd
+
+function_switch <- function(test, element, ...) {
+  # which function?
+  if (test == "t") .f <- statsExpressions::expr_t_twosample
+  if (test == "anova") .f <- statsExpressions::expr_oneway_anova
+
+  # evaluate it
+  suppressWarnings(suppressMessages(rlang::exec(.fn = .f, ...)))
 }

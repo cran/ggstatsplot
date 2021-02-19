@@ -98,8 +98,7 @@ coefficient value.}
 \item{subtitle}{The text for the plot subtitle. The input to this argument
 will be ignored if \code{meta.analytic.effect} is set to \code{TRUE}.}
 
-\item{caption}{Text to display as caption. This argument is relevant only
-when \code{output = "caption"}.}
+\item{caption}{The text for the plot caption.}
 
 \item{only.significant}{If \code{TRUE}, only stats labels for significant effects
 is shown (Default: \code{FALSE}). This can be helpful when a large number of
@@ -161,6 +160,9 @@ confidence interval whiskers and other statistical details included as
 labels.
 }
 \note{
+\strong{Important}: The function assumes that you have already downloaded
+the needed package (\code{metafor}, \code{metaplus}, or \code{metaBMA}) for meta-analysis.
+
 \enumerate{
 \item All rows of regression estimates where either of the following
 quantities is \code{NA} will be removed if labels are requested: \code{estimate},

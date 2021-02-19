@@ -35,11 +35,6 @@
 #'   data = ggplot2::mpg,
 #'   x = cty,
 #'   y = manufacturer,
-#'   test.value = 15,
-#'   test.value.line = TRUE,
-#'   test.line.labeller = TRUE,
-#'   centrality.parameter = "median",
-#'   centrality.k = 0,
 #'   title = "Fuel economy data",
 #'   xlab = "city miles per gallon",
 #'   caption = substitute(
@@ -65,14 +60,13 @@ ggdotplotstats <- function(data,
                            effsize.type = "g",
                            conf.level = 0.95,
                            nboot = 100,
-                           tr = 0.1,
+                           tr = 0.2,
                            k = 2,
                            results.subtitle = TRUE,
                            point.args = list(color = "black", size = 3, shape = 16),
                            centrality.plotting = TRUE,
-                           centrality.k = 2,
+                           centrality.type = type,
                            centrality.line.args = list(color = "blue", size = 1),
-                           centrality.label.args = list(color = "blue", size = 3),
                            ggplot.component = NULL,
                            ggtheme = ggplot2::theme_bw(),
                            ggstatsplot.layer = TRUE,
@@ -82,15 +76,8 @@ ggdotplotstats <- function(data,
   # convert entered stats type to a standard notation
   type <- ipmisc::stats_type_switch(type)
 
-  # ------------------------------ variable names ----------------------------
-
   # ensure the variables work quoted or unquoted
-  x <- rlang::ensym(x)
-  y <- rlang::ensym(y)
-
-  # if `xlab` and `ylab` is not provided, use the variable `x` and `y` name
-  if (is.null(xlab)) xlab <- rlang::as_name(x)
-  if (is.null(ylab)) ylab <- rlang::as_name(y)
+  c(x, y) %<-% c(rlang::ensym(x), rlang::ensym(y))
 
   # --------------------------- data preparation ----------------------------
 
@@ -145,7 +132,10 @@ ggdotplotstats <- function(data,
 
   # return early if anything other than plot
   if (output != "plot") {
-    return(switch(output, "caption" = caption, subtitle))
+    return(switch(output,
+      "caption" = caption,
+      subtitle
+    ))
   }
 
   # ------------------------------ basic plot ----------------------------
@@ -155,7 +145,6 @@ ggdotplotstats <- function(data,
     ggplot2::ggplot(data = data, mapping = ggplot2::aes(x = {{ x }}, y = rank)) +
     rlang::exec(
       .fn = ggplot2::geom_point,
-      na.rm = TRUE,
       !!!point.args
     ) +
     ggplot2::scale_y_continuous(
@@ -167,12 +156,7 @@ ggdotplotstats <- function(data,
         breaks = seq(1, nrow(data), (nrow(data) - 1) / 4),
         labels = 25 * 0:4
       )
-    ) +
-    ggplot2::scale_x_continuous(
-      name = xlab,
-      sec.axis = ggplot2::dup_axis(name = ggplot2::element_blank())
     )
-
   # ---------------- centrality tagging -------------------------------------
 
   # using custom function for adding labels
@@ -181,35 +165,24 @@ ggdotplotstats <- function(data,
       histo_labeller(
         plot = plot,
         x = data %>% dplyr::pull({{ x }}),
-        type = type,
+        type = ipmisc::stats_type_switch(centrality.type),
         tr = tr,
-        centrality.k = centrality.k,
-        centrality.line.args = centrality.line.args,
-        centrality.label.args = centrality.label.args
+        k = k,
+        centrality.line.args = centrality.line.args
       )
   }
 
   # ------------------------ annotations and themes -------------------------
 
   # specifying theme and labels for the final plot
-  plot <- plot +
+  plot +
     ggplot2::labs(
-      x = xlab,
-      y = ylab,
+      x = xlab %||% rlang::as_name(x),
+      y = ylab %||% rlang::as_name(y),
       title = title,
       subtitle = subtitle,
       caption = caption
     ) +
-    theme_ggstatsplot(ggtheme = ggtheme, ggstatsplot.layer = ggstatsplot.layer) +
-    ggplot2::theme(
-      legend.position = "none",
-      panel.grid.major.y = ggplot2::element_line(
-        color = "black",
-        size = 0.1,
-        linetype = "dashed"
-      )
-    )
-
-  # adding ggplot component
-  plot + ggplot.component
+    theme_ggstatsplot(ggtheme, ggstatsplot.layer) +
+    ggplot.component
 }

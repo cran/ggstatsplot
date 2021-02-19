@@ -8,10 +8,9 @@ histo_labeller(
   plot,
   x,
   type = "parametric",
-  tr = 0.1,
-  centrality.k = 2L,
+  tr = 0.2,
+  k = 2L,
   centrality.line.args = list(color = "blue", size = 1),
-  centrality.label.args = list(color = "blue"),
   ...
 )
 }
@@ -21,27 +20,28 @@ for a test value and/or a centrality parameter (mean/median) value.}
 
 \item{x}{A numeric variable from the dataframe \code{data}.}
 
-\item{type}{Type of statistic expected (\code{"parametric"} or \code{"nonparametric"}
-or \code{"robust"} or \code{"bayes"}).Corresponding abbreviations are also accepted:
-\code{"p"} (for parametric), \code{"np"} (nonparametric), \code{"r"} (robust), or
-\code{"bf"}resp.}
+\item{type}{Type of statistic expected. Four possible options:
 
-\item{tr}{Trim level for the mean when carrying out \code{robust} tests. If you
-get error stating "Standard error cannot be computed because of Winsorized
-variance of 0 (e.g., due to ties). Try to decrease the trimming level.",
-try to play around with the value of \code{tr}, which is by default set to
-\code{0.1}. Lowering the value might help.}
+\itemize{
+\item \code{"parametric"}
+\item \code{"nonparametric"}
+\item \code{"robust"}
+\item \code{"bayes"}
+}
 
-\item{centrality.k}{Integer denoting the number of decimal places expected
-for centrality parameter label. (Default: \code{2L}).}
+Corresponding abbreviations are also accepted: \code{"p"} (for parametric),
+\code{"np"} (for nonparametric), \code{"r"} (for robust), or \code{"bf"} (for Bayesian).}
 
-\item{centrality.line.args, test.value.line.args}{A list of additional
-aesthetic arguments to be passed to the \code{geom_line} used to display the
-lines corresponding to the centrality parameter and test value.}
+\item{tr}{Trim level for the mean when carrying out \code{robust} tests. In case
+of an error, try reducing the value of \code{tr}, which is by default set to
+\code{0.2}. Lowering the value might help.}
 
-\item{centrality.label.args, test.value.label.args}{A list of additional
-aesthetic arguments to be passed to the \code{geom_label} used to display the
-label corresponding to the centrality parameter and test value.}
+\item{k}{Number of digits after decimal point (should be an integer)
+(Default: \code{k = 2L}).}
+
+\item{centrality.line.args}{A list of additional aesthetic arguments to be
+passed to the \code{geom_line} used to display the lines corresponding to the
+centrality parameter.}
 
 \item{...}{Currently ignored.}
 }
@@ -57,17 +57,10 @@ library(ggplot2)
 p <- ggplot(mtcars, aes(wt, mpg)) +
   geom_point()
 
-# computing `y`-axis positions for line labels
-y_label_pos <- median(
-  x = ggplot2::layer_scales(p)$y$range$range,
-  na.rm = TRUE
-)
 # adding labels
 ggstatsplot:::histo_labeller(
   plot = p,
-  x = mtcars$wt,
-  y.label.position = y_label_pos,
-  test.value.line = TRUE
+  x = mtcars$wt
 )
 }
 }

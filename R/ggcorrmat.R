@@ -53,7 +53,7 @@
 #' @importFrom ggcorrplot ggcorrplot
 #' @importFrom dplyr select matches
 #' @importFrom purrr is_bare_numeric keep
-#' @importFrom rlang !! enquo quo_name is_null
+#' @importFrom rlang exec !!!
 #' @importFrom pairwiseComparisons p_adjust_text
 #' @importFrom statsExpressions correlation
 #' @importFrom parameters standardize_names
@@ -72,7 +72,7 @@
 #' # if `cor.vars` not specified, all numeric variables used
 #' ggstatsplot::ggcorrmat(iris)
 #'
-#' # to get the correlalogram
+#' # to get the correlation matrix
 #' # note that the function will run even if the vector with variable names is
 #' # not of same length as the number of variables
 #' ggstatsplot::ggcorrmat(
@@ -100,7 +100,7 @@ ggcorrmat <- function(data,
                       output = "plot",
                       matrix.type = "upper",
                       type = "parametric",
-                      beta = 0.1,
+                      tr = 0.2,
                       partial = FALSE,
                       k = 2L,
                       sig.level = 0.05,
@@ -142,17 +142,17 @@ ggcorrmat <- function(data,
   # ============================ checking r.method =======================
 
   # if any of the abbreviations have been entered, change them
-  stats_type <- ipmisc::stats_type_switch(type)
+  type <- ipmisc::stats_type_switch(type)
 
   # see which method was used to specify type of correlation
   # create unique name for each method
-  c(r.method, r.method.text) %<-%
+  r.method.text <-
     switch(
-      EXPR = stats_type,
-      "parametric" = c("pearson", "Pearson"),
-      "nonparametric" = c("spearman", "Spearman"),
-      "robust" = c("percentage", "robust (% bend)"),
-      "bayes" = c("pearson", "Pearson (Bayesian)")
+      EXPR = type,
+      "parametric" = "Pearson",
+      "nonparametric" = "Spearman",
+      "robust" = "Pearson (Winsorized)",
+      "bayes" = "Pearson (Bayesian)"
     )
 
   # is it a partial correlation?
@@ -161,30 +161,27 @@ ggcorrmat <- function(data,
   # ===================== statistics ========================================
 
   # creating a dataframe of results
-  df_corr <-
+  stats_df <-
     statsExpressions::correlation(
       data = df,
-      method = r.method,
+      method = ifelse(type == "nonparametric", "spearman", "pearson"),
       p_adjust = p.adjust.method,
       ci = conf.level,
-      bayesian = ifelse(stats_type == "bayes", TRUE, FALSE),
+      bayesian = ifelse(type == "bayes", TRUE, FALSE),
       bayesian_prior = bf.prior,
       bayesian_test = c("pd", "rope", "bf"),
-      beta = beta,
+      tr = tr,
       partial = partial,
-      partial_bayesian = ifelse(stats_type == "bayes" && isTRUE(partial), TRUE, FALSE)
+      partial_bayesian = ifelse(type == "bayes" && isTRUE(partial), TRUE, FALSE),
+      winsorize = ifelse(type == "robust", tr, FALSE)
     )
 
   # early stats return
   if (output != "plot") {
-    return(as_tibble(parameters::standardize_names(df_corr, "broom")))
+    return(as_tibble(parameters::standardize_names(stats_df, "broom")))
   }
 
   # ========================== plot =========================================
-
-  # create matrices for correlation coefficients and p-values
-  corr.mat <- as.matrix(dplyr::select(df_corr, dplyr::matches("^parameter|^r")))
-  p.mat <- as.matrix(dplyr::select(df_corr, dplyr::matches("^parameter|^p")))
 
   # creating the basic plot
   # if user has not specified colors, then use a color palette
@@ -199,50 +196,39 @@ ggcorrmat <- function(data,
 
   # legend title with information about correlation type and sample
   if (isFALSE(any(is.na(df))) || isTRUE(partial)) {
-    legend.title.text <-
+    legend.title <-
       bquote(atop(
-        atop(
-          scriptstyle(bold("sample sizes:")), italic(n) ~ "=" ~ .(.prettyNum(df_corr$n_Obs[[1]]))
-        ),
-        atop(
-          scriptstyle(bold(.(corr.nature))), .(r.method.text)
-        )
+        atop(scriptstyle(bold("sample sizes:")), italic(n) ~ "=" ~ .(.prettyNum(stats_df$n_Obs[[1]]))),
+        atop(scriptstyle(bold(.(corr.nature))), .(r.method.text))
       ))
   } else {
     # creating legend with sample size info
-    legend.title.text <-
+    legend.title <-
       bquote(atop(
         atop(
+          atop(scriptstyle(bold("sample sizes:")), italic(n)[min] ~ "=" ~ .(.prettyNum(min(stats_df$n_Obs)))),
           atop(
-            scriptstyle(bold("sample sizes:")), italic(n)[min] ~ "=" ~ .(.prettyNum(min(df_corr$n_Obs)))
-          ),
-          atop(
-            italic(n)[mode] ~ "=" ~ .(.prettyNum(getmode(df_corr$n_Obs))),
-            italic(n)[max] ~ "=" ~ .(.prettyNum(max(df_corr$n_Obs)))
+            italic(n)[mode] ~ "=" ~ .(.prettyNum(getmode(stats_df$n_Obs))),
+            italic(n)[max] ~ "=" ~ .(.prettyNum(max(stats_df$n_Obs)))
           )
         ),
-        atop(
-          scriptstyle(bold(.(corr.nature))), .(r.method.text)
-        )
+        atop(scriptstyle(bold(.(corr.nature))), .(r.method.text))
       ))
   }
-
-  # special treatment for Bayes
-  if (stats_type == "bayes") sig.level <- Inf
 
   # plotting the correlalogram
   plot <-
     rlang::exec(
       .f = ggcorrplot::ggcorrplot,
-      corr = corr.mat,
-      p.mat = p.mat,
-      sig.level = sig.level,
+      corr = as.matrix(dplyr::select(stats_df, dplyr::matches("^parameter|^r"))),
+      p.mat = as.matrix(dplyr::select(stats_df, dplyr::matches("^parameter|^p"))),
+      sig.level = ifelse(type == "bayes", Inf, sig.level),
       ggtheme = ggtheme,
       colors = colors,
       type = matrix.type,
       lab = TRUE,
       pch = pch,
-      legend.title = legend.title.text,
+      legend.title = legend.title,
       digits = k,
       !!!ggcorrplot.args
     )
@@ -250,7 +236,7 @@ ggcorrmat <- function(data,
   # =========================== labels ==================================
 
   # preparing the `pch` caption
-  if ((pch == "cross" || pch == 4) && stats_type != "bayes") {
+  if ((pch == "cross" || pch == 4) && type != "bayes") {
     caption <-
       substitute(
         atop(
@@ -277,11 +263,11 @@ ggcorrmat <- function(data,
   # adding text details to the plot
   plot <- plot +
     ggplot2::labs(
+      xlab = NULL,
+      ylab = NULL,
       title = title,
       subtitle = subtitle,
-      caption = caption,
-      xlab = NULL,
-      ylab = NULL
+      caption = caption
     )
 
   # adding `ggstatsplot` theme for correlation matrix

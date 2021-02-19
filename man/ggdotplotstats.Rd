@@ -20,14 +20,13 @@ ggdotplotstats(
   effsize.type = "g",
   conf.level = 0.95,
   nboot = 100,
-  tr = 0.1,
+  tr = 0.2,
   k = 2,
   results.subtitle = TRUE,
   point.args = list(color = "black", size = 3, shape = 16),
   centrality.plotting = TRUE,
-  centrality.k = 2,
+  centrality.type = type,
   centrality.line.args = list(color = "blue", size = 1),
-  centrality.label.args = list(color = "blue", size = 3),
   ggplot.component = NULL,
   ggtheme = ggplot2::theme_bw(),
   ggstatsplot.layer = TRUE,
@@ -56,16 +55,23 @@ variable names for \code{x} and \code{y} will be used.}
 
 \item{caption}{The text for the plot caption.}
 
-\item{type}{Type of statistic expected (\code{"parametric"} or \code{"nonparametric"}
-or \code{"robust"} or \code{"bayes"}).Corresponding abbreviations are also accepted:
-\code{"p"} (for parametric), \code{"np"} (nonparametric), \code{"r"} (robust), or
-\code{"bf"}resp.}
+\item{type}{Type of statistic expected. Four possible options:
+
+\itemize{
+\item \code{"parametric"}
+\item \code{"nonparametric"}
+\item \code{"robust"}
+\item \code{"bayes"}
+}
+
+Corresponding abbreviations are also accepted: \code{"p"} (for parametric),
+\code{"np"} (for nonparametric), \code{"r"} (for robust), or \code{"bf"} (for Bayesian).}
 
 \item{test.value}{A number specifying the value of the null hypothesis
 (Default: \code{0}).}
 
 \item{bf.prior}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
-width to use in calculating Bayes factors.}
+width to use in calculating Bayes factors and posterior estimates.}
 
 \item{bf.message}{Logical that decides whether to display Bayes Factor in
 favor of the \emph{null} hypothesis. This argument is relevant only \strong{for
@@ -74,17 +80,15 @@ parametric test} (Default: \code{TRUE}).}
 \item{effsize.type}{Type of effect size needed for \emph{parametric} tests. The
 argument can be \code{"d"} (for Cohen's \emph{d}) or \code{"g"} (for Hedge's \emph{g}).}
 
-\item{conf.level}{Scalar between 0 and 1. If unspecified, the defaults return
-\verb{95\%} confidence/credible intervals (\code{0.95}).}
+\item{conf.level}{Confidence/Credible Interval (CI) level. Default to \code{0.95}
+(\verb{95\%}).}
 
 \item{nboot}{Number of bootstrap samples for computing confidence interval
 for the effect size (Default: \code{100}).}
 
-\item{tr}{Trim level for the mean when carrying out \code{robust} tests. If you
-get error stating "Standard error cannot be computed because of Winsorized
-variance of 0 (e.g., due to ties). Try to decrease the trimming level.",
-try to play around with the value of \code{tr}, which is by default set to
-\code{0.1}. Lowering the value might help.}
+\item{tr}{Trim level for the mean when carrying out \code{robust} tests. In case
+of an error, try reducing the value of \code{tr}, which is by default set to
+\code{0.2}. Lowering the value might help.}
 
 \item{k}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2L}).}
@@ -96,22 +100,37 @@ the plot will be returned.}
 \item{point.args}{A list of additional aesthetic arguments passed to
 \code{geom_point}.}
 
-\item{centrality.plotting}{Logical that decides whether centrality tendency measure
-is to be displayed as a point with a label (Default: \code{TRUE}). Function
-decides which central tendency measure to show depending on the \code{type}
-argument (\strong{mean} for parametric, \strong{median} for non-parametric,
-\strong{trimmed mean} for robust, and \strong{MAP estimator} for Bayes).}
+\item{centrality.plotting}{Logical that decides whether centrality tendency
+measure is to be displayed as a point with a label (Default: \code{TRUE}).
+Function decides which central tendency measure to show depending on the
+\code{type} argument.
 
-\item{centrality.k}{Integer denoting the number of decimal places expected
-for centrality parameter label. (Default: \code{2L}).}
+\itemize{
+\item \strong{mean} for parametric statistics
+\item \strong{median} for non-parametric statistics
+\item \strong{trimmed mean} for robust statistics
+\item \strong{MAP estimator} for Bayesian statistics
+}
 
-\item{centrality.line.args}{A list of additional
-aesthetic arguments to be passed to the \code{geom_line} used to display the
-lines corresponding to the centrality parameter and test value.}
+If you want default centrality parameter, you can specify this using
+\code{centrality.type} argument.}
 
-\item{centrality.label.args}{A list of additional
-aesthetic arguments to be passed to the \code{geom_label} used to display the
-label corresponding to the centrality parameter and test value.}
+\item{centrality.type}{Decides which centrality parameter is to be displayed.
+The default is to choose the same as \code{type} argument. You can specify this
+to be:
+
+\itemize{
+\item \code{"parameteric"} (for \strong{mean})
+\item \code{"nonparametric"} (for \strong{median})
+\item \code{robust} (for \strong{trimmed mean})
+\item \code{bayes} (for \strong{MAP estimator})
+}
+
+Just as \code{type} argument, abbreviations are also accepted.}
+
+\item{centrality.line.args}{A list of additional aesthetic arguments to be
+passed to the \code{geom_line} used to display the lines corresponding to the
+centrality parameter.}
 
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
 by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_}
@@ -150,11 +169,6 @@ ggdotplotstats(
   data = ggplot2::mpg,
   x = cty,
   y = manufacturer,
-  test.value = 15,
-  test.value.line = TRUE,
-  test.line.labeller = TRUE,
-  centrality.parameter = "median",
-  centrality.k = 0,
   title = "Fuel economy data",
   xlab = "city miles per gallon",
   caption = substitute(

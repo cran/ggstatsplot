@@ -9,8 +9,8 @@
 #' @inheritDotParams ggpiestats -title
 #'
 #' @importFrom dplyr select
-#' @importFrom rlang enquo quo_name ensym
-#' @importFrom purrr map
+#' @importFrom rlang as_name ensym
+#' @importFrom purrr pmap
 #'
 #' @seealso \code{\link{ggbarstats}}, \code{\link{ggpiestats}},
 #'  \code{\link{grouped_ggbarstats}}
@@ -26,8 +26,7 @@
 #' ggstatsplot::grouped_ggpiestats(
 #'   data = mtcars,
 #'   grouping.var = am,
-#'   x = cyl,
-#'   results.subtitle = FALSE
+#'   x = cyl
 #' )
 #' }
 #' @export
@@ -40,14 +39,9 @@ grouped_ggpiestats <- function(data,
                                grouping.var,
                                title.prefix = NULL,
                                output = "plot",
-                               ...,
                                plotgrid.args = list(),
-                               title.text = NULL,
-                               title.args = list(size = 16, fontface = "bold"),
-                               caption.text = NULL,
-                               caption.args = list(size = 10),
-                               sub.text = NULL,
-                               sub.args = list(size = 12)) {
+                               annotation.args = list(),
+                               ...) {
 
   # ======================== preparing dataframe =============================
 
@@ -57,7 +51,7 @@ grouped_ggpiestats <- function(data,
   # creating a dataframe
   df <-
     dplyr::select(.data = data, {{ grouping.var }}, {{ x }}, {{ y }}, {{ counts }}) %>%
-    grouped_list(data = ., grouping.var = {{ grouping.var }})
+    grouped_list(grouping.var = {{ grouping.var }})
 
   # ==================== creating a list of return objects ===================
 
@@ -76,16 +70,7 @@ grouped_ggpiestats <- function(data,
 
   # combining the list of plots into a single plot
   if (output == "plot") {
-    return(ggstatsplot::combine_plots2(
-      plotlist = plotlist_purrr,
-      plotgrid.args = plotgrid.args,
-      title.text = title.text,
-      title.args = title.args,
-      caption.text = caption.text,
-      caption.args = caption.args,
-      sub.text = sub.text,
-      sub.args = sub.args
-    ))
+    return(combine_plots(plotlist_purrr, plotgrid.args = plotgrid.args, annotation.args = annotation.args))
   } else {
     return(plotlist_purrr) # subtitle list
   }

@@ -97,11 +97,8 @@ There is indeed a small, but significant, positive correlation between the
 amount of money studio invests in a movie and the ratings given by the
 audiences.
 
-The `type` (of test) argument also accepts the following abbreviations: `"p"`
-(for *parametric*/pearson's), `"np"` (for *nonparametric*/spearman), `"r"` (for
-*robust*).
-
 **Important**: 
+
 In contrast to all other functions in this package, the `ggscatterstats`
 function returns object that is **not** further modifiable with `ggplot2`. This
 can be avoided by not plotting the marginal distributions (`marginal = FALSE`).
@@ -121,9 +118,7 @@ into a single plot. Note that the grouping variable can be anything: conditions
 in a given study, groups in a study sample, different studies, etc. 
 
 Let's see how we can use this function to apply `ggscatterstats` for all MPAA
-ratings. We will be running parametric tests (Pearson's *r*, i.e.).   
-(If you set `type = "np"` or `type = "r"`, results from non-parametric or robust
-test will be displayed.)
+ratings. Also, let's run a robust test this time.
 
 ```{r grouped1, fig.height = 12, fig.width = 7}
 # for reproducibility
@@ -143,6 +138,7 @@ ggstatsplot::grouped_ggscatterstats(
   title.prefix = "MPAA Rating",
   x = budget,
   y = rating,
+  type = "r",
   grouping.var = mpaa,
   label.var = title,
   label.expression = rating < 5 & budget < 20,
@@ -150,8 +146,10 @@ ggstatsplot::grouped_ggscatterstats(
   ggtheme = ggthemes::theme_tufte(),
   ggstatsplot.layer = FALSE,
   # arguments relevant for ggstatsplot::combine_plots
-  title.text = "Relationship between movie budget and IMDB rating",
-  caption.text = "Source: www.imdb.com",
+  annotation.args = list(
+    title = "Relationship between movie budget and IMDB rating",
+    caption = "Source: www.imdb.com"
+  ),
   plotgrid.args = list(nrow = 3, ncol = 1)
 )
 ```
@@ -183,7 +181,7 @@ Type | Test | CI? | Function
 ----------- | ------------------------- | --- | -----
 Parametric | Pearson's correlation coefficient | <font color="green">Yes<font> | `correlation::correlation`
 Non-parametric | Spearman's rank correlation coefficient | <font color="green">Yes<font> | `correlation::correlation`
-Robust | Percentage bend correlation coefficient | <font color="green">Yes<font> | `correlation::correlation`
+Robust | Winsorized Pearson correlation coefficient | <font color="green">Yes<font> | `correlation::correlation`
 Bayes Factor | Pearson's correlation coefficient | <font color="green">Yes</font> | `correlation::correlation`
 
 ## Effect size interpretation

@@ -12,14 +12,9 @@ grouped_ggbarstats(
   grouping.var,
   title.prefix = NULL,
   output = "plot",
-  ...,
   plotgrid.args = list(),
-  title.text = NULL,
-  title.args = list(size = 16, fontface = "bold"),
-  caption.text = NULL,
-  caption.args = list(size = 10),
-  sub.text = NULL,
-  sub.args = list(size = 12)
+  annotation.args = list(),
+  ...
 )
 }
 \arguments{
@@ -55,6 +50,13 @@ Setting this to \code{"caption"} will return the expression containing details
 about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
 \code{bf.message = TRUE}, otherwise this will return a \code{NULL}.}
 
+\item{plotgrid.args}{A \code{list} of additional arguments passed to
+\code{patchwork::wrap_plots}, except for \code{guides} argument which is already
+separately specified here.}
+
+\item{annotation.args}{A \code{list} of additional arguments passed to
+\code{patchwork::plot_annotation}.}
+
 \item{...}{
   Arguments passed on to \code{\link[=ggbarstats]{ggbarstats}}
   \describe{
@@ -64,11 +66,17 @@ will cause the \code{x} axis label to be the \code{x} variable).}
     \item{\code{sample.size.label}}{Logical that decides whether sample size information
 should be displayed for each level of the grouping variable \code{y}
 (Default: \code{TRUE}).}
-    \item{\code{ratio}}{A vector of proportions: the expected proportions for the
-proportion test (should sum to 1). Default is \code{NULL}, which means the null
-is equal theoretical proportions across the levels of the nominal variable.
-This means if there are two levels this will be \code{ratio = c(0.5,0.5)} or if
-there are four levels this will be \code{ratio = c(0.25,0.25,0.25,0.25)}, etc.}
+    \item{\code{type}}{Type of statistic expected. Four possible options:
+
+\itemize{
+\item \code{"parametric"}
+\item \code{"nonparametric"}
+\item \code{"robust"}
+\item \code{"bayes"}
+}
+
+Corresponding abbreviations are also accepted: \code{"p"} (for parametric),
+\code{"np"} (for nonparametric), \code{"r"} (for robust), or \code{"bf"} (for Bayesian).}
     \item{\code{paired}}{Logical indicating whether data came from a within-subjects or
 repeated measures design study (Default: \code{FALSE}). If \code{TRUE}, McNemar's
 test expression will be returned. If \code{FALSE}, Pearson's chi-square test will
@@ -81,8 +89,6 @@ on the label in each pie slice. Possible options are \code{"percentage"}
 (default), \code{"counts"}, \code{"both"}.}
     \item{\code{label.args}}{Additional aesthetic arguments that will be passed to
 \code{geom_label}.}
-    \item{\code{conf.level}}{Scalar between 0 and 1. If unspecified, the defaults return
-\verb{95\%} confidence/credible intervals (\code{0.95}).}
     \item{\code{k}}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2L}).}
     \item{\code{proportion.test}}{Decides whether proportion test for \code{x} variable is to
@@ -93,6 +99,13 @@ labels (Default: \code{0}).}
     \item{\code{bf.message}}{Logical that decides whether to display Bayes Factor in
 favor of the \emph{null} hypothesis. This argument is relevant only \strong{for
 parametric test} (Default: \code{TRUE}).}
+    \item{\code{ratio}}{A vector of proportions: the expected proportions for the
+proportion test (should sum to 1). Default is \code{NULL}, which means the null
+is equal theoretical proportions across the levels of the nominal variable.
+This means if there are two levels this will be \code{ratio = c(0.5,0.5)} or if
+there are four levels this will be \code{ratio = c(0.25,0.25,0.25,0.25)}, etc.}
+    \item{\code{conf.level}}{Scalar between \code{0} and \code{1}. If unspecified, the defaults
+return \verb{95\%} confidence/credible intervals (\code{0.95}).}
     \item{\code{sampling.plan}}{Character describing the sampling plan. Possible options
 are \code{"indepMulti"} (independent multinomial; default), \code{"poisson"},
 \code{"jointMulti"} (joint multinomial), \code{"hypergeom"} (hypergeometric). For
@@ -126,33 +139,13 @@ by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_}
 variants of all primary functions. Default is \code{NULL}. The argument should
 be entered as a \code{ggplot2} function or a list of \code{ggplot2} functions.}
   }}
-
-\item{plotgrid.args}{A list of additional arguments to \code{cowplot::plot_grid}.}
-
-\item{title.text}{String or plotmath expression to be drawn as title for the
-\emph{combined plot}.}
-
-\item{title.args}{A list of additional arguments
-provided to \code{title}, \code{caption} and \code{sub}, resp.}
-
-\item{caption.text}{String or plotmath expression to be drawn as the caption
-for the \emph{combined plot}.}
-
-\item{caption.args}{A list of additional arguments
-provided to \code{title}, \code{caption} and \code{sub}, resp.}
-
-\item{sub.text}{The label with which the \emph{combined plot} should be annotated.
-Can be a plotmath expression.}
-
-\item{sub.args}{A list of additional arguments
-provided to \code{title}, \code{caption} and \code{sub}, resp.}
 }
 \description{
 \Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
 
 Helper function for \code{ggstatsplot::ggbarstats} to apply this function across
 multiple levels of a given factor and combining the resulting plots using
-\code{ggstatsplot::combine_plots2}.
+\code{ggstatsplot::combine_plots}.
 }
 \examples{
 \donttest{

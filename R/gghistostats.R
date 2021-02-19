@@ -31,7 +31,7 @@
 #'
 #' @importFrom dplyr select summarize mutate
 #' @importFrom dplyr group_by n arrange
-#' @importFrom rlang enquo as_name !!
+#' @importFrom rlang enquo as_name !! %||%
 #' @importFrom stats dnorm
 #' @importFrom statsExpressions expr_t_onesample
 #'
@@ -39,26 +39,15 @@
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/gghistostats.html}
 #'
 #' @examples
+#' # for reproducibility
+#' set.seed(123)
 #' \donttest{
-#' # most basic function
-#' ggstatsplot::gghistostats(
+#' # using defaults, but modifying which centrality parameter is to be shown
+#' gghistostats(
 #'   data = ToothGrowth,
 #'   x = len,
 #'   xlab = "Tooth length",
-#'   centrality.parameter = "median"
-#' )
-#'
-#' # a detailed function call
-#' ggstatsplot::gghistostats(
-#'   data = iris,
-#'   x = Sepal.Length,
-#'   type = "p",
-#'   caption = substitute(paste(italic("Note"), ": Iris dataset by Anderson")),
-#'   bf.prior = 0.8,
-#'   test.value = 3,
-#'   test.value.line = TRUE,
-#'   binwidth = 0.10,
-#'   bar.fill = "grey50"
+#'   centrality.type = "np"
 #' )
 #' }
 #' @export
@@ -78,16 +67,15 @@ gghistostats <- function(data,
                          effsize.type = "g",
                          conf.level = 0.95,
                          nboot = 100,
-                         tr = 0.1,
+                         tr = 0.2,
                          k = 2L,
                          ggtheme = ggplot2::theme_bw(),
                          ggstatsplot.layer = TRUE,
                          bar.fill = "grey50",
                          results.subtitle = TRUE,
                          centrality.plotting = TRUE,
-                         centrality.k = 2,
+                         centrality.type = type,
                          centrality.line.args = list(size = 1, color = "blue"),
-                         centrality.label.args = list(color = "blue", size = 3),
                          normal.curve = FALSE,
                          normal.curve.args = list(size = 2),
                          ggplot.component = NULL,
@@ -102,18 +90,13 @@ gghistostats <- function(data,
   # to ensure that x will be read irrespective of whether it is quoted or unquoted
   x <- rlang::ensym(x)
 
-  # if `xlab` is not provided, use the `x` name
-  if (is.null(xlab)) xlab <- rlang::as_name(x)
-
   # if dataframe is provided
-  df <-
-    dplyr::select(.data = data, {{ x }}) %>%
-    tidyr::drop_na(.)
+  df <- tidyr::drop_na(dplyr::select(data, {{ x }}))
 
   # column as a vector
   x_vec <- df %>% dplyr::pull({{ x }})
 
-  # adding some `binwidth` sanity checking
+  # if binwidth not specified
   if (is.null(binwidth)) binwidth <- (max(x_vec) - min(x_vec)) / sqrt(length(x_vec))
 
   # ================ stats labels ==========================================
@@ -152,7 +135,10 @@ gghistostats <- function(data,
 
   # return early if anything other than plot
   if (output != "plot") {
-    return(switch(output, "caption" = caption, subtitle))
+    return(switch(output,
+      "caption" = caption,
+      subtitle
+    ))
   }
 
   # ============================= plot ====================================
@@ -165,7 +151,6 @@ gghistostats <- function(data,
       fill = bar.fill,
       alpha = 0.7,
       binwidth = binwidth,
-      na.rm = TRUE,
       mapping = ggplot2::aes(y = ..count.., fill = ..count..)
     ) +
     ggplot2::scale_y_continuous(
@@ -183,22 +168,10 @@ gghistostats <- function(data,
       rlang::exec(
         .f = ggplot2::stat_function,
         fun = function(x, mean, sd, n, bw) stats::dnorm(x, mean, sd) * n * bw,
-        na.rm = TRUE,
         args = list(mean = mean(x_vec), sd = sd(x_vec), n = length(x_vec), bw = binwidth),
         !!!normal.curve.args
       )
   }
-
-  # adding the theme and labels
-  plot <- plot +
-    theme_ggstatsplot(ggtheme = ggtheme, ggstatsplot.layer = ggstatsplot.layer) +
-    ggplot2::labs(
-      x = xlab,
-      y = "count",
-      title = title,
-      subtitle = subtitle,
-      caption = caption
-    )
 
   # ---------------- centrality tagging -------------------------------------
 
@@ -208,17 +181,22 @@ gghistostats <- function(data,
       histo_labeller(
         plot = plot,
         x = x_vec,
-        type = type,
+        type = ipmisc::stats_type_switch(centrality.type),
         tr = tr,
-        centrality.k = centrality.k,
-        centrality.line.args = centrality.line.args,
-        centrality.label.args = centrality.label.args
+        k = k,
+        centrality.line.args = centrality.line.args
       )
   }
 
-  # ---------------- adding ggplot component ---------------------------------
-
-  # if any additional modification needs to be made to the plot
-  # this is primarily useful for grouped_ variant of this function
-  plot + ggplot.component
+  # adding the theme and labels
+  plot +
+    ggplot2::labs(
+      x = xlab %||% rlang::as_name(x),
+      y = "count",
+      title = title,
+      subtitle = subtitle,
+      caption = caption
+    ) +
+    theme_ggstatsplot(ggtheme, ggstatsplot.layer) +
+    ggplot.component
 }

@@ -81,14 +81,17 @@
 #' @inheritParams statsExpressions::expr_meta_random
 #' @inheritParams ggbetweenstats
 #'
+#' @note **Important**: The function assumes that you have already downloaded
+#'   the needed package (`metafor`, `metaplus`, or `metaBMA`) for meta-analysis.
+#'
 #' @import ggplot2
 #' @importFrom rlang exec !!! !!
 #' @importFrom dplyr select mutate matches across row_number last group_by ungroup
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom tidyr unite
-#' @importFrom insight is_model find_statistic standardize_names
+#' @importFrom insight is_model find_statistic
 #' @importFrom statsExpressions expr_meta_random
-#' @importFrom parameters model_parameters
+#' @importFrom parameters model_parameters standardize_names
 #' @importFrom performance model_performance
 #'
 #' @references
@@ -270,8 +273,8 @@ ggcoefstats <- function(x,
         verbose = FALSE,
         ...
       ) %>%
-      insight::standardize_names(data = ., style = "broom") %>%
-      dplyr::rename_all(., ~ gsub("omega2.|eta2.", "", .x))
+      parameters::standardize_names(style = "broom") %>%
+      dplyr::rename_all(~ gsub("omega2.|eta2.", "", .x))
 
     # anova objects need further cleaning
     if (class(x)[[1]] %in% c("aov", "aovlist", "anova", "Gam", "manova", "maov")) {
@@ -316,20 +319,19 @@ ggcoefstats <- function(x,
 
   # create a new term column if it's not present
   if (!"term" %in% names(tidy_df)) {
-    tidy_df %<>%
-      dplyr::mutate(term = dplyr::row_number()) %>%
-      dplyr::mutate(term = paste("term", term, sep = "_"))
+    tidy_df %<>% dplyr::mutate(term = paste("term", dplyr::row_number(), sep = "_"))
   }
 
   # ================ check for duplicate terms and columns ===================
 
   # a check if there are repeated terms
+  # needed for maov, lqm, lqmm, etc. kind of objects
   if (any(duplicated(dplyr::select(tidy_df, term)))) {
     tidy_df %<>%
       tidyr::unite(
         data = .,
         col = "term",
-        dplyr::matches("term|variable|parameter|method|curve|response|component|contrast"),
+        dplyr::matches("term|variable|parameter|method|curve|response|component|contrast|group"),
         remove = TRUE,
         sep = "_"
       )
@@ -355,10 +357,7 @@ ggcoefstats <- function(x,
     conf.int <- FALSE
   }
 
-  # ================================ intercept ================================
-
   # whether to show model intercept
-  # if not, remove the corresponding terms from the dataframe
   if (isTRUE(exclude.intercept)) tidy_df %<>% dplyr::filter(!grepl("(Intercept)", term, TRUE))
 
   # ========================== preparing label ================================
@@ -366,17 +365,13 @@ ggcoefstats <- function(x,
   # adding a column with labels to be used with `ggrepel`
   if (isTRUE(stats.labels)) {
     # in case a dataframe was entered, `x` and `tidy_df` are going to be same
-    if (isTRUE(insight::is_model(x))) {
-      statistic <- substring(tolower(insight::find_statistic(x)), 1, 1)
-    } else {
-      statistic <- substring(tolower(statistic), 1, 1)
-    }
+    if (isTRUE(insight::is_model(x))) statistic <- insight::find_statistic(x)
 
     # adding a column with labels using custom function
     tidy_df %<>%
       ggcoefstats_label_maker(
         tidy_df = .,
-        statistic = statistic,
+        statistic = substring(tolower(statistic), 1, 1),
         k = k,
         effsize = effsize
       )
@@ -387,10 +382,9 @@ ggcoefstats <- function(x,
   # for non-dataframe objects
   if (isTRUE(insight::is_model(x))) {
     # creating glance dataframe
-    glance_df <-
-      suppressWarnings(performance::model_performance(x, verbose = FALSE) %>%
-        parameters::standardize_names(data = ., style = "broom") %>%
-        as_tibble(.))
+    suppressWarnings(glance_df <-
+      performance::model_performance(x, verbose = FALSE) %>%
+      parameters::standardize_names(style = "broom"))
 
     # no meta-analysis in this context
     meta.analytic.effect <- FALSE
@@ -416,29 +410,17 @@ ggcoefstats <- function(x,
     meta.type <- ipmisc::stats_type_switch(meta.type)
 
     # results from frequentist random-effects meta-analysis
-    subtitle <- expr_meta_random(tidy_df, type = meta.type, k = k)
+    subtitle <- statsExpressions::expr_meta_random(tidy_df, type = meta.type, k = k)
 
-    # model summary (detailed only for parametric statistics)
-    if (meta.type == "parametric") {
-      # results from Bayesian random-effects meta-analysis
-      if (isTRUE(bf.message)) {
-        caption <-
-          statsExpressions::expr_meta_random(
-            top.text = caption,
-            type = "bayes",
-            output = "caption", # don't change to "expression"
-            data = tidy_df,
-            k = k
-          )
-      }
-
-      # caption with heterogeneity test results
+    # results from Bayesian random-effects meta-analysis (only for parametric)
+    if (meta.type == "parametric" && isTRUE(bf.message)) {
       caption <-
         statsExpressions::expr_meta_random(
+          top.text = caption,
+          type = "bayes",
+          output = "expression",
           data = tidy_df,
-          k = k,
-          caption = caption,
-          output = "caption" # don't change to "expression"
+          k = k
         )
     }
   }
@@ -446,25 +428,22 @@ ggcoefstats <- function(x,
   # ========================== sorting ===================================
 
   # whether the term need to be arranged in any specified order
-  tidy_df %<>%
-    dplyr::mutate(term = as.factor(term)) %>%
-    dplyr::mutate(rowid = dplyr::row_number())
+  tidy_df %<>% dplyr::mutate(term = as.factor(term), .rowid = dplyr::row_number())
 
   # sorting factor levels
   new_order <-
-    switch(
-      sort,
-      "none" = order(tidy_df$rowid, decreasing = FALSE),
+    switch(sort,
+      "none" = order(tidy_df$.rowid, decreasing = FALSE),
       "ascending" = order(tidy_df$estimate, decreasing = FALSE),
       "descending" = order(tidy_df$estimate, decreasing = TRUE),
-      order(tidy_df$rowid, decreasing = FALSE)
+      order(tidy_df$.rowid, decreasing = FALSE)
     )
 
   # sorting `term` factor levels according to new sorting order
   tidy_df %<>%
     dplyr::mutate(term = as.character(term)) %>%
     dplyr::mutate(term = factor(x = term, levels = term[new_order])) %>%
-    dplyr::select(-rowid)
+    dplyr::select(-.rowid)
 
   # ========================== basic plot ===================================
 
@@ -511,13 +490,10 @@ ggcoefstats <- function(x,
     if (isTRUE(stats.labels)) {
       # only significant p-value labels are shown
       if (isTRUE(only.significant) && "p.value" %in% names(tidy_df)) {
-        tidy_df %<>%
-          dplyr::mutate(
-            label = dplyr::case_when(
-              p.value >= 0.05 ~ NA_character_,
-              TRUE ~ label
-            )
-          )
+        tidy_df %<>% dplyr::mutate(label = dplyr::case_when(
+          p.value >= 0.05 ~ NA_character_,
+          TRUE ~ label
+        ))
       }
 
       # ========================== palette check =================================
@@ -570,20 +546,18 @@ ggcoefstats <- function(x,
         subtitle = subtitle,
         title = title
       ) +
-      theme_ggstatsplot(ggtheme = ggtheme, ggstatsplot.layer = ggstatsplot.layer) +
+      theme_ggstatsplot(ggtheme, ggstatsplot.layer) +
       ggplot2::theme(plot.caption = ggplot2::element_text(size = 10))
   }
 
   # =========================== output =====================================
 
   # what needs to be returned?
-  return(switch(
-    EXPR = output,
-    "plot" = plot,
+  switch(output,
     "subtitle" = subtitle,
     "caption" = caption,
-    "tidy" = tidy_df,
-    "glance" = glance_df,
-    "plot"
-  ))
+    "tidy" = as_tibble(tidy_df),
+    "glance" = as_tibble(glance_df),
+    plot
+  )
 }

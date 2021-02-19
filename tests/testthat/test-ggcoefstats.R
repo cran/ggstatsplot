@@ -30,154 +30,9 @@ test_that(
     # plot build
     pb <- ggplot2::ggplot_build(p)
 
-    # tidy dataframe from the function
-    expect_equal(
-      pb$data[[1]],
-      structure(
-        list(
-          xintercept = 0,
-          PANEL = structure(1L, .Label = "1", class = "factor"),
-          group = structure(-1L, n = 1L),
-          colour = "black",
-          size = 1,
-          linetype = "dashed",
-          alpha = NA
-        ),
-        row.names = c(NA, -1L),
-        class = "data.frame"
-      )
-    )
-
-    expect_equal(
-      pb$data[[2]],
-      structure(
-        list(
-          x = c(-0.780044678205957, 2.29400668890043, -0.556439259603544),
-          xmin = c(-1.15213248524039, 2.09855242875921, -0.929998880210387),
-          xmax = c(-0.412406648700957, 2.49329224456418, -0.180433778592503),
-          y = structure(1:3, class = c("mapped_discrete", "numeric")),
-          PANEL = structure(c(1L, 1L, 1L), .Label = "1", class = "factor"),
-          group = structure(1:3, n = 3L),
-          ymin = structure(c(
-            1, 2,
-            3
-          ), class = c("mapped_discrete", "numeric")),
-          ymax = structure(c(
-            1,
-            2, 3
-          ), class = c("mapped_discrete", "numeric")),
-          colour = c(
-            "black",
-            "black", "black"
-          ),
-          size = c(0.5, 0.5, 0.5),
-          linetype = c(
-            1,
-            1, 1
-          ),
-          height = c(0, 0, 0),
-          alpha = c(NA, NA, NA)
-        ),
-        row.names = c(
-          NA,
-          -3L
-        ),
-        class = "data.frame"
-      )
-    )
-
-    expect_equal(
-      pb$data[[3]],
-      structure(
-        list(
-          x = c(-0.780044678205957, 2.29400668890043, -0.556439259603544),
-          y = structure(1:3, class = c("mapped_discrete", "numeric")),
-          PANEL = structure(c(1L, 1L, 1L), .Label = "1", class = "factor"),
-          group = structure(1:3, n = 3L),
-          shape = c(19, 19, 19),
-          colour = c(
-            "blue",
-            "blue", "blue"
-          ),
-          size = c(3, 3, 3),
-          fill = c(NA, NA, NA),
-          alpha = c(NA, NA, NA),
-          stroke = c(0.5, 0.5, 0.5)
-        ),
-        row.names = c(
-          NA,
-          -3L
-        ),
-        class = "data.frame"
-      )
-    )
-
-    expect_equal(
-      pb$data[[4]],
-      structure(
-        list(
-          x = c(-0.780044678205957, 2.29400668890043, -0.556439259603544),
-          y = structure(1:3, class = c("mapped_discrete", "numeric")),
-          label = c(
-            "list(~widehat(italic(beta))==-0.78, ~italic(z)==-3.47, ~italic(p)=='0.001')",
-            "list(~widehat(italic(beta))==2.29, ~italic(z)==19.13, ~italic(p)=='1.54e-81')",
-            "list(~widehat(italic(beta))==-0.56, ~italic(z)==-2.44, ~italic(p)=='0.014')"
-          ),
-          PANEL = structure(c(1L, 1L, 1L), .Label = "1", class = "factor"),
-          group = structure(1:3, n = 3L),
-          colour = structure(c(
-            "#1B9E77FF",
-            "#D95F02FF", "#7570B3FF"
-          ), class = "colors"),
-          fill = c(
-            "white",
-            "white", "white"
-          ),
-          size = c(3, 3, 3),
-          angle = c(0, 0, 0),
-          alpha = c(NA, NA, NA),
-          family = c("", "", ""),
-          fontface = c(
-            1,
-            1, 1
-          ),
-          lineheight = c(1.2, 1.2, 1.2),
-          hjust = c(
-            0.5, 0.5,
-            0.5
-          ),
-          vjust = c(0.5, 0.5, 0.5),
-          point.size = c(1, 1, 1),
-          segment.linetype = c(1, 1, 1),
-          segment.size = c(
-            0.5, 0.5,
-            0.5
-          ),
-          segment.curvature = c(0, 0, 0),
-          segment.angle = c(
-            90,
-            90, 90
-          ),
-          segment.ncp = c(1, 1, 1),
-          segment.shape = c(
-            0.5,
-            0.5, 0.5
-          ),
-          segment.square = c(TRUE, TRUE, TRUE),
-          segment.squareShape = c(
-            1,
-            1, 1
-          ),
-          segment.inflect = c(FALSE, FALSE, FALSE),
-          segment.debug = c(
-            FALSE,
-            FALSE, FALSE
-          )
-        ),
-        row.names = c(NA, -3L),
-        class = "data.frame"
-      )
-    )
+    # check data
+    set.seed(123)
+    expect_snapshot(pb$data)
   }
 )
 
@@ -239,69 +94,9 @@ test_that(
     # plot build
     pb <- ggplot2::ggplot_build(p)
 
-    # tidy dataframe from the function
-    expect_equal(
-      pb$data[[4]],
-      structure(
-        list(
-          x = c(0.0170335066199796, -0.511668342705175),
-          y = structure(1:2, class = c("mapped_discrete", "numeric")),
-          label = c(
-            "list(~widehat(italic(beta))==0.02, ~italic(chi)^2~(225)==3.40, ~italic(p)=='0.065')",
-            "list(~widehat(italic(beta))==-0.51, ~italic(chi)^2~(225)==9.31, ~italic(p)=='0.002')"
-          ),
-          PANEL = structure(c(1L, 1L), .Label = "1", class = "factor"),
-          group = structure(1:2, n = 2L),
-          colour = structure(c(
-            "#1B9E77FF",
-            "#D95F02FF"
-          ), class = "colors"),
-          fill = c("white", "white"),
-          size = c(3, 3),
-          angle = c(0, 0),
-          alpha = c(NA, NA),
-          family = c(
-            "",
-            ""
-          ),
-          fontface = c(1, 1),
-          lineheight = c(1.2, 1.2),
-          hjust = c(
-            0.5,
-            0.5
-          ),
-          vjust = c(0.5, 0.5),
-          point.size = c(1, 1),
-          segment.linetype = c(
-            1,
-            1
-          ),
-          segment.size = c(0.5, 0.5),
-          segment.curvature = c(
-            0,
-            0
-          ),
-          segment.angle = c(90, 90),
-          segment.ncp = c(1, 1),
-          segment.shape = c(
-            0.5,
-            0.5
-          ),
-          segment.square = c(TRUE, TRUE),
-          segment.squareShape = c(
-            1,
-            1
-          ),
-          segment.inflect = c(FALSE, FALSE),
-          segment.debug = c(
-            FALSE,
-            FALSE
-          )
-        ),
-        row.names = c(NA, -2L),
-        class = "data.frame"
-      )
-    )
+    # check data
+    set.seed(123)
+    expect_snapshot(pb$data)
   }
 )
 
@@ -335,42 +130,9 @@ test_that(
       structure(c("mpg", "am", "mpg:am"), pos = 1:3)
     )
 
-    # checking layered data
-    expect_equal(dim(pb$data[[1]]), c(1L, 7L))
-    expect_equal(dim(pb$data[[2]]), c(3L, 13L))
-    expect_equal(dim(pb$data[[3]]), c(3L, 10L))
-
-    # checking ggrepel label layer
-    expect_identical(
-      pb$data[[4]]$label,
-      c(
-        "list(~widehat(italic(beta))==-0.156, ~italic(t)(28)==-5.840, ~italic(p)=='2.81e-06')",
-        "list(~widehat(italic(beta))==-1.809, ~italic(t)(28)==-2.615, ~italic(p)=='0.014')",
-        NA_character_
-      )
-    )
-    expect_identical(
-      unclass(pb$data[[4]]$colour),
-      c("#1B9E77FF", "#D95F02FF", "#7570B3FF")
-    )
-
-    # testing specific geoms
-    expect_equal(
-      pb$data[[1]],
-      structure(
-        list(
-          xintercept = 0,
-          PANEL = structure(1L, .Label = "1", class = "factor"),
-          group = structure(-1L, n = 1L),
-          colour = "black",
-          size = 1,
-          linetype = "dashed",
-          alpha = NA
-        ),
-        row.names = c(NA, -1L),
-        class = "data.frame"
-      )
-    )
+    # check data
+    set.seed(123)
+    expect_snapshot(pb$data)
   }
 )
 
@@ -461,7 +223,6 @@ test_that(
         exclude.intercept = FALSE,
         sort = "ascending",
         effsize = "omega",
-        partial = TRUE,
         title = "mammalian sleep",
         subtitle = "Source: `ggplot2` package",
         caption = substitute(paste(italic("Note"), ": From `tidyverse`")),
@@ -518,257 +279,6 @@ test_that(
         "list(~italic(F)(3*\",\"*35)==4.012, ~italic(p)=='0.015', ~widehat(italic(omega)[p]^2)==0.174)"
       )
     )
-  }
-)
-
-# dataframe as input ----------------------------------------------------
-
-test_that(
-  desc = "ggcoefstats works with data frames",
-  code = {
-    skip_on_cran()
-    set.seed(123)
-
-    # creating dataframe
-    df1 <-
-      tibble::tribble(
-        ~term,
-        ~statistic,
-        ~estimate,
-        ~conf.low,
-        ~conf.high,
-        ~p.value,
-        ~df.error,
-        "level2",
-        0.158,
-        0.0665,
-        -0.778,
-        0.911,
-        0.875,
-        5L,
-        "level1",
-        1.33,
-        0.542,
-        -0.280,
-        1.36,
-        0.191,
-        10L,
-        "level3",
-        1.24,
-        0.045,
-        0.030,
-        0.65,
-        0.001,
-        12L
-      )
-    df2 <- dplyr::select(.data = df1, -p.value)
-    df3 <- dplyr::select(.data = df1, -statistic)
-    df3$p.value <- as.factor(df3$p.value)
-    df4 <- dplyr::select(.data = df1, -df.error)
-    df5 <- tibble::add_column(df1, std.error = c(0.015, 0.2, 0.09))
-    df6 <- dplyr::select(.data = df5, -term, -estimate, -std.error)
-
-    # repeated term dataframe
-    df7 <-
-      tibble::tribble(
-        ~term,
-        ~statistic,
-        ~estimate,
-        ~conf.low,
-        ~conf.high,
-        ~p.value,
-        ~df.error,
-        "x",
-        0.158,
-        0.0665,
-        -0.778,
-        0.911,
-        0.875,
-        5L,
-        "x",
-        1.33,
-        0.542,
-        -0.280,
-        1.36,
-        0.191,
-        10L,
-        "x",
-        1.24,
-        0.045,
-        0.030,
-        0.65,
-        0.001,
-        12L
-      )
-
-    # check that term column is generated
-    df8 <-
-      tibble::tribble(
-        ~statistic,
-        ~estimate,
-        ~conf.low,
-        ~conf.high,
-        ~p.value,
-        ~df.error,
-        0.158,
-        0.0665,
-        -0.778,
-        0.911,
-        0.875,
-        5L,
-        1.33,
-        0.542,
-        -0.280,
-        1.36,
-        0.191,
-        10L,
-        1.24,
-        0.045,
-        0.030,
-        0.65,
-        0.001,
-        12L
-      )
-
-    expect_identical(
-      colnames(ggcoefstats(df8, output = "tidy"))[[7]],
-      "term"
-    )
-
-    # expect errors
-    expect_message(ggcoefstats(x = df1))
-    expect_error(ggcoefstats(
-      x = df6,
-      meta.analytic.effect = TRUE
-    ))
-    expect_message(ggcoefstats(x = df7))
-
-    # plotting the dataframe
-    p1 <-
-      ggcoefstats(
-        x = df1,
-        statistic = "t",
-        sort = "none"
-      )
-    p2 <-
-      ggcoefstats(
-        x = df1,
-        statistic = "z",
-        sort = "descending"
-      )
-    p3 <- ggcoefstats(x = df2, statistic = "t")
-    p4 <- ggcoefstats(x = df3, statistic = "T") +
-      ggplot2::scale_y_discrete(labels = c("x1", "x2", "x3")) +
-      ggplot2::labs(x = "location", y = NULL)
-    p5 <- ggcoefstats(x = df4, statistic = "T-value")
-    set.seed(123)
-    p6 <-
-      suppressWarnings(
-        ggcoefstats(
-          x = df5,
-          statistic = "t",
-          k = 3,
-          meta.analytic.effect = TRUE,
-          bf.message = TRUE,
-          messages = FALSE
-        )
-      )
-    p7 <-
-      suppressWarnings(
-        ggcoefstats(
-          x = df5,
-          statistic = "T",
-          k = 3,
-          meta.analytic.effect = TRUE,
-          meta.type = "bf",
-          caption = "mnp",
-          bf.message = TRUE,
-          messages = FALSE
-        )
-      )
-
-    # build plots
-    pb1 <- ggplot2::ggplot_build(p1)
-    pb2 <- ggplot2::ggplot_build(p2)
-    pb3 <- ggplot2::ggplot_build(p3)
-    pb4 <- ggplot2::ggplot_build(p4)
-    pb5 <- ggplot2::ggplot_build(p5)
-    pb6 <- ggplot2::ggplot_build(p6)
-    pb7 <- ggplot2::ggplot_build(p7)
-
-    # stats labels
-    expect_identical(
-      pb1$data[[4]]$label,
-      c(
-        "list(~widehat(italic(beta))==0.07, ~italic(t)(5)==0.16, ~italic(p)=='0.875')",
-        "list(~widehat(italic(beta))==0.54, ~italic(t)(10)==1.33, ~italic(p)=='0.191')",
-        "list(~widehat(italic(beta))==0.04, ~italic(t)(12)==1.24, ~italic(p)=='0.001')"
-      )
-    )
-    expect_identical(
-      pb5$data[[4]]$label,
-      c(
-        "list(~widehat(italic(beta))==0.07, ~italic(t)(Inf)==0.16, ~italic(p)=='0.875')",
-        "list(~widehat(italic(beta))==0.54, ~italic(t)(Inf)==1.33, ~italic(p)=='0.191')",
-        "list(~widehat(italic(beta))==0.04, ~italic(t)(Inf)==1.24, ~italic(p)=='0.001')"
-      )
-    )
-
-    expect_equal(
-      pb2$data[[3]]$y,
-      structure(c(2L, 1L, 3L), class = c("mapped_discrete", "numeric"))
-    )
-    expect_identical(
-      pb2$data[[4]]$label,
-      c(
-        "list(~widehat(italic(beta))==0.07, ~italic(z)==0.16, ~italic(p)=='0.875')",
-        "list(~widehat(italic(beta))==0.54, ~italic(z)==1.33, ~italic(p)=='0.191')",
-        "list(~widehat(italic(beta))==0.04, ~italic(z)==1.24, ~italic(p)=='0.001')"
-      )
-    )
-
-    # checking number of data layers
-    expect_equal(length(pb1$data), 4L)
-    expect_equal(length(pb2$data), 4L)
-    expect_equal(length(pb3$data), 3L)
-    expect_equal(length(pb4$data), 3L)
-
-    # confidence intervals used for each layer should be the same as df
-    expect_equal(pb3$data[[2]]$xmin, df1$conf.low)
-    expect_equal(pb3$data[[2]]$xmax, df2$conf.high)
-    expect_equal(pb2$data[[2]]$xmin, df3$conf.low)
-    expect_equal(pb2$data[[2]]$xmax, df3$conf.high)
-
-    # annotations
-    expect_identical(p4$labels$x, "location")
-    expect_null(p4$labels$y, NULL)
-    expect_null(p4$labels$title, NULL)
-    expect_null(p4$labels$subtitle, NULL)
-
-    # checking meta-analysis
-    expect_error(ggcoefstats(
-      x = df1,
-      statistic = "t",
-      meta.analytic.effect = TRUE
-    ))
-
-    expect_identical(pb7$plot$labels$caption, "mnp")
-
-    # caption
-    set.seed(123)
-    meta_info <-
-      suppressWarnings(
-        ggcoefstats(
-          x = df5,
-          statistic = "t",
-          k = 3,
-          meta.analytic.effect = TRUE,
-          bf.message = TRUE,
-          output = "caption",
-          messages = TRUE
-        )
-      )
-    expect_identical(as.character(meta_info$expr)[19], "81.42%")
   }
 )
 
@@ -956,5 +466,156 @@ test_that(
     pb <- ggplot2::ggplot_build(p)
 
     expect_equal(length(pb$data), 3L)
+  }
+)
+
+# meta subtitle -------------------------------------
+
+test_that(
+  desc = "meta subtitle",
+  code = {
+    skip_on_cran()
+
+    # dataframe
+    df_eg <-
+      structure(
+        list(
+          estimate = c(0.111, 0.245, 0.8, 1.1, 0.03),
+          std.error = c(0.05, 0.111, 0.001, 0.2, 0.01)
+        ),
+        row.names = c(NA, -5L),
+        class = c("tbl_df", "tbl", "data.frame")
+      )
+
+    # subtitle output
+    set.seed(123)
+    using_function1 <-
+      statsExpressions::expr_meta_random(
+        data = df_eg,
+        k = 4,
+        output = "subtitle",
+        type = "p"
+      )
+
+    # ggstatsplot output
+    set.seed(123)
+    ggcoef_label <-
+      ggcoefstats(df_eg,
+        k = 4,
+        meta.analytic.effect = TRUE,
+        bf.message = FALSE,
+        output = "subtitle",
+        meta.type = "p"
+      )
+
+    expect_identical(using_function1, ggcoef_label)
+  }
+)
+
+# duplicated terms -------------------------------------
+
+test_that(
+  desc = "duplicated terms",
+  code = {
+    skip_on_cran()
+
+    df <-
+      structure(
+        list(
+          term = c(
+            "(Intercept)", "x", "(Intercept)", "x",
+            "(Intercept)", "x"
+          ),
+          estimate = c(
+            29.3220715172958,
+            1.1244506550584,
+            29.9547605920406,
+            1.1822574944936,
+            30.6283792821576,
+            1.25165747424685
+          ),
+          std.error = c(
+            0.117485050182681,
+            0.255357284283965,
+            0.113389002110287,
+            0.16192823674221,
+            0.0997134241212493,
+            0.184844896331203
+          ),
+          ci.width = c(
+            95,
+            95, 95, 95, 95, 95
+          ),
+          conf.low = c(
+            29.0912440592861,
+            0.622740244041031,
+            29.7319807993548,
+            0.864110775323021,
+            30.4324684306615,
+            0.888485500622392
+          ),
+          conf.high = c(
+            29.5528989753056,
+            1.62616106607576,
+            30.1775403847265,
+            1.50040421366417,
+            30.8242901336538,
+            1.61482944787131
+          ),
+          statistic = c(
+            249.581299677722,
+            4.40344068590569,
+            264.176948685952,
+            7.30112004106952,
+            307.164050899648,
+            6.77139320094696
+          ),
+          df = c(498L, 498L, 498L, 498L, 498L, 498L),
+          p.value = c(
+            9.8364342079353e-78,
+            5.77239788522003e-05,
+            6.0849598304989e-79,
+            2.26914690385169e-09,
+            3.78325168389556e-82,
+            1.49961152818978e-08
+          ),
+          component = c(
+            "tau (0.25)",
+            "tau (0.25)",
+            "tau (0.50)",
+            "tau (0.50)",
+            "tau (0.75)",
+            "tau (0.75)"
+          )
+        ),
+        row.names = c(
+          NA,
+          6L
+        ),
+        pretty_names = c(`(Intercept)` = "(Intercept)", x = "x"),
+        ci = 0.95,
+        verbose = TRUE,
+        exponentiate = FALSE,
+        ordinal_model = FALSE,
+        model_class = "lqm",
+        bootstrap = FALSE,
+        iterations = 1000,
+        model_formula = "y ~ x",
+        coefficient_name = "Coefficient",
+        zi_coefficient_name = "Log-Odds",
+        digits = 2,
+        ci_digits = 2,
+        p_digits = 3,
+        class = "data.frame",
+        object_name = "fit.lqm"
+      )
+
+    p <- ggcoefstats(df, statistic = "t")
+
+    pb <- ggplot2::ggplot_build(p)
+
+    # check data
+    set.seed(123)
+    expect_snapshot(pb$data)
   }
 )

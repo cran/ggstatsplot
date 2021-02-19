@@ -1,3 +1,54 @@
+# ggstatsplot 0.7.0
+
+BREAKING CHANGES
+
+  - `combine_plots` has been completely revised to rely not on `patchwork`, but
+    on `patchwork`, to combine a list of `ggplot` together. This was done to
+    have a leaner syntax. With this revision, its vestigial twin `combine_plots`
+    is no longer needed and has been removed. This should not break any of the
+    existing instances of `grouped_` functions, although it will lead to changed
+    graphical layouts. The only instance in which this change will lead to a
+    breakage is if you had used `combine_plots` function and provided individual
+    plots to `...` instead as a `list`.
+
+  - To avoid confusion among users, the default trimming level for all functions
+    is now changed from `tr = 0.1` to `tr = 0.2` (which is what `WRS2` defaults
+    to).
+
+MAJOR CHANGES
+
+  - All robust tests in this package were based on trimmed means, except for
+    correlation test. This has been changed: the robust correlation measure is
+    now Winsorized correlation, which is based on trimming. Therefore, the
+    `beta` argument has been replaced by `tr` argument. This should result only
+    in minor changes in correlation coefficient estimates.
+
+  - Using `annotate` instead of `geom_label` had significantly slowed down
+    `gghistostats` and `ggdotplotstats` functions. This has been fixed.
+
+  - Removes the vestigial `notch` and `notchwidth` arguments for
+    `ggbetweenstats` and `ggwithinstats`.
+
+  - All Bayesian expression templates are now explicit about the type of
+    estimate being displayed.
+
+  - For `gghistostats` and `ggdotplotstats`, the centrality measure labels used
+    to be attached to the vertical line, but this occluded the underlying data.
+    Now this label is instead shown on the top `x`-axis. Note that this means
+    that if you make any further changes to the resulting plot using the
+    `ggplot2::scale_x_continuous` function, this label will likely disappear.
+    The `centrality.k` argument is retired in favor of `k`.
+
+NEW FEATURES
+
+  - More models supported in `ggcoefstats`: `crr`, `eglm`, `elm`, `varest`.
+
+  - `ggbetweenstats`, `ggwithinstats`, `gghistostats`, `ggdotplotstats` gain
+    argument `centrality.type` that can be used to specify which centrality
+    parameter is to be displayed. So one can have `type = "robust"` and still
+    show median as centrality parameter by choosing `centrality.type =
+    "nonparametric"`.
+
 # ggstatsplot 0.6.8
 
 MAJOR CHANGES
@@ -332,7 +383,7 @@ list of arguments `list(size = 5, color = "darkgreen", alpha = 0.8)` can be
 supplied).
 
   - All `grouped_` functions have been refactored to reduce the number of
-    arguments. These functions now internally use the new `combine_plots2`
+    arguments. These functions now internally use the new `combine_plots`
     instead of `combine_plots`. The additional arguments to primary functions
     can be provided through `...`. These changes will not necessarily break the
     existing code but will lead to some minor graphical changes (e.g., if you

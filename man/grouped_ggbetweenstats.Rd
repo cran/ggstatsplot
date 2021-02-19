@@ -13,14 +13,9 @@ grouped_ggbetweenstats(
   outlier.label = NULL,
   title.prefix = NULL,
   output = "plot",
-  ...,
   plotgrid.args = list(),
-  title.text = NULL,
-  title.args = list(size = 16, fontface = "bold"),
-  caption.text = NULL,
-  caption.args = list(size = 10),
-  sub.text = NULL,
-  sub.args = list(size = 12)
+  annotation.args = list(),
+  ...
 )
 }
 \arguments{
@@ -50,11 +45,18 @@ Setting this to \code{"caption"} will return the expression containing details
 about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
 \code{bf.message = TRUE}, otherwise this will return a \code{NULL}.}
 
+\item{plotgrid.args}{A \code{list} of additional arguments passed to
+\code{patchwork::wrap_plots}, except for \code{guides} argument which is already
+separately specified here.}
+
+\item{annotation.args}{A \code{list} of additional arguments passed to
+\code{patchwork::plot_annotation}.}
+
 \item{...}{
   Arguments passed on to \code{\link[=ggbetweenstats]{ggbetweenstats}}
   \describe{
     \item{\code{plot.type}}{Character describing the \emph{type} of plot. Currently supported
-plots are \code{"box"} (for pure boxplots), \code{"violin"} (for pure violin plots),
+plots are \code{"box"} (for only boxplots), \code{"violin"} (for only violin plots),
 and \code{"boxviolin"} (for a combination of box and violin plots; default).}
     \item{\code{xlab}}{Labels for \code{x} and \code{y} axis variables. If \code{NULL} (default),
 variable names for \code{x} and \code{y} will be used.}
@@ -70,13 +72,18 @@ about pairwise comparisons, see the documentation for that function.}
     \item{\code{p.adjust.method}}{Adjustment method for \emph{p}-values for multiple
 comparisons. Possible methods are: \code{"holm"} (default), \code{"hochberg"},
 \code{"hommel"}, \code{"bonferroni"}, \code{"BH"}, \code{"BY"}, \code{"fdr"}, \code{"none"}.}
-    \item{\code{pairwise.display}}{Decides which pairwise comparisons to display.
-Available options are \code{"significant"} (abbreviation accepted: \code{"s"}) or
-\code{"non-significant"} (abbreviation accepted: \code{"ns"}) or
-\code{"everything"}/\code{"all"}. The default is \code{"significant"}. You can use this
-argument to make sure that your plot is not uber-cluttered when you have
-multiple groups being compared and scores of pairwise comparisons being
-displayed.}
+    \item{\code{pairwise.display}}{Decides \emph{which} pairwise comparisons to display.
+Available options are:
+
+\itemize{
+\item \code{"significant"} (abbreviation accepted: \code{"s"})
+\item \code{"non-significant"} (abbreviation accepted: \code{"ns"})
+\item \code{"all"}
+}
+
+You can use this argument to make sure that your plot is not uber-cluttered
+when you have multiple groups being compared and scores of pairwise
+comparisons being displayed.}
     \item{\code{bf.prior}}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
 width to use in calculating Bayes factors.}
     \item{\code{bf.message}}{Logical that decides whether to display Bayes Factor in
@@ -91,14 +98,6 @@ the plot will be returned.}
     \item{\code{sample.size.label}}{Logical that decides whether sample size information
 should be displayed for each level of the grouping variable \code{x} (Default:
 \code{TRUE}).}
-    \item{\code{notch}}{A logical. If \code{FALSE} (default), a standard box plot will be
-displayed. If \code{TRUE}, a notched box plot will be used. Notches are used to
-compare groups; if the notches of two boxes do not overlap, this suggests
-that the medians are significantly different. In a notched box plot, the
-notches extend \code{1.58 * IQR / sqrt(n)}, where IQR: Inter-Quartile Range.
-This gives a roughly \verb{95\%} confidence interval for comparing medians.}
-    \item{\code{notchwidth}}{For a notched box plot, width of the notch relative to the
-body (default \code{0.5}).}
     \item{\code{outlier.color}}{Default aesthetics for outliers (Default: \code{"black"}).}
     \item{\code{outlier.tagging}}{Decides whether outliers should be tagged (Default:
 \code{FALSE}).}
@@ -112,11 +111,32 @@ passed to \code{ggrepel::geom_label_repel} for outlier label plotting.}
 With Tukey's method, outliers are below (1st Quartile) or above (3rd
 Quartile) \code{outlier.coef} times the Inter-Quartile Range (IQR) (Default:
 \code{1.5}).}
-    \item{\code{centrality.plotting}}{Logical that decides whether centrality tendency measure
-is to be displayed as a point with a label (Default: \code{TRUE}). Function
-decides which central tendency measure to show depending on the \code{type}
-argument (\strong{mean} for parametric, \strong{median} for non-parametric,
-\strong{trimmed mean} for robust, and \strong{MAP estimator} for Bayes).}
+    \item{\code{centrality.plotting}}{Logical that decides whether centrality tendency
+measure is to be displayed as a point with a label (Default: \code{TRUE}).
+Function decides which central tendency measure to show depending on the
+\code{type} argument.
+
+\itemize{
+\item \strong{mean} for parametric statistics
+\item \strong{median} for non-parametric statistics
+\item \strong{trimmed mean} for robust statistics
+\item \strong{MAP estimator} for Bayesian statistics
+}
+
+If you want default centrality parameter, you can specify this using
+\code{centrality.type} argument.}
+    \item{\code{centrality.type}}{Decides which centrality parameter is to be displayed.
+The default is to choose the same as \code{type} argument. You can specify this
+to be:
+
+\itemize{
+\item \code{"parameteric"} (for \strong{mean})
+\item \code{"nonparametric"} (for \strong{median})
+\item \code{robust} (for \strong{trimmed mean})
+\item \code{bayes} (for \strong{MAP estimator})
+}
+
+Just as \code{type} argument, abbreviations are also accepted.}
     \item{\code{point.args}}{A list of additional aesthetic arguments to be passed to
 the \code{geom_point} displaying the raw data.}
     \item{\code{violin.args}}{A list of additional aesthetic arguments to be passed to
@@ -147,10 +167,17 @@ extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
 theme elements are to be displayed along with the selected \code{ggtheme}
 (Default: \code{TRUE}). \code{theme_ggstatsplot} is an opinionated theme layer that
 override some aspects of the selected \code{ggtheme}.}
-    \item{\code{type}}{Type of statistic expected (\code{"parametric"} or \code{"nonparametric"}
-or \code{"robust"} or \code{"bayes"}).Corresponding abbreviations are also accepted:
-\code{"p"} (for parametric), \code{"np"} (nonparametric), \code{"r"} (robust), or
-\code{"bf"}resp.}
+    \item{\code{type}}{Type of statistic expected. Four possible options:
+
+\itemize{
+\item \code{"parametric"}
+\item \code{"nonparametric"}
+\item \code{"robust"}
+\item \code{"bayes"}
+}
+
+Corresponding abbreviations are also accepted: \code{"p"} (for parametric),
+\code{"np"} (for nonparametric), \code{"r"} (for robust), or \code{"bf"} (for Bayesian).}
     \item{\code{effsize.type}}{Type of effect size needed for \emph{parametric} tests. The
 argument can be \code{"eta"} (partial eta-squared) or \code{"omega"} (partial
 omega-squared).}
@@ -160,43 +187,21 @@ omega-squared).}
     two variances as being equal. If \code{TRUE} then the pooled
     variance is used to estimate the variance otherwise the Welch
     (or Satterthwaite) approximation to the degrees of freedom is used.}
-    \item{\code{conf.level}}{Scalar between 0 and 1. If unspecified, the defaults return
-\verb{95\%} confidence/credible intervals (\code{0.95}).}
+    \item{\code{conf.level}}{Scalar between \code{0} and \code{1}. If unspecified, the defaults
+return \verb{95\%} confidence/credible intervals (\code{0.95}).}
     \item{\code{nboot}}{Number of bootstrap samples for computing confidence interval
 for the effect size (Default: \code{100}).}
-    \item{\code{tr}}{Trim level for the mean when carrying out \code{robust} tests. If you
-get error stating "Standard error cannot be computed because of Winsorized
-variance of 0 (e.g., due to ties). Try to decrease the trimming level.",
-try to play around with the value of \code{tr}, which is by default set to
-\code{0.1}. Lowering the value might help.}
+    \item{\code{tr}}{Trim level for the mean when carrying out \code{robust} tests. In case
+of an error, try reducing the value of \code{tr}, which is by default set to
+\code{0.2}. Lowering the value might help.}
   }}
-
-\item{plotgrid.args}{A list of additional arguments to \code{cowplot::plot_grid}.}
-
-\item{title.text}{String or plotmath expression to be drawn as title for the
-\emph{combined plot}.}
-
-\item{title.args}{A list of additional arguments
-provided to \code{title}, \code{caption} and \code{sub}, resp.}
-
-\item{caption.text}{String or plotmath expression to be drawn as the caption
-for the \emph{combined plot}.}
-
-\item{caption.args}{A list of additional arguments
-provided to \code{title}, \code{caption} and \code{sub}, resp.}
-
-\item{sub.text}{The label with which the \emph{combined plot} should be annotated.
-Can be a plotmath expression.}
-
-\item{sub.args}{A list of additional arguments
-provided to \code{title}, \code{caption} and \code{sub}, resp.}
 }
 \description{
 \Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
 
 Helper function for \code{ggstatsplot::ggbetweenstats} to apply this function
 across multiple levels of a given factor and combining the resulting plots
-using \code{ggstatsplot::combine_plots2}.
+using \code{ggstatsplot::combine_plots}.
 }
 \examples{
 \donttest{

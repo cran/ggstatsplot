@@ -6,6 +6,8 @@ Algina
 Anova
 AppVeyor
 BayesX
+Benchmarking
+BusinessScience
 Cikara
 Cochrane
 Codecov
@@ -40,6 +42,7 @@ Keselman
 LDHF
 LDLF
 LFHD
+LadiesTunis
 Licence
 Lüdecke
 MCML
@@ -54,7 +57,6 @@ McNemar’s
 Mina
 NHST
 NumGenre
-ORCID
 Oneway
 Orcutt
 Otterstetter
@@ -73,6 +75,7 @@ Shachar
 StackOverflow
 TERGM
 Tufte
+UseROslo
 Welch
 Welch's
 Welch’s
@@ -89,8 +92,8 @@ anevaluator
 anova
 anovas
 anthropods
-ascender
 au
+bCFBMWg
 bayes
 bayesian
 bbolker
@@ -144,7 +147,6 @@ hl
 hotfix
 http
 https
-hv
 ibecav
 imdb
 img
@@ -168,13 +170,8 @@ noncentral
 nz
 pairwiseComparisons
 partialization
-patilindrajeets
 paulvanderlaken
-pearson
-pearson's
 piechart
-plotgrid
-plotmath
 posteriori
 pre
 preferrred
@@ -183,15 +180,14 @@ purrr
 readme
 reproducibility
 ridgeplot
-rlbt
+rnt
 rpubs
+sXeshyVRI
 scisbd
 sdt
 setosa
-spearman
 statsExpressions
 svg
-tblr
 tibble
 tibbles
 tidiers
@@ -204,7 +200,7 @@ uber
 unjittered
 versicolor
 virginica
-vjust
+wCo
 www
 yellowgreen
 youtu

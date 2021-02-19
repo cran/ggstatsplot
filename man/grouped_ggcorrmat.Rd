@@ -8,18 +8,12 @@ levels of a grouping variable}
 grouped_ggcorrmat(
   data,
   cor.vars = NULL,
-  cor.vars.names = NULL,
   grouping.var,
   title.prefix = NULL,
   output = "plot",
-  ...,
   plotgrid.args = list(),
-  title.text = NULL,
-  title.args = list(size = 16, fontface = "bold"),
-  caption.text = NULL,
-  caption.args = list(size = 10),
-  sub.text = NULL,
-  sub.args = list(size = 12)
+  annotation.args = list(),
+  ...
 )
 }
 \arguments{
@@ -29,9 +23,6 @@ taken.}
 \item{cor.vars}{List of variables for which the correlation matrix is to be
 computed and visualized. If \code{NULL} (default), all numeric variables from
 \code{data} will be used.}
-
-\item{cor.vars.names}{Optional list of names to be used for \code{cor.vars}. The
-names should be entered in the same order.}
 
 \item{grouping.var}{A single grouping variable (can be entered either as a
 bare name \code{x} or as a string \code{"x"}).}
@@ -46,9 +37,18 @@ literally anything other than \code{"plot"}), a dataframe containing all details
 from statistical analyses (e.g., correlation coefficients, statistic
 values, \emph{p}-values, no. of observations, etc.) will be returned.}
 
+\item{plotgrid.args}{A \code{list} of additional arguments passed to
+\code{patchwork::wrap_plots}, except for \code{guides} argument which is already
+separately specified here.}
+
+\item{annotation.args}{A \code{list} of additional arguments passed to
+\code{patchwork::plot_annotation}.}
+
 \item{...}{
   Arguments passed on to \code{\link[=ggcorrmat]{ggcorrmat}}
   \describe{
+    \item{\code{cor.vars.names}}{Optional list of names to be used for \code{cor.vars}. The
+names should be entered in the same order.}
     \item{\code{partial}}{Can be \code{TRUE} for partial correlations. For Bayesian partial
 correlations, "full" instead of pseudo-Bayesian partial correlations (i.e.,
 Bayesian correlation based on frequentist partialization) are returned.}
@@ -68,20 +68,26 @@ will be passed to \code{ggcorrplot::ggcorrplot} function. The list should avoid
 any of the following arguments since they are already internally being
 used: \code{corr}, \code{method}, \code{p.mat}, \code{sig.level}, \code{ggtheme}, \code{colors}, \code{lab},
 \code{pch}, \code{legend.title}, \code{digits}.}
-    \item{\code{type}}{Type of association between paired samples required
-("\code{"parametric"}: Pearson's product moment correlation coefficient" or
-"\code{"nonparametric"}: Spearman's rho" or "\code{"robust"}: percentage bend
-correlation coefficient" or "\code{"bayes"}: Bayes Factor for Pearson's \emph{r}").
-Corresponding abbreviations are also accepted: \code{"p"} (for
-parametric/pearson), \code{"np"} (nonparametric/spearman), \code{"r"} (robust),
-\code{"bf"} (for bayes factor), resp.}
-    \item{\code{beta}}{bending constant (Default: \code{0.1}). For more, see \code{\link[WRS2:pbcor]{WRS2::pbcor()}}.}
+    \item{\code{type}}{Type of statistic expected. Four possible options:
+
+\itemize{
+\item \code{"parametric"}
+\item \code{"nonparametric"}
+\item \code{"robust"}
+\item \code{"bayes"}
+}
+
+Corresponding abbreviations are also accepted: \code{"p"} (for parametric),
+\code{"np"} (for nonparametric), \code{"r"} (for robust), or \code{"bf"} (for Bayesian).}
+    \item{\code{tr}}{Trim level for the mean when carrying out \code{robust} tests. In case
+of an error, try reducing the value of \code{tr}, which is by default set to
+\code{0.2}. Lowering the value might help.}
     \item{\code{k}}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2L}).}
-    \item{\code{conf.level}}{Scalar between 0 and 1. If unspecified, the defaults return
-\verb{95\%} confidence/credible intervals (\code{0.95}).}
+    \item{\code{conf.level}}{Scalar between \code{0} and \code{1}. If unspecified, the defaults
+return \verb{95\%} confidence/credible intervals (\code{0.95}).}
     \item{\code{bf.prior}}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
-width to use in calculating Bayes factors.}
+width to use in calculating Bayes factors and posterior estimates.}
     \item{\code{p.adjust.method}}{Adjustment method for \emph{p}-values for multiple
 comparisons. Possible methods are: \code{"holm"} (default), \code{"hochberg"},
 \code{"hommel"}, \code{"bonferroni"}, \code{"BH"}, \code{"BY"}, \code{"fdr"}, \code{"none"}.}
@@ -107,33 +113,13 @@ be entered as a \code{ggplot2} function or a list of \code{ggplot2} functions.}
 \code{results.subtitle = FALSE}.}
     \item{\code{caption}}{The text for the plot caption.}
   }}
-
-\item{plotgrid.args}{A list of additional arguments to \code{cowplot::plot_grid}.}
-
-\item{title.text}{String or plotmath expression to be drawn as title for the
-\emph{combined plot}.}
-
-\item{title.args}{A list of additional arguments
-provided to \code{title}, \code{caption} and \code{sub}, resp.}
-
-\item{caption.text}{String or plotmath expression to be drawn as the caption
-for the \emph{combined plot}.}
-
-\item{caption.args}{A list of additional arguments
-provided to \code{title}, \code{caption} and \code{sub}, resp.}
-
-\item{sub.text}{The label with which the \emph{combined plot} should be annotated.
-Can be a plotmath expression.}
-
-\item{sub.args}{A list of additional arguments
-provided to \code{title}, \code{caption} and \code{sub}, resp.}
 }
 \description{
 \Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
 
 Helper function for \code{ggstatsplot::ggcorrmat} to apply this function across
 multiple levels of a given factor and combining the resulting plots using
-\code{ggstatsplot::combine_plots2}.
+\code{ggstatsplot::combine_plots}.
 }
 \examples{
 \donttest{

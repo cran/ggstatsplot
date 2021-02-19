@@ -11,7 +11,7 @@
 #' subtitle.
 #'
 #' @param plot.type Character describing the *type* of plot. Currently supported
-#'   plots are `"box"` (for pure boxplots), `"violin"` (for pure violin plots),
+#'   plots are `"box"` (for only boxplots), `"violin"` (for only violin plots),
 #'   and `"boxviolin"` (for a combination of box and violin plots; default).
 #' @param xlab,ylab Labels for `x` and `y` axis variables. If `NULL` (default),
 #'   variable names for `x` and `y` will be used.
@@ -25,13 +25,18 @@
 #' @param p.adjust.method Adjustment method for *p*-values for multiple
 #'   comparisons. Possible methods are: `"holm"` (default), `"hochberg"`,
 #'   `"hommel"`, `"bonferroni"`, `"BH"`, `"BY"`, `"fdr"`, `"none"`.
-#' @param pairwise.display Decides which pairwise comparisons to display.
-#'   Available options are `"significant"` (abbreviation accepted: `"s"`) or
-#'   `"non-significant"` (abbreviation accepted: `"ns"`) or
-#'   `"everything"`/`"all"`. The default is `"significant"`. You can use this
-#'   argument to make sure that your plot is not uber-cluttered when you have
-#'   multiple groups being compared and scores of pairwise comparisons being
-#'   displayed.
+#' @param pairwise.display Decides *which* pairwise comparisons to display.
+#'   Available options are:
+#'
+#'   \itemize{
+#'     \item `"significant"` (abbreviation accepted: `"s"`)
+#'     \item `"non-significant"` (abbreviation accepted: `"ns"`)
+#'     \item `"all"`
+#'   }
+#'
+#'   You can use this argument to make sure that your plot is not uber-cluttered
+#'   when you have multiple groups being compared and scores of pairwise
+#'   comparisons being displayed.
 #' @param bf.prior A number between `0.5` and `2` (default `0.707`), the prior
 #'   width to use in calculating Bayes factors.
 #' @param bf.message Logical that decides whether to display Bayes Factor in
@@ -47,14 +52,6 @@
 #' @param sample.size.label Logical that decides whether sample size information
 #'   should be displayed for each level of the grouping variable `x` (Default:
 #'   `TRUE`).
-#' @param notch A logical. If `FALSE` (default), a standard box plot will be
-#'   displayed. If `TRUE`, a notched box plot will be used. Notches are used to
-#'   compare groups; if the notches of two boxes do not overlap, this suggests
-#'   that the medians are significantly different. In a notched box plot, the
-#'   notches extend `1.58 * IQR / sqrt(n)`, where IQR: Inter-Quartile Range.
-#'   This gives a roughly `95%` confidence interval for comparing medians.
-#' @param notchwidth For a notched box plot, width of the notch relative to the
-#'   body (default `0.5`).
 #' @param outlier.color Default aesthetics for outliers (Default: `"black"`).
 #' @param outlier.tagging Decides whether outliers should be tagged (Default:
 #'   `FALSE`).
@@ -70,11 +67,32 @@
 #'   With Tukey's method, outliers are below (1st Quartile) or above (3rd
 #'   Quartile) `outlier.coef` times the Inter-Quartile Range (IQR) (Default:
 #'   `1.5`).
-#' @param centrality.plotting Logical that decides whether centrality tendency measure
-#'   is to be displayed as a point with a label (Default: `TRUE`). Function
-#'   decides which central tendency measure to show depending on the `type`
-#'   argument (**mean** for parametric, **median** for non-parametric,
-#'   **trimmed mean** for robust, and **MAP estimator** for Bayes).
+#' @param centrality.plotting Logical that decides whether centrality tendency
+#'   measure is to be displayed as a point with a label (Default: `TRUE`).
+#'   Function decides which central tendency measure to show depending on the
+#'   `type` argument.
+#'
+#'   \itemize{
+#'     \item **mean** for parametric statistics
+#'     \item **median** for non-parametric statistics
+#'     \item **trimmed mean** for robust statistics
+#'     \item **MAP estimator** for Bayesian statistics
+#'   }
+#'
+#'   If you want default centrality parameter, you can specify this using
+#'   `centrality.type` argument.
+#' @param centrality.type Decides which centrality parameter is to be displayed.
+#'   The default is to choose the same as `type` argument. You can specify this
+#'   to be:
+#'
+#'   \itemize{
+#'     \item `"parameteric"` (for **mean**)
+#'     \item `"nonparametric"` (for **median**)
+#'     \item `robust` (for **trimmed mean**)
+#'     \item `bayes` (for **MAP estimator**)
+#'   }
+#'
+#'   Just as `type` argument, abbreviations are also accepted.
 #' @param point.args A list of additional aesthetic arguments to be passed to
 #'   the `geom_point` displaying the raw data.
 #' @param violin.args A list of additional aesthetic arguments to be passed to
@@ -178,12 +196,11 @@ ggbetweenstats <- function(data,
                            var.equal = FALSE,
                            conf.level = 0.95,
                            nboot = 100L,
-                           tr = 0.1,
+                           tr = 0.2,
                            centrality.plotting = TRUE,
+                           centrality.type = type,
                            centrality.point.args = list(size = 5, color = "darkred"),
                            centrality.label.args = list(size = 3, nudge_x = 0.4, segment.linetype = 4),
-                           notch = FALSE,
-                           notchwidth = 0.5,
                            outlier.tagging = FALSE,
                            outlier.label = NULL,
                            outlier.coef = 1.5,
@@ -209,48 +226,36 @@ ggbetweenstats <- function(data,
   # convert entered stats type to a standard notation
   type <- ipmisc::stats_type_switch(type)
 
-  # ------------------------------ variable names ----------------------------
-
-  # ensure the variables work quoted or unquoted
-  x <- rlang::ensym(x)
-  y <- rlang::ensym(y)
+  # make sure both quoted and unquoted arguments are allowed
+  c(x, y) %<-% c(rlang::ensym(x), rlang::ensym(y))
   outlier.label <- if (!rlang::quo_is_null(rlang::enquo(outlier.label))) {
     rlang::ensym(outlier.label)
   }
-
-  # if `xlab` and `ylab` is not provided, use the variable `x` and `y` name
-  if (is.null(xlab)) xlab <- rlang::as_name(x)
-  if (is.null(ylab)) ylab <- rlang::as_name(y)
 
   # --------------------------------- data -----------------------------------
 
   # creating a dataframe
   data %<>%
     dplyr::select({{ x }}, {{ y }}, outlier.label = {{ outlier.label }}) %>%
-    tidyr::drop_na(data = .) %>%
-    dplyr::mutate({{ x }} := droplevels(as.factor({{ x }}))) %>%
-    as_tibble(x = .)
+    tidyr::drop_na(.) %>%
+    dplyr::mutate({{ x }} := droplevels(as.factor({{ x }})))
 
   # if outlier.label column is not present, just use the values from `y` column
-  if (rlang::quo_is_null(rlang::enquo(outlier.label))) {
-    data %<>% dplyr::mutate(outlier.label = {{ y }})
-  }
+  if (!"outlier.label" %in% names(data)) data %<>% dplyr::mutate(outlier.label = {{ y }})
 
   # add a logical column indicating whether a point is or is not an outlier
   data %<>%
     outlier_df(
-      data = .,
       x = {{ x }},
       y = {{ y }},
       outlier.coef = outlier.coef,
       outlier.label = outlier.label
     )
 
-  # figure out which test to run based on the number of levels of the
-  # independent variables
-  test <- ifelse(nlevels(data %>% dplyr::pull({{ x }}))[[1]] < 3, "t", "anova")
-
   # --------------------- subtitle/caption preparation ------------------------
+
+  # figure out which test to run based on the no. of levels of the independent variable
+  test <- ifelse(nlevels(data %>% dplyr::pull({{ x }}))[[1]] < 3, "t", "anova")
 
   if (isTRUE(results.subtitle)) {
     # preparing the Bayes factor message
@@ -293,7 +298,10 @@ ggbetweenstats <- function(data,
 
   # return early if anything other than plot
   if (output != "plot") {
-    return(switch(output, "caption" = caption, subtitle))
+    return(switch(output,
+      "caption" = caption,
+      subtitle
+    ))
   }
 
   # -------------------------- basic plot -----------------------------------
@@ -304,7 +312,6 @@ ggbetweenstats <- function(data,
     rlang::exec(
       .fn = ggplot2::geom_point,
       data = dplyr::filter(.data = data, !isanoutlier),
-      na.rm = TRUE,
       ggplot2::aes(color = {{ x }}),
       !!!point.args
     )
@@ -315,7 +322,6 @@ ggbetweenstats <- function(data,
       rlang::exec(
         .fn = ggplot2::geom_point,
         data = dplyr::filter(.data = data, isanoutlier),
-        na.rm = TRUE,
         ggplot2::aes(color = {{ x }}),
         !!!point.args
       )
@@ -330,7 +336,6 @@ ggbetweenstats <- function(data,
         size = 3,
         stroke = 0,
         alpha = 0.7,
-        na.rm = TRUE,
         color = outlier.color,
         shape = outlier.shape
       )
@@ -348,22 +353,16 @@ ggbetweenstats <- function(data,
       )
     } else {
       .f <- ggplot2::geom_boxplot
-      outlier_list <- list(
-        outlier.shape = NA,
-        position = ggplot2::position_dodge(width = NULL)
-      )
+      outlier_list <- list(outlier.shape = NA, position = ggplot2::position_dodge(width = NULL))
     }
 
     # add a boxplot
     suppressWarnings(plot <- plot +
       rlang::exec(
         .fn = .f,
-        notch = notch,
-        notchwidth = notchwidth,
         width = 0.3,
         alpha = 0.2,
         fill = "white",
-        na.rm = TRUE,
         geom = "boxplot",
         coef = outlier.coef,
         !!!outlier_list
@@ -376,7 +375,6 @@ ggbetweenstats <- function(data,
       rlang::exec(
         .fn = ggplot2::geom_violin,
         fill = "white",
-        na.rm = TRUE,
         !!!violin.args
       )
   }
@@ -397,7 +395,6 @@ ggbetweenstats <- function(data,
         show.legend = FALSE,
         min.segment.length = 0,
         inherit.aes = FALSE,
-        na.rm = TRUE,
         !!!outlier.label.args
       )
   }
@@ -413,7 +410,7 @@ ggbetweenstats <- function(data,
         x = {{ x }},
         y = {{ y }},
         k = k,
-        type = type,
+        type = ipmisc::stats_type_switch(centrality.type),
         tr = tr,
         sample.size.label = sample.size.label,
         centrality.point.args = centrality.point.args,
@@ -467,8 +464,8 @@ ggbetweenstats <- function(data,
   aesthetic_addon(
     plot = plot,
     x = data %>% dplyr::pull({{ x }}),
-    xlab = xlab,
-    ylab = ylab,
+    xlab = xlab %||% rlang::as_name(x),
+    ylab = ylab %||% rlang::as_name(y),
     title = title,
     subtitle = subtitle,
     caption = caption,

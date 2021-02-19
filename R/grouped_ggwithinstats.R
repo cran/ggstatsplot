@@ -47,14 +47,9 @@ grouped_ggwithinstats <- function(data,
                                   outlier.label = NULL,
                                   title.prefix = NULL,
                                   output = "plot",
-                                  ...,
                                   plotgrid.args = list(),
-                                  title.text = NULL,
-                                  title.args = list(size = 16, fontface = "bold"),
-                                  caption.text = NULL,
-                                  caption.args = list(size = 10),
-                                  sub.text = NULL,
-                                  sub.args = list(size = 12)) {
+                                  annotation.args = list(),
+                                  ...) {
 
   # ======================== preparing dataframe =============================
 
@@ -70,7 +65,7 @@ grouped_ggwithinstats <- function(data,
       {{ y }},
       {{ outlier.label }}
     ) %>%
-    grouped_list(data = ., grouping.var = {{ grouping.var }})
+    grouped_list(grouping.var = {{ grouping.var }})
 
   # ============== creating a list of plots using `pmap`======================
 
@@ -88,16 +83,7 @@ grouped_ggwithinstats <- function(data,
 
   # combining the list of plots into a single plot
   if (output == "plot") {
-    return(ggstatsplot::combine_plots2(
-      plotlist = plotlist_purrr,
-      plotgrid.args = plotgrid.args,
-      title.text = title.text,
-      title.args = title.args,
-      caption.text = caption.text,
-      caption.args = caption.args,
-      sub.text = sub.text,
-      sub.args = sub.args
-    ))
+    return(combine_plots(plotlist_purrr, plotgrid.args = plotgrid.args, annotation.args = annotation.args))
   } else {
     # subtitle list
     return(plotlist_purrr)
