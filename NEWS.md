@@ -1,3 +1,24 @@
+# ggstatsplot 0.7.1
+
+MAJOR CHANGES
+
+  - Based on feedback from the users, the argument `title.prefix` is now
+    removed. It led to redundant title prefixes across different facets of the
+    plot. Given that `grouped_` functions require users to set `grouping.var`,
+    it is fair to assume what variable the levels in the title correspond to.
+
+MINOR CHANGES
+
+  - Adapts to changes made in `statsExpressions 1.0.0`.
+
+  - `sample.size.label` argument is retired for `ggbetweenstats`,
+    `ggwithinstats`, and `ggbarstats`. I do not think it is ever a good idea to
+    not do this. If the users wish to not display sample sizes, they can easily
+    do this using `scale_*` functions from `ggplot2`.
+
+  - In `ggpiestats` and `ggbarstats`, parametric proportion tests are now turned
+    off when `type = "bayes"`.
+
 # ggstatsplot 0.7.0
 
 BREAKING CHANGES

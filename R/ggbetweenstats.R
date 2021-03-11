@@ -27,12 +27,9 @@
 #'   `"hommel"`, `"bonferroni"`, `"BH"`, `"BY"`, `"fdr"`, `"none"`.
 #' @param pairwise.display Decides *which* pairwise comparisons to display.
 #'   Available options are:
-#'
-#'   \itemize{
-#'     \item `"significant"` (abbreviation accepted: `"s"`)
-#'     \item `"non-significant"` (abbreviation accepted: `"ns"`)
-#'     \item `"all"`
-#'   }
+#'   - `"significant"` (abbreviation accepted: `"s"`)
+#'   - `"non-significant"` (abbreviation accepted: `"ns"`)
+#'   - `"all"`
 #'
 #'   You can use this argument to make sure that your plot is not uber-cluttered
 #'   when you have multiple groups being compared and scores of pairwise
@@ -49,9 +46,6 @@
 #' @param subtitle The text for the plot subtitle. Will work only if
 #'   `results.subtitle = FALSE`.
 #' @param caption The text for the plot caption.
-#' @param sample.size.label Logical that decides whether sample size information
-#'   should be displayed for each level of the grouping variable `x` (Default:
-#'   `TRUE`).
 #' @param outlier.color Default aesthetics for outliers (Default: `"black"`).
 #' @param outlier.tagging Decides whether outliers should be tagged (Default:
 #'   `FALSE`).
@@ -71,26 +65,20 @@
 #'   measure is to be displayed as a point with a label (Default: `TRUE`).
 #'   Function decides which central tendency measure to show depending on the
 #'   `type` argument.
-#'
-#'   \itemize{
-#'     \item **mean** for parametric statistics
-#'     \item **median** for non-parametric statistics
-#'     \item **trimmed mean** for robust statistics
-#'     \item **MAP estimator** for Bayesian statistics
-#'   }
+#'   - **mean** for parametric statistics
+#'   - **median** for non-parametric statistics
+#'   - **trimmed mean** for robust statistics
+#'   - **MAP estimator** for Bayesian statistics
 #'
 #'   If you want default centrality parameter, you can specify this using
 #'   `centrality.type` argument.
 #' @param centrality.type Decides which centrality parameter is to be displayed.
 #'   The default is to choose the same as `type` argument. You can specify this
 #'   to be:
-#'
-#'   \itemize{
-#'     \item `"parameteric"` (for **mean**)
-#'     \item `"nonparametric"` (for **median**)
-#'     \item `robust` (for **trimmed mean**)
-#'     \item `bayes` (for **MAP estimator**)
-#'   }
+#'   - `"parameteric"` (for **mean**)
+#'   - `"nonparametric"` (for **median**)
+#'   - `robust` (for **trimmed mean**)
+#'   - `bayes` (for **MAP estimator**)
 #'
 #'   Just as `type` argument, abbreviations are also accepted.
 #' @param point.args A list of additional aesthetic arguments to be passed to
@@ -191,7 +179,6 @@ ggbetweenstats <- function(data,
                            caption = NULL,
                            title = NULL,
                            subtitle = NULL,
-                           sample.size.label = TRUE,
                            k = 2L,
                            var.equal = FALSE,
                            conf.level = 0.95,
@@ -260,7 +247,7 @@ ggbetweenstats <- function(data,
   if (isTRUE(results.subtitle)) {
     # preparing the Bayes factor message
     if (type == "parametric" && isTRUE(bf.message)) {
-      caption <-
+      caption_df <-
         function_switch(
           test = test,
           # arguments relevant for expression helper functions
@@ -271,13 +258,14 @@ ggbetweenstats <- function(data,
           bf.prior = bf.prior,
           top.text = caption,
           paired = FALSE,
-          output = "caption",
           k = k
         )
+
+      caption <- caption_df$expression[[1]]
     }
 
     # extracting the subtitle using the switch function
-    subtitle <-
+    subtitle_df <-
       function_switch(
         test = test,
         # arguments relevant for expression helper functions
@@ -294,6 +282,8 @@ ggbetweenstats <- function(data,
         conf.level = conf.level,
         k = k
       )
+
+    subtitle <- subtitle_df$expression[[1]]
   }
 
   # return early if anything other than plot
@@ -412,7 +402,6 @@ ggbetweenstats <- function(data,
         k = k,
         type = ipmisc::stats_type_switch(centrality.type),
         tr = tr,
-        sample.size.label = sample.size.label,
         centrality.point.args = centrality.point.args,
         centrality.label.args = centrality.label.args
       )

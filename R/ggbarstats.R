@@ -11,9 +11,6 @@
 #' @param xlab Custom text for the `x` axis label (Default: `NULL`, which
 #'   will cause the `x` axis label to be the `x` variable).
 #' @param ylab Custom text for the `y` axis label (Default: `NULL`).
-#' @param sample.size.label Logical that decides whether sample size information
-#'   should be displayed for each level of the grouping variable `y`
-#'   (Default: `TRUE`).
 #' @inheritParams ggpiestats
 #'
 #' @seealso \code{\link{grouped_ggbarstats}}, \code{\link{ggpiestats}},
@@ -51,7 +48,6 @@ ggbarstats <- function(data,
                        type = "parametric",
                        paired = FALSE,
                        results.subtitle = TRUE,
-                       sample.size.label = TRUE,
                        label = "percentage",
                        label.args = list(alpha = 1, fill = "white"),
                        k = 2L,
@@ -97,12 +93,13 @@ ggbarstats <- function(data,
 
   # TO DO: until one-way table is supported by `BayesFactor`
   if (nlevels(data %>% dplyr::pull({{ y }})) == 1L) c(bf.message, proportion.test) %<-% c(FALSE, FALSE)
+  if (type == "bayes") proportion.test <- FALSE
 
   # -------------------------- statistical analysis --------------------------
 
   # if subtitle with results is to be displayed
   if (isTRUE(results.subtitle)) {
-    subtitle <-
+    subtitle_df <-
       tryCatch(
         expr = statsExpressions::expr_contingency_tab(
           data = data,
@@ -117,9 +114,11 @@ ggbarstats <- function(data,
         error = function(e) NULL
       )
 
+    if (!is.null(subtitle_df)) subtitle <- subtitle_df$expression[[1]]
+
     # preparing Bayes Factor caption
     if (type != "bayes" && isTRUE(bf.message) && isFALSE(paired)) {
-      caption <-
+      caption_df <-
         tryCatch(
           expr = statsExpressions::expr_contingency_tab(
             data = data,
@@ -134,12 +133,14 @@ ggbarstats <- function(data,
           ),
           error = function(e) NULL
         )
+
+      if (!is.null(caption_df)) caption <- caption_df$expression[[1]]
     }
   }
 
   # return early if anything other than plot
   if (output != "plot") {
-    return(switch(EXPR = output,
+    return(switch(output,
       "caption" = caption,
       subtitle
     ))
@@ -183,7 +184,7 @@ ggbarstats <- function(data,
     theme_ggstatsplot(ggtheme, ggstatsplot.layer) +
     ggplot2::theme(panel.grid.major.x = ggplot2::element_blank()) +
     ggplot2::guides(fill = ggplot2::guide_legend(title = legend.title %||% rlang::as_name(x))) +
-    paletteer::scale_fill_paletteer_d(palette = paste0(package, "::", palette), name = "")
+    paletteer::scale_fill_paletteer_d(paste0(package, "::", palette), name = "")
 
   # ================ sample size and proportion test labels ===================
 
@@ -200,15 +201,13 @@ ggbarstats <- function(data,
   }
 
   # adding sample size info
-  if (isTRUE(sample.size.label)) {
-    p <- p +
-      ggplot2::geom_text(
-        data = df_proptest,
-        mapping = ggplot2::aes(x = {{ y }}, y = -0.05, label = N, fill = NULL),
-        size = 4,
-        na.rm = TRUE
-      )
-  }
+  p <- p +
+    ggplot2::geom_text(
+      data = df_proptest,
+      mapping = ggplot2::aes(x = {{ y }}, y = -0.05, label = N, fill = NULL),
+      size = 4,
+      na.rm = TRUE
+    )
 
   # =========================== putting all together ========================
 

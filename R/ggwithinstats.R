@@ -48,7 +48,7 @@
 #' library(ggstatsplot)
 #'
 #' # two groups (*t*-test)
-#' ggstatsplot::ggwithinstats(
+#' ggwithinstats(
 #'   data = VR_dilemma,
 #'   x = modality,
 #'   y = score,
@@ -63,7 +63,7 @@
 #'   data = WineTasting,
 #'   x = Wine,
 #'   y = Taste,
-#'   type = "np",
+#'   type = "np", # non-parametric test
 #'   pairwise.comparisons = TRUE,
 #'   outlier.tagging = TRUE,
 #'   outlier.label = Taster
@@ -88,7 +88,6 @@ ggwithinstats <- function(data,
                           caption = NULL,
                           title = NULL,
                           subtitle = NULL,
-                          sample.size.label = TRUE,
                           k = 2L,
                           conf.level = 0.95,
                           nboot = 100L,
@@ -161,7 +160,7 @@ ggwithinstats <- function(data,
   if (isTRUE(results.subtitle)) {
     # preparing the bayes factor message
     if (type == "parametric" && isTRUE(bf.message)) {
-      caption <-
+      caption_df <-
         function_switch(
           test = test,
           # arguments relevant for expression helper functions
@@ -172,13 +171,14 @@ ggwithinstats <- function(data,
           bf.prior = bf.prior,
           top.text = caption,
           paired = TRUE,
-          output = "caption",
           k = k
         )
+
+      caption <- caption_df$expression[[1]]
     }
 
     # extracting the subtitle using the switch function
-    subtitle <-
+    subtitle_df <-
       function_switch(
         test = test,
         # arguments relevant for expression helper functions
@@ -195,6 +195,8 @@ ggwithinstats <- function(data,
         conf.level = conf.level,
         k = k
       )
+
+    subtitle <- subtitle_df$expression[[1]]
   }
 
   # return early if anything other than plot
@@ -275,7 +277,6 @@ ggwithinstats <- function(data,
         k = k,
         type = ipmisc::stats_type_switch(centrality.type),
         tr = tr,
-        sample.size.label = sample.size.label,
         centrality.path = centrality.path,
         centrality.path.args = centrality.path.args,
         centrality.point.args = centrality.point.args,

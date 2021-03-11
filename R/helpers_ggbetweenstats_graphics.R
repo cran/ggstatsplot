@@ -42,7 +42,6 @@ centrality_ggrepel <- function(plot,
                                type = "parametric",
                                tr = 0.2,
                                k = 2L,
-                               sample.size.label = TRUE,
                                centrality.path = FALSE,
                                centrality.path.args = list(color = "red", size = 1, alpha = 0.5),
                                centrality.point.args = list(size = 5, color = "darkred"),
@@ -76,7 +75,7 @@ centrality_ggrepel <- function(plot,
     )
 
   # attach the labels with means to the plot
-  plot <- plot +
+  plot +
     rlang::exec(
       .fn = ggrepel::geom_label_repel,
       data = centrality_df,
@@ -86,15 +85,8 @@ centrality_ggrepel <- function(plot,
       inherit.aes = FALSE,
       parse = TRUE,
       !!!centrality.label.args
-    )
-
-  # adding sample size labels to the x axes
-  if (isTRUE(sample.size.label)) {
-    plot <- plot + ggplot2::scale_x_discrete(labels = c(unique(centrality_df$n_label)))
-  }
-
-  # return the plot
-  plot
+    ) + # adding sample size labels to the x axes
+    ggplot2::scale_x_discrete(labels = c(unique(centrality_df$n_label)))
 }
 
 #' @noRd
@@ -134,7 +126,7 @@ centrality_data <- function(data, x, y, type = "parametric", tr = 0.2, k = 2L, .
     dplyr::rowwise() %>%
     dplyr::mutate(label = paste0("list(~widehat(mu)[", centrality, "]=='", format_num(estimate, k), "')")) %>%
     dplyr::ungroup() %>%
-    dplyr::mutate(n_label = paste0({{ x }}, "\n(n = ", n, ")")) %>%
+    dplyr::mutate(n_label = paste0({{ x }}, "\n(n = ", .prettyNum(n), ")")) %>%
     dplyr::arrange({{ x }}) %>%
     dplyr::select({{ x }}, !!as.character(rlang::ensym(y)) := estimate, dplyr::matches("label"))
 }

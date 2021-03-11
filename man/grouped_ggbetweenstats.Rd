@@ -11,7 +11,6 @@ grouped_ggbetweenstats(
   y,
   grouping.var,
   outlier.label = NULL,
-  title.prefix = NULL,
   output = "plot",
   plotgrid.args = list(),
   annotation.args = list(),
@@ -20,11 +19,12 @@ grouped_ggbetweenstats(
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
-be taken. A matrix or tables will \strong{not} be accepted.}
+be taken. Other data types (e.g., matrix,table, array, etc.) will \strong{not}
+be accepted.}
 
-\item{x}{The grouping variable from the dataframe \code{data}.}
+\item{x}{The grouping (or independent) variable from the dataframe \code{data}.}
 
-\item{y}{The response (a.k.a. outcome or dependent) variable from the
+\item{y}{The response (or outcome or dependent) variable from the
 dataframe \code{data}.}
 
 \item{grouping.var}{A single grouping variable (can be entered either as a
@@ -32,10 +32,6 @@ bare name \code{x} or as a string \code{"x"}).}
 
 \item{outlier.label}{Label to put on the outliers that have been tagged. This
 \strong{can't} be the same as \code{x} argument.}
-
-\item{title.prefix}{Character string specifying the prefix text for the fixed
-plot title (name of each factor level) (Default: \code{NULL}). If \code{NULL}, the
-variable name entered for \code{grouping.var} will be used.}
 
 \item{output}{Character that describes what is to be returned: can be
 \code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
@@ -74,7 +70,6 @@ comparisons. Possible methods are: \code{"holm"} (default), \code{"hochberg"},
 \code{"hommel"}, \code{"bonferroni"}, \code{"BH"}, \code{"BY"}, \code{"fdr"}, \code{"none"}.}
     \item{\code{pairwise.display}}{Decides \emph{which} pairwise comparisons to display.
 Available options are:
-
 \itemize{
 \item \code{"significant"} (abbreviation accepted: \code{"s"})
 \item \code{"non-significant"} (abbreviation accepted: \code{"ns"})
@@ -95,9 +90,6 @@ the plot will be returned.}
     \item{\code{subtitle}}{The text for the plot subtitle. Will work only if
 \code{results.subtitle = FALSE}.}
     \item{\code{caption}}{The text for the plot caption.}
-    \item{\code{sample.size.label}}{Logical that decides whether sample size information
-should be displayed for each level of the grouping variable \code{x} (Default:
-\code{TRUE}).}
     \item{\code{outlier.color}}{Default aesthetics for outliers (Default: \code{"black"}).}
     \item{\code{outlier.tagging}}{Decides whether outliers should be tagged (Default:
 \code{FALSE}).}
@@ -115,7 +107,6 @@ Quartile) \code{outlier.coef} times the Inter-Quartile Range (IQR) (Default:
 measure is to be displayed as a point with a label (Default: \code{TRUE}).
 Function decides which central tendency measure to show depending on the
 \code{type} argument.
-
 \itemize{
 \item \strong{mean} for parametric statistics
 \item \strong{median} for non-parametric statistics
@@ -128,7 +119,6 @@ If you want default centrality parameter, you can specify this using
     \item{\code{centrality.type}}{Decides which centrality parameter is to be displayed.
 The default is to choose the same as \code{type} argument. You can specify this
 to be:
-
 \itemize{
 \item \code{"parameteric"} (for \strong{mean})
 \item \code{"nonparametric"} (for \strong{median})
@@ -167,7 +157,8 @@ extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
 theme elements are to be displayed along with the selected \code{ggtheme}
 (Default: \code{TRUE}). \code{theme_ggstatsplot} is an opinionated theme layer that
 override some aspects of the selected \code{ggtheme}.}
-    \item{\code{type}}{Type of statistic expected. Four possible options:
+    \item{\code{type}}{A character specifying the type of statistical approach.
+Four possible options:
 
 \itemize{
 \item \code{"parametric"}

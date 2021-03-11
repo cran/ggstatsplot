@@ -12,7 +12,6 @@ centrality_ggrepel(
   type = "parametric",
   tr = 0.2,
   k = 2L,
-  sample.size.label = TRUE,
   centrality.path = FALSE,
   centrality.path.args = list(color = "red", size = 1, alpha = 0.5),
   centrality.point.args = list(size = 5, color = "darkred"),
@@ -24,14 +23,16 @@ centrality_ggrepel(
 \item{plot}{A \code{ggplot} object for which means are to be displayed.}
 
 \item{data}{A dataframe (or a tibble) from which variables specified are to
-be taken. A matrix or tables will \strong{not} be accepted.}
+be taken. Other data types (e.g., matrix,table, array, etc.) will \strong{not}
+be accepted.}
 
-\item{x}{The grouping variable from the dataframe \code{data}.}
+\item{x}{The grouping (or independent) variable from the dataframe \code{data}.}
 
-\item{y}{The response (a.k.a. outcome or dependent) variable from the
+\item{y}{The response (or outcome or dependent) variable from the
 dataframe \code{data}.}
 
-\item{type}{Type of statistic expected. Four possible options:
+\item{type}{A character specifying the type of statistical approach.
+Four possible options:
 
 \itemize{
 \item \code{"parametric"}
@@ -49,10 +50,6 @@ of an error, try reducing the value of \code{tr}, which is by default set to
 
 \item{k}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2L}).}
-
-\item{sample.size.label}{Logical that decides whether sample size information
-should be displayed for each level of the grouping variable \code{x} (Default:
-\code{TRUE}).}
 
 \item{centrality.path}{Logical that decides whether individual data
 points and means, respectively, should be connected using \code{geom_path}. Both

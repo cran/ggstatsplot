@@ -10,7 +10,6 @@ grouped_ggbarstats(
   y,
   counts = NULL,
   grouping.var,
-  title.prefix = NULL,
   output = "plot",
   plotgrid.args = list(),
   annotation.args = list(),
@@ -19,7 +18,8 @@ grouped_ggbarstats(
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
-be taken. A matrix or tables will \strong{not} be accepted.}
+be taken. Other data types (e.g., matrix,table, array, etc.) will \strong{not}
+be accepted.}
 
 \item{x}{The variable to use as the \strong{rows} in the contingency table. Please
 note that if there are empty factor levels in your variable, they will be
@@ -37,10 +37,6 @@ if each row represents a single observation.}
 
 \item{grouping.var}{A single grouping variable (can be entered either as a
 bare name \code{x} or as a string \code{"x"}).}
-
-\item{title.prefix}{Character string specifying the prefix text for the fixed
-plot title (name of each factor level) (Default: \code{NULL}). If \code{NULL}, the
-variable name entered for \code{grouping.var} will be used.}
 
 \item{output}{Character that describes what is to be returned: can be
 \code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
@@ -63,10 +59,8 @@ separately specified here.}
     \item{\code{xlab}}{Custom text for the \code{x} axis label (Default: \code{NULL}, which
 will cause the \code{x} axis label to be the \code{x} variable).}
     \item{\code{ylab}}{Custom text for the \code{y} axis label (Default: \code{NULL}).}
-    \item{\code{sample.size.label}}{Logical that decides whether sample size information
-should be displayed for each level of the grouping variable \code{y}
-(Default: \code{TRUE}).}
-    \item{\code{type}}{Type of statistic expected. Four possible options:
+    \item{\code{type}}{A character specifying the type of statistical approach.
+Four possible options:
 
 \itemize{
 \item \code{"parametric"}
@@ -165,7 +159,6 @@ ggstatsplot::grouped_ggbarstats(
   x = color,
   y = clarity,
   grouping.var = cut,
-  title.prefix = "Quality",
   plotgrid.args = list(nrow = 2)
 )
 }

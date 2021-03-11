@@ -39,7 +39,8 @@ ggpiestats(
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
-be taken. A matrix or tables will \strong{not} be accepted.}
+be taken. Other data types (e.g., matrix,table, array, etc.) will \strong{not}
+be accepted.}
 
 \item{x}{The variable to use as the \strong{rows} in the contingency table. Please
 note that if there are empty factor levels in your variable, they will be
@@ -55,7 +56,8 @@ for \code{ggbarstats} function.}
 \item{counts}{A string naming a variable in data containing counts, or \code{NULL}
 if each row represents a single observation.}
 
-\item{type}{Type of statistic expected. Four possible options:
+\item{type}{A character specifying the type of statistical approach.
+Four possible options:
 
 \itemize{
 \item \code{"parametric"}

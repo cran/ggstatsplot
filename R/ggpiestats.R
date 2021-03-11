@@ -136,13 +136,13 @@ ggpiestats <- function(data,
 
   # faceting is happening only if both vars have more than one levels
   facet <- ifelse(y_levels > 1L, TRUE, FALSE)
-  if (x_levels == 1L && isTRUE(facet)) proportion.test <- FALSE
+  if ((x_levels == 1L && isTRUE(facet)) || type == "bayes") proportion.test <- FALSE
 
   # -------------------------- statistical analysis --------------------------
 
   # if subtitle with results is to be displayed
   if (isTRUE(results.subtitle)) {
-    subtitle <-
+    subtitle_df <-
       tryCatch(
         expr = statsExpressions::expr_contingency_tab(
           data = data,
@@ -157,9 +157,11 @@ ggpiestats <- function(data,
         error = function(e) NULL
       )
 
+    if (!is.null(subtitle_df)) subtitle <- subtitle_df$expression[[1]]
+
     # preparing Bayes Factor caption
     if (type != "bayes" && isTRUE(bf.message) && isFALSE(paired)) {
-      caption <-
+      caption_df <-
         tryCatch(
           expr = statsExpressions::expr_contingency_tab(
             data = data,
@@ -174,12 +176,14 @@ ggpiestats <- function(data,
           ),
           error = function(e) NULL
         )
+
+      if (!is.null(caption_df)) caption <- caption_df$expression[[1]]
     }
   }
 
   # return early if anything other than plot
   if (output != "plot") {
-    return(switch(EXPR = output,
+    return(switch(output,
       "caption" = caption,
       subtitle
     ))
@@ -230,7 +234,7 @@ ggpiestats <- function(data,
   p <- p +
     ggplot2::coord_polar(theta = "y") +
     ggplot2::scale_y_continuous(breaks = NULL) +
-    paletteer::scale_fill_paletteer_d(palette = paste0(package, "::", palette), name = "") +
+    paletteer::scale_fill_paletteer_d(paste0(package, "::", palette), name = "") +
     theme_pie(ggtheme, ggstatsplot.layer) +
     ggplot2::guides(fill = ggplot2::guide_legend(override.aes = list(color = NA)))
 

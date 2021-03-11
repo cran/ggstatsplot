@@ -37,7 +37,8 @@ gghistostats(
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
-be taken. A matrix or tables will \strong{not} be accepted.}
+be taken. Other data types (e.g., matrix,table, array, etc.) will \strong{not}
+be accepted.}
 
 \item{x}{A numeric variable from the dataframe \code{data}.}
 
@@ -57,7 +58,8 @@ variable names for \code{x} and \code{y} will be used.}
 
 \item{caption}{The text for the plot caption.}
 
-\item{type}{Type of statistic expected. Four possible options:
+\item{type}{A character specifying the type of statistical approach.
+Four possible options:
 
 \itemize{
 \item \code{"parametric"}
@@ -69,8 +71,8 @@ variable names for \code{x} and \code{y} will be used.}
 Corresponding abbreviations are also accepted: \code{"p"} (for parametric),
 \code{"np"} (for nonparametric), \code{"r"} (for robust), or \code{"bf"} (for Bayesian).}
 
-\item{test.value}{A number specifying the value of the null hypothesis
-(Default: \code{0}).}
+\item{test.value}{A number indicating the true value of the mean (Default:
+\code{0}).}
 
 \item{bf.prior}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
 width to use in calculating Bayes factors and posterior estimates.}
@@ -116,7 +118,6 @@ the plot will be returned.}
 measure is to be displayed as a point with a label (Default: \code{TRUE}).
 Function decides which central tendency measure to show depending on the
 \code{type} argument.
-
 \itemize{
 \item \strong{mean} for parametric statistics
 \item \strong{median} for non-parametric statistics
@@ -130,7 +131,6 @@ If you want default centrality parameter, you can specify this using
 \item{centrality.type}{Decides which centrality parameter is to be displayed.
 The default is to choose the same as \code{type} argument. You can specify this
 to be:
-
 \itemize{
 \item \code{"parameteric"} (for \strong{mean})
 \item \code{"nonparametric"} (for \strong{median})
@@ -155,9 +155,13 @@ by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_}
 variants of all primary functions. Default is \code{NULL}. The argument should
 be entered as a \code{ggplot2} function or a list of \code{ggplot2} functions.}
 
-\item{output}{If \code{"expression"}, will return expression with statistical
-details, while \code{"dataframe"} will return a dataframe containing the
-results.}
+\item{output}{Character that describes what is to be returned: can be
+\code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
+\code{"subtitle"} will return the expression containing statistical results. If
+you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
+Setting this to \code{"caption"} will return the expression containing details
+about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
+\code{bf.message = TRUE}, otherwise this will return a \code{NULL}.}
 
 \item{...}{Currently ignored.}
 }

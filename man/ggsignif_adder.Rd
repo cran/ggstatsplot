@@ -22,16 +22,16 @@ ggsignif_adder(
 (produced by \code{pairwiseComparisons::pairwise_comparisons()} function).}
 
 \item{data}{A dataframe (or a tibble) from which variables specified are to
-be taken. A matrix or tables will \strong{not} be accepted.}
+be taken. Other data types (e.g., matrix,table, array, etc.) will \strong{not}
+be accepted.}
 
-\item{x}{The grouping variable from the dataframe \code{data}.}
+\item{x}{The grouping (or independent) variable from the dataframe \code{data}.}
 
-\item{y}{The response (a.k.a. outcome or dependent) variable from the
+\item{y}{The response (or outcome or dependent) variable from the
 dataframe \code{data}.}
 
 \item{pairwise.display}{Decides \emph{which} pairwise comparisons to display.
 Available options are:
-
 \itemize{
 \item \code{"significant"} (abbreviation accepted: \code{"s"})
 \item \code{"non-significant"} (abbreviation accepted: \code{"ns"})

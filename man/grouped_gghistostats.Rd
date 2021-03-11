@@ -9,7 +9,6 @@ grouped_gghistostats(
   x,
   grouping.var,
   binwidth = NULL,
-  title.prefix = NULL,
   output = "plot",
   plotgrid.args = list(),
   annotation.args = list(),
@@ -18,7 +17,8 @@ grouped_gghistostats(
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
-be taken. A matrix or tables will \strong{not} be accepted.}
+be taken. Other data types (e.g., matrix,table, array, etc.) will \strong{not}
+be accepted.}
 
 \item{x}{A numeric variable from the dataframe \code{data}.}
 
@@ -31,13 +31,13 @@ to use the \code{max(x) - min(x) / sqrt(N)}. You should always check this value
 and explore multiple widths to find the best to illustrate the stories in
 your data.}
 
-\item{title.prefix}{Character string specifying the prefix text for the fixed
-plot title (name of each factor level) (Default: \code{NULL}). If \code{NULL}, the
-variable name entered for \code{grouping.var} will be used.}
-
-\item{output}{If \code{"expression"}, will return expression with statistical
-details, while \code{"dataframe"} will return a dataframe containing the
-results.}
+\item{output}{Character that describes what is to be returned: can be
+\code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
+\code{"subtitle"} will return the expression containing statistical results. If
+you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
+Setting this to \code{"caption"} will return the expression containing details
+about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
+\code{bf.message = TRUE}, otherwise this will return a \code{NULL}.}
 
 \item{plotgrid.args}{A \code{list} of additional arguments passed to
 \code{patchwork::wrap_plots}, except for \code{guides} argument which is already
@@ -55,7 +55,8 @@ normal curve using \code{stats::dnorm(mean(x), sd(x))}. Default is \code{FALSE}.
 passed to the normal curve.}
     \item{\code{bar.fill}}{Character input that decides which color will uniformly fill
 all the bars in the histogram (Default: \code{"grey50"}).}
-    \item{\code{type}}{Type of statistic expected. Four possible options:
+    \item{\code{type}}{A character specifying the type of statistical approach.
+Four possible options:
 
 \itemize{
 \item \code{"parametric"}
@@ -66,8 +67,8 @@ all the bars in the histogram (Default: \code{"grey50"}).}
 
 Corresponding abbreviations are also accepted: \code{"p"} (for parametric),
 \code{"np"} (for nonparametric), \code{"r"} (for robust), or \code{"bf"} (for Bayesian).}
-    \item{\code{test.value}}{A number specifying the value of the null hypothesis
-(Default: \code{0}).}
+    \item{\code{test.value}}{A number indicating the true value of the mean (Default:
+\code{0}).}
     \item{\code{bf.prior}}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
 width to use in calculating Bayes factors and posterior estimates.}
     \item{\code{effsize.type}}{Type of effect size needed for \emph{parametric} tests. The
@@ -107,7 +108,6 @@ the plot will be returned.}
 measure is to be displayed as a point with a label (Default: \code{TRUE}).
 Function decides which central tendency measure to show depending on the
 \code{type} argument.
-
 \itemize{
 \item \strong{mean} for parametric statistics
 \item \strong{median} for non-parametric statistics
@@ -120,7 +120,6 @@ If you want default centrality parameter, you can specify this using
     \item{\code{centrality.type}}{Decides which centrality parameter is to be displayed.
 The default is to choose the same as \code{type} argument. You can specify this
 to be:
-
 \itemize{
 \item \code{"parameteric"} (for \strong{mean})
 \item \code{"nonparametric"} (for \strong{median})

@@ -10,7 +10,6 @@ grouped_ggpiestats(
   y = NULL,
   counts = NULL,
   grouping.var,
-  title.prefix = NULL,
   output = "plot",
   plotgrid.args = list(),
   annotation.args = list(),
@@ -19,7 +18,8 @@ grouped_ggpiestats(
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
-be taken. A matrix or tables will \strong{not} be accepted.}
+be taken. Other data types (e.g., matrix,table, array, etc.) will \strong{not}
+be accepted.}
 
 \item{x}{The variable to use as the \strong{rows} in the contingency table. Please
 note that if there are empty factor levels in your variable, they will be
@@ -37,10 +37,6 @@ if each row represents a single observation.}
 
 \item{grouping.var}{A single grouping variable (can be entered either as a
 bare name \code{x} or as a string \code{"x"}).}
-
-\item{title.prefix}{Character string specifying the prefix text for the fixed
-plot title (name of each factor level) (Default: \code{NULL}). If \code{NULL}, the
-variable name entered for \code{grouping.var} will be used.}
 
 \item{output}{Character that describes what is to be returned: can be
 \code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
@@ -73,7 +69,8 @@ on the label in each pie slice. Possible options are \code{"percentage"}
     \item{\code{label.repel}}{Whether labels should be repelled using \code{ggrepel} package.
 This can be helpful in case the labels are overlapping.}
     \item{\code{legend.title}}{Title text for the legend.}
-    \item{\code{type}}{Type of statistic expected. Four possible options:
+    \item{\code{type}}{A character specifying the type of statistical approach.
+Four possible options:
 
 \itemize{
 \item \code{"parametric"}

@@ -11,7 +11,6 @@ grouped_ggwithinstats(
   y,
   grouping.var,
   outlier.label = NULL,
-  title.prefix = NULL,
   output = "plot",
   plotgrid.args = list(),
   annotation.args = list(),
@@ -20,11 +19,12 @@ grouped_ggwithinstats(
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
-be taken. A matrix or tables will \strong{not} be accepted.}
+be taken. Other data types (e.g., matrix,table, array, etc.) will \strong{not}
+be accepted.}
 
-\item{x}{The grouping variable from the dataframe \code{data}.}
+\item{x}{The grouping (or independent) variable from the dataframe \code{data}.}
 
-\item{y}{The response (a.k.a. outcome or dependent) variable from the
+\item{y}{The response (or outcome or dependent) variable from the
 dataframe \code{data}.}
 
 \item{grouping.var}{A single grouping variable (can be entered either as a
@@ -32,10 +32,6 @@ bare name \code{x} or as a string \code{"x"}).}
 
 \item{outlier.label}{Label to put on the outliers that have been tagged. This
 \strong{can't} be the same as \code{x} argument.}
-
-\item{title.prefix}{Character string specifying the prefix text for the fixed
-plot title (name of each factor level) (Default: \code{NULL}). If \code{NULL}, the
-variable name entered for \code{grouping.var} will be used.}
 
 \item{output}{Character that describes what is to be returned: can be
 \code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
@@ -73,7 +69,8 @@ points.}
     \item{\code{point.path.args}}{A list of additional aesthetic
 arguments passed on to \code{geom_path} connecting raw data points and mean
 points.}
-    \item{\code{type}}{Type of statistic expected. Four possible options:
+    \item{\code{type}}{A character specifying the type of statistical approach.
+Four possible options:
 
 \itemize{
 \item \code{"parametric"}
@@ -93,7 +90,6 @@ pairwise comparison dataframes are prepared using the
 about pairwise comparisons, see the documentation for that function.}
     \item{\code{pairwise.display}}{Decides \emph{which} pairwise comparisons to display.
 Available options are:
-
 \itemize{
 \item \code{"significant"} (abbreviation accepted: \code{"s"})
 \item \code{"non-significant"} (abbreviation accepted: \code{"ns"})
@@ -124,9 +120,6 @@ variable names for \code{x} and \code{y} will be used.}
     \item{\code{caption}}{The text for the plot caption.}
     \item{\code{subtitle}}{The text for the plot subtitle. Will work only if
 \code{results.subtitle = FALSE}.}
-    \item{\code{sample.size.label}}{Logical that decides whether sample size information
-should be displayed for each level of the grouping variable \code{x} (Default:
-\code{TRUE}).}
     \item{\code{k}}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2L}).}
     \item{\code{conf.level}}{Scalar between \code{0} and \code{1}. If unspecified, the defaults
@@ -140,7 +133,6 @@ of an error, try reducing the value of \code{tr}, which is by default set to
 measure is to be displayed as a point with a label (Default: \code{TRUE}).
 Function decides which central tendency measure to show depending on the
 \code{type} argument.
-
 \itemize{
 \item \strong{mean} for parametric statistics
 \item \strong{median} for non-parametric statistics
@@ -153,7 +145,6 @@ If you want default centrality parameter, you can specify this using
     \item{\code{centrality.type}}{Decides which centrality parameter is to be displayed.
 The default is to choose the same as \code{type} argument. You can specify this
 to be:
-
 \itemize{
 \item \code{"parameteric"} (for \strong{mean})
 \item \code{"nonparametric"} (for \strong{median})
@@ -211,11 +202,13 @@ set.seed(123)
 library(ggstatsplot)
 
 # the most basic function call
-ggstatsplot::grouped_ggwithinstats(
+grouped_ggwithinstats(
   data = VR_dilemma,
   x = modality,
   y = score,
   grouping.var = order,
+  type = "np", # non-parametric test
+  # additional modifications for **each** plot using `ggplot2` functions
   ggplot.component = ggplot2::scale_y_continuous(
     breaks = seq(0, 1, 0.1),
     limits = c(0, 1)

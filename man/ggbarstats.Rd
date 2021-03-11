@@ -12,7 +12,6 @@ ggbarstats(
   type = "parametric",
   paired = FALSE,
   results.subtitle = TRUE,
-  sample.size.label = TRUE,
   label = "percentage",
   label.args = list(alpha = 1, fill = "white"),
   k = 2L,
@@ -41,7 +40,8 @@ ggbarstats(
 }
 \arguments{
 \item{data}{A dataframe (or a tibble) from which variables specified are to
-be taken. A matrix or tables will \strong{not} be accepted.}
+be taken. Other data types (e.g., matrix,table, array, etc.) will \strong{not}
+be accepted.}
 
 \item{x}{The variable to use as the \strong{rows} in the contingency table. Please
 note that if there are empty factor levels in your variable, they will be
@@ -57,7 +57,8 @@ for \code{ggbarstats} function.}
 \item{counts}{A string naming a variable in data containing counts, or \code{NULL}
 if each row represents a single observation.}
 
-\item{type}{Type of statistic expected. Four possible options:
+\item{type}{A character specifying the type of statistical approach.
+Four possible options:
 
 \itemize{
 \item \code{"parametric"}
@@ -77,10 +78,6 @@ be returned.}
 \item{results.subtitle}{Decides whether the results of statistical tests are
 to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
 the plot will be returned.}
-
-\item{sample.size.label}{Logical that decides whether sample size information
-should be displayed for each level of the grouping variable \code{y}
-(Default: \code{TRUE}).}
 
 \item{label}{Character decides what information needs to be displayed
 on the label in each pie slice. Possible options are \code{"percentage"}
