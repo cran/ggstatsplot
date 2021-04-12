@@ -3,7 +3,7 @@
 #'
 #' @description
 #'
-#' \Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+#'
 #'
 #' Correlation matrix plot or a dataframe containing results from pairwise
 #' correlation tests. The package internally uses `ggcorrplot::ggcorrplot` for
@@ -42,7 +42,7 @@
 #'   any of the following arguments since they are already internally being
 #'   used: `corr`, `method`, `p.mat`, `sig.level`, `ggtheme`, `colors`, `lab`,
 #'   `pch`, `legend.title`, `digits`.
-#' @inheritParams statsExpressions::expr_corr_test
+#' @inheritParams statsExpressions::corr_test
 #' @inheritParams ggbetweenstats
 #' @inheritParams theme_ggstatsplot
 #' @inheritParams ggcorrplot::ggcorrplot
@@ -169,7 +169,6 @@ ggcorrmat <- function(data,
       ci = conf.level,
       bayesian = ifelse(type == "bayes", TRUE, FALSE),
       bayesian_prior = bf.prior,
-      bayesian_test = c("pd", "rope", "bf"),
       tr = tr,
       partial = partial,
       partial_bayesian = ifelse(type == "bayes" && isTRUE(partial), TRUE, FALSE),

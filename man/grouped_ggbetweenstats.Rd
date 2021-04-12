@@ -188,8 +188,6 @@ of an error, try reducing the value of \code{tr}, which is by default set to
   }}
 }
 \description{
-\Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
-
 Helper function for \code{ggstatsplot::ggbetweenstats} to apply this function
 across multiple levels of a given factor and combining the resulting plots
 using \code{ggstatsplot::combine_plots}.
@@ -198,9 +196,10 @@ using \code{ggstatsplot::combine_plots}.
 \donttest{
 # to get reproducible results from bootstrapping
 set.seed(123)
+library(ggstatsplot)
 
 # the most basic function call
-ggstatsplot::grouped_ggbetweenstats(
+grouped_ggbetweenstats(
   data = dplyr::filter(ggplot2::mpg, drv != "4"),
   x = year,
   y = hwy,
@@ -209,7 +208,7 @@ ggstatsplot::grouped_ggbetweenstats(
 )
 
 # modifying individual plots using `ggplot.component` argument
-ggstatsplot::grouped_ggbetweenstats(
+grouped_ggbetweenstats(
   data = dplyr::filter(
     ggstatsplot::movies_long,
     genre \%in\% c("Action", "Comedy"),

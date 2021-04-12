@@ -10,7 +10,7 @@
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom rlang !! enquo ensym exec
 #' @importFrom parameters describe_distribution
-#' @importFrom insight standardize_names
+#' @importFrom insight standardize_names format_value
 #' @importFrom dplyr select group_by matches mutate rowwise group_modify arrange ungroup
 #' @importFrom rlang !! enquo ensym :=
 #' @importFrom tidyr drop_na
@@ -124,7 +124,7 @@ centrality_data <- function(data, x, y, type = "parametric", tr = 0.2, k = 2L, .
     ) %>%
     dplyr::ungroup() %>%
     dplyr::rowwise() %>%
-    dplyr::mutate(label = paste0("list(~widehat(mu)[", centrality, "]=='", format_num(estimate, k), "')")) %>%
+    dplyr::mutate(label = paste0("list(~widehat(mu)[", centrality, "]=='", format_value(estimate, k), "')")) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(n_label = paste0({{ x }}, "\n(n = ", .prettyNum(n), ")")) %>%
     dplyr::arrange({{ x }}) %>%
@@ -351,15 +351,15 @@ outlier_df <- function(data, x, y, outlier.label, outlier.coef = 1.5, ...) {
 #' @param element Which expression is needed (`"subtitle"` or `"caption"`)
 #' @param ... Arguments passed to respective subtitle helper functions.
 #'
-#' @importFrom statsExpressions expr_t_twosample expr_oneway_anova
+#' @importFrom statsExpressions two_sample_test oneway_anova
 #' @importFrom rlang exec
 #'
 #' @noRd
 
 function_switch <- function(test, element, ...) {
   # which function?
-  if (test == "t") .f <- statsExpressions::expr_t_twosample
-  if (test == "anova") .f <- statsExpressions::expr_oneway_anova
+  if (test == "t") .f <- statsExpressions::two_sample_test
+  if (test == "anova") .f <- statsExpressions::oneway_anova
 
   # evaluate it
   suppressWarnings(suppressMessages(rlang::exec(.fn = .f, ...)))

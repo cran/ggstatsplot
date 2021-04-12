@@ -161,7 +161,7 @@ if (all(unlist(lapply(
           ggcoefstats(
             x = df5,
             statistic = "t",
-            k = 3,
+            k = 2,
             meta.analytic.effect = TRUE,
             bf.message = TRUE
           )
@@ -173,7 +173,7 @@ if (all(unlist(lapply(
           ggcoefstats(
             x = df5,
             statistic = "T",
-            k = 3,
+            k = 2,
             meta.analytic.effect = TRUE,
             meta.type = "bayes",
             caption = "mnp",
@@ -219,7 +219,7 @@ if (all(unlist(lapply(
           ggcoefstats(
             x = df5,
             statistic = "t",
-            k = 3,
+            k = 2,
             meta.analytic.effect = TRUE,
             bf.message = TRUE,
             output = "caption"
@@ -228,7 +228,7 @@ if (all(unlist(lapply(
 
       expect_identical(
         as.character(meta_info)[2],
-        "\"log\"[\"e\"] * \"(BF\"[\"01\"] * \") = \" * \"1.233\" * \", \""
+        "\"log\"[\"e\"] * \"(BF\"[\"01\"] * \") = \" * \"1.23\" * \", \""
       )
     }
   )

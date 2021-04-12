@@ -19,9 +19,16 @@ vignette: >
 ---
 
 ```{r setup, include = FALSE}
-# show me all columns
-options(tibble.width = Inf, pillar.bold = TRUE, pillar.subtle_num = TRUE)
-options(mc.cores = parallel::detectCores()) # use max # CPUs
+options(
+  tibble.width = Inf,
+  pillar.bold = TRUE,
+  pillar.neg = TRUE,
+  pillar.subtle_num = TRUE,
+  pillar.min_chars = Inf
+)
+
+# use max # CPUs
+options(mc.cores = parallel::detectCores())
 
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -34,7 +41,18 @@ knitr::opts_chunk$set(
 
 # for faster post-MCMC computations
 future::plan("multicore")
+library(ggstatsplot)
 ```
+
+---
+
+You can cite this package/vignette as:
+
+```{r citation, echo=FALSE, comment = ""}
+citation("ggstatsplot")
+```
+
+---
 
 The function `ggcoefstats` generates **dot-and-whisker plots** for
 regression models saved in a tidy data frame. The tidy dataframes are prepared
@@ -46,10 +64,6 @@ to cover as many classes of objects as possible. Unfortunately, there is no
 single dataset that will be helpful for carrying out all types of regression
 analyses and, therefore, we will use various datasets to explore data-specific
 hypotheses using regression models.
-
-**Note before**: The following demo uses the pipe operator (`%>%`), so in case
-you are not familiar with this operator, here is a good explanation:
-<http://r4ds.had.co.nz/pipes.html>
 
 # General structure of the plots
 
@@ -84,27 +98,27 @@ also supported by `ggcoefstats`. For example-
 
 `aareg`, `afex_aov`, `anova`, `anova.mlm`, `anova`, `aov`, `aovlist`, `Arima`,
 `bam`, `bayesx`, `bayesGARCH`, `bayesQR`, `BBmm`, `BBreg`, `bcplm`, `betamfx`,
-`betaor`, `BFBayesFactor`, `bglmerMod`, `bife`, `bigglm`, `biglm`, `blavaan`,
-`bmlm`, `blmerMod`, `blrm`, `bracl`, `brglm`, `brglm2`, `brmsfit`, `brmultinom`,
-`btergm`, `cch`, `censReg`, `cgam`, `cgamm`, `cglm`, `clm`, `clm2`, `clmm`,
-`clmm2`, `coeftest`, `complmrob`, `confusionMatrix`, `coxme`, `coxph`, `coxr`,
-`coxph.penal`, `cpglm`, `cpglmm`, `crch`, `crq`, `crr`, `DirichReg`, `drc`,
-`eglm`, `elm`, `emmGrid`, `epi.2by2`, `ergm`, `feis`, `felm`, `fitdistr`,
-`fixest`, `flexsurvreg`, `gam`, `Gam`, `gamlss`, `garch`, `geeglm`, `glmc`,
-`glmerMod`, `glmmTMB`, `gls`, `glht`, `glm`, `glmm`, `glmmadmb`, `glmmPQL`,
-`glmRob`, `glmrob`, `glmx`, `gmm`, `HLfit`, `hurdle`, `ivFixed`, `ivprobit`,
-`ivreg`, `iv_robust`, `lavaan`, `lm`, `lm.beta`, `lmerMod`, `lmerModLmerTest`,
-`lmodel2`, `lmRob`, `lmrob`, `lm_robust`, `logitmfx`, `logitor`, `logitsf`,
-`LORgee`, `lqm`, `lqmm`, `lrm`, `manova`, `maov`, `margins`, `mcmc`,
-`mcmc.list`, `MCMCglmm`, `mclogit`, `mice`, `mmclogit`, `mediate`, `metafor`,
-`merMod`, `merModList`, `metaplus`, `mhurdle`, `mixor`, `mjoint`, `mle2`, `mlm`,
-`multinom`, `negbin`, `negbinmfx`, `negbinirr`, `nlmerMod`, `nlrq`, `nlreg`,
-`nls`, `orcutt`, `orm`, `plm`, `poissonmfx`, `poissonirr`, `polr`, `probitmfx`,
-`ridgelm`, `riskRegression`, `rjags`, `rlm`, `rlmerMod`, `robmixglm`, `rq`,
-`rqs`, `rqss`, `rrvglm`, `scam`, `semLm`, `semLme`, `slm`, `speedglm`,
-`speedlm`, `stanfit`, `stanreg`, `summary.lm`, `survreg`, `svyglm`, `svy_vglm`,
-`svyolr`, `tobit`, `truncreg`, `varest`, `vgam`, `vglm`, `wbgee`, `wblm`,
-`zeroinfl`, etc.
+`betaor`, `BFBayesFactor`, `BGGM`, `bglmerMod`, `bife`, `bigglm`, `biglm`,
+`blavaan`, `bmlm`, `blmerMod`, `blrm`, `bracl`, `brglm`, `brglm2`, `brmsfit`,
+`brmultinom`, `btergm`, `cch`, `censReg`, `cgam`, `cgamm`, `cglm`, `clm`,
+`clm2`, `clmm`, `clmm2`, `coeftest`, `complmrob`, `confusionMatrix`, `coxme`,
+`coxph`, `coxr`, `coxph.penal`, `cpglm`, `cpglmm`, `crch`, `crq`, `crr`,
+`DirichReg`, `drc`, `eglm`, `elm`, `emmGrid`, `epi.2by2`, `ergm`, `feis`,
+`felm`, `fitdistr`, `fixest`, `flexsurvreg`, `gam`, `Gam`, `gamlss`, `garch`,
+`geeglm`, `glmc`, `glmerMod`, `glmmTMB`, `gls`, `glht`, `glm`, `glmm`,
+`glmmadmb`, `glmmPQL`, `glmRob`, `glmrob`, `glmx`, `gmm`, `HLfit`, `hurdle`,
+`ivFixed`, `ivprobit`, `ivreg`, `iv_robust`, `lavaan`, `lm`, `lm.beta`,
+`lmerMod`, `lmerModLmerTest`, `lmodel2`, `lmRob`, `lmrob`, `lm_robust`,
+`logitmfx`, `logitor`, `logitsf`, `LORgee`, `lqm`, `lqmm`, `lrm`, `manova`,
+`maov`, `margins`, `mcmc`, `mcmc.list`, `MCMCglmm`, `mclogit`, `mice`,
+`mmclogit`, `mediate`, `metafor`, `merMod`, `merModList`, `metaplus`, `mhurdle`,
+`mixor`, `mjoint`, `mle2`, `mlm`, `multinom`, `mvord`, `negbin`, `negbinmfx`,
+`negbinirr`, `nlmerMod`, `nlrq`, `nlreg`, `nls`, `orcutt`, `orm`, `plm`,
+`poissonmfx`, `poissonirr`, `polr`, `probitmfx`, `ridgelm`, `riskRegression`,
+`rjags`, `rlm`, `rlmerMod`, `robmixglm`, `rq`, `rqs`, `rqss`, `rrvglm`, `scam`,
+`semLm`, `semLme`, `slm`, `speedglm`, `speedlm`, `stanfit`, `stanreg`,
+`summary.lm`, `survreg`, `svyglm`, `svy_vglm`, `svyolr`, `tobit`, `truncreg`,
+`varest`, `vgam`, `vglm`, `wbgee`, `wblm`, `zeroinfl`, etc.
 
 # Summary of meta-analysis tests
 
@@ -234,6 +248,30 @@ combine_plots(
     ggcoefstats(mod9, title = "proportion test")
   ),
   annotation.args = list(title = "Example from `BayesFactor` package")
+)
+```
+
+## Fixed Effects Individual Slope Estimator (`feis`)
+
+```{r feis, fig.height = 8, fig.width = 6}
+# setup
+set.seed(123)
+library(feisr)
+data("mwp", package = "feisr")
+
+# model
+feis.mod <-
+  feisr::feis(
+    formula = lnw ~ marry + enrol + as.factor(yeargr) | exp + I(exp^2),
+    data = mwp,
+    id = "id",
+    robust = TRUE
+  )
+
+# plot
+ggcoefstats(
+  x = feis.mod,
+  title = "Fixed Effects Individual Slope Estimator"
 )
 ```
 
@@ -646,17 +684,19 @@ library(MEMSS)
 data("Machines", package = "MEMSS")
 
 # simple model with random-slopes for repeated-measures factor
-m1_afex <- afex::mixed(
-  formula = score ~ Machine + (Machine | Worker),
-  data = Machines
-)
+m1_afex <-
+  afex::mixed(
+    formula = score ~ Machine + (Machine | Worker),
+    data = Machines
+  )
 
 # suppress correlations among random effect parameters with || and expand_re = TRUE
-m2_afex <- afex::mixed(
-  formula = score ~ Machine + (Machine || Worker),
-  data = Machines,
-  expand_re = TRUE
-)
+m2_afex <-
+  afex::mixed(
+    formula = score ~ Machine + (Machine || Worker),
+    data = Machines,
+    expand_re = TRUE
+  )
 
 # plot
 combine_plots(
@@ -3241,30 +3281,6 @@ ggcoefstats(
 )
 ```
 
-## Fixed Effects Individual Slope Estimator (`feis`)
-
-```{r feis, fig.height = 8, fig.width = 6}
-# setup
-set.seed(123)
-library(feisr)
-data("mwp", package = "feisr")
-
-# model
-feis.mod <-
-  feisr::feis(
-    formula = lnw ~ marry + enrol + as.factor(yeargr) | exp + I(exp^2),
-    data = mwp,
-    id = "id",
-    robust = TRUE
-  )
-
-# plot
-ggcoefstats(
-  x = feis.mod,
-  title = "Fixed Effects Individual Slope Estimator"
-)
-```
-
 ## Competing Risks Regression (`crr`)
 
 ```{r crr, fig.height = 6, fig.width = 6}
@@ -3829,6 +3845,28 @@ ggcoefstats(
 )
 ```
 
+## Multivariate Ordinal Regression Models (`mvord`)
+
+```{r mvord, fig.height = 6, fig.width = 5}
+set.seed(123)
+library(mvord)
+
+# toy example
+data(data_mvord_toy)
+
+# wide data format with MMO2
+res_mvord <- mvord(
+  formula = MMO2(Y1, Y2) ~ 0 + X1 + X2,
+  data = data_mvord_toy
+)
+
+# plot
+ggcoefstats(
+  x = res_mvord,
+  title = "Multivariate Ordinal Regression Models"
+)
+```
+
 ## generalized additive models for location scale and shape (`gamlss`)
 
 ```{r gamlss, fig.height = 5, fig.width = 6}
@@ -3850,6 +3888,25 @@ g_gamlss <-
 ggcoefstats(
   x = g_gamlss,
   title = "generalized additive models \nfor location scale and shape"
+)
+```
+
+## Bayesian Gaussian Graphical Model (`BGGM`)
+
+```{r BGGM, fig.height = 10, fig.width = 6}
+set.seed(123)
+library(BGGM)
+
+# data
+Y <- dplyr::select(ptsd, B1:B5)
+
+# fit model (note + 1, due to zeros)
+fit_ggm <- estimate(Y + 1, type = "ordinal", iter = 250)
+
+# plot
+ggcoefstats(
+  x = fit_ggm,
+  title = "Bayesian Gaussian Graphical Model"
 )
 ```
 
@@ -4932,7 +4989,6 @@ combine_plots(
 ```{r manova, fig.height = 8, fig.width = 8}
 # setup
 set.seed(123)
-op <- options(contrasts = c("contr.helmert", "contr.poly"))
 
 # fake a 2nd response variable
 npk2 <- within(npk, foo <- rnorm(24))

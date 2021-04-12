@@ -111,8 +111,6 @@ be entered as a \code{ggplot2} function or a list of \code{ggplot2} functions.}
   }}
 }
 \description{
-\Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
-
 Helper function for \code{ggstatsplot::ggcorrmat} to apply this function across
 multiple levels of a given factor and combining the resulting plots using
 \code{ggstatsplot::combine_plots}.
@@ -121,9 +119,10 @@ multiple levels of a given factor and combining the resulting plots using
 \donttest{
 # for reproducibility
 set.seed(123)
+library(ggstatsplot)
 
 # for plot
-ggstatsplot::grouped_ggcorrmat(
+grouped_ggcorrmat(
   data = iris,
   grouping.var = Species,
   type = "robust",
@@ -131,7 +130,7 @@ ggstatsplot::grouped_ggcorrmat(
 )
 
 # for dataframe
-ggstatsplot::grouped_ggcorrmat(
+grouped_ggcorrmat(
   data = ggplot2::msleep,
   grouping.var = vore,
   type = "bayes",

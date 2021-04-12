@@ -2,7 +2,7 @@ if (require("afex")) {
 
   # for t-test
   data_bugs_2 <- ggstatsplot::bugs_long %>%
-    dplyr::filter(.data = ., condition %in% c("HDLF", "HDHF"))
+    dplyr::filter(subject <= 30, condition %in% c("HDLF", "HDHF"))
 
   # basic plotting works - two groups ---------------------------------
 
@@ -41,7 +41,7 @@ if (require("afex")) {
       # subtitle
       set.seed(123)
       p1_subtitle <-
-        statsExpressions::expr_t_twosample(
+        statsExpressions::two_sample_test(
           data = data_bugs_2,
           x = condition,
           y = desire,
@@ -63,7 +63,7 @@ if (require("afex")) {
       # checking x-axis sample size labels
       expect_identical(
         ggplot2::layer_scales(p1)$x$labels,
-        c("HDHF\n(n = 90)", "HDLF\n(n = 90)")
+        c("HDHF\n(n = 27)", "HDLF\n(n = 27)")
       )
 
       # checking plot labels
@@ -110,7 +110,7 @@ if (require("afex")) {
         # subtitle
         set.seed(123)
         p1_subtitle <-
-          statsExpressions::expr_oneway_anova(
+          statsExpressions::oneway_anova(
             data = WineTasting,
             x = "Wine",
             y = Taste,
@@ -209,7 +209,7 @@ if (require("afex")) {
 
         set.seed(123)
         p1_subtitle <-
-          statsExpressions::expr_oneway_anova(
+          statsExpressions::oneway_anova(
             data = iris_long,
             x = condition,
             y = value,
@@ -233,7 +233,7 @@ if (require("afex")) {
 
         set.seed(123)
         p2_subtitle <-
-          statsExpressions::expr_oneway_anova(
+          statsExpressions::oneway_anova(
             data = iris_long,
             x = condition,
             y = value,
@@ -259,7 +259,7 @@ if (require("afex")) {
 
         set.seed(123)
         p3_subtitle <-
-          suppressWarnings(statsExpressions::expr_t_twosample(
+          suppressWarnings(statsExpressions::two_sample_test(
             data = ggstatsplot::VR_dilemma,
             x = modality,
             y = score,
@@ -287,7 +287,7 @@ if (require("afex")) {
 
         set.seed(123)
         p4_subtitle <-
-          suppressWarnings(statsExpressions::expr_t_twosample(
+          suppressWarnings(statsExpressions::two_sample_test(
             data = ggstatsplot::VR_dilemma,
             x = modality,
             y = score,

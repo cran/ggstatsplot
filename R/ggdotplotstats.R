@@ -3,7 +3,7 @@
 #'
 #' @description
 #'
-#' \Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+#'
 #'
 #' A dot chart (as described by William S. Cleveland) with statistical details
 #' from one-sample test included in the plot as a subtitle.
@@ -17,7 +17,7 @@
 #' @inheritParams ggcoefstats
 #'
 #' @importFrom dplyr row_number percent_rank pull
-#' @importFrom statsExpressions expr_t_onesample
+#' @importFrom statsExpressions one_sample_test
 #'
 #' @references
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggdotplotstats.html}
@@ -101,8 +101,8 @@ ggdotplotstats <- function(data,
   if (isTRUE(results.subtitle)) {
     # preparing the BF message for NULL
     if (isTRUE(bf.message) && type == "parametric") {
-      caption_df <-
-        statsExpressions::expr_t_onesample(
+      caption_df <- tryCatch(
+        statsExpressions::one_sample_test(
           data = data,
           x = {{ x }},
           type = "bayes",
@@ -110,14 +110,16 @@ ggdotplotstats <- function(data,
           bf.prior = bf.prior,
           top.text = caption,
           k = k
-        )
+        ),
+        error = function(e) NULL
+      )
 
-      caption <- caption_df$expression[[1]]
+      caption <- if (!is.null(caption_df)) caption_df$expression[[1]]
     }
 
     # preparing the subtitle with statistical results
-    subtitle_df <-
-      statsExpressions::expr_t_onesample(
+    subtitle_df <- tryCatch(
+      statsExpressions::one_sample_test(
         data = data,
         x = {{ x }},
         type = type,
@@ -128,9 +130,11 @@ ggdotplotstats <- function(data,
         nboot = nboot,
         tr = tr,
         k = k
-      )
+      ),
+      error = function(e) NULL
+    )
 
-    subtitle <- subtitle_df$expression[[1]]
+    subtitle <- if (!is.null(subtitle_df)) subtitle_df$expression[[1]]
   }
 
   # return early if anything other than plot

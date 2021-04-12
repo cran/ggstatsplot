@@ -4,7 +4,7 @@
 #'
 #' @description
 #'
-#' \Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+#'
 #'
 #' A combination of box and violin plots along with raw (unjittered) data points
 #' for within-subjects designs with statistical details included in the plot as
@@ -29,7 +29,7 @@
 #' @param centrality.path.args,point.path.args A list of additional aesthetic
 #'   arguments passed on to `geom_path` connecting raw data points and mean
 #'   points.
-#' @inheritParams statsExpressions::expr_oneway_anova
+#' @inheritParams statsExpressions::oneway_anova
 #'
 #' @seealso \code{\link{grouped_ggbetweenstats}}, \code{\link{ggbetweenstats}},
 #'  \code{\link{grouped_ggwithinstats}}
@@ -160,7 +160,7 @@ ggwithinstats <- function(data,
   if (isTRUE(results.subtitle)) {
     # preparing the bayes factor message
     if (type == "parametric" && isTRUE(bf.message)) {
-      caption_df <-
+      caption_df <- tryCatch(
         function_switch(
           test = test,
           # arguments relevant for expression helper functions
@@ -172,13 +172,15 @@ ggwithinstats <- function(data,
           top.text = caption,
           paired = TRUE,
           k = k
-        )
+        ),
+        error = function(e) NULL
+      )
 
-      caption <- caption_df$expression[[1]]
+      caption <- if (!is.null(caption_df)) caption_df$expression[[1]]
     }
 
     # extracting the subtitle using the switch function
-    subtitle_df <-
+    subtitle_df <- tryCatch(
       function_switch(
         test = test,
         # arguments relevant for expression helper functions
@@ -194,9 +196,11 @@ ggwithinstats <- function(data,
         nboot = nboot,
         conf.level = conf.level,
         k = k
-      )
+      ),
+      error = function(e) NULL
+    )
 
-    subtitle <- subtitle_df$expression[[1]]
+    subtitle <- if (!is.null(subtitle_df)) subtitle_df$expression[[1]]
   }
 
   # return early if anything other than plot

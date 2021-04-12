@@ -135,8 +135,6 @@ be entered as a \code{ggplot2} function or a list of \code{ggplot2} functions.}
   }}
 }
 \description{
-\Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
-
 Helper function for \code{ggstatsplot::gghistostats} to apply this function
 across multiple levels of a given factor and combining the resulting plots
 using \code{ggstatsplot::combine_plots}.
@@ -145,18 +143,15 @@ using \code{ggstatsplot::combine_plots}.
 \donttest{
 # for reproducibility
 set.seed(123)
+library(ggstatsplot)
 
 # plot
-ggstatsplot::grouped_gghistostats(
+grouped_gghistostats(
   data = iris,
   x = Sepal.Length,
   test.value = 5,
   grouping.var = Species,
   bar.fill = "orange",
-  ggplot.component = list(
-    ggplot2::scale_x_continuous(breaks = seq(3, 9, 1), limits = (c(3, 9))),
-    ggplot2::scale_y_continuous(breaks = seq(0, 25, 5), limits = (c(0, 25)))
-  ),
   plotgrid.args = list(nrow = 1),
   annotation.args = list(tag_levels = "i"),
 )

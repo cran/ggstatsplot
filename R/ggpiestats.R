@@ -3,7 +3,7 @@
 #'
 #' @description
 #'
-#' \Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+#'
 #'
 #' Pie charts for categorical data with statistical details included in the plot
 #' as a subtitle.
@@ -31,7 +31,7 @@
 #'   This can be helpful in case the labels are overlapping.
 #' @param legend.title Title text for the legend.
 #' @inheritParams ggbetweenstats
-#' @inheritParams statsExpressions::expr_contingency_tab
+#' @inheritParams statsExpressions::contingency_table
 #' @inheritParams theme_ggstatsplot
 #' @inheritParams gghistostats
 #'
@@ -45,7 +45,7 @@
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom paletteer scale_fill_paletteer_d
 #' @importFrom tidyr uncount drop_na
-#' @importFrom statsExpressions expr_contingency_tab
+#' @importFrom statsExpressions contingency_table
 #'
 #' @references
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html}
@@ -142,40 +142,38 @@ ggpiestats <- function(data,
 
   # if subtitle with results is to be displayed
   if (isTRUE(results.subtitle)) {
-    subtitle_df <-
-      tryCatch(
-        expr = statsExpressions::expr_contingency_tab(
-          data = data,
-          x = {{ x }},
-          y = {{ y }},
-          type = type,
-          k = k,
-          paired = paired,
-          ratio = ratio,
-          conf.level = conf.level
-        ),
-        error = function(e) NULL
-      )
+    subtitle_df <- tryCatch(
+      expr = statsExpressions::contingency_table(
+        data = data,
+        x = {{ x }},
+        y = {{ y }},
+        type = type,
+        k = k,
+        paired = paired,
+        ratio = ratio,
+        conf.level = conf.level
+      ),
+      error = function(e) NULL
+    )
 
     if (!is.null(subtitle_df)) subtitle <- subtitle_df$expression[[1]]
 
     # preparing Bayes Factor caption
     if (type != "bayes" && isTRUE(bf.message) && isFALSE(paired)) {
-      caption_df <-
-        tryCatch(
-          expr = statsExpressions::expr_contingency_tab(
-            data = data,
-            x = {{ x }},
-            y = {{ y }},
-            type = "bayes",
-            k = k,
-            top.text = caption,
-            sampling.plan = sampling.plan,
-            fixed.margin = fixed.margin,
-            prior.concentration = prior.concentration
-          ),
-          error = function(e) NULL
-        )
+      caption_df <- tryCatch(
+        expr = statsExpressions::contingency_table(
+          data = data,
+          x = {{ x }},
+          y = {{ y }},
+          type = "bayes",
+          k = k,
+          top.text = caption,
+          sampling.plan = sampling.plan,
+          fixed.margin = fixed.margin,
+          prior.concentration = prior.concentration
+        ),
+        error = function(e) NULL
+      )
 
       if (!is.null(caption_df)) caption <- caption_df$expression[[1]]
     }

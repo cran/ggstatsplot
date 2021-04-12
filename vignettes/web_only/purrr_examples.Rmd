@@ -28,11 +28,22 @@ knitr::opts_chunk$set(
   warning = FALSE,
   message = FALSE,
   out.width = "100%",
-  comment = "#>"
+  comment = "#>",
+  package.startup.message = FALSE
 )
 
 future::plan("multicore")
 ```
+
+---
+
+You can cite this package/vignette as:
+
+```{r citation, echo=FALSE, comment = ""}
+citation("ggstatsplot")
+```
+
+---
 
 # Why use `purrr`?
 

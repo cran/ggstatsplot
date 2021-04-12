@@ -4,7 +4,7 @@
 #'
 #' @description
 #'
-#' \Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+#'
 #'
 #' A combination of box and violin plots along with jittered data points for
 #' between-subjects designs with statistical details included in the plot as a
@@ -106,9 +106,9 @@
 #'   `ggrepel::geom_label_repel` geoms, which are involved in mean plotting.
 #' @param  ggsignif.args A list of additional aesthetic
 #'   arguments to be passed to `ggsignif::geom_signif`.
-#' @inheritParams statsExpressions::expr_oneway_anova
-#' @inheritParams statsExpressions::expr_t_twosample
-#' @inheritParams statsExpressions::expr_t_onesample
+#' @inheritParams statsExpressions::oneway_anova
+#' @inheritParams statsExpressions::two_sample_test
+#' @inheritParams statsExpressions::one_sample_test
 #'
 #' @import ggplot2
 #'
@@ -247,7 +247,7 @@ ggbetweenstats <- function(data,
   if (isTRUE(results.subtitle)) {
     # preparing the Bayes factor message
     if (type == "parametric" && isTRUE(bf.message)) {
-      caption_df <-
+      caption_df <- tryCatch(
         function_switch(
           test = test,
           # arguments relevant for expression helper functions
@@ -259,13 +259,15 @@ ggbetweenstats <- function(data,
           top.text = caption,
           paired = FALSE,
           k = k
-        )
+        ),
+        error = function(e) NULL
+      )
 
-      caption <- caption_df$expression[[1]]
+      caption <- if (!is.null(caption_df)) caption_df$expression[[1]]
     }
 
     # extracting the subtitle using the switch function
-    subtitle_df <-
+    subtitle_df <- tryCatch(
       function_switch(
         test = test,
         # arguments relevant for expression helper functions
@@ -281,9 +283,11 @@ ggbetweenstats <- function(data,
         nboot = nboot,
         conf.level = conf.level,
         k = k
-      )
+      ),
+      error = function(e) NULL
+    )
 
-    subtitle <- subtitle_df$expression[[1]]
+    subtitle <- if (!is.null(subtitle_df)) subtitle_df$expression[[1]]
   }
 
   # return early if anything other than plot

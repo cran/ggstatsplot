@@ -24,21 +24,21 @@ ggcoefstats_label_maker <- function(tidy_df,
   # if the statistic is t-value
   if (statistic == "t") {
     # if not present, add NA column for dfs
-    if (!"df.error" %in% names(tidy_df)) tidy_df %<>% dplyr::mutate(df.error = Inf)
+    if (!"df.error" %in% names(tidy_df)) tidy_df %<>% dplyr::mutate(df.error = NA)
 
     tidy_df %<>%
       dplyr::mutate(
-        label = paste0(
-          "list(~widehat(italic(beta))==",
-          format_num(estimate, k = k),
-          ", ~italic(t)",
-          "(",
-          format_num(df.error, k = 0L),
-          ")==",
-          format_num(statistic, k = k),
-          ", ~italic(p)=='",
-          format_num(p.value, k = k, p.value = TRUE),
-          "')"
+        label = dplyr::case_when(
+          is.na(df.error) || is.infinite(df.error) ~ paste0(
+            "list(~widehat(italic(beta))=='", format_value(estimate, k),
+            "', ~italic(t)=='", format_value(statistic, k),
+            "', ~italic(p)=='", format_num(p.value, k, TRUE), "')"
+          ),
+          TRUE ~ paste0(
+            "list(~widehat(italic(beta))=='", format_value(estimate, k),
+            "', ~italic(t)", "('", format_value(df.error, 0L), "')=='", format_value(statistic, k),
+            "', ~italic(p)=='", format_num(p.value, k, TRUE), "')"
+          )
         )
       )
   }
@@ -50,13 +50,9 @@ ggcoefstats_label_maker <- function(tidy_df,
     tidy_df %<>%
       dplyr::mutate(
         label = paste0(
-          "list(~widehat(italic(beta))==",
-          format_num(estimate, k = k),
-          ", ~italic(z)==",
-          format_num(statistic, k = k),
-          ", ~italic(p)=='",
-          format_num(p.value, k = k, p.value = TRUE),
-          "')"
+          "list(~widehat(italic(beta))=='", format_value(estimate, k),
+          "', ~italic(z)=='", format_value(statistic, k),
+          "', ~italic(p)=='", format_num(p.value, k, TRUE), "')"
         )
       )
   }
@@ -66,21 +62,14 @@ ggcoefstats_label_maker <- function(tidy_df,
   # if the statistic is chi^2-value
   if (statistic == "c") {
     # if not present, add NA column for dfs
-    if (!"df.error" %in% names(tidy_df)) tidy_df %<>% dplyr::mutate(df.error = Inf)
+    if (!"df.error" %in% names(tidy_df)) tidy_df %<>% dplyr::mutate(df.error = NA)
 
     tidy_df %<>%
       dplyr::mutate(
         label = paste0(
-          "list(~widehat(italic(beta))==",
-          format_num(estimate, k = k),
-          ", ~italic(chi)^2~",
-          "(",
-          format_num(df.error, k = 0L),
-          ")==",
-          format_num(statistic, k = k),
-          ", ~italic(p)=='",
-          format_num(p.value, k = k, p.value = TRUE),
-          "')"
+          "list(~widehat(italic(beta))=='", format_value(estimate, k),
+          "', ~italic(chi)^2~", "('", format_value(df.error, 0L), "')==", format_value(statistic, k),
+          "', ~italic(p)=='", format_num(p.value, k, TRUE), "')"
         )
       )
   }
@@ -96,20 +85,10 @@ ggcoefstats_label_maker <- function(tidy_df,
     tidy_df %<>%
       dplyr::mutate(
         label = paste0(
-          "list(~italic(F)",
-          "(",
-          df,
-          "*\",\"*",
-          df.error,
-          ")==",
-          format_num(statistic, k = k),
-          ", ~italic(p)=='",
-          format_num(p.value, k = k, p.value = TRUE),
-          "', ~",
-          effsize.text,
-          "==",
-          format_num(estimate, k = k),
-          ")"
+          "list(~italic(F)", "('", format_value(df, 0L), "'*\",\"*'", format_value(df.error, 0L),
+          "')=='", format_value(statistic, k),
+          "', ~italic(p)=='", format_num(p.value, k, TRUE),
+          "', ~", effsize.text, "=='", format_value(estimate, k), "')"
         )
       )
   }

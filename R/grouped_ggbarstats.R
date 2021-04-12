@@ -3,7 +3,7 @@
 #'
 #' @description
 #'
-#' \Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
+#'
 #'
 #' Helper function for `ggstatsplot::ggbarstats` to apply this function across
 #' multiple levels of a given factor and combining the resulting plots using
@@ -30,6 +30,7 @@
 #' \donttest{
 #' # for reproducibility
 #' set.seed(123)
+#' library(ggstatsplot)
 #'
 #' # let's create a smaller dataframe
 #' diamonds_short <- ggplot2::diamonds %>%
@@ -39,7 +40,7 @@
 #'
 #' # plot
 #' # let's skip statistical analysis
-#' ggstatsplot::grouped_ggbarstats(
+#' grouped_ggbarstats(
 #'   data = diamonds_short,
 #'   x = color,
 #'   y = clarity,

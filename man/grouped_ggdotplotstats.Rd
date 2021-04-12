@@ -129,8 +129,6 @@ override some aspects of the selected \code{ggtheme}.}
   }}
 }
 \description{
-\Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
-
 Helper function for \code{ggstatsplot::ggdotplotstats} to apply this function
 across multiple levels of a given factor and combining the resulting plots
 using \code{ggstatsplot::combine_plots}.
@@ -139,22 +137,18 @@ using \code{ggstatsplot::combine_plots}.
 \donttest{
 # for reproducibility
 set.seed(123)
+library(ggstatsplot)
 
 # removing factor level with very few no. of observations
 df <- dplyr::filter(.data = ggplot2::mpg, cyl \%in\% c("4", "6", "8"))
 
 # plot
-ggstatsplot::grouped_ggdotplotstats(
+grouped_ggdotplotstats(
   data = df,
   x = cty,
   y = manufacturer,
   grouping.var = cyl,
-  test.value = 15.5,
-  ggplot.component = ggplot2::scale_x_continuous(
-    sec.axis = ggplot2::dup_axis(),
-    limits = c(12, 24),
-    breaks = seq(12, 24, 2)
-  )
+  test.value = 15.5
 )
 }
 }

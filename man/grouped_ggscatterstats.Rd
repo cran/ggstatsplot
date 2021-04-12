@@ -66,8 +66,9 @@ to \code{ggrepel::geom_label_repel} geom used to display the labels.}
 to \code{ggplot2::geom_smooth} geom used to display the regression line.}
     \item{\code{point.args}}{A list of additional aesthetic arguments to be passed
 to \code{ggplot2::geom_point} geom used to display the raw data points.}
-    \item{\code{marginal}}{Decides whether \code{ggExtra::ggMarginal()} plots will be
-displayed; the default is \code{TRUE}.}
+    \item{\code{marginal}}{Decides whether marginal distributions will be plotted on
+axes using \code{ggExtra::ggMarginal()}. The default is \code{TRUE}. The package
+\code{ggExtra} must already be installed by the user.}
     \item{\code{point.width.jitter}}{Degree of jitter in \code{x} and \code{y}
 direction, respectively. Defaults to \code{0} (0\%) of the resolution of the
 data. Note that the jitter should not be specified in the \code{point.args}
@@ -140,8 +141,6 @@ be entered as a \code{ggplot2} function or a list of \code{ggplot2} functions.}
   }}
 }
 \description{
-\Sexpr[results=rd, stage=render]{rlang:::lifecycle("maturing")}
-
 Grouped scatterplots from \code{ggplot2} combined with marginal distribution plots
 with statistical details added as a subtitle.
 }
@@ -150,13 +149,17 @@ with statistical details added as a subtitle.
 set.seed(123)
 library(ggstatsplot)
 
+# skipping marginal distributions so that the examples run fast
+
 # basic function call
 grouped_ggscatterstats(
   data = dplyr::filter(movies_long, genre == "Comedy" | genre == "Drama"),
   x = length,
   y = rating,
   type = "robust",
-  grouping.var = genre
+  grouping.var = genre,
+  marginal = FALSE,
+  ggplot.component = list(ggplot2::geom_rug(sides = "b"))
 )
 
 # using labeling
@@ -167,6 +170,7 @@ grouped_ggscatterstats(
   y = hwy,
   grouping.var = cyl,
   type = "robust",
+  marginal = FALSE,
   label.var = manufacturer,
   label.expression = hwy > 25 & displ > 2.5,
   ggplot.component = ggplot2::scale_y_continuous(sec.axis = ggplot2::dup_axis())
@@ -186,7 +190,7 @@ grouped_ggscatterstats(
   bf.message = FALSE,
   label.var = "title",
   marginal = FALSE,
-  annotation.args = list(caption = "All movies have IMDB rating greater than 7")
+  annotation.args = list(tag_levels = "a")
 )
 }
 \references{
