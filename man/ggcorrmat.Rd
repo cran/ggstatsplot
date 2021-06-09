@@ -19,12 +19,11 @@ ggcorrmat(
   bf.prior = 0.707,
   p.adjust.method = "holm",
   pch = "cross",
-  ggcorrplot.args = list(method = "square", outline.color = "black"),
+  ggcorrplot.args = list(method = "square", outline.color = "black", pch.cex = 14),
   package = "RColorBrewer",
   palette = "Dark2",
   colors = c("#E69F00", "white", "#009E73"),
-  ggtheme = ggplot2::theme_bw(),
-  ggstatsplot.layer = TRUE,
+  ggtheme = ggstatsplot::theme_ggstatsplot(),
   ggplot.component = NULL,
   title = NULL,
   subtitle = NULL,
@@ -52,9 +51,7 @@ values, \emph{p}-values, no. of observations, etc.) will be returned.}
 \item{matrix.type}{Character, \code{"upper"} (default), \code{"lower"}, or \code{"full"},
 display full matrix, lower triangular or upper triangular matrix.}
 
-\item{type}{A character specifying the type of statistical approach.
-Four possible options:
-
+\item{type}{A character specifying the type of statistical approach:
 \itemize{
 \item \code{"parametric"}
 \item \code{"nonparametric"}
@@ -62,8 +59,7 @@ Four possible options:
 \item \code{"bayes"}
 }
 
-Corresponding abbreviations are also accepted: \code{"p"} (for parametric),
-\code{"np"} (for nonparametric), \code{"r"} (for robust), or \code{"bf"} (for Bayesian).}
+You can specify just the initial letter.}
 
 \item{tr}{Trim level for the mean when carrying out \code{robust} tests. In case
 of an error, try reducing the value of \code{tr}, which is by default set to
@@ -85,7 +81,11 @@ the plot. Relevant only when \code{output = "plot"}.}
 return \verb{95\%} confidence/credible intervals (\code{0.95}).}
 
 \item{bf.prior}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
-width to use in calculating Bayes factors and posterior estimates.}
+width to use in calculating Bayes factors and posterior estimates. In
+addition to numeric arguments, several named values are also recognized:
+\code{"medium"}, \code{"wide"}, and \code{"ultrawide"}, corresponding to \emph{r} scale values
+of 1/2, sqrt(2)/2, and 1, respectively. In case of an ANOVA, this value
+corresponds to scale for fixed effects.}
 
 \item{p.adjust.method}{Adjustment method for \emph{p}-values for multiple
 comparisons. Possible methods are: \code{"holm"} (default), \code{"hochberg"},
@@ -112,15 +112,11 @@ be extracted. The available palettes and packages can be checked by running
 If set to \code{NULL}, manual specification of colors will be turned off and 3
 colors from the specified \code{palette} from \code{package} will be selected.}
 
-\item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
-\code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
-extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
-\code{hrbrthemes::theme_ipsum_ps()}, etc.).}
-
-\item{ggstatsplot.layer}{Logical that decides whether \code{theme_ggstatsplot}
-theme elements are to be displayed along with the selected \code{ggtheme}
-(Default: \code{TRUE}). \code{theme_ggstatsplot} is an opinionated theme layer that
-override some aspects of the selected \code{ggtheme}.}
+\item{ggtheme}{A \code{ggplot2} theme. Default value is
+\code{ggstatsplot::theme_ggstatsplot()}. Any of the \code{ggplot2} themes (e.g.,
+\code{ggplot2::theme_bw()}), or themes from extension packages are allowed
+(e.g., \code{ggthemes::theme_fivethirtyeight()}, \code{hrbrthemes::theme_ipsum_ps()},
+etc.).}
 
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
 by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_}
@@ -137,41 +133,33 @@ be entered as a \code{ggplot2} function or a list of \code{ggplot2} functions.}
 \item{...}{Currently ignored.}
 }
 \description{
-Correlation matrix plot or a dataframe containing results from pairwise
+Correlation matrix or a dataframe containing results from pairwise
 correlation tests. The package internally uses \code{ggcorrplot::ggcorrplot} for
 creating the visualization matrix, while the correlation analysis is carried
 out using the \code{correlation::correlation} function.
+}
+\details{
+For more details, see:
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html}
 }
 \examples{
 \donttest{
 # for reproducibility
 set.seed(123)
+library(ggstatsplot)
 
-# if `cor.vars` not specified, all numeric variables used
-ggstatsplot::ggcorrmat(iris)
-
-# to get the correlation matrix
-# note that the function will run even if the vector with variable names is
-# not of same length as the number of variables
-ggstatsplot::ggcorrmat(
-  data = ggplot2::msleep,
-  type = "robust",
-  cor.vars = sleep_total:bodywt,
-  cor.vars.names = c("total sleep", "REM sleep"),
-  matrix.type = "lower"
-)
-
+# for plot
+if (require("ggcorrplot")) {
+  ggcorrmat(iris)
+}
 # to get the correlation analyses results in a dataframe
-ggstatsplot::ggcorrmat(
+ggcorrmat(
   data = ggplot2::msleep,
   cor.vars = sleep_total:bodywt,
   partial = TRUE,
   output = "dataframe"
 )
 }
-}
-\references{
-\url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html}
 }
 \seealso{
 \code{\link{grouped_ggcorrmat}} \code{\link{ggscatterstats}}

@@ -3,8 +3,6 @@
 #'
 #' @description
 #'
-#'
-#'
 #' Helper function for `ggstatsplot::ggdotplotstats` to apply this function
 #' across multiple levels of a given factor and combining the resulting plots
 #' using `ggstatsplot::combine_plots`.
@@ -30,7 +28,7 @@
 #' library(ggstatsplot)
 #'
 #' # removing factor level with very few no. of observations
-#' df <- dplyr::filter(.data = ggplot2::mpg, cyl %in% c("4", "6", "8"))
+#' df <- dplyr::filter(ggplot2::mpg, cyl %in% c("4", "6", "8"))
 #'
 #' # plot
 #' grouped_ggdotplotstats(
@@ -56,25 +54,22 @@ grouped_ggdotplotstats <- function(data,
   # ======================== preparing dataframe ============================
 
   # creating a dataframe
-  df <-
-    dplyr::select(.data = data, {{ grouping.var }}, {{ x }}, {{ y }}) %>%
+  df <- dplyr::select(data, {{ grouping.var }}, {{ x }}, {{ y }}) %>%
     grouped_list(grouping.var = {{ grouping.var }})
 
   # creating a list of plots
-  plotlist_purrr <-
-    purrr::pmap(
-      .l = list(data = df, title = names(df)),
-      .f = ggstatsplot::ggdotplotstats,
-      x = {{ x }},
-      y = {{ y }},
-      output = output,
-      ...
-    )
+  p_ls <- purrr::pmap(
+    .l = list(data = df, title = names(df)),
+    .f = ggstatsplot::ggdotplotstats,
+    x = {{ x }},
+    y = {{ y }},
+    output = output,
+    ...
+  )
 
   # combining the list of plots into a single plot
-  if (output == "plot") {
-    return(combine_plots(plotlist_purrr, plotgrid.args = plotgrid.args, annotation.args = annotation.args))
-  } else {
-    return(plotlist_purrr) # subtitle list
-  }
+  if (output == "plot") p_ls <- combine_plots(p_ls, plotgrid.args, annotation.args)
+
+  # return the object
+  p_ls
 }

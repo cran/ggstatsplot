@@ -43,11 +43,10 @@
 #' @importFrom dplyr select mutate vars pull across everything
 #' @importFrom rlang !! enquo as_name ensym !!! exec
 #' @importFrom ggrepel geom_label_repel
-#' @importFrom paletteer scale_fill_paletteer_d
 #' @importFrom tidyr uncount drop_na
 #' @importFrom statsExpressions contingency_table
 #'
-#' @references
+#' @details For more details, see:
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html}
 #'
 #' @examples
@@ -91,8 +90,7 @@ ggpiestats <- function(data,
                        subtitle = NULL,
                        caption = NULL,
                        legend.title = NULL,
-                       ggtheme = ggplot2::theme_bw(),
-                       ggstatsplot.layer = TRUE,
+                       ggtheme = ggstatsplot::theme_ggstatsplot(),
                        package = "RColorBrewer",
                        palette = "Dark2",
                        ggplot.component = NULL,
@@ -190,23 +188,21 @@ ggpiestats <- function(data,
   # =================================== plot =================================
 
   # dataframe with summary labels
-  df_descriptive <- df_descriptive(data, {{ x }}, {{ y }}, label, perc.k)
+  descriptive_df <- descriptive_df(data, {{ x }}, {{ y }}, label, perc.k)
 
   # dataframe containing all details needed for prop test
-  if (test == "two.way") df_proptest <- df_proptest(data, {{ x }}, {{ y }}, k)
+  if (test == "two.way") onesample_df <- onesample_df(data, {{ x }}, {{ y }}, k)
 
   # if no. of factor levels is greater than the default palette color count
   palette_message(package, palette, min_length = x_levels)
 
   # creating the basic plot
-  p <-
-    ggplot2::ggplot(data = df_descriptive, mapping = ggplot2::aes(x = "", y = perc)) +
+  p <- ggplot2::ggplot(descriptive_df, mapping = ggplot2::aes(x = "", y = perc)) +
     ggplot2::geom_col(
       mapping = ggplot2::aes(fill = {{ x }}),
       position = "fill",
       color = "black",
-      width = 1,
-      na.rm = TRUE
+      width = 1
     )
 
   # whether labels need to be repelled
@@ -216,7 +212,7 @@ ggpiestats <- function(data,
   # adding label with percentages and/or counts
   suppressWarnings(suppressMessages(p <- p +
     rlang::exec(
-      .fn = .fn,
+      .fn,
       mapping = ggplot2::aes(label = .label, group = {{ x }}),
       position = ggplot2::position_fill(vjust = 0.5),
       min.segment.length = 0,
@@ -233,7 +229,12 @@ ggpiestats <- function(data,
     ggplot2::coord_polar(theta = "y") +
     ggplot2::scale_y_continuous(breaks = NULL) +
     paletteer::scale_fill_paletteer_d(paste0(package, "::", palette), name = "") +
-    theme_pie(ggtheme, ggstatsplot.layer) +
+    ggtheme +
+    ggplot2::theme(
+      panel.grid = ggplot2::element_blank(),
+      axis.ticks = ggplot2::element_blank(),
+      axis.title = ggplot2::element_blank()
+    ) +
     ggplot2::guides(fill = ggplot2::guide_legend(override.aes = list(color = NA)))
 
   # ================ sample size + proportion test labels =================
@@ -242,8 +243,8 @@ ggpiestats <- function(data,
   if (isTRUE(facet) && isTRUE(proportion.test)) {
     p <- p +
       rlang::exec(
-        .fn = ggplot2::geom_text,
-        data = df_proptest,
+        ggplot2::geom_text,
+        data = onesample_df,
         mapping = ggplot2::aes(label = .label, x = 1.65, y = 0.5),
         position = ggplot2::position_fill(vjust = 1),
         size = 2.8,

@@ -16,7 +16,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include = FALSE}
+```{r setup, include=FALSE}
 # show me all columns
 options(tibble.width = Inf, pillar.bold = TRUE, pillar.subtle_num = TRUE)
 
@@ -34,7 +34,7 @@ knitr::opts_chunk$set(
 
 You can cite this package/vignette as:
 
-```{r citation, echo=FALSE, comment = ""}
+```{r citation, echo=FALSE, comment=""}
 citation("ggstatsplot")
 ```
 
@@ -73,8 +73,8 @@ ggplot(iris, aes(x = Species, y = Sepal.Length)) +
   geom_boxplot() +
   labs(subtitle = ggplot2::expr(paste(
     NULL, italic("F"), "(", "2",
-    ",", "147", ") = ", "119.26", ", ",
-    italic("p"), " = ", "1.67e-31"
+    ",", "147", ")=", "119.26", ", ",
+    italic("p"), "=", "1.67e-31"
   )))
 ```
 
@@ -87,11 +87,7 @@ Error in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
 polygon edge not found
 ```
 
-There is no unique solution for this. Just Google this error and see if any of
-those solutions solve your problem.
-
-If not, pray to the old and the new gods, and try again. It might just solve
-your problem. `r emo::ji("shrug")`
+This can possibly be solved by increasing the size of RStudio viewer pane.
 
 # 4. Why do I get only plot in return but not the subtitle/caption?
 
@@ -160,35 +156,26 @@ dataframe in what you want to do, I will recommend you to have a look at
 
 # 7. How can I have uniform Y-axes ranges in `grouped_` functions?
 
-```{r grouped_y_axes, fig.height=10, fig.width=8}
+Across different facets of a `grouped_` plot, the axes ranges might sometimes
+differ. You can use the `ggplot.component` (present in all functions) to have
+the same scale across the individual plots:
+
+```{r grouped_y_axes, fig.height=6, fig.width=8}
 # setup
 set.seed(123)
 library(ggstatsplot)
 
-combine_plots(
-  list(
-    # with unequal Y-axes ranges
-    grouped_ggscatterstats(
-      mtcars,
-      disp,
-      hp,
-      grouping.var = am,
-      results.subtitle = FALSE,
-      annotation.args = list(title = "before")
-    ),
-    # with equal Y-axes ranges
-    grouped_ggscatterstats(
-      mtcars,
-      disp,
-      hp,
-      grouping.var = am,
-      results.subtitle = FALSE,
-      ggplot.component =
-        list(ggplot2::scale_y_continuous(breaks = seq(50, 350, 50), limits = (c(50, 350)))),
-      annotation.args = list(title = "after")
-    )
-  ),
-  plotgrid.args = list(nrow = 2)
+# provide a list of further `ggplot2` modifications using `ggplot.component`
+grouped_ggscatterstats(
+  mtcars,
+  disp,
+  hp,
+  grouping.var = am,
+  results.subtitle = FALSE,
+  ggplot.component = list(ggplot2::scale_y_continuous(
+    breaks = seq(50, 350, 50),
+    limits = (c(50, 350))
+  ))
 )
 ```
 
@@ -199,7 +186,7 @@ graphics via `plotly.js`.
 
 The `ggstatsplot` functions are compatible with `plotly`.
  
-```{r plotly, fig.width = 4, fig.height = 4}
+```{r plotly, fig.width=4, fig.height=4}
 # for reproducibility
 set.seed(123)
 library(ggstatsplot)
@@ -226,7 +213,7 @@ easily achieved using `purrr` package.
 
 Here is an example-
 
-```{r grouped_2, fig.width = 6, fig.height = 6}
+```{r grouped_2, fig.width=6, fig.height=6}
 # setup
 set.seed(123)
 library(ggstatsplot)
@@ -236,7 +223,7 @@ library(ggstatsplot)
 df_list <-
   mpg %>%
   dplyr::filter(drv %in% c("4", "f"), fl %in% c("p", "r")) %>%
-  split(x = ., f = list(.$drv, .$fl), drop = TRUE)
+  split(f = list(.$drv, .$fl), drop = TRUE)
 
 # checking if the length of the list is 4
 length(df_list)
@@ -265,7 +252,7 @@ ggstatsplot::combine_plots(
 
 # 10. How can I include statistical expressions in facet labels?
 
-```{r facet_expr, fig.width = 6, fig.height = 8}
+```{r facet_expr, fig.width=6, fig.height=8}
 set.seed(123)
 library(ggplot2)
 library(ggstatsplot)
@@ -302,7 +289,7 @@ comparisons. But what if I am only interested in just one particular comparison?
 
 Here is a workaround using `ggsignif`:
 
-```{r custom_pairwise, fig.width = 7, fig.height = 6}
+```{r custom_pairwise, fig.width=7, fig.height=6}
 set.seed(123)
 library(ggstatsplot)
 library(ggsignif)
@@ -314,20 +301,12 @@ ggbetweenstats(mtcars, cyl, wt, pairwise.comparisons = FALSE) +
 
 # 12. How to access dataframe with results from pairwise comparisons?
 
+Behind the scenes, `ggstatsplot` uses `pairwiseComparisons` package. Thus, you
+can use it to extract actual dataframes used in `ggstatsplot` functions.
+
 ```{r}
 library(ggstatsplot)
 library(ggplot2)
-
-# way-1
-
-p <- ggbetweenstats(mtcars, cyl, wt)
-
-pb <- ggplot_build(p)
-
-pb$plot$plot_env$df_pairwise
-
-# way-2
-
 library(pairwiseComparisons)
 
 pairwise_comparisons(mtcars, cyl, wt)
@@ -377,7 +356,7 @@ p +
 
 # 14. How to access dataframe with results from `ggpiestats` and `ggbarstats`?
 
-```{r proptest_df}
+```{r onesample_df}
 # setup
 set.seed(123)
 library(ggplot2)
@@ -385,14 +364,8 @@ library(ggplot2)
 # plot
 p <- ggpiestats(mtcars, am, cyl)
 
-# build ggplot object
-pb <- ggplot2::ggplot_build(p)
-
-# dataframe with proportion test results
-pb$plot$plot_env$df_proptest
-
-# dataframe with counts and proportions details
-pb$plot$plot_env$df_descriptive
+# dataframe with results
+extract_stats(p)
 ```
 
 # 15. How can I remove a particular `geom` layer from the plot?
@@ -403,20 +376,19 @@ remove them using `gginnards`.
 For example, let's say we want to remove the `geom_point()` from
 `ggwithinstats` default plot.
 
-```{r gginnards, fig.width = 7, fig.height = 5}
+```{r gginnards, fig.width=7, fig.height=5}
 # needed libraries
 library(ggstatsplot)
 library(gginnards)
 
 # plot with all geoms
-p <-
-  ggwithinstats(
-    data = bugs_long,
-    x = condition,
-    y = desire,
-    results.subtitle = FALSE,
-    pairwise.comparisons = FALSE
-  )
+p <- ggwithinstats(
+  data = bugs_long,
+  x = condition,
+  y = desire,
+  results.subtitle = FALSE,
+  pairwise.comparisons = FALSE
+)
 
 # delete `geom` corresponding to violin
 gginnards::delete_layers(x = p, match_type = "GeomViolin")
@@ -425,7 +397,7 @@ gginnards::delete_layers(x = p, match_type = "GeomViolin")
 This can be helpful to add a new layer with aesthetic specifications of your
 liking.
 
-```{r gginnards2, fig.width = 7, fig.height = 5}
+```{r gginnards2, fig.width=7, fig.height=5}
 # needed libraries
 set.seed(123)
 library(ggstatsplot)
@@ -433,13 +405,12 @@ library(gginnards)
 library(ggplot2)
 
 # basic plot without mean tagging
-p <-
-  ggbetweenstats(
-    data = mtcars,
-    x = am,
-    y = wt,
-    centrality.plotting = FALSE
-  )
+p <- ggbetweenstats(
+  data = mtcars,
+  x = am,
+  y = wt,
+  centrality.plotting = FALSE
+)
 
 # delete the geom_point layer
 p <- gginnards::delete_layers(x = p, match_type = "GeomPoint")
@@ -453,7 +424,7 @@ p + geom_point(shape = 23, aes(color = am))
 Sometimes you may not be satisfied with the available color palette values. In
 this case, you can also change the colors by manually specifying these values.
 
-```{r ggbar_colors, fig.width = 5, fig.height = 5}
+```{r ggbar_colors, fig.width=5, fig.height=5}
 # needed libraries
 set.seed(123)
 library(ggstatsplot)
@@ -465,7 +436,7 @@ ggbarstats(mtcars, am, cyl, results.subtitle = FALSE) +
 
 The same can also be done for `grouped_` functions:
 
-```{r ggpie_colors, fig.width = 12, fig.height = 6}
+```{r ggpie_colors, fig.width=12, fig.height=6}
 ggstatsplot::grouped_ggpiestats(
   data = mtcars,
   grouping.var = am,
@@ -480,7 +451,7 @@ All `ggstatsplot` are `ggplot` objects, which can be further modified, just like
 any other `ggplot` object. But exception to these are all plots returned by
 `grouped_` functions, but there is a way to tackle this.
 
-```{r grouped_modify, fig.width = 12, fig.height = 6}
+```{r grouped_modify, fig.width=12, fig.height=6}
 # needed libraries
 set.seed(123)
 library(ggstatsplot)
@@ -536,7 +507,7 @@ In such cases, you can override the defaults and use `statsExpressions` to
 create custom expressions to display in the plot. But be forewarned that the
 expression building functions in `statsExpressions` are not stable yet.
 
-```{r custom_test, fig.width = 6, fig.height = 6}
+```{r custom_test, fig.width=6, fig.height=6}
 # setup
 set.seed(123)
 library(ggstatsplot)
@@ -568,6 +539,45 @@ ggscatterstats(
   results.subtitle = FALSE,
   ggplot.component = list(labs(subtitle = expr_results))
 )
+```
+
+# 21. Is there way to adjust my alpha level?
+
+No, there is no way to adjust alpha if you use `grouped_` functions (e.g.,
+`grouped_ggwithinstats`). You will have to just report in the
+paper/article/report, what your adjusted alpha is.
+
+So, for example, iif 2 tests are being carried out, the alpha is going to be
+`0.05/2=0.025`. So, when you describe the _Methods_ section, you can mention
+that only those tests should be considered significant where `p < 0.025`. Or you
+can even mention this in the caption.
+
+22. How can I build a `Shiny` app using `ggstatsplot` functions?
+
+Below is an example using `ggbetweenstats` function.
+
+```{r shiny, eval=FALSE}
+set.seed(123)
+library(ggstatsplot)
+library(shiny)
+library(rlang)
+
+ui <- fluidPage(
+  headerPanel("Example - ggbetweenstats"),
+  sidebarPanel(
+    selectInput("x", "xcol", "X Variable", choices = names(iris)[5]),
+    selectInput("y", "ycol", "Y Variable", choices = names(iris)[1:4])
+  ),
+  mainPanel(plotOutput("plot"))
+)
+
+server <- function(input, output) {
+  output$plot <- renderPlot({
+    ggbetweenstats(iris, !!input$x, !!input$y)
+  })
+}
+
+shinyApp(ui, server)
 ```
 
 # Suggestions

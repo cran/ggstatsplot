@@ -77,8 +77,45 @@
       
       [[3]]
            fill x y PANEL group shape colour size alpha stroke
-      1 #D0622D 2 1     1     2 cross  white   14    NA    0.5
-      2 #D0622D 1 2     1     1 cross  white   14    NA    0.5
+      1 #D0622D 2 1     1     2 cross  white    5    NA    0.5
+      2 #D0622D 1 2     1     1 cross  white    5    NA    0.5
+      
+
+---
+
+    Code
+      list(p$labels, pb$plot$plot_env$legend.title)
+    Output
+      [[1]]
+      [[1]]$xlab
+      NULL
+      
+      [[1]]$ylab
+      NULL
+      
+      [[1]]$title
+      [1] "Iris dataset"
+      
+      [[1]]$subtitle
+      [1] "By Edgar Anderson"
+      
+      [[1]]$caption
+      atop(displaystyle(NULL), expr = paste(bold("X"), " = non-significant at ", 
+          italic("p"), " < ", 0.001, " (Adjustment: ", "FDR", ")"))
+      
+      [[1]]$fill
+      [1] "value"
+      
+      [[1]]$x
+      [1] "Var1"
+      
+      [[1]]$y
+      [1] "Var2"
+      
+      
+      [[2]]
+      atop(atop(scriptstyle(bold("sample sizes:")), italic(n) ~ "=" ~ 
+          "150"), atop(scriptstyle(bold("correlation:")), "Pearson"))
       
 
 # checking ggcorrmat - without NAs - robust r
@@ -208,31 +245,69 @@
       
       [[3]]
             fill x y PANEL group shape colour size alpha stroke
-      1  #009E73 1 3     1     1 cross  black    5    NA    0.5
-      2  #009E73 2 3     1     6 cross  black    5    NA    0.5
-      3  #009E73 3 3     1    11 cross  black    5    NA    0.5
-      4  #009E73 1 4     1     2 cross  black    5    NA    0.5
-      5  #009E73 2 4     1     7 cross  black    5    NA    0.5
-      6  #009E73 3 4     1    12 cross  black    5    NA    0.5
-      7  #009E73 4 4     1    16 cross  black    5    NA    0.5
-      8  #009E73 1 5     1     3 cross  black    5    NA    0.5
-      9  #009E73 2 5     1     8 cross  black    5    NA    0.5
-      10 #009E73 3 5     1    13 cross  black    5    NA    0.5
-      11 #009E73 4 5     1    17 cross  black    5    NA    0.5
-      12 #009E73 5 5     1    20 cross  black    5    NA    0.5
-      13 #009E73 1 6     1     4 cross  black    5    NA    0.5
-      14 #009E73 2 6     1     9 cross  black    5    NA    0.5
-      15 #009E73 3 6     1    14 cross  black    5    NA    0.5
-      16 #009E73 4 6     1    18 cross  black    5    NA    0.5
-      17 #009E73 5 6     1    21 cross  black    5    NA    0.5
-      18 #009E73 6 6     1    23 cross  black    5    NA    0.5
-      19 #009E73 1 7     1     5 cross  black    5    NA    0.5
-      20 #009E73 2 7     1    10 cross  black    5    NA    0.5
-      21 #009E73 3 7     1    15 cross  black    5    NA    0.5
-      22 #D6ECE2 4 7     1    19 cross  black    5    NA    0.5
-      23 #009E73 5 7     1    22 cross  black    5    NA    0.5
-      24 #009E73 6 7     1    24 cross  black    5    NA    0.5
-      25 #009E73 7 7     1    25 cross  black    5    NA    0.5
+      1  #009E73 1 3     1     1 cross  black   14    NA    0.5
+      2  #009E73 2 3     1     6 cross  black   14    NA    0.5
+      3  #009E73 3 3     1    11 cross  black   14    NA    0.5
+      4  #009E73 1 4     1     2 cross  black   14    NA    0.5
+      5  #009E73 2 4     1     7 cross  black   14    NA    0.5
+      6  #009E73 3 4     1    12 cross  black   14    NA    0.5
+      7  #009E73 4 4     1    16 cross  black   14    NA    0.5
+      8  #009E73 1 5     1     3 cross  black   14    NA    0.5
+      9  #009E73 2 5     1     8 cross  black   14    NA    0.5
+      10 #009E73 3 5     1    13 cross  black   14    NA    0.5
+      11 #009E73 4 5     1    17 cross  black   14    NA    0.5
+      12 #009E73 5 5     1    20 cross  black   14    NA    0.5
+      13 #009E73 1 6     1     4 cross  black   14    NA    0.5
+      14 #009E73 2 6     1     9 cross  black   14    NA    0.5
+      15 #009E73 3 6     1    14 cross  black   14    NA    0.5
+      16 #009E73 4 6     1    18 cross  black   14    NA    0.5
+      17 #009E73 5 6     1    21 cross  black   14    NA    0.5
+      18 #009E73 6 6     1    23 cross  black   14    NA    0.5
+      19 #009E73 1 7     1     5 cross  black   14    NA    0.5
+      20 #009E73 2 7     1    10 cross  black   14    NA    0.5
+      21 #009E73 3 7     1    15 cross  black   14    NA    0.5
+      22 #D6ECE2 4 7     1    19 cross  black   14    NA    0.5
+      23 #009E73 5 7     1    22 cross  black   14    NA    0.5
+      24 #009E73 6 7     1    24 cross  black   14    NA    0.5
+      25 #009E73 7 7     1    25 cross  black   14    NA    0.5
+      
+
+---
+
+    Code
+      list(p$labels, pb$plot$plot_env$legend.title)
+    Output
+      [[1]]
+      [[1]]$xlab
+      NULL
+      
+      [[1]]$ylab
+      NULL
+      
+      [[1]]$title
+      NULL
+      
+      [[1]]$subtitle
+      NULL
+      
+      [[1]]$caption
+      atop(displaystyle(NULL), expr = paste(bold("X"), " = non-significant at ", 
+          italic("p"), " < ", 0.05, " (Adjustment: ", "Holm", ")"))
+      
+      [[1]]$fill
+      [1] "value"
+      
+      [[1]]$x
+      [1] "Var1"
+      
+      [[1]]$y
+      [1] "Var2"
+      
+      
+      [[2]]
+      atop(atop(scriptstyle(bold("sample sizes:")), italic(n) ~ "=" ~ 
+          "11"), atop(scriptstyle(bold("correlation (partial):")), 
+          "Winsorized Pearson"))
       
 
 # checking ggcorrmat - with NAs - robust r - partial
@@ -310,19 +385,56 @@
       
       [[3]]
             fill x y PANEL group shape colour size alpha stroke
-      1  #0F9F75 1 1     1     1 cross  black    5    NA    0.5
-      2  #0F9F75 1 2     1     2 cross  black    5    NA    0.5
-      3  #0F9F75 2 2     1     5 cross  black    5    NA    0.5
-      4  #0F9F75 2 3     1     6 cross  black    5    NA    0.5
-      5  #0F9F75 3 3     1     9 cross  black    5    NA    0.5
-      6  #0F9F75 1 4     1     3 cross  black    5    NA    0.5
-      7  #0F9F75 2 4     1     7 cross  black    5    NA    0.5
-      8  #0F9F75 4 4     1    11 cross  black    5    NA    0.5
-      9  #0F9F75 1 5     1     4 cross  black    5    NA    0.5
-      10 #0F9F75 2 5     1     8 cross  black    5    NA    0.5
-      11 #0F9F75 3 5     1    10 cross  black    5    NA    0.5
-      12 #0F9F75 4 5     1    12 cross  black    5    NA    0.5
-      13 #93CDB4 5 5     1    13 cross  black    5    NA    0.5
+      1  #0F9F75 1 1     1     1 cross  black   14    NA    0.5
+      2  #0F9F75 1 2     1     2 cross  black   14    NA    0.5
+      3  #0F9F75 2 2     1     5 cross  black   14    NA    0.5
+      4  #0F9F75 2 3     1     6 cross  black   14    NA    0.5
+      5  #0F9F75 3 3     1     9 cross  black   14    NA    0.5
+      6  #0F9F75 1 4     1     3 cross  black   14    NA    0.5
+      7  #0F9F75 2 4     1     7 cross  black   14    NA    0.5
+      8  #0F9F75 4 4     1    11 cross  black   14    NA    0.5
+      9  #0F9F75 1 5     1     4 cross  black   14    NA    0.5
+      10 #0F9F75 2 5     1     8 cross  black   14    NA    0.5
+      11 #0F9F75 3 5     1    10 cross  black   14    NA    0.5
+      12 #0F9F75 4 5     1    12 cross  black   14    NA    0.5
+      13 #93CDB4 5 5     1    13 cross  black   14    NA    0.5
+      
+
+---
+
+    Code
+      list(p$labels, pb$plot$plot_env$legend.title)
+    Output
+      [[1]]
+      [[1]]$caption
+      NULL
+      
+      [[1]]$xlab
+      NULL
+      
+      [[1]]$ylab
+      NULL
+      
+      [[1]]$title
+      NULL
+      
+      [[1]]$subtitle
+      NULL
+      
+      [[1]]$fill
+      [1] "value"
+      
+      [[1]]$x
+      [1] "Var1"
+      
+      [[1]]$y
+      [1] "Var2"
+      
+      
+      [[2]]
+      atop(atop(scriptstyle(bold("sample sizes:")), italic(n) ~ "=" ~ 
+          "30"), atop(scriptstyle(bold("correlation (partial):")), 
+          "Winsorized Pearson"))
       
 
 # checking ggcorrmat - with NAs - spearman's rho
@@ -404,109 +516,205 @@
       
       [[3]]
            fill x y PANEL group shape colour size alpha stroke
-      1 #DEBA91 3 2     1     2 cross  black    5    NA    0.5
-      2 #DEBA91 2 3     1     1 cross  black    5    NA    0.5
+      1 #DEBA91 3 2     1     2 cross  black   14    NA    0.5
+      2 #DEBA91 2 3     1     1 cross  black   14    NA    0.5
+      
+
+---
+
+    Code
+      list(p$labels, pb$plot$plot_env$legend.title)
+    Output
+      [[1]]
+      [[1]]$xlab
+      NULL
+      
+      [[1]]$ylab
+      NULL
+      
+      [[1]]$title
+      NULL
+      
+      [[1]]$subtitle
+      NULL
+      
+      [[1]]$caption
+      atop(displaystyle(NULL), expr = paste(bold("X"), " = non-significant at ", 
+          italic("p"), " < ", 0.01, " (Adjustment: ", "Hommel", ")"))
+      
+      [[1]]$fill
+      [1] "value"
+      
+      [[1]]$x
+      [1] "Var1"
+      
+      [[1]]$y
+      [1] "Var2"
+      
+      
+      [[2]]
+      atop(atop(atop(scriptstyle(bold("sample sizes:")), italic(n)[min] ~ 
+          "=" ~ "32"), atop(italic(n)[mode] ~ "=" ~ "32", italic(n)[max] ~ 
+          "=" ~ "83")), atop(scriptstyle(bold("correlation:")), "Spearman"))
       
 
 # checking Bayesian pearson (with NA)
 
     Code
-      pb$data
+      list(p$labels, pb$plot$plot_env$legend.title)
     Output
       [[1]]
-            fill x y PANEL group xmin xmax ymin ymax colour size linetype alpha width
-      1  #65B997 1 1     1     1  0.5  1.5  0.5  1.5  black  0.1        1    NA    NA
-      2  #FDD49E 1 2     1     2  0.5  1.5  1.5  2.5  black  0.1        1    NA    NA
-      3  #FFE0B9 2 2     1     6  1.5  2.5  1.5  2.5  black  0.1        1    NA    NA
-      4  #E69F00 1 3     1     3  0.5  1.5  2.5  3.5  black  0.1        1    NA    NA
-      5  #F4B85B 2 3     1     7  1.5  2.5  2.5  3.5  black  0.1        1    NA    NA
-      6  #A4D5BF 3 3     1    10  2.5  3.5  2.5  3.5  black  0.1        1    NA    NA
-      7  #FFDDB2 1 4     1     4  0.5  1.5  3.5  4.5  black  0.1        1    NA    NA
-      8  #FFEBD2 2 4     1     8  1.5  2.5  3.5  4.5  black  0.1        1    NA    NA
-      9  #4FB08B 3 4     1    11  2.5  3.5  3.5  4.5  black  0.1        1    NA    NA
-      10 #B9DECD 4 4     1    13  3.5  4.5  3.5  4.5  black  0.1        1    NA    NA
-      11 #FFE1BB 1 5     1     5  0.5  1.5  4.5  5.5  black  0.1        1    NA    NA
-      12 #FFDFB7 2 5     1     9  1.5  2.5  4.5  5.5  black  0.1        1    NA    NA
-      13 #AFDAC6 3 5     1    12  2.5  3.5  4.5  5.5  black  0.1        1    NA    NA
-      14 #C1E2D3 4 5     1    14  3.5  4.5  4.5  5.5  black  0.1        1    NA    NA
-      15 #2DA57C 5 5     1    15  4.5  5.5  4.5  5.5  black  0.1        1    NA    NA
-         height
-      1      NA
-      2      NA
-      3      NA
-      4      NA
-      5      NA
-      6      NA
-      7      NA
-      8      NA
-      9      NA
-      10     NA
-      11     NA
-      12     NA
-      13     NA
-      14     NA
-      15     NA
+      [[1]]$xlab
+      NULL
+      
+      [[1]]$ylab
+      NULL
+      
+      [[1]]$title
+      NULL
+      
+      [[1]]$subtitle
+      NULL
+      
+      [[1]]$caption
+      NULL
+      
+      [[1]]$fill
+      [1] "value"
+      
+      [[1]]$x
+      [1] "Var1"
+      
+      [[1]]$y
+      [1] "Var2"
+      
       
       [[2]]
-            fill x y PANEL group colour size angle hjust vjust alpha family fontface
-      1  #65B997 1 1     1     1  black    4     0   0.5   0.5    NA               1
-      2  #FDD49E 1 2     1     2  black    4     0   0.5   0.5    NA               1
-      3  #FFE0B9 2 2     1     6  black    4     0   0.5   0.5    NA               1
-      4  #E69F00 1 3     1     3  black    4     0   0.5   0.5    NA               1
-      5  #F4B85B 2 3     1     7  black    4     0   0.5   0.5    NA               1
-      6  #A4D5BF 3 3     1    10  black    4     0   0.5   0.5    NA               1
-      7  #FFDDB2 1 4     1     4  black    4     0   0.5   0.5    NA               1
-      8  #FFEBD2 2 4     1     8  black    4     0   0.5   0.5    NA               1
-      9  #4FB08B 3 4     1    11  black    4     0   0.5   0.5    NA               1
-      10 #B9DECD 4 4     1    13  black    4     0   0.5   0.5    NA               1
-      11 #FFE1BB 1 5     1     5  black    4     0   0.5   0.5    NA               1
-      12 #FFDFB7 2 5     1     9  black    4     0   0.5   0.5    NA               1
-      13 #AFDAC6 3 5     1    12  black    4     0   0.5   0.5    NA               1
-      14 #C1E2D3 4 5     1    14  black    4     0   0.5   0.5    NA               1
-      15 #2DA57C 5 5     1    15  black    4     0   0.5   0.5    NA               1
-         lineheight label
-      1         1.2  0.73
-      2         1.2 -0.43
-      3         1.2 -0.31
-      4         1.2 -1.00
-      5         1.2 -0.73
-      6         1.2  0.44
-      7         1.2 -0.34
-      8         1.2 -0.20
-      9         1.2  0.82
-      10        1.2  0.34
-      11        1.2 -0.30
-      12        1.2 -0.32
-      13        1.2  0.39
-      14        1.2  0.30
-      15        1.2  0.93
-      
-      [[3]]
-      data frame with 0 columns and 0 rows
+      atop(atop(atop(scriptstyle(bold("sample sizes:")), italic(n)[min] ~ 
+          "=" ~ "56"), atop(italic(n)[mode] ~ "=" ~ "56", italic(n)[max] ~ 
+          "=" ~ "56")), atop(scriptstyle(bold("correlation:")), "Bayesian Pearson"))
       
 
 # checking all dataframe outputs
 
     Code
-      suppressWarnings(purrr::pmap_dfr(.l = list(data = list(ggplot2::msleep), type = list(
-        "p", "p", "np", "np", "r", "r", "bf", "bayes"), output = list("dataframe"),
-      partial = list(TRUE, FALSE, TRUE, FALSE, TRUE, FALSE, TRUE, FALSE)), .f = ggcorrmat))
+      suppressWarnings(purrr::pmap(.l = list(data = list(dplyr::select(ggplot2::msleep,
+      brainwt, sleep_rem, bodywt)), type = list("p", "p", "np", "np", "r", "r", "bf",
+        "bayes"), output = list("dataframe"), partial = list(TRUE, FALSE, TRUE, FALSE,
+        TRUE, FALSE, TRUE, FALSE)), .f = ggcorrmat))
     Output
-      # A tibble: 120 x 17
-         parameter1  parameter2  estimate conf.level conf.low conf.high statistic
-         <chr>       <chr>          <dbl>      <dbl>    <dbl>     <dbl>     <dbl>
-       1 sleep_total sleep_rem    0.314         0.95  -0.0520     0.606    1.75  
-       2 sleep_total sleep_cycle -0.0225        0.95  -0.380      0.341   -0.119 
-       3 sleep_total awake       -1             0.95  -1         -1     -Inf     
-       4 sleep_total brainwt     -0.0970        0.95  -0.442      0.273   -0.516 
-       5 sleep_total bodywt      -0.179         0.95  -0.506      0.194   -0.961 
-       6 sleep_rem   sleep_cycle -0.0766        0.95  -0.425      0.292   -0.407 
-       7 sleep_rem   awake        0.0560        0.95  -0.311      0.408    0.297 
-       8 sleep_rem   brainwt      0.0857        0.95  -0.283      0.433    0.455 
-       9 sleep_rem   bodywt      -0.0341        0.95  -0.390      0.330   -0.181 
-      10 sleep_cycle awake       -0.00479       0.95  -0.364      0.356   -0.0253
-      # ... with 110 more rows, and 10 more variables: df.error <int>, p.value <dbl>,
-      #   method <chr>, n.obs <int>, pd <dbl>, rope.percentage <dbl>,
-      #   prior.distribution <chr>, prior.location <dbl>, prior.scale <dbl>,
-      #   bayes.factor <dbl>
+      [[1]]
+      # A tibble: 3 x 11
+        parameter1 parameter2 estimate conf.level conf.low conf.high statistic
+        <chr>      <chr>         <dbl>      <dbl>    <dbl>     <dbl>     <dbl>
+      1 brainwt    sleep_rem   -0.0961       0.95   -0.370     0.193    -0.655
+      2 brainwt    bodywt       0.485        0.95    0.233     0.676     3.76 
+      3 sleep_rem  bodywt      -0.108        0.95   -0.381     0.182    -0.737
+        df.error p.value method              n.obs
+           <int>   <dbl> <chr>               <int>
+      1       46 0.929   Pearson correlation    48
+      2       46 0.00144 Pearson correlation    48
+      3       46 0.929   Pearson correlation    48
+      
+      [[2]]
+      # A tibble: 3 x 11
+        parameter1 parameter2 estimate conf.level conf.low conf.high statistic
+        <chr>      <chr>         <dbl>      <dbl>    <dbl>     <dbl>     <dbl>
+      1 brainwt    sleep_rem    -0.221       0.95   -0.476    0.0670     -1.54
+      2 brainwt    bodywt        0.934       0.95    0.889    0.961      19.2 
+      3 sleep_rem  bodywt       -0.328       0.95   -0.535   -0.0826     -2.66
+        df.error  p.value method              n.obs
+           <int>    <dbl> <chr>               <int>
+      1       46 1.31e- 1 Pearson correlation    48
+      2       54 2.75e-25 Pearson correlation    56
+      3       59 1.99e- 2 Pearson correlation    61
+      
+      [[3]]
+      # A tibble: 3 x 10
+        parameter1 parameter2 estimate conf.level conf.low conf.high statistic
+        <chr>      <chr>         <dbl>      <dbl>    <dbl>     <dbl>     <dbl>
+      1 brainwt    sleep_rem    -0.271       0.95   -0.522    0.0230     23414
+      2 brainwt    bodywt        0.785       0.95    0.640    0.876       3962
+      3 sleep_rem  bodywt        0.154       0.95   -0.145    0.427      15588
+         p.value method               n.obs
+           <dbl> <chr>                <int>
+      1 1.25e- 1 Spearman correlation    48
+      2 1.20e-10 Spearman correlation    48
+      3 2.96e- 1 Spearman correlation    48
+      
+      [[4]]
+      # A tibble: 3 x 10
+        parameter1 parameter2 estimate conf.level conf.low conf.high statistic
+        <chr>      <chr>         <dbl>      <dbl>    <dbl>     <dbl>     <dbl>
+      1 brainwt    sleep_rem    -0.414       0.95   -0.630    -0.139    26050.
+      2 brainwt    bodywt        0.957       0.95    0.927     0.975     1254.
+      3 sleep_rem  bodywt       -0.452       0.95   -0.636    -0.218    54904.
+         p.value method               n.obs
+           <dbl> <chr>                <int>
+      1 3.45e- 3 Spearman correlation    48
+      2 2.91e-30 Spearman correlation    56
+      3 5.16e- 4 Spearman correlation    61
+      
+      [[5]]
+      # A tibble: 3 x 11
+        parameter1 parameter2 estimate conf.level conf.low conf.high statistic
+        <chr>      <chr>         <dbl>      <dbl>    <dbl>     <dbl>     <dbl>
+      1 brainwt    sleep_rem    -0.290       0.95   -0.531  -0.00694     -2.06
+      2 brainwt    bodywt        0.681       0.95    0.493   0.809        6.32
+      3 sleep_rem  bodywt        0.183       0.95   -0.107   0.444        1.26
+        df.error     p.value method                         n.obs
+           <int>       <dbl> <chr>                          <int>
+      1       46 0.0904      Winsorized Pearson correlation    48
+      2       46 0.000000292 Winsorized Pearson correlation    48
+      3       46 0.213       Winsorized Pearson correlation    48
+      
+      [[6]]
+      # A tibble: 3 x 11
+        parameter1 parameter2 estimate conf.level conf.low conf.high statistic
+        <chr>      <chr>         <dbl>      <dbl>    <dbl>     <dbl>     <dbl>
+      1 brainwt    sleep_rem    -0.412       0.95   -0.623    -0.145     -3.06
+      2 brainwt    bodywt        0.910       0.95    0.851     0.947     16.2 
+      3 sleep_rem  bodywt       -0.375       0.95   -0.572    -0.136     -3.10
+        df.error  p.value method                         n.obs
+           <int>    <dbl> <chr>                          <int>
+      1       46 5.86e- 3 Winsorized Pearson correlation    48
+      2       54 7.22e-22 Winsorized Pearson correlation    56
+      3       59 5.86e- 3 Winsorized Pearson correlation    61
+      
+      [[7]]
+      # A tibble: 3 x 14
+        parameter1 parameter2 estimate conf.level conf.low conf.high    pd
+        <chr>      <chr>         <dbl>      <dbl>    <dbl>     <dbl> <dbl>
+      1 brainwt    sleep_rem   -0.0911       0.95   -0.306     0.147 0.740
+      2 brainwt    bodywt       0.461        0.95    0.267     0.623 1    
+      3 sleep_rem  bodywt      -0.0959       0.95   -0.322     0.116 0.756
+        rope.percentage prior.distribution prior.location prior.scale bayes.factor
+                  <dbl> <chr>                       <dbl>       <dbl>        <dbl>
+      1         0.430   beta                         1.41        1.41        0.269
+      2         0.00425 beta                         1.41        1.41       73.6  
+      3         0.434   beta                         1.41        1.41        0.283
+        method                       n.obs
+        <chr>                        <int>
+      1 Bayesian Pearson correlation    48
+      2 Bayesian Pearson correlation    48
+      3 Bayesian Pearson correlation    48
+      
+      [[8]]
+      # A tibble: 3 x 14
+        parameter1 parameter2 estimate conf.level conf.low conf.high    pd
+        <chr>      <chr>         <dbl>      <dbl>    <dbl>     <dbl> <dbl>
+      1 brainwt    sleep_rem    -0.205       0.95   -0.402    0.0248 0.928
+      2 brainwt    bodywt        0.926       0.95    0.894    0.955  1    
+      3 sleep_rem  bodywt       -0.310       0.95   -0.481   -0.129  0.990
+        rope.percentage prior.distribution prior.location prior.scale bayes.factor
+                  <dbl> <chr>                       <dbl>       <dbl>        <dbl>
+      1          0.212  beta                         1.41        1.41     6.54e- 1
+      2          0      beta                         1.41        1.41     1.58e+22
+      3          0.0365 beta                         1.41        1.41     4.80e+ 0
+        method                       n.obs
+        <chr>                        <int>
+      1 Bayesian Pearson correlation    48
+      2 Bayesian Pearson correlation    56
+      3 Bayesian Pearson correlation    61
+      
 

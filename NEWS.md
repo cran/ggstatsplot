@@ -1,3 +1,54 @@
+# ggstatsplot 0.8.0
+
+N.B. All statistical analysis in `ggstatsplot` is carried out in
+`statsExpressions`. Thus, to see changes related to statistical expressions,
+read the `NEWS` for that package:
+<https://indrajeetpatil.github.io/statsExpressions/news/index.html>
+
+NEW FUNCTIONS
+
+  - Adds `extract_stats` function to extract dataframes containing statistical
+    details.
+
+MAJOR CHANGES
+
+  - There is finally a publication for `ggstatsplot` package!
+    <https://joss.theoj.org/papers/10.21105/joss.03167>
+
+  - The `ggcoefstats` function defaults to `NULL` for `xlab` and `ylab`
+    arguments, which lets users change these labels if they wish to do so.
+    Additionally, the x-axis label, if not specified, now defaults to
+    `"estimate"`. Whether this estimate corresponds to regression coefficient or
+    effect size like partial eta-squared should be clear from the label itself.
+
+  - To reduce the dependency load, `ggcorrplot` moves from `Imports` to
+    `Suggests`.
+
+  - The `bar.fill` argument in `gghistostats` is retired in favor of the new
+    `bin.args` argument that can be used to pass aesthetic arguments to
+    `ggplot2::stat_bin`.
+
+  - `ggstatsplot.layer` argument has been retired. If the user _chooses_ a
+    certain `ggplot2` theme, it means they _want_ that theme, and not
+    `ggstatsplot`'s varnish on it. So the previous behavior was undesirable.
+    This is a backward compatible change, so the plots should not look
+    different.
+
+MINOR CHANGES
+
+  - The `pch` size for `ggcorrmat` has been increased to 14 (#579) to increase
+    its visibility compared to the correlation value text.
+
+  - `ggwithinstats` gains `point.args` to change `geom_point`.
+
+  - Minor change to `ggcorrmat` legend title - content in parentheses is now
+    shown outside of it.
+
+BUG FIXES
+
+  - `ggcoefstats` didn't work when statistic for the given model was
+    chi-squared. This has been fixed.
+
 # ggstatsplot 0.7.2
 
 MAJOR CHANGES
@@ -10,7 +61,7 @@ MAJOR CHANGES
     helps avoid difficult-to-diagnose edge case failures when the primary
     functions are used in `grouped_` functions (e.g., #559). The `ggpiestats`
     and `ggbarstats` functions always behaved this way, but the rest of the
-    functions now also mimic this behavior. 
+    functions now also mimic this behavior.
 
 MINOR CHANGES
 

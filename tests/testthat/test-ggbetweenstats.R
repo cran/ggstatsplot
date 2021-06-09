@@ -9,7 +9,7 @@ test_that(
     # creating the plot
     set.seed(123)
     p <-
-      ggstatsplot::ggbetweenstats(
+      ggbetweenstats(
         data = ggplot2::msleep,
         x = vore,
         y = brainwt,
@@ -18,7 +18,6 @@ test_that(
         xlab = "vore",
         ylab = "brain weight",
         ggsignif.args = list(textsize = 6, tip_length = 0.01),
-        ggstatsplot.layer = FALSE,
         outlier.tagging = TRUE,
         outlier.label = name,
         outlier.label.args = list(color = "darkgreen"),
@@ -43,6 +42,7 @@ test_that(
     # check data
     set.seed(123)
     expect_snapshot(list(pb$data[[1]], pb$data[[2]], pb$data[[4]], pb$data[[5]]))
+    expect_snapshot(within(pb$plot$labels, rm(subtitle, caption)))
 
     # checking x-axis sample size labels
     expect_identical(
@@ -56,42 +56,6 @@ test_that(
     )
 
     expect_identical(pb$plot$labels$subtitle, p_subtitle)
-
-    # checking plot labels
-    # expect_equal(
-    #   pb$plot$labels$caption,
-    #   ggplot2::expr(atop(
-    #     displaystyle(atop(
-    #       displaystyle("From ggplot2 package"),
-    #       expr = paste(
-    #         "log"["e"],
-    #         "(BF"["01"],
-    #         ") = ",
-    #         "1.54274",
-    #         ", ",
-    #         widehat(italic(R^"2"))["median"]^"posterior",
-    #         " = ",
-    #         "0.00000",
-    #         ", CI"["95%"]^"HDI",
-    #         " [",
-    #         "0.00000",
-    #         ", ",
-    #         "0.10131",
-    #         "]",
-    #         ", ",
-    #         italic("r")["Cauchy"]^"JZS",
-    #         " = ",
-    #         "0.70700"
-    #       )
-    #     )),
-    #     expr = paste(
-    #       "Pairwise test: ",
-    #       bold("Games-Howell test"),
-    #       "; Comparisons shown: ",
-    #       bold("only significant")
-    #     )
-    #   ))
-    # )
   }
 )
 
@@ -106,9 +70,9 @@ test_that(
     # creating the plot
     set.seed(123)
     p <-
-      ggstatsplot::ggbetweenstats(
+      ggbetweenstats(
         data = tibble::as_tibble(mtcars, rownames = "name") %>%
-          dplyr::rename(.data = ., n = wt),
+          dplyr::rename(n = wt),
         x = "cyl",
         y = "n",
         type = "np",
@@ -118,7 +82,6 @@ test_that(
         outlier.tagging = TRUE,
         outlier.label = "name",
         outlier.coef = 2.5,
-        nboot = 5,
         results.subtitle = FALSE
       ) +
       ggplot2::coord_cartesian(ylim = c(1, 6)) +
@@ -130,6 +93,7 @@ test_that(
     # check data
     set.seed(123)
     expect_snapshot(list(pb$data[[1]], pb$data[[2]], pb$data[[4]], pb$data[[5]]))
+    expect_snapshot(within(pb$plot$labels, rm(caption)))
 
     # check if the y-axis labels have changed
     expect_identical(
@@ -150,7 +114,7 @@ test_that(
 
     # plot
     p1 <-
-      suppressWarnings(ggstatsplot::ggbetweenstats(
+      suppressWarnings(ggbetweenstats(
         data = a,
         x = "group",
         y = "centrality.a",
@@ -181,7 +145,7 @@ test_that(
     # boxplot
     set.seed(123)
     p1 <-
-      ggstatsplot::ggbetweenstats(
+      ggbetweenstats(
         data = ToothGrowth,
         x = supp,
         y = len,
@@ -189,7 +153,6 @@ test_that(
         plot.type = "box",
         results.subtitle = FALSE,
         outlier.tagging = TRUE,
-        bf.message = TRUE,
         outlier.coef = 0.75,
         outlier.color = "blue",
         centrality.point.args = list(size = 5, color = "darkgreen"),
@@ -199,17 +162,15 @@ test_that(
     # violin
     set.seed(123)
     p2 <-
-      ggstatsplot::ggbetweenstats(
+      ggbetweenstats(
         data = ToothGrowth,
         x = supp,
         y = len,
         type = "r",
         results.subtitle = FALSE,
-        effsize.noncentral = FALSE,
         plot.type = "violin",
         outlier.tagging = TRUE,
         outlier.coef = 0.75,
-        outlier.color = "blue",
         bf.message = FALSE,
         package = "wesanderson",
         palette = "Royal1"
@@ -225,6 +186,9 @@ test_that(
       pb1$data,
       list(pb2$data[[1]], pb2$data[[2]], pb2$data[[4]], pb2$data[[5]])
     ))
+
+    expect_snapshot(within(pb1$plot$labels, rm(subtitle, caption)))
+    expect_snapshot(within(pb2$plot$labels, rm(subtitle, caption)))
   }
 )
 
@@ -242,7 +206,7 @@ test_that(
     # plot
     set.seed(123)
     subtitle_exp <-
-      ggstatsplot::ggbetweenstats(
+      ggbetweenstats(
         data = df,
         x = am,
         y = wt,

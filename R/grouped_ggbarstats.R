@@ -34,8 +34,8 @@
 #'
 #' # let's create a smaller dataframe
 #' diamonds_short <- ggplot2::diamonds %>%
-#'   dplyr::filter(.data = ., cut %in% c("Very Good", "Ideal")) %>%
-#'   dplyr::filter(.data = ., clarity %in% c("SI1", "SI2", "VS1", "VS2")) %>%
+#'   dplyr::filter(cut %in% c("Very Good", "Ideal")) %>%
+#'   dplyr::filter(clarity %in% c("SI1", "SI2", "VS1", "VS2")) %>%
 #'   dplyr::sample_frac(tbl = ., size = 0.05)
 #'
 #' # plot
@@ -64,29 +64,26 @@ grouped_ggbarstats <- function(data,
   # ======================== preparing dataframe =============================
 
   # creating a dataframe
-  df <-
-    dplyr::select(.data = data, {{ grouping.var }}, {{ x }}, {{ y }}, {{ counts }}) %>%
+  df <- dplyr::select(data, {{ grouping.var }}, {{ x }}, {{ y }}, {{ counts }}) %>%
     grouped_list(grouping.var = {{ grouping.var }})
 
   # ================ creating a list of return objects ========================
 
   # creating a list of plots using `pmap`
-  plotlist_purrr <-
-    purrr::pmap(
-      .l = list(data = df, title = names(df)),
-      .f = ggstatsplot::ggbarstats,
-      # put common parameters here
-      x = {{ x }},
-      y = {{ y }},
-      counts = {{ counts }},
-      output = output,
-      ...
-    )
+  p_ls <- purrr::pmap(
+    .l = list(data = df, title = names(df)),
+    .f = ggstatsplot::ggbarstats,
+    # put common parameters here
+    x = {{ x }},
+    y = {{ y }},
+    counts = {{ counts }},
+    output = output,
+    ...
+  )
 
   # combining the list of plots into a single plot
-  if (output == "plot") {
-    return(combine_plots(plotlist_purrr, plotgrid.args = plotgrid.args, annotation.args = annotation.args))
-  } else {
-    return(plotlist_purrr) # subtitle list
-  }
+  if (output == "plot") p_ls <- combine_plots(p_ls, plotgrid.args, annotation.args)
+
+  # return the object
+  p_ls
 }

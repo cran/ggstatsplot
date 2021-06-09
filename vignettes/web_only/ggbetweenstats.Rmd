@@ -41,10 +41,12 @@ citation("ggstatsplot")
 
 ---
 
-The function `ggstatsplot::ggbetweenstats` is designed to facilitate 
-**data exploration**, and for making highly customizable **publication-ready plots**,
-with relevant statistical details included in the plot itself if desired. We
-will see examples of how to use this function in this vignette.
+Lifecycle: [![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://lifecycle.r-lib.org/articles/stages.html)
+
+The function `ggbetweenstats` is designed to facilitate **data exploration**,
+and for making highly customizable **publication-ready plots**, with relevant
+statistical details included in the plot itself if desired. We will see examples
+of how to use this function in this vignette.
 
 To begin with, here are some instances where you would want to use
 `ggbetweenstats`-
@@ -57,7 +59,7 @@ To begin with, here are some instances where you would want to use
 familiar with this operator, here is a good explanation:
 <http://r4ds.had.co.nz/pipes.html>
 
-## Comparisons between groups with `ggbetweenstats`
+# Comparisons between groups with `ggbetweenstats`
 
 To illustrate how this function can be used, we will use the `gapminder` dataset
 throughout this vignette. This dataset provides values for life expectancy, GDP
@@ -127,7 +129,7 @@ library(gapminder)
 
 # plot
 ggstatsplot::ggbetweenstats(
-  data = dplyr::filter(.data = gapminder, year == 2007, continent != "Oceania"),
+  data = dplyr::filter(gapminder, year == 2007, continent != "Oceania"),
   x = continent, # grouping/independent variable
   y = lifeExp, # dependent variables
   type = "robust", # type of statistics
@@ -185,7 +187,7 @@ library(ggstatsplot)
 library(gapminder)
 
 # selecting subset of the data
-df_year <- dplyr::filter(.data = gapminder::gapminder, year == 2007 | year == 1957)
+df_year <- dplyr::filter(gapminder::gapminder, year == 2007 | year == 1957)
 
 # parametric t-test and box plot
 p1 <-
@@ -263,7 +265,7 @@ ggstatsplot::combine_plots(
 )
 ```
 
-## Grouped analysis with `grouped_ggbetweenstats`
+# Grouped analysis with `grouped_ggbetweenstats`
 
 What if we want to analyze both by continent and between 1957 and 2007? A
 combination of our two previous efforts. 
@@ -285,7 +287,7 @@ set.seed(123)
 
 # select part of the dataset and use it for plotting
 gapminder::gapminder %>%
-  dplyr::filter(.data = ., year %in% c(1967, 1987, 2007), continent != "Oceania") %>%
+  dplyr::filter(year %in% c(1967, 1987, 2007), continent != "Oceania") %>%
   ggstatsplot::grouped_ggbetweenstats(
     # arguments relevant for ggstatsplot::ggbetweenstats
     data = .,
@@ -300,7 +302,7 @@ gapminder::gapminder %>%
     package = "ggsci",
     palette = "default_jco",
     outlier.tagging = TRUE,
-    ggstatsplot.layer = FALSE,
+    
     outlier.label = country,
     # arguments relevant for ggstatsplot::combine_plots
     annotation.args = list(title = "Changes in life expectancy across continents (1967-2007)"),
@@ -315,7 +317,7 @@ which year we look at, we still find significant differences in life expectancy
 across continents which have been surprisingly consistent across five decades
 (based on the observed effect sizes).
 
-## Grouped analysis with `ggbetweenstats` + `purrr` 
+# Grouped analysis with `ggbetweenstats` + `purrr` 
 
 Although this grouping function provides a quick way to explore the data, it
 leaves much to be desired. For example, the same type of plot and test is
@@ -328,25 +330,36 @@ package.
 See the associated vignette here:
 <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/purrr_examples.html>
 
-## Within-subjects designs
+# Within-subjects designs
 
 For repeated measures designs, `ggwithinstats` function can be used:
 <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggwithinstats.html>
 
-## Summary of tests
+# Summary of graphics
 
-The central tendency measure displayed will depend on the statistics:
+graphical element | `geom_` used | argument for further modification
+--------- | ------- | --------------------------
+raw data | `ggplot2::geom_point` | `point.args`
+box plot | `ggplot2::geom_boxplot` | ❌
+density plot | `ggplot2::geom_violin` | `violin.args`
+centrality measure point | `ggplot2::geom_point` | `centrality.point.args`
+centrality measure label | `ggrepel::geom_label_repel` | `centrality.label.args`
+outlier point | `ggplot2::stat_boxplot` | ❌
+outlier label | `ggrepel::geom_label_repel` | `outlier.label.args`
+pairwise comparisons | `ggsignif::geom_ggsignif` | `ggsignif.args`
+
+# Summary of tests
+
+**Central tendency measure**
 
 Type | Measure | Function used
 ----------- | --------- | ------------------ 
 Parametric | mean | `parameters::describe_distribution`
 Non-parametric | median | `parameters::describe_distribution`
 Robust | trimmed mean | `parameters::describe_distribution`
-Bayesian | MAP estimate | `parameters::describe_distribution`
+Bayesian | MAP (maximum *a posteriori* probability) estimate | `parameters::describe_distribution`
 
-MAP: maximum a posteriori probability
-
-Following (between-subjects) tests are carried out for each type of analyses-
+**Hypothesis testing**
 
 Type | No. of groups | Test | Function used
 ----------- | --- | ------------------------- | -----
@@ -359,32 +372,63 @@ Non-parametric | 2 | Mann–Whitney *U* test | `stats::wilcox.test`
 Robust | 2 |  Yuen's test for trimmed means | `WRS2::yuen`
 Bayesian | 2 | Student's *t*-test | `BayesFactor::ttestBF`
 
-Following effect sizes (and confidence intervals/CI) are available for each type
-of test-
+**Effect size estimation**
 
 Type | No. of groups | Effect size | CI? | Function used
 ----------- | --- | ------------------------- | --- | -----
-Parametric | > 2 | $\eta_{p}^2$, $\omega_{p}^2$ | <font color="green">Yes<font> | `effectsize::omega_squared`, `effectsize::eta_squared`
-Non-parametric | > 2 | $\epsilon_{ordinal}^2$ | <font color="green">Yes<font> | `effectsize::rank_epsilon_squared`
-Robust | > 2 | $\xi$ (Explanatory measure of effect size) | <font color="green">Yes<font> | `WRS2::t1way`
-Bayes Factor | > 2 | $R_{posterior}^2$ | <font color="green">Yes<font> | `performance::r2_bayes`
-Parametric | 2 | Cohen's *d*, Hedge's *g* | <font color="green">Yes<font> | `effectsize::cohens_d`, `effectsize::hedges_g`
-Non-parametric | 2 | *r* (rank-biserial correlation) | <font color="green">Yes<font> | `effectsize::rank_biserial`
-Robust | 2 |  $\xi$ (Explanatory measure of effect size) | <font color="green">Yes<font> | `WRS2::yuen.effect.ci`
-Bayesian | 2 | $\delta_{posterior}$ | <font color="green">Yes<font> | `bayestestR::describe_posterior`
+Parametric | > 2 | $\eta_{p}^2$, $\omega_{p}^2$ | ✅ | `effectsize::omega_squared`, `effectsize::eta_squared`
+Non-parametric | > 2 | $\epsilon_{ordinal}^2$ | ✅ | `effectsize::rank_epsilon_squared`
+Robust | > 2 | $\xi$ (Explanatory measure of effect size) | ✅ | `WRS2::t1way`
+Bayes Factor | > 2 | $R_{posterior}^2$ | ✅ | `performance::r2_bayes`
+Parametric | 2 | Cohen's *d*, Hedge's *g* | ✅ | `effectsize::cohens_d`, `effectsize::hedges_g`
+Non-parametric | 2 | *r* (rank-biserial correlation) | ✅ | `effectsize::rank_biserial`
+Robust | 2 |  $\xi$ (Explanatory measure of effect size) | ✅ | `WRS2::yuen.effect.ci`
+Bayesian | 2 | $\delta_{posterior}$ | ✅ | `bayestestR::describe_posterior`
 
-Here is a summary of *multiple pairwise comparison* tests supported in
-*ggbetweenstats*-
+**Pairwise comparison tests**
 
 Type | Equal variance? | Test | *p*-value adjustment? | Function used
 ----------- | --- | ------------------------- | --- | -----
-Parametric | No | Games-Howell test | <font color="green">Yes</font> | `stats::pairwise.t.test`
-Parametric | Yes | Student's *t*-test | <font color="green">Yes</font> | `PMCMRplus::gamesHowellTest`
-Non-parametric | No | Dunn test | <font color="green">Yes</font> | `PMCMRplus::kwAllPairsDunnTest`
-Robust | No | Yuen's trimmed means test | <font color="green">Yes</font> | `WRS2::lincon`
-Bayes Factor | `NA` | Student's *t*-test | `NA` | `BayesFactor::ttestBF`
+Parametric | No | Games-Howell test | ✅ | `stats::pairwise.t.test`
+Parametric | Yes | Student's *t*-test | ✅ | `PMCMRplus::gamesHowellTest`
+Non-parametric | No | Dunn test | ✅ | `PMCMRplus::kwAllPairsDunnTest`
+Robust | No | Yuen's trimmed means test | ✅ | `WRS2::lincon`
+Bayes Factor | ❌ | Student's *t*-test | ❌ | `BayesFactor::ttestBF`
 
-## Effect size interpretation
+# Reporting
+
+If you wish to include statistical analysis results in a publication/report, the
+ideal reporting practice will be a hybrid of two approaches:
+
+- the `ggstatsplot` approach, where the plot contains both the visual and
+numerical summaries about a statistical model, and
+
+- the *standard* narrative approach, which provides interpretive context for the
+reported statistics.
+
+For example, let's see the following example:
+
+The `ggstatsplot` reporting -
+
+```{r reporting}
+ggbetweenstats(ToothGrowth, supp, len)
+```
+
+The narrative context (assuming `type = "parametric"`) can complement this plot
+either as a figure caption or in the main text-
+
+> Welch's *t*-test revealed that, across 60 guinea pigs, although the tooth
+length was higher when the animal received vitamin C via orange juice as
+compared to via ascorbic acid, this effect was not statistically significant.
+The effect size $(g = 0.49)$ was medium, as per Cohen’s (1988) conventions. The
+Bayes Factor for the same analysis revealed that the data were `r round(exp(0.18), 2)` times more probable under the alternative hypothesis as
+compared to the null hypothesis. This can be considered weak evidence
+(Jeffreys, 1961) in favor of the alternative hypothesis.
+
+Similar reporting style can be followed when the function performs one-way ANOVA
+instead of a *t*-test.
+
+# Effect size interpretation
 
 To see how the effect sizes displayed in these tests can be interpreted, see:
 <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/effsize_interpretation.html>

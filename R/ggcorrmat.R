@@ -3,9 +3,7 @@
 #'
 #' @description
 #'
-#'
-#'
-#' Correlation matrix plot or a dataframe containing results from pairwise
+#' Correlation matrix or a dataframe containing results from pairwise
 #' correlation tests. The package internally uses `ggcorrplot::ggcorrplot` for
 #' creating the visualization matrix, while the correlation analysis is carried
 #' out using the `correlation::correlation` function.
@@ -50,7 +48,6 @@
 #'
 #' @import ggplot2
 #'
-#' @importFrom ggcorrplot ggcorrplot
 #' @importFrom dplyr select matches
 #' @importFrom purrr is_bare_numeric keep
 #' @importFrom rlang exec !!!
@@ -61,30 +58,21 @@
 #' @seealso \code{\link{grouped_ggcorrmat}} \code{\link{ggscatterstats}}
 #'   \code{\link{grouped_ggscatterstats}}
 #'
-#' @references
+#' @details For more details, see:
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html}
 #'
 #' @examples
 #' \donttest{
 #' # for reproducibility
 #' set.seed(123)
+#' library(ggstatsplot)
 #'
-#' # if `cor.vars` not specified, all numeric variables used
-#' ggstatsplot::ggcorrmat(iris)
-#'
-#' # to get the correlation matrix
-#' # note that the function will run even if the vector with variable names is
-#' # not of same length as the number of variables
-#' ggstatsplot::ggcorrmat(
-#'   data = ggplot2::msleep,
-#'   type = "robust",
-#'   cor.vars = sleep_total:bodywt,
-#'   cor.vars.names = c("total sleep", "REM sleep"),
-#'   matrix.type = "lower"
-#' )
-#'
+#' # for plot
+#' if (require("ggcorrplot")) {
+#'   ggcorrmat(iris)
+#' }
 #' # to get the correlation analyses results in a dataframe
-#' ggstatsplot::ggcorrmat(
+#' ggcorrmat(
 #'   data = ggplot2::msleep,
 #'   cor.vars = sleep_total:bodywt,
 #'   partial = TRUE,
@@ -108,25 +96,28 @@ ggcorrmat <- function(data,
                       bf.prior = 0.707,
                       p.adjust.method = "holm",
                       pch = "cross",
-                      ggcorrplot.args = list(method = "square", outline.color = "black"),
+                      ggcorrplot.args = list(
+                        method = "square",
+                        outline.color = "black",
+                        pch.cex = 14
+                      ),
                       package = "RColorBrewer",
                       palette = "Dark2",
                       colors = c("#E69F00", "white", "#009E73"),
-                      ggtheme = ggplot2::theme_bw(),
-                      ggstatsplot.layer = TRUE,
+                      ggtheme = ggstatsplot::theme_ggstatsplot(),
                       ggplot.component = NULL,
                       title = NULL,
                       subtitle = NULL,
                       caption = NULL,
                       ...) {
 
-  # ======================= dataframe ========================================
+  # --------------------------------- data -----------------------------------
 
   # creating a dataframe out of the entered variables
   if (missing(cor.vars)) {
     df <- purrr::keep(.x = data, .p = purrr::is_bare_numeric)
   } else {
-    df <- dplyr::select(.data = data, {{ cor.vars }})
+    df <- dplyr::select(data, {{ cor.vars }})
   }
 
   # renaming the columns if so desired
@@ -139,52 +130,35 @@ ggcorrmat <- function(data,
     }
   }
 
-  # ============================ checking r.method =======================
+  # ---------------------------- statistics -----------------------------------
 
   # if any of the abbreviations have been entered, change them
   type <- ipmisc::stats_type_switch(type)
 
-  # see which method was used to specify type of correlation
-  # create unique name for each method
-  r.method.text <-
-    switch(
-      EXPR = type,
-      "parametric" = "Pearson",
-      "nonparametric" = "Spearman",
-      "robust" = "Pearson (Winsorized)",
-      "bayes" = "Pearson (Bayesian)"
-    )
-
-  # is it a partial correlation?
-  corr.nature <- ifelse(isTRUE(partial), "correlation (partial):", "correlation:")
-
-  # ===================== statistics ========================================
-
   # creating a dataframe of results
-  stats_df <-
-    statsExpressions::correlation(
-      data = df,
-      method = ifelse(type == "nonparametric", "spearman", "pearson"),
-      p_adjust = p.adjust.method,
-      ci = conf.level,
-      bayesian = ifelse(type == "bayes", TRUE, FALSE),
-      bayesian_prior = bf.prior,
-      tr = tr,
-      partial = partial,
-      partial_bayesian = ifelse(type == "bayes" && isTRUE(partial), TRUE, FALSE),
-      winsorize = ifelse(type == "robust", tr, FALSE)
-    )
+  stats_df <- statsExpressions::correlation(
+    data = df,
+    method = ifelse(type == "nonparametric", "spearman", "pearson"),
+    p_adjust = p.adjust.method,
+    ci = conf.level,
+    bayesian = ifelse(type == "bayes", TRUE, FALSE),
+    bayesian_prior = bf.prior,
+    tr = tr,
+    partial = partial,
+    partial_bayesian = ifelse(type == "bayes" && isTRUE(partial), TRUE, FALSE),
+    winsorize = ifelse(type == "robust", tr, FALSE)
+  )
+
+  # type of correlation and if it is a partial correlation
+  r.method.text <- gsub(" correlation", "", unique(stats_df$Method))
+  r.type <- ifelse(isTRUE(partial), "correlation (partial):", "correlation:")
 
   # early stats return
   if (output != "plot") {
     return(as_tibble(parameters::standardize_names(stats_df, "broom")))
   }
 
-  # ========================== plot =========================================
-
-  # creating the basic plot
-  # if user has not specified colors, then use a color palette
-  if (is.null(colors)) colors <- paletteer::paletteer_d(paste0(package, "::", palette), 3L)
+  # -------------------------------- plot -----------------------------------
 
   # in case of NAs, compute minimum and maximum sample sizes of pairs
   # also compute mode
@@ -195,84 +169,76 @@ ggcorrmat <- function(data,
 
   # legend title with information about correlation type and sample
   if (isFALSE(any(is.na(df))) || isTRUE(partial)) {
-    legend.title <-
-      bquote(atop(
-        atop(scriptstyle(bold("sample sizes:")), italic(n) ~ "=" ~ .(.prettyNum(stats_df$n_Obs[[1]]))),
-        atop(scriptstyle(bold(.(corr.nature))), .(r.method.text))
-      ))
+    legend.title <- bquote(atop(
+      atop(scriptstyle(bold("sample sizes:")), italic(n) ~ "=" ~ .(.prettyNum(stats_df$n_Obs[[1]]))),
+      atop(scriptstyle(bold(.(r.type))), .(r.method.text))
+    ))
   } else {
     # creating legend with sample size info
-    legend.title <-
-      bquote(atop(
+    legend.title <- bquote(atop(
+      atop(
+        atop(scriptstyle(bold("sample sizes:")), italic(n)[min] ~ "=" ~ .(.prettyNum(min(stats_df$n_Obs)))),
         atop(
-          atop(scriptstyle(bold("sample sizes:")), italic(n)[min] ~ "=" ~ .(.prettyNum(min(stats_df$n_Obs)))),
-          atop(
-            italic(n)[mode] ~ "=" ~ .(.prettyNum(getmode(stats_df$n_Obs))),
-            italic(n)[max] ~ "=" ~ .(.prettyNum(max(stats_df$n_Obs)))
-          )
-        ),
-        atop(scriptstyle(bold(.(corr.nature))), .(r.method.text))
-      ))
+          italic(n)[mode] ~ "=" ~ .(.prettyNum(getmode(stats_df$n_Obs))),
+          italic(n)[max] ~ "=" ~ .(.prettyNum(max(stats_df$n_Obs)))
+        )
+      ),
+      atop(scriptstyle(bold(.(r.type))), .(r.method.text))
+    ))
   }
 
+  # installed?
+  insight::check_if_installed("ggcorrplot")
+
   # plotting the correlalogram
-  plot <-
-    rlang::exec(
-      .f = ggcorrplot::ggcorrplot,
-      corr = as.matrix(dplyr::select(stats_df, dplyr::matches("^parameter|^r"))),
-      p.mat = as.matrix(dplyr::select(stats_df, dplyr::matches("^parameter|^p"))),
-      sig.level = ifelse(type == "bayes", Inf, sig.level),
-      ggtheme = ggtheme,
-      colors = colors,
-      type = matrix.type,
-      lab = TRUE,
-      pch = pch,
-      legend.title = legend.title,
-      digits = k,
-      !!!ggcorrplot.args
-    )
+  plot <- rlang::exec(
+    ggcorrplot::ggcorrplot,
+    corr = as.matrix(dplyr::select(stats_df, dplyr::matches("^parameter|^r"))),
+    p.mat = as.matrix(dplyr::select(stats_df, dplyr::matches("^parameter|^p"))),
+    sig.level = ifelse(type == "bayes", Inf, sig.level),
+    ggtheme = ggtheme,
+    colors = colors %||% paletteer::paletteer_d(paste0(package, "::", palette), 3L),
+    type = matrix.type,
+    lab = TRUE,
+    pch = pch,
+    legend.title = legend.title,
+    digits = k,
+    !!!ggcorrplot.args
+  )
 
   # =========================== labels ==================================
 
   # preparing the `pch` caption
   if ((pch == "cross" || pch == 4) && type != "bayes") {
-    caption <-
-      substitute(
-        atop(
-          displaystyle(top.text),
-          expr = paste(
-            bold("X"),
-            " = non-significant at ",
-            italic("p"),
-            " < ",
-            sig.level,
-            " (Adjustment: ",
-            adj_text,
-            ")"
-          )
-        ),
-        env = list(
-          sig.level = sig.level,
-          adj_text = pairwiseComparisons::p_adjust_text(p.adjust.method),
-          top.text = caption
+    caption <- substitute(
+      atop(
+        displaystyle(top.text),
+        expr = paste(
+          bold("X"), " = non-significant at ",
+          italic("p"), " < ", sig.level, " (Adjustment: ", adj.text, ")"
         )
+      ),
+      env = list(
+        sig.level = sig.level,
+        adj.text = pairwiseComparisons::p_adjust_text(p.adjust.method),
+        top.text = caption
       )
+    )
   }
 
   # adding text details to the plot
-  plot <- plot +
+  plot +
+    ggplot2::theme(
+      panel.grid.major = ggplot2::element_blank(),
+      panel.grid.minor = ggplot2::element_blank(),
+      legend.title = ggplot2::element_text(size = 15)
+    ) +
     ggplot2::labs(
-      xlab = NULL,
-      ylab = NULL,
       title = title,
       subtitle = subtitle,
-      caption = caption
-    )
-
-  # adding `ggstatsplot` theme for correlation matrix
-  if (isTRUE(ggstatsplot.layer)) plot <- plot + theme_corrmat()
-
-  # if any additional modification needs to be made to the plot
-  # this is primarily useful for grouped_ variant of this function
-  plot + ggplot.component
+      caption = caption,
+      xlab = NULL,
+      ylab = NULL
+    ) +
+    ggplot.component
 }

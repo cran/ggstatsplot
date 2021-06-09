@@ -41,6 +41,8 @@ citation("ggstatsplot")
 
 ---
 
+Lifecycle: [![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://lifecycle.r-lib.org/articles/stages.html)
+
 The function `ggstatsplot::gghistostats` can be used for **data exploration**
 and to provide an easy way to make **publication-ready histograms** with
 appropriate and selected statistical details embedded in the plot itself. In
@@ -52,8 +54,7 @@ Some instances where you would want to use `gghistostats`-
   - to test if the mean of a sample variable is different from a specified value
   (population parameter)
 
-## Statistical analysis with `gghistostats`
-
+# Statistical analysis with `gghistostats`
 
 Let's begin with a very simple example from the `psych` package
 (`psych::sat.act`), a sample of 700 self-reported scores on the SAT Verbal, SAT
@@ -88,10 +89,7 @@ ggstatsplot::gghistostats(
   x = ACT, # numeric variable
   xlab = "ACT Score", # x-axis label
   title = "Distribution of ACT Scores", # title for the plot
-  type = "p", # one sample t-test
-  bf.message = TRUE, # display Bayes method results
   ggtheme = ggthemes::theme_tufte(), # changing default theme
-  bar.fill = "#D55E00", # change fill color
   test.value = 20, # test value
   caption = "Data courtesy of: SAPA project (https://sapa-project.org)"
 )
@@ -104,7 +102,7 @@ in favor of the research hypothesis: these ACT scores are much higher than the
 national average.  The log(Bayes factor) of 492.5 means the odds are 7.54e+213:1
 that this sample is different.
 
-## Grouped analysis with `grouped_gghistostats`
+# Grouped analysis with `grouped_gghistostats`
 
 What if we want to do the same analysis separately for each gender? 
 `ggstatsplot` provides a special helper function for such instances:
@@ -128,9 +126,9 @@ ggstatsplot::grouped_gghistostats(
   grouping.var = gender, # grouping variable males = 1, females = 2
   type = "robust", # robust test: one-sample percentile bootstrap
   test.value = 20, # test value against which sample mean is to be compared
-  centrality.line.args = list(color = "#D55E00"),
+  centrality.line.args = list(color = "#D55E00", linetype = "dashed"),
   ggtheme = ggthemes::theme_stata(), # changing default theme
-  ggstatsplot.layer = FALSE, # turn off ggstatsplot theme layer
+   # turn off ggstatsplot theme layer
   # arguments relevant for ggstatsplot::combine_plots
   annotation.args = list(
     title = "Distribution of ACT scores across genders",
@@ -144,7 +142,7 @@ As can be seen from these plots, the mean value is much higher than the national
 norm. Additionally, we see the benefits of plotting this data separately for
 each gender. We can *see* the differences in distributions.
 
-## Grouped analysis with `purrr`
+# Grouped analysis with `purrr`
 
 Although this is a quick and dirty way to explore a large amount of data with
 minimal effort, it does come with an important limitation: reduced flexibility.
@@ -158,20 +156,26 @@ would be better to use `purrr`.
 See the associated vignette here:
 <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/purrr_examples.html>
 
-## Summary of tests
+# Summary of graphics
 
-The central tendency measure displayed will depend on the statistics:
+graphical element | `geom_` used | argument for further modification
+--------- | ------- | --------------------------
+histogram bin | `ggplot2::stat_bin` | `bin.args`
+centrality measure line | `ggplot2::geom_vline` | `centrality.line.args`
+normality curve | `ggplot2::stat_function` | `normal.curve.args`
+
+# Summary of tests
+
+**Central tendency measure**
 
 Type | Measure | Function used
 ----------- | --------- | ------------------ 
 Parametric | mean | `parameters::describe_distribution`
 Non-parametric | median | `parameters::describe_distribution`
 Robust | trimmed mean | `parameters::describe_distribution`
-Bayesian | MAP estimate | `parameters::describe_distribution`
+Bayesian | MAP (maximum *a posteriori* probability) estimate | `parameters::describe_distribution`
 
-MAP: maximum a posteriori probability
-
-Following tests are carried out for each type of analyses-
+**Hypothesis testing**
 
 Type | Test | Function used
 ------------------ | ------------------------- | -----
@@ -180,17 +184,46 @@ Non-parametric | One-sample Wilcoxon test | `stats::wilcox.test`
 Robust | Bootstrap-*t* method for one-sample test | `trimcibt` (custom)
 Bayesian | One-sample Student's *t*-test | `BayesFactor::ttestBF`
 
-Following effect sizes (and confidence intervals/CI) are available for each type
-of test-
+**Effect size estimation**
 
 Type | Effect size | CI? | Function used
 ------------ | ----------------------- | --- | -----
-Parametric | Cohen's *d*, Hedge's *g* | <font color="green">Yes<font> | `effectsize::cohens_d`, `effectsize::hedges_g`
-Non-parametric | *r* (rank-biserial correlation) | <font color="green">Yes<font> | `effectsize::rank_biserial`
-Robust | trimmed mean | <font color="green">Yes<font> | `trimcibt` (custom)
-Bayes Factor | $\delta_{posterior}$ | <font color="green">Yes<font> | `bayestestR::describe_posterior`
+Parametric | Cohen's *d*, Hedge's *g* | ✅ | `effectsize::cohens_d`, `effectsize::hedges_g`
+Non-parametric | *r* (rank-biserial correlation) | ✅ | `effectsize::rank_biserial`
+Robust | trimmed mean | ✅ | `trimcibt` (custom)
+Bayes Factor | $\delta_{posterior}$ | ✅ | `bayestestR::describe_posterior`
 
-## Effect size interpretation
+# Reporting
+
+If you wish to include statistical analysis results in a publication/report, the
+ideal reporting practice will be a hybrid of two approaches:
+
+- the `ggstatsplot` approach, where the plot contains both the visual and
+numerical summaries about a statistical model, and
+
+- the *standard* narrative approach, which provides interpretive context for the
+reported statistics.
+
+For example, let's see the following example:
+
+The `ggstatsplot` reporting -
+
+```{r reporting}
+gghistostats(trees, Height, test.value = 75)
+```
+
+The narrative context (assuming `type = "parametric"`) can complement this plot
+either as a figure caption or in the main text-
+
+> Student's *t*-test revealed that, across 31 felled black cherry trees,
+although the height was higher than expected height of 75 ft., this effect was
+not statistically significant. The effect size $(g = 0.15)$ was small, as per
+Cohen’s (1988) conventions. The Bayes Factor for the same analysis revealed that
+the data were `r round(exp(1.3), 2)` times more probable under the null
+hypothesis as compared to the alternative hypothesis. This can be considered
+moderate evidence (Jeffreys, 1961) in favor of the null hypothesis.
+
+# Effect size interpretation
 
 To see how the effect sizes displayed in these tests can be interpreted, see:
 <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/effsize_interpretation.html>

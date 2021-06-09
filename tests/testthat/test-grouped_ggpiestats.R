@@ -7,7 +7,7 @@ test_that(
 
     ## expecting error
     expect_error(
-      ggstatsplot::grouped_ggpiestats(
+      grouped_ggpiestats(
         data = mtcars,
         x = cyl
       )
@@ -18,7 +18,7 @@ test_that(
     # when arguments are entered as bare expressions
     set.seed(123)
     expect_true(inherits(suppressWarnings(
-      ggstatsplot::grouped_ggpiestats(
+      grouped_ggpiestats(
         data = mtcars,
         grouping.var = am,
         x = "cyl",
@@ -36,7 +36,6 @@ test_that(
     mpg_short <-
       ggplot2::mpg %>%
       dplyr::filter(
-        .data = .,
         drv %in% c("4", "f"),
         class %in% c("suv", "midsize"),
         trans %in% c("auto(l4)", "auto(l5)")
@@ -45,7 +44,7 @@ test_that(
     # when arguments are entered as bare expressions
     set.seed(123)
     expect_true(inherits(suppressWarnings(
-      ggstatsplot::grouped_ggpiestats(
+      grouped_ggpiestats(
         data = mpg_short,
         x = cyl,
         y = "class",
@@ -62,7 +61,7 @@ test_that(
     # when arguments are entered as bare expressions
     set.seed(123)
     expect_true(inherits(suppressWarnings(
-      ggstatsplot::grouped_ggpiestats(
+      grouped_ggpiestats(
         data = as.data.frame(Titanic),
         grouping.var = Class,
         x = Sex,
@@ -91,7 +90,7 @@ test_that(
     # should output a list of length 3
     set.seed(123)
     ls_results <-
-      suppressWarnings(ggstatsplot::grouped_ggpiestats(
+      suppressWarnings(grouped_ggpiestats(
         data = df,
         x = relig,
         y = marital,

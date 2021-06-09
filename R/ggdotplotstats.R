@@ -3,23 +3,20 @@
 #'
 #' @description
 #'
-#'
-#'
 #' A dot chart (as described by William S. Cleveland) with statistical details
-#' from one-sample test included in the plot as a subtitle.
+#' from one-sample test details.
 #'
 #' @param ... Currently ignored.
 #' @param y Label or grouping variable.
 #' @param point.args A list of additional aesthetic arguments passed to
 #'   `geom_point`.
-#' @inheritParams histo_labeller
 #' @inheritParams gghistostats
 #' @inheritParams ggcoefstats
 #'
 #' @importFrom dplyr row_number percent_rank pull
 #' @importFrom statsExpressions one_sample_test
 #'
-#' @references
+#' @details For more details, see:
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggdotplotstats.html}
 #'
 #' @seealso \code{\link{grouped_gghistostats}}, \code{\link{gghistostats}},
@@ -59,17 +56,23 @@ ggdotplotstats <- function(data,
                            bf.message = TRUE,
                            effsize.type = "g",
                            conf.level = 0.95,
-                           nboot = 100,
                            tr = 0.2,
-                           k = 2,
+                           k = 2L,
                            results.subtitle = TRUE,
-                           point.args = list(color = "black", size = 3, shape = 16),
+                           point.args = list(
+                             color = "black",
+                             size = 3,
+                             shape = 16
+                           ),
                            centrality.plotting = TRUE,
                            centrality.type = type,
-                           centrality.line.args = list(color = "blue", size = 1),
+                           centrality.line.args = list(
+                             color = "blue",
+                             size = 1,
+                             linetype = "dashed"
+                           ),
                            ggplot.component = NULL,
-                           ggtheme = ggplot2::theme_bw(),
-                           ggstatsplot.layer = TRUE,
+                           ggtheme = ggstatsplot::theme_ggstatsplot(),
                            output = "plot",
                            ...) {
 
@@ -87,7 +90,7 @@ ggdotplotstats <- function(data,
     tidyr::drop_na(.) %>%
     dplyr::mutate({{ y }} := droplevels(as.factor({{ y }}))) %>%
     dplyr::group_by({{ y }}) %>%
-    dplyr::summarise({{ x }} := mean({{ x }}, na.rm = TRUE)) %>%
+    dplyr::summarise({{ x }} := mean({{ x }})) %>%
     dplyr::ungroup(.) %>%
     # rank ordering the data
     dplyr::arrange({{ x }}) %>%
@@ -127,7 +130,6 @@ ggdotplotstats <- function(data,
         bf.prior = bf.prior,
         effsize.type = effsize.type,
         conf.level = conf.level,
-        nboot = nboot,
         tr = tr,
         k = k
       ),
@@ -148,12 +150,8 @@ ggdotplotstats <- function(data,
   # ------------------------------ basic plot ----------------------------
 
   # creating the basic plot
-  plot <-
-    ggplot2::ggplot(data = data, mapping = ggplot2::aes(x = {{ x }}, y = rank)) +
-    rlang::exec(
-      .fn = ggplot2::geom_point,
-      !!!point.args
-    ) +
+  plot <- ggplot2::ggplot(data, mapping = ggplot2::aes({{ x }}, y = rank)) +
+    rlang::exec(ggplot2::geom_point, !!!point.args) +
     ggplot2::scale_y_continuous(
       name = ylab,
       labels = data %>% dplyr::pull({{ y }}),
@@ -168,15 +166,14 @@ ggdotplotstats <- function(data,
 
   # using custom function for adding labels
   if (isTRUE(centrality.plotting)) {
-    plot <-
-      histo_labeller(
-        plot = plot,
-        x = data %>% dplyr::pull({{ x }}),
-        type = ipmisc::stats_type_switch(centrality.type),
-        tr = tr,
-        k = k,
-        centrality.line.args = centrality.line.args
-      )
+    plot <- histo_labeller(
+      plot,
+      x = data %>% dplyr::pull({{ x }}),
+      type = ipmisc::stats_type_switch(centrality.type),
+      tr = tr,
+      k = k,
+      centrality.line.args = centrality.line.args
+    )
   }
 
   # ------------------------ annotations and themes -------------------------
@@ -190,6 +187,6 @@ ggdotplotstats <- function(data,
       subtitle = subtitle,
       caption = caption
     ) +
-    theme_ggstatsplot(ggtheme, ggstatsplot.layer) +
+    ggtheme +
     ggplot.component
 }

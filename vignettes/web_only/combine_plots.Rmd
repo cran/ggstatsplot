@@ -36,12 +36,20 @@ citation("ggstatsplot")
 
 ---
 
+Lifecycle: [![lifecycle](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://lifecycle.r-lib.org/articles/stages.html)
+
 # Combining plots with `combine_plots`
 
-`ggstatsplot` contains a "helper" function named `combine_plots` to help you
-combine several plots into one plot or add a combination of title, caption, and
-annotation texts with suitable default parameters. It is a wrapper around
-`patchwork::wrap_plots()`. Some examples below.
+The full power of `ggstatsplot` can be leveraged with a functional programming
+package like [`purrr`](https://purrr.tidyverse.org/) that replaces `for` loops
+with code that is both more succinct and easier to read and, therefore, `purrr`
+should be preferrred 😻.
+
+In such cases, `ggstatsplot` contains a helper function `combine_plots` to
+combine multiple plots, which can be useful for combining a list of plots
+produced with `purrr`. This is a wrapper around `patchwork::wrap_plots` and lets
+you combine multiple plots and add a combination of title, caption, and
+annotation texts with suitable defaults.
 
 **Note Before**: If you have just one grouping variable and you'd like a plot
 for each `factor` of this variable the `grouped_` variants
@@ -49,13 +57,13 @@ for each `factor` of this variable the `grouped_` variants
 `ggstatsplot` functions will allow you do to this. They specifically use the
 `combine_plots` function under the covers.
 
-## Combining multiple plots: Example-1 using `dplyr::group_map`
+# Example-1 using `dplyr::group_map`
 
 The easiest way to run the same `ggstatsplot` operation across multiple grouping
 variables is by using `dplyr::group_map` functions and then - of course - one
 would like to combine these plots in a single plot.
 
-```{r ggscatterstats_groupmap, message = FALSE, warning = FALSE, fig.height = 6, fig.width = 10}
+```{r ggscatterstats_groupmap, fig.height = 6, fig.width = 10}
 # libraries
 set.seed(123)
 library(tidyverse)
@@ -63,8 +71,8 @@ library(tidyverse)
 # creating a list of plots
 p_list <-
   mtcars %>%
-  dplyr::filter(.data = ., cyl != 4) %>%
-  dplyr::group_by(.data = ., cyl) %>%
+  dplyr::filter(cyl != 4) %>%
+  dplyr::group_by(cyl) %>%
   dplyr::group_map(.f = ~ ggstatsplot::ggbetweenstats(data = ., x = am, y = wt))
 
 # combining plots
@@ -74,8 +82,7 @@ ggstatsplot::combine_plots(
 )
 ```
 
-
-## Combining multiple plots: Example-2 using `purrr`
+# Example-2 using `purrr`
 
 The full power of `ggstatsplot` can be leveraged with a functional programming
 package like [`purrr`](http://purrr.tidyverse.org/) which can replace many `for`
@@ -90,20 +97,19 @@ gluing the results or using `patchwork` directly, we'll create a `tibble` called
 `plots` using `purrr::map` then feed that to `combine_plots` to get our combined
 plot.
 
-```{r ggscatterstats_purrr, message = FALSE, warning = FALSE, fig.height = 12, fig.width = 8}
+```{r ggscatterstats_purrr, fig.height = 12, fig.width = 8}
 # for reproducibility
 set.seed(123)
 library(ggstatsplot)
 
 # creating a list column with `ggstatsplot` plots
 plots <- iris %>%
-  dplyr::mutate(.data = ., Species2 = Species) %>%
+  dplyr::mutate(Species2 = Species) %>%
   # just creates a copy of this variable
-  dplyr::group_by(.data = ., Species) %>%
+  dplyr::group_by(Species) %>%
   tidyr::nest(.) %>%
   # a nested dataframe with list column called `data`
   dplyr::mutate(
-    .data = .,
     plot = data %>%
       purrr::map(
         .x = .,
@@ -114,7 +120,7 @@ plots <- iris %>%
           xfill = "#0072B2",
           yfill = "#009E73",
           ggtheme = ggthemes::theme_fivethirtyeight(),
-          ggstatsplot.layer = FALSE,
+          
           messages = FALSE, # turns off warnings and notes messages
           marginal.type = "boxplot",
           title =
@@ -144,7 +150,7 @@ ggstatsplot::combine_plots(
 )
 ```
 
-## Combining multiple plots: Example-3 with `plyr`
+# Example-3 with `plyr`
 
 Another popular package for handling big datasets is `plyr`, which allows us to
 repeatedly apply a common function on smaller pieces and then combine the
@@ -160,7 +166,7 @@ is of that is a list of plots called `plots`.  We then feed `plots` to the
 the countries which have very low life expectancy (< 45 years) by labeling those
 countries when they occur.
 
-```{r ggscatterstats_plyr, message = FALSE, warning = FALSE, fig.height = 12, fig.width = 12}
+```{r ggscatterstats_plyr, fig.height = 12, fig.width = 12}
 library(plyr)
 library(gapminder)
 
@@ -172,7 +178,7 @@ dplyr::glimpse(gapminder::gapminder)
 
 # creating a list of plots
 plots <- plyr::dlply(
-  .data = dplyr::filter(
+  dplyr::filter(
     gapminder::gapminder,
     year == 2007, continent != "Oceania"
   ),
@@ -214,7 +220,7 @@ caption. But we want to add at the bottom an annotation to show the formula we
 are using for our regression.  `combine_plots` allows us to add `sub.text =` to
 accomplish that task as shown in the resulting plot.
 
-```{r ggbetweenstats_subtext, message = FALSE, warning = FALSE, fig.height = 8, fig.width = 8}
+```{r ggbetweenstats_subtext, fig.height = 8, fig.width = 8}
 library(ggstatsplot)
 
 ggstatsplot::combine_plots(

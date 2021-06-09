@@ -11,12 +11,10 @@ test_that(
       ggpiestats(
         data = ggplot2::msleep,
         x = vore,
-        bf.message = TRUE,
         title = "mammalian sleep",
         legend.title = "vore",
         caption = "From ggplot2 package",
         perc.k = 2,
-        ggstatsplot.layer = FALSE,
         label = "both"
       )
 
@@ -80,7 +78,7 @@ test_that(
       )
 
     # dropped level dataset
-    mtcars_small <- dplyr::filter(.data = mtcars, am == "0")
+    mtcars_small <- dplyr::filter(mtcars, am == "0")
 
     # plot
     p1 <-
@@ -125,14 +123,11 @@ test_that(
     # check data
     set.seed(123)
     expect_snapshot(list(pb$data, pb1$data))
+    expect_snapshot(within(pb$plot$labels, rm(subtitle, caption)))
 
     # checking plot labels
     expect_identical(pb$plot$labels$subtitle, p_subtitle)
     expect_identical(pb$plot$labels$caption, p_cap)
-    expect_null(pb$plot$labels$x, NULL)
-    expect_null(pb$plot$labels$y, NULL)
-    expect_identical(pb$plot$guides$fill$title[1], "transmission")
-    expect_type(pb1$plot$labels$subtitle, "language")
   }
 )
 
@@ -170,26 +165,12 @@ test_that(
     # build the plot
     pb <- ggplot2::ggplot_build(p)
 
-    # checking data used to create a plot
-    dat <- p$data %>%
-      dplyr::mutate_if(
-        .tbl = .,
-        .predicate = is.factor,
-        .funs = ~ as.character(.)
-      )
-
-    # testing everything is okay with data
-    expect_equal(dim(dat), c(4L, 5L))
-    expect_equal(dat$perc, c(8.46, 48.38, 91.54, 51.62), tolerance = 1e-3)
-    expect_equal(dat$Survived[1], "No")
-    expect_equal(dat$Survived[4], "Yes")
-    expect_equal(dat$Sex[2], "Female")
-    expect_equal(dat$Sex[3], "Male")
-    expect_identical(dat$counts, c(126L, 344L, 1364L, 367L))
+    # checking data
+    expect_snapshot(pb$data)
+    expect_snapshot(within(pb$plot$labels, rm(subtitle)))
 
     # checking plot labels
     expect_identical(pb$plot$labels$subtitle, p_subtitle)
-    expect_null(pb$plot$labels$caption, NULL)
   }
 )
 
@@ -237,28 +218,9 @@ test_that(
       )$expression[[1]]
 
     # checking plot labels
-    expect_identical(
-      pb$plot$labels,
-      list(
-        x = NULL,
-        y = NULL,
-        title = NULL,
-        subtitle = p_subtitle,
-        caption = NULL,
-        fill = "1st survey",
-        label = ".label",
-        group = "1st survey"
-      )
-    )
-
-    # labels
-    expect_identical(
-      pb$data[[3]]$label,
-      c(
-        "list(~chi['gof']^2~(1)==569.62, ~italic(p)=='6.8e-126', ~italic(n)==880)",
-        "list(~chi['gof']^2~(1)==245.00, ~italic(p)=='3.2e-55', ~italic(n)==720)"
-      )
-    )
+    expect_snapshot(within(pb$plot$labels, rm(subtitle)))
+    expect_identical(pb$plot$labels$subtitle, p_subtitle)
+    expect_snapshot(pb$data[[3]])
   }
 )
 
@@ -325,20 +287,7 @@ test_that(
     # check data
     set.seed(123)
     expect_snapshot(pb$data)
-
-    expect_equal(
-      pb$plot$labels,
-      list(
-        x = NULL,
-        y = NULL,
-        title = NULL,
-        subtitle = NULL,
-        caption = NULL,
-        fill = "mode",
-        label = ".label",
-        group = "mode"
-      )
-    )
+    expect_snapshot(pb$plot$labels)
   }
 )
 

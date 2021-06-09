@@ -22,7 +22,14 @@ grouped_ggbetweenstats(
 be taken. Other data types (e.g., matrix,table, array, etc.) will \strong{not}
 be accepted.}
 
-\item{x}{The grouping (or independent) variable from the dataframe \code{data}.}
+\item{x}{The grouping (or independent) variable from the dataframe \code{data}. In
+case of a repeated measures or within-subjects design, if \code{subject.id}
+argument is not available or not explicitly specified, the function assumes
+that the data has already been sorted by such an id by the user and creates
+an internal identifier. So if your data is \strong{not} sorted, the results
+\emph{can} be inaccurate when there are more than two levels in \code{x} and there
+are \code{NA}s present. The data is expected to be sorted by user in
+subject-1,subject-2, ..., pattern.}
 
 \item{y}{The response (or outcome or dependent) variable from the
 dataframe \code{data}.}
@@ -149,17 +156,12 @@ arguments to be passed to \code{ggplot2::geom_point} and
 \code{ggrepel::geom_label_repel} geoms, which are involved in mean plotting.}
     \item{\code{ggsignif.args}}{A list of additional aesthetic
 arguments to be passed to \code{ggsignif::geom_signif}.}
-    \item{\code{ggtheme}}{A function, \code{ggplot2} theme name. Default value is
-\code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
-extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
-\code{hrbrthemes::theme_ipsum_ps()}, etc.).}
-    \item{\code{ggstatsplot.layer}}{Logical that decides whether \code{theme_ggstatsplot}
-theme elements are to be displayed along with the selected \code{ggtheme}
-(Default: \code{TRUE}). \code{theme_ggstatsplot} is an opinionated theme layer that
-override some aspects of the selected \code{ggtheme}.}
-    \item{\code{type}}{A character specifying the type of statistical approach.
-Four possible options:
-
+    \item{\code{ggtheme}}{A \code{ggplot2} theme. Default value is
+\code{ggstatsplot::theme_ggstatsplot()}. Any of the \code{ggplot2} themes (e.g.,
+\code{ggplot2::theme_bw()}), or themes from extension packages are allowed
+(e.g., \code{ggthemes::theme_fivethirtyeight()}, \code{hrbrthemes::theme_ipsum_ps()},
+etc.).}
+    \item{\code{type}}{A character specifying the type of statistical approach:
 \itemize{
 \item \code{"parametric"}
 \item \code{"nonparametric"}
@@ -167,8 +169,7 @@ Four possible options:
 \item \code{"bayes"}
 }
 
-Corresponding abbreviations are also accepted: \code{"p"} (for parametric),
-\code{"np"} (for nonparametric), \code{"r"} (for robust), or \code{"bf"} (for Bayesian).}
+You can specify just the initial letter.}
     \item{\code{effsize.type}}{Type of effect size needed for \emph{parametric} tests. The
 argument can be \code{"eta"} (partial eta-squared) or \code{"omega"} (partial
 omega-squared).}
@@ -181,7 +182,7 @@ omega-squared).}
     \item{\code{conf.level}}{Scalar between \code{0} and \code{1}. If unspecified, the defaults
 return \verb{95\%} confidence/credible intervals (\code{0.95}).}
     \item{\code{nboot}}{Number of bootstrap samples for computing confidence interval
-for the effect size (Default: \code{100}).}
+for the effect size (Default: \code{100L}).}
     \item{\code{tr}}{Trim level for the mean when carrying out \code{robust} tests. In case
 of an error, try reducing the value of \code{tr}, which is by default set to
 \code{0.2}. Lowering the value might help.}
@@ -203,14 +204,13 @@ grouped_ggbetweenstats(
   data = dplyr::filter(ggplot2::mpg, drv != "4"),
   x = year,
   y = hwy,
-  grouping.var = drv,
-  conf.level = 0.99
+  grouping.var = drv
 )
 
 # modifying individual plots using `ggplot.component` argument
 grouped_ggbetweenstats(
   data = dplyr::filter(
-    ggstatsplot::movies_long,
+    movies_long,
     genre \%in\% c("Action", "Comedy"),
     mpaa \%in\% c("R", "PG")
   ),
@@ -224,9 +224,6 @@ grouped_ggbetweenstats(
   )
 )
 }
-}
-\references{
-\url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggbetweenstats.html}
 }
 \seealso{
 \code{\link{ggbetweenstats}}, \code{\link{ggwithinstats}},

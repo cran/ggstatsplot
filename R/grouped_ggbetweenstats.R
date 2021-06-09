@@ -4,8 +4,6 @@
 #'
 #' @description
 #'
-#'
-#'
 #' Helper function for `ggstatsplot::ggbetweenstats` to apply this function
 #' across multiple levels of a given factor and combining the resulting plots
 #' using `ggstatsplot::combine_plots`.
@@ -37,14 +35,13 @@
 #'   data = dplyr::filter(ggplot2::mpg, drv != "4"),
 #'   x = year,
 #'   y = hwy,
-#'   grouping.var = drv,
-#'   conf.level = 0.99
+#'   grouping.var = drv
 #' )
 #'
 #' # modifying individual plots using `ggplot.component` argument
 #' grouped_ggbetweenstats(
 #'   data = dplyr::filter(
-#'     ggstatsplot::movies_long,
+#'     movies_long,
 #'     genre %in% c("Action", "Comedy"),
 #'     mpaa %in% c("R", "PG")
 #'   ),
@@ -74,29 +71,25 @@ grouped_ggbetweenstats <- function(data,
   # ======================== preparing dataframe ==========================
 
   # creating a dataframe
-  df <-
-    data %>%
-    dplyr::select({{ grouping.var }}, {{ x }}, {{ y }}, {{ outlier.label }}) %>%
+  df <- dplyr::select(data, {{ grouping.var }}, {{ x }}, {{ y }}, {{ outlier.label }}) %>%
     grouped_list(grouping.var = {{ grouping.var }})
 
   # ============== creating a list of plots using `pmap`=======================
 
-  plotlist_purrr <-
-    purrr::pmap(
-      .l = list(data = df, title = names(df)),
-      .f = ggstatsplot::ggbetweenstats,
-      # put common parameters here
-      x = {{ x }},
-      y = {{ y }},
-      outlier.label = {{ outlier.label }},
-      output = output,
-      ...
-    )
+  p_ls <- purrr::pmap(
+    .l = list(data = df, title = names(df)),
+    .f = ggstatsplot::ggbetweenstats,
+    # put common parameters here
+    x = {{ x }},
+    y = {{ y }},
+    outlier.label = {{ outlier.label }},
+    output = output,
+    ...
+  )
 
   # combining the list of plots into a single plot
-  if (output == "plot") {
-    return(combine_plots(plotlist_purrr, plotgrid.args = plotgrid.args, annotation.args = annotation.args))
-  } else {
-    return(plotlist_purrr) # subtitle list
-  }
+  if (output == "plot") p_ls <- combine_plots(p_ls, plotgrid.args, annotation.args)
+
+  # return the object
+  p_ls
 }

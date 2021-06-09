@@ -1,7 +1,7 @@
 Type: Package
 Package: ggstatsplot
 Title: 'ggplot2' Based Plots with Statistical Details
-Version: 0.7.2
+Version: 0.8.0
 Authors@R: 
     person(given = "Indrajeet",
            family = "Patil",
@@ -23,21 +23,22 @@ URL: https://indrajeetpatil.github.io/ggstatsplot/,
         https://github.com/IndrajeetPatil/ggstatsplot
 BugReports: https://github.com/IndrajeetPatil/ggstatsplot/issues
 Depends: R (>= 3.6.0)
-Imports: dplyr, ggcorrplot, ggplot2, ggrepel, ggsignif, insight (>=
-        0.13.2), ipmisc, pairwiseComparisons, paletteer, parameters (>=
-        0.13.0), patchwork, performance, purrr, rlang, stats,
-        statsExpressions (>= 1.0.0), tidyr, utils
-Suggests: afex, forcats, ggExtra, knitr, MASS, metaBMA, metafor,
-        rmarkdown, spelling, testthat, tibble, vdiffr, WRS2
+Imports: dplyr, ggplot2, ggrepel, ggsignif, insight (>= 0.14.1), ipmisc
+        (>= 6.0.2), pairwiseComparisons (>= 3.1.5), paletteer,
+        parameters (>= 0.14.0), patchwork, performance, purrr, rlang,
+        stats, statsExpressions (>= 1.1.0), tidyr, utils
+Suggests: afex, forcats, ggcorrplot, ggExtra, knitr, MASS, metaBMA,
+        metafor, rmarkdown, spelling, testthat, tibble, vdiffr, WRS2
 VignetteBuilder: knitr
-Config/testthat/edition: 3
 Encoding: UTF-8
 Language: en-US
 LazyData: true
 RoxygenNote: 7.1.1.9001
+Config/testthat/edition: 3
+Config/testthat/parallel: true
 NeedsCompilation: no
-Packaged: 2021-04-12 17:46:06 UTC; patil
+Packaged: 2021-06-09 10:41:17 UTC; inp099
 Author: Indrajeet Patil [cre, aut, cph]
     (<https://orcid.org/0000-0003-1995-6531>, @patilindrajeets)
 Repository: CRAN
-Date/Publication: 2021-04-12 18:20:02 UTC
+Date/Publication: 2021-06-09 11:10:02 UTC

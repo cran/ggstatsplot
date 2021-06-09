@@ -31,7 +31,8 @@ ggwithinstats(
   centrality.point.args = list(size = 5, color = "darkred"),
   centrality.label.args = list(size = 3, nudge_x = 0.4, segment.linetype = 4),
   centrality.path = TRUE,
-  centrality.path.args = list(color = "red", size = 1, alpha = 0.5),
+  centrality.path.args = list(size = 1, color = "red", alpha = 0.5),
+  point.args = list(size = 3, alpha = 0.5),
   point.path = TRUE,
   point.path.args = list(alpha = 0.5, linetype = "dashed"),
   outlier.tagging = FALSE,
@@ -40,8 +41,7 @@ ggwithinstats(
   outlier.label.args = list(size = 3),
   violin.args = list(width = 0.5, alpha = 0.2),
   ggsignif.args = list(textsize = 3, tip_length = 0.01),
-  ggtheme = ggplot2::theme_bw(),
-  ggstatsplot.layer = TRUE,
+  ggtheme = ggstatsplot::theme_ggstatsplot(),
   package = "RColorBrewer",
   palette = "Dark2",
   ggplot.component = NULL,
@@ -54,14 +54,19 @@ ggwithinstats(
 be taken. Other data types (e.g., matrix,table, array, etc.) will \strong{not}
 be accepted.}
 
-\item{x}{The grouping (or independent) variable from the dataframe \code{data}.}
+\item{x}{The grouping (or independent) variable from the dataframe \code{data}. In
+case of a repeated measures or within-subjects design, if \code{subject.id}
+argument is not available or not explicitly specified, the function assumes
+that the data has already been sorted by such an id by the user and creates
+an internal identifier. So if your data is \strong{not} sorted, the results
+\emph{can} be inaccurate when there are more than two levels in \code{x} and there
+are \code{NA}s present. The data is expected to be sorted by user in
+subject-1,subject-2, ..., pattern.}
 
 \item{y}{The response (or outcome or dependent) variable from the
 dataframe \code{data}.}
 
-\item{type}{A character specifying the type of statistical approach.
-Four possible options:
-
+\item{type}{A character specifying the type of statistical approach:
 \itemize{
 \item \code{"parametric"}
 \item \code{"nonparametric"}
@@ -69,8 +74,7 @@ Four possible options:
 \item \code{"bayes"}
 }
 
-Corresponding abbreviations are also accepted: \code{"p"} (for parametric),
-\code{"np"} (for nonparametric), \code{"r"} (for robust), or \code{"bf"} (for Bayesian).}
+You can specify just the initial letter.}
 
 \item{pairwise.comparisons}{Logical that decides whether pairwise comparisons
 are to be displayed (default: \code{TRUE}). Please note that only
@@ -131,7 +135,7 @@ variable names for \code{x} and \code{y} will be used.}
 return \verb{95\%} confidence/credible intervals (\code{0.95}).}
 
 \item{nboot}{Number of bootstrap samples for computing confidence interval
-for the effect size (Default: \code{100}).}
+for the effect size (Default: \code{100L}).}
 
 \item{tr}{Trim level for the mean when carrying out \code{robust} tests. In case
 of an error, try reducing the value of \code{tr}, which is by default set to
@@ -175,6 +179,9 @@ arguments to be passed to \code{ggplot2::geom_point} and
 arguments passed on to \code{geom_path} connecting raw data points and mean
 points.}
 
+\item{point.args}{A list of additional aesthetic arguments to be passed to
+the \code{geom_point} displaying the raw data.}
+
 \item{point.path, centrality.path}{Logical that decides whether individual data
 points and means, respectively, should be connected using \code{geom_path}. Both
 default to \code{TRUE}. Note that \code{point.path} argument is relevant only when
@@ -202,15 +209,11 @@ the \code{geom_violin}.}
 \item{ggsignif.args}{A list of additional aesthetic
 arguments to be passed to \code{ggsignif::geom_signif}.}
 
-\item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
-\code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
-extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
-\code{hrbrthemes::theme_ipsum_ps()}, etc.).}
-
-\item{ggstatsplot.layer}{Logical that decides whether \code{theme_ggstatsplot}
-theme elements are to be displayed along with the selected \code{ggtheme}
-(Default: \code{TRUE}). \code{theme_ggstatsplot} is an opinionated theme layer that
-override some aspects of the selected \code{ggtheme}.}
+\item{ggtheme}{A \code{ggplot2} theme. Default value is
+\code{ggstatsplot::theme_ggstatsplot()}. Any of the \code{ggplot2} themes (e.g.,
+\code{ggplot2::theme_bw()}), or themes from extension packages are allowed
+(e.g., \code{ggthemes::theme_fivethirtyeight()}, \code{hrbrthemes::theme_ipsum_ps()},
+etc.).}
 
 \item{package}{Name of the package from which the given palette is to
 be extracted. The available palettes and packages can be checked by running
@@ -240,15 +243,15 @@ A combination of box and violin plots along with raw (unjittered) data points
 for within-subjects designs with statistical details included in the plot as
 a subtitle.
 }
+\details{
+For more details, see:
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggwithinstats.html}
+}
 \note{
-\enumerate{
-\item Please note that the function expects that the data is
-already sorted by subject/repeated measures ID.
-\item To carry out Bayesian analysis for ANOVA designs, you will need to install
+To carry out Bayesian analysis for ANOVA designs, you will need to install
 the development version of \code{BayesFactor} (\verb{0.9.12-4.3}). You can download it
 by running:
 \code{remotes::install_github("richarddmorey/BayesFactor/pkg/BayesFactor")}.
-}
 }
 \examples{
 \donttest{
@@ -268,19 +271,15 @@ ggwithinstats(
 # more than two groups (anova)
 library(WRS2)
 
-ggstatsplot::ggwithinstats(
+ggwithinstats(
   data = WineTasting,
   x = Wine,
   y = Taste,
-  type = "np", # non-parametric test
-  pairwise.comparisons = TRUE,
+  type = "r",
   outlier.tagging = TRUE,
   outlier.label = Taster
 )
 }
-}
-\references{
-\url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggwithinstats.html}
 }
 \seealso{
 \code{\link{grouped_ggbetweenstats}}, \code{\link{ggbetweenstats}},

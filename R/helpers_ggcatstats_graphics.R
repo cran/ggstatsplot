@@ -6,7 +6,7 @@
 #' @noRd
 
 # function body
-df_descriptive <- function(data,
+descriptive_df <- function(data,
                            x,
                            y = NULL,
                            label.content = "percentage",
@@ -36,7 +36,7 @@ df_descriptive <- function(data,
 cat_counter <- function(data, x, y = NULL, ...) {
   data %>%
     dplyr::group_by({{ y }}, {{ x }}, .drop = TRUE) %>%
-    dplyr::tally(x = ., name = "counts") %>%
+    dplyr::tally(name = "counts") %>%
     dplyr::mutate(perc = (counts / sum(counts)) * 100) %>%
     dplyr::ungroup(.) %>%
     dplyr::arrange(dplyr::desc({{ x }})) %>%
@@ -53,10 +53,10 @@ cat_counter <- function(data, x, y = NULL, ...) {
 #' @noRd
 
 # combine info about sample size plus proportion test
-df_proptest <- function(data, x, y, k = 2L, ...) {
+onesample_df <- function(data, x, y, k = 2L, ...) {
   dplyr::full_join(
     # descriptives
-    x = cat_counter(data = data, x = {{ y }}) %>%
+    x = cat_counter(data, {{ y }}) %>%
       dplyr::mutate(N = paste0("(n = ", .prettyNum(counts), ")")),
     # proportion tests
     y = dplyr::group_by(data, {{ y }}) %>%
@@ -67,16 +67,9 @@ df_proptest <- function(data, x, y, k = 2L, ...) {
     dplyr::rowwise() %>%
     dplyr::mutate(
       .label = paste0(
-        "list(~chi['gof']^2~",
-        "(",
-        df,
-        ")==",
-        format_value(statistic, k),
-        ", ~italic(p)=='",
-        format_num(p.value, k, p.value = TRUE),
-        "', ~italic(n)==",
-        .prettyNum(counts),
-        ")"
+        "list(~chi['gof']^2~", "(", df, ")==", format_value(statistic, k),
+        ", ~italic(p)=='", format_num(p.value, k, p.value = TRUE),
+        "', ~italic(n)==", .prettyNum(counts), ")"
       ),
       .p.label = paste0("list(~italic(p)=='", format_num(p.value, k, TRUE), "')")
     ) %>%
@@ -97,20 +90,17 @@ chisq_test_safe <- function(data, x, ...) {
   xtab <- table(data %>% dplyr::pull({{ x }}))
 
   # run chi-square test
-  result <-
-    tryCatch(
-      expr = parameters::model_parameters(suppressWarnings(stats::chisq.test(xtab))),
-      error = function(e) NULL
-    )
+  result <- tryCatch(
+    expr = parameters::model_parameters(suppressWarnings(stats::chisq.test(xtab))),
+    error = function(e) NULL
+  )
 
   # if not null, return tidy output, otherwise return NAs
   if (!is.null(result)) {
-    as_tibble(parameters::standardize_names(data = result, style = "broom"))
+    as_tibble(parameters::standardize_names(result, style = "broom"))
   } else {
     tibble(
-      statistic = NA_real_,
-      p.value = NA_real_,
-      df = NA_real_,
+      statistic = NA_real_, p.value = NA_real_, df = NA_real_,
       method = "Chi-squared test for given probabilities"
     )
   }

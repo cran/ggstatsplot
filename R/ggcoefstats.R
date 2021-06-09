@@ -3,8 +3,6 @@
 #'
 #' @description
 #'
-#'
-#'
 #' Plot with the regression coefficients' point estimates as dots with
 #' confidence interval whiskers and other statistical details included as
 #' labels.
@@ -26,8 +24,6 @@
 #'   Bayesian meta-analysis assuming that the effect size *d* varies across
 #'   studies with standard deviation *t* (i.e., a random-effects analysis)
 #'   should be displayed in caption. Defaults to `TRUE`.
-#' @param xlab,ylab Labels for `x`- and `y`- axis variables, respectively
-#'   (Defaults: `"regression coefficient"` and `"term"`).
 #' @param subtitle The text for the plot subtitle. The input to this argument
 #'   will be ignored if `meta.analytic.effect` is set to `TRUE`.
 #' @param point.args Additional arguments that will be passed to
@@ -39,7 +35,7 @@
 #'   (Default: `0.95`).
 #' @param effsize Character describing the effect size to be displayed: `"eta"`
 #'   (default) or `"omega"`. This argument is relevant only for models objects
-#'   of class `aov`, `anova`, `aovlist`, `"Gam"`, and `"manova"`.
+#'   with *F*-statistic.
 #' @param meta.analytic.effect Logical that decides whether subtitle for
 #'   meta-analysis via linear (mixed-effects) models (default: `FALSE`). If
 #'   `TRUE`, input to argument `subtitle` will be ignored. This will be mostly
@@ -83,15 +79,15 @@
 #'
 #' @note
 #'
-#' **Important**: In case you want to carry out meta-analysis using this
+#' 1. In case you want to carry out meta-analysis using this
 #' function, it assumes that you have already downloaded the needed package
 #' (`metafor`, `metaplus`, or `metaBMA`) for meta-analysis.
 #'
-#' 1. All rows of regression estimates where either of the following
+#' 2. All rows of regression estimates where either of the following
 #'   quantities is `NA` will be removed if labels are requested: `estimate`,
 #'   `statistic`, `p.value`.
 #'
-#' 2. Given the rapid pace at which new methods are added to these packages, it
+#' 3. Given the rapid pace at which new methods are added to these packages, it
 #'   is recommended that you install the GitHub versions of `parameters` and
 #'   `performance` in order to make most of this function.
 #'
@@ -105,7 +101,7 @@
 #' @importFrom parameters model_parameters standardize_names
 #' @importFrom performance model_performance
 #'
-#' @references
+#' @details For more details, see:
 #' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcoefstats.html}
 #'
 #'
@@ -142,8 +138,8 @@ ggcoefstats <- function(x,
                         meta.type = "parametric",
                         bf.message = TRUE,
                         sort = "none",
-                        xlab = "regression coefficient",
-                        ylab = "term",
+                        xlab = NULL,
+                        ylab = NULL,
                         title = NULL,
                         subtitle = NULL,
                         caption = NULL,
@@ -151,14 +147,20 @@ ggcoefstats <- function(x,
                         point.args = list(size = 3, color = "blue"),
                         errorbar.args = list(height = 0),
                         vline = TRUE,
-                        vline.args = list(size = 1, linetype = "dashed"),
+                        vline.args = list(
+                          size = 1,
+                          linetype = "dashed"
+                        ),
                         stats.labels = TRUE,
                         stats.label.color = NULL,
-                        stats.label.args = list(size = 3, direction = "y"),
+                        stats.label.args = list(
+                          size = 3,
+                          direction = "y",
+                          min.segment.length = 0
+                        ),
                         package = "RColorBrewer",
                         palette = "Dark2",
-                        ggtheme = ggplot2::theme_bw(),
-                        ggstatsplot.layer = TRUE,
+                        ggtheme = ggstatsplot::theme_ggstatsplot(),
                         ...) {
   # ============================= dataframe ===============================
 
@@ -190,15 +192,14 @@ ggcoefstats <- function(x,
     if (effsize == "omega") omega_squared <- "partial"
 
     # converting model object to a tidy dataframe
-    tidy_df <-
-      parameters::model_parameters(
-        model = x,
-        eta_squared = eta_squared,
-        omega_squared = omega_squared,
-        ci = conf.level,
-        verbose = FALSE,
-        ...
-      ) %>%
+    tidy_df <- parameters::model_parameters(
+      model = x,
+      eta_squared = eta_squared,
+      omega_squared = omega_squared,
+      ci = conf.level,
+      verbose = FALSE,
+      ...
+    ) %>%
       parameters::standardize_names(style = "broom") %>%
       dplyr::rename_all(~ gsub("omega2.|eta2.", "", .x))
 
@@ -210,14 +211,9 @@ ggcoefstats <- function(x,
         tidy_df %<>% dplyr::mutate(df.error = dplyr::last(df))
       }
 
-      # renaming the `xlab` according to the estimate chosen
-      xlab <- paste("partial", " ", effsize, "-squared", sep = "")
-
       # final cleanup
       tidy_df %<>%
-        dplyr::filter(!is.na(statistic)) %>%
-        dplyr::select(-dplyr::matches("sq$")) %>%
-        dplyr::mutate(estimate.type = xlab) %>%
+        dplyr::mutate(effectsize = paste0("partial ", effsize, "-squared")) %>%
         dplyr::ungroup()
     }
   }
@@ -255,7 +251,6 @@ ggcoefstats <- function(x,
   if (any(duplicated(dplyr::select(tidy_df, term)))) {
     tidy_df %<>%
       tidyr::unite(
-        data = .,
         col = "term",
         dplyr::matches("term|variable|parameter|method|curve|response|component|contrast|group"),
         remove = TRUE,
@@ -296,7 +291,6 @@ ggcoefstats <- function(x,
     # adding a column with labels using custom function
     tidy_df %<>%
       ggcoefstats_label_maker(
-        tidy_df = .,
         statistic = substring(tolower(statistic), 1, 1),
         k = k,
         effsize = effsize
@@ -310,24 +304,20 @@ ggcoefstats <- function(x,
     # creating glance dataframe
     glance_df <- performance::model_performance(x, verbose = FALSE)
 
-    # rename to `broom` convention
-    if (!is.null(glance_df)) glance_df %<>% parameters::standardize_names(style = "broom")
-
     # no meta-analysis in this context
     meta.analytic.effect <- FALSE
 
     # if glance is not available, inform the user
-    if (!is.null(glance_df) && all(c("aic", "bic") %in% names(glance_df))) {
+    if (!is.null(glance_df) && all(c("AIC", "BIC") %in% names(glance_df))) {
       # preparing caption with model diagnostics
-      caption <-
-        substitute(
-          expr = atop(displaystyle(top.text), expr = paste("AIC = ", AIC, ", BIC = ", BIC)),
-          env = list(
-            top.text = caption,
-            AIC = format_value(glance_df$aic[[1]], 0L),
-            BIC = format_value(glance_df$bic[[1]], 0L)
-          )
+      caption <- substitute(
+        expr = atop(displaystyle(top.text), expr = paste("AIC = ", AIC, ", BIC = ", BIC)),
+        env = list(
+          top.text = caption,
+          AIC = format_value(glance_df$AIC[[1]], 0L),
+          BIC = format_value(glance_df$BIC[[1]], 0L)
         )
+      )
     }
   }
 
@@ -343,13 +333,12 @@ ggcoefstats <- function(x,
 
     # results from Bayesian random-effects meta-analysis (only for parametric)
     if (meta.type == "parametric" && isTRUE(bf.message)) {
-      caption_df <-
-        statsExpressions::meta_analysis(
-          top.text = caption,
-          type = "bayes",
-          data = tidy_df,
-          k = k
-        )
+      caption_df <- statsExpressions::meta_analysis(
+        data = tidy_df,
+        top.text = caption,
+        type = "bayes",
+        k = k
+      )
 
       caption <- caption_df$expression[[1]]
     }
@@ -361,13 +350,12 @@ ggcoefstats <- function(x,
   tidy_df %<>% dplyr::mutate(term = as.factor(term), .rowid = dplyr::row_number())
 
   # sorting factor levels
-  new_order <-
-    switch(sort,
-      "none" = order(tidy_df$.rowid, decreasing = FALSE),
-      "ascending" = order(tidy_df$estimate, decreasing = FALSE),
-      "descending" = order(tidy_df$estimate, decreasing = TRUE),
-      order(tidy_df$.rowid, decreasing = FALSE)
-    )
+  new_order <- switch(sort,
+    "none" = order(tidy_df$.rowid, decreasing = FALSE),
+    "ascending" = order(tidy_df$estimate, decreasing = FALSE),
+    "descending" = order(tidy_df$estimate, decreasing = TRUE),
+    order(tidy_df$.rowid, decreasing = FALSE)
+  )
 
   # sorting `term` factor levels according to new sorting order
   tidy_df %<>%
@@ -380,39 +368,24 @@ ggcoefstats <- function(x,
   # palette check is necessary only if output is a plot
   if (output == "plot") {
     # setting up the basic architecture
-    plot <- ggplot2::ggplot(data = tidy_df, mapping = ggplot2::aes(x = estimate, y = term))
+    plot <- ggplot2::ggplot(tidy_df, mapping = ggplot2::aes(estimate, term))
 
     # if needed, adding the vertical line
-    if (isTRUE(vline)) {
-      # adding the line geom
-      plot <- plot +
-        rlang::exec(
-          .fn = ggplot2::geom_vline,
-          xintercept = 0,
-          na.rm = TRUE,
-          !!!vline.args
-        )
-    }
+    if (isTRUE(vline)) plot <- plot + rlang::exec(ggplot2::geom_vline, xintercept = 0, !!!vline.args)
 
     # if the confidence intervals are to be displayed on the plot
     if (isTRUE(conf.int)) {
       plot <- plot +
         rlang::exec(
-          .fn = ggplot2::geom_errorbarh,
+          ggplot2::geom_errorbarh,
           data = tidy_df,
           mapping = ggplot2::aes(xmin = conf.low, xmax = conf.high),
-          na.rm = TRUE,
           !!!errorbar.args
         )
     }
 
     # changing the point aesthetics
-    plot <- plot +
-      rlang::exec(
-        .fn = ggplot2::geom_point,
-        na.rm = TRUE,
-        !!!point.args
-      )
+    plot <- plot + rlang::exec(ggplot2::geom_point, !!!point.args)
 
     # ========================= ggrepel labels ================================
 
@@ -426,40 +399,24 @@ ggcoefstats <- function(x,
         ))
       }
 
-      # ========================== palette check =================================
+      # palette check ----------------------
 
-      # if no. of factor levels is greater than the default palette color count
-      palette_message(package, palette, length(tidy_df$term))
-
-      # computing the number of colors in a given palette
-      palette_df <-
-        as_tibble(paletteer::palettes_d_names) %>%
-        dplyr::filter(package == !!package, palette == !!palette) %>%
-        dplyr::select(length)
-
-      # if insufficient number of colors are available in a given palette
-      if (palette_df$length[[1]] < length(tidy_df$term)) stats.label.color <- "black"
-
-      # if user has not specified colors, then use a color palette
-      if (is.null(stats.label.color)) {
-        stats.label.color <-
-          paletteer::paletteer_d(
-            palette = paste0(package, "::", palette),
-            n = length(tidy_df$term),
-            type = "discrete"
-          )
+      # has user specified if a specific color for the label?
+      # if not, use a palette, assuming enough no. of colors are available
+      if (is.null(stats.label.color) && palette_message(package, palette, length(tidy_df$term))) {
+        stats.label.color <- paletteer::paletteer_d(paste0(package, "::", palette), length(tidy_df$term))
+      } else {
+        stats.label.color <- "black"
       }
 
       # adding labels
       plot <- plot +
         rlang::exec(
-          .fn = ggrepel::geom_label_repel,
+          ggrepel::geom_label_repel,
           data = tidy_df,
           mapping = ggplot2::aes(x = estimate, y = term, label = label),
-          na.rm = TRUE,
           show.legend = FALSE,
           parse = TRUE,
-          min.segment.length = 0,
           color = stats.label.color,
           !!!stats.label.args
         )
@@ -470,13 +427,13 @@ ggcoefstats <- function(x,
     # adding other labels to the plot
     plot <- plot +
       ggplot2::labs(
-        x = xlab,
-        y = ylab,
+        x = xlab %||% "estimate",
+        y = ylab %||% "term",
         caption = caption,
         subtitle = subtitle,
         title = title
       ) +
-      theme_ggstatsplot(ggtheme, ggstatsplot.layer) +
+      ggtheme +
       ggplot2::theme(plot.caption = ggplot2::element_text(size = 10))
   }
 

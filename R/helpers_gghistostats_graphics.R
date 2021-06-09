@@ -9,9 +9,6 @@
 #'   for a test value and/or a centrality parameter (mean/median) value.
 #' @param ... Currently ignored.
 #' @inheritParams statsExpressions::one_sample_test
-#' @param centrality.line.args A list of additional aesthetic arguments to be
-#'   passed to the `geom_line` used to display the lines corresponding to the
-#'   centrality parameter.
 #'
 #' @examples
 #' \donttest{
@@ -28,37 +25,33 @@
 #' )
 #' }
 #' @keywords internal
+#' @noRd
 
 # function body
 histo_labeller <- function(plot,
                            x,
-                           type = "parametric",
-                           tr = 0.2,
-                           k = 2L,
-                           centrality.line.args = list(color = "blue", size = 1),
+                           centrality.line.args = list(
+                             color = "blue",
+                             size = 1,
+                             linetype = "dashed"
+                           ),
                            ...) {
-
-  # create a temporary dataframe
-  dat_temp <- data.frame(.temp = ".temp", "var" = x)
-
-  # compute centrality measure
-  centrality_df <- centrality_data(dat_temp, .temp, var, type = type, tr = tr, k = k)
+  # compute centrality measure (with a temporary dataframe)
+  df_central <- suppressWarnings(centrality_data(tibble(.x = ".x", "var" = x), .x, var, ...))
 
   # adding a vertical line corresponding to centrality parameter
   plot +
     rlang::exec(
-      .f = ggplot2::geom_vline,
-      xintercept = centrality_df$var[[1]],
-      !!!centrality.line.args,
-      linetype = "dashed",
-      na.rm = TRUE
+      ggplot2::geom_vline,
+      xintercept = df_central$var[[1]],
+      !!!centrality.line.args
     ) +
     ggplot2::scale_x_continuous(
       sec.axis = ggplot2::sec_axis(
         trans = ~.,
         name = NULL,
-        labels = parse(text = centrality_df$label[[1]]),
-        breaks = centrality_df$var[[1]]
+        labels = parse(text = df_central$label[[1]]),
+        breaks = df_central$var[[1]]
       )
     )
 }

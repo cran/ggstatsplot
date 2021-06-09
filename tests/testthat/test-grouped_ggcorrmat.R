@@ -1,27 +1,29 @@
+
 # output: plot ---------------------------------------------------------------
 
 test_that(
   desc = "grouped_ggcorrmat plots work",
   code = {
     skip_on_cran()
+    skip_if_not_installed("ggcorrplot")
 
     # with grouping.var missing ---------------------------------------------
 
-    expect_error(ggstatsplot::grouped_ggcorrmat(iris))
+    expect_error(grouped_ggcorrmat(iris))
 
     # with cor.vars specified -----------------------------------------------
 
     # creating a smaller dataframe
     set.seed(123)
     movies_filtered <-
-      ggstatsplot::movies_long %>%
-      dplyr::filter(.data = ., mpaa != "NC-17") %>%
+      movies_long %>%
+      dplyr::filter(mpaa != "NC-17") %>%
       dplyr::sample_frac(tbl = ., size = 0.25)
 
     # when arguments are entered as bare expressions
     set.seed(123)
     expect_true(inherits(
-      suppressWarnings(ggstatsplot::grouped_ggcorrmat(
+      suppressWarnings(grouped_ggcorrmat(
         data = movies_filtered,
         grouping.var = mpaa,
         cor.vars = length:votes,
@@ -33,7 +35,7 @@ test_that(
     # when arguments are entered as character
     set.seed(123)
     expect_true(inherits(
-      suppressWarnings(ggstatsplot::grouped_ggcorrmat(
+      suppressWarnings(grouped_ggcorrmat(
         data = movies_filtered,
         grouping.var = "mpaa",
         cor.vars = c("length":"votes"),
@@ -48,7 +50,7 @@ test_that(
     # when arguments are entered as bare expressions
     set.seed(123)
     expect_true(inherits(
-      suppressWarnings(ggstatsplot::grouped_ggcorrmat(
+      suppressWarnings(grouped_ggcorrmat(
         data = movies_filtered,
         grouping.var = mpaa,
         type = "p"
@@ -59,7 +61,7 @@ test_that(
     # when arguments are entered as bare expressions
     set.seed(123)
     expect_true(inherits(
-      suppressWarnings(ggstatsplot::grouped_ggcorrmat(
+      suppressWarnings(grouped_ggcorrmat(
         data = movies_filtered,
         grouping.var = "mpaa",
         type = "r"
@@ -75,13 +77,14 @@ test_that(
   desc = "grouped_ggcorrmat stats work",
   code = {
     skip_on_cran()
+    skip_if_not_installed("ggcorrplot")
 
     # without cor.vars specified --------------------------------------------
 
     # tidy dataframe
     set.seed(123)
     df1 <-
-      ggstatsplot::grouped_ggcorrmat(
+      grouped_ggcorrmat(
         data = ggplot2::msleep,
         grouping.var = vore,
         output = "r",

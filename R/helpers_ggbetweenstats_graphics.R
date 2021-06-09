@@ -32,29 +32,35 @@
 #'   x = Species,
 #'   y = Sepal.Length
 #' )
-#' @keywords internal
+#' @noRd
 
 # function body
 centrality_ggrepel <- function(plot,
                                data,
                                x,
                                y,
-                               type = "parametric",
-                               tr = 0.2,
-                               k = 2L,
                                centrality.path = FALSE,
-                               centrality.path.args = list(color = "red", size = 1, alpha = 0.5),
+                               centrality.path.args = list(
+                                 color = "red",
+                                 size = 1,
+                                 alpha = 0.5
+                               ),
                                centrality.point.args = list(size = 5, color = "darkred"),
-                               centrality.label.args = list(size = 3, nudge_x = 0.4, segment.linetype = 4),
+                               centrality.label.args = list(
+                                 size = 3,
+                                 nudge_x = 0.4,
+                                 segment.linetype = 4,
+                                 min.segment.length = 0
+                               ),
                                ...) {
   # creating the dataframe
-  centrality_df <- centrality_data(data, {{ x }}, {{ y }}, type = type, tr = tr, k = k)
+  centrality_df <- centrality_data(data, {{ x }}, {{ y }}, ...)
 
   # if there should be lines connecting mean values across groups
   if (isTRUE(centrality.path)) {
     plot <- plot +
       rlang::exec(
-        .fn = ggplot2::geom_path,
+        ggplot2::geom_path,
         data = centrality_df,
         mapping = ggplot2::aes(x = {{ x }}, y = {{ y }}, group = 1),
         inherit.aes = FALSE,
@@ -62,26 +68,20 @@ centrality_ggrepel <- function(plot,
       )
   }
 
-  # ------------------------ plot -------------------------------------
-
   # highlight the mean of each group
-  plot <- plot +
+  plot +
     rlang::exec(
-      .fn = ggplot2::geom_point,
-      mapping = ggplot2::aes(x = {{ x }}, y = {{ y }}),
+      ggplot2::geom_point,
+      mapping = ggplot2::aes({{ x }}, {{ y }}),
       data = centrality_df,
       inherit.aes = FALSE,
       !!!centrality.point.args
-    )
-
-  # attach the labels with means to the plot
-  plot +
+    ) + # attach the labels with means to the plot
     rlang::exec(
-      .fn = ggrepel::geom_label_repel,
+      ggrepel::geom_label_repel,
       data = centrality_df,
       mapping = ggplot2::aes(x = {{ x }}, y = {{ y }}, label = label),
       show.legend = FALSE,
-      min.segment.length = 0,
       inherit.aes = FALSE,
       parse = TRUE,
       !!!centrality.label.args
@@ -91,34 +91,40 @@ centrality_ggrepel <- function(plot,
 
 #' @noRd
 
-centrality_data <- function(data, x, y, type = "parametric", tr = 0.2, k = 2L, ...) {
+centrality_data <- function(data,
+                            x,
+                            y,
+                            type = "parametric",
+                            tr = 0.2,
+                            k = 2L,
+                            ...) {
 
   # ------------------------ measure -------------------------------------
 
   # which centrality measure?
-  centrality <-
-    dplyr::case_when(
-      type == "parametric" ~ "mean",
-      type == "nonparametric" ~ "median",
-      type == "robust" ~ "trimmed",
-      type == "bayes" ~ "MAP"
-    )
+  centrality <- dplyr::case_when(
+    type == "parametric" ~ "mean",
+    type == "nonparametric" ~ "median",
+    type == "robust" ~ "trimmed",
+    type == "bayes" ~ "MAP"
+  )
 
   # ------------------------ dataframe -------------------------------------
 
   # creating the dataframe
-  data %>%
-    dplyr::select({{ x }}, {{ y }}) %>%
-    tidyr::drop_na() %>%
+  dplyr::select(data, {{ x }}, {{ y }}) %>%
+    tidyr::drop_na(.) %>%
     dplyr::mutate({{ x }} := droplevels(as.factor({{ x }}))) %>%
     dplyr::group_by({{ x }}) %>%
     dplyr::group_modify(
       .f = ~ parameters::standardize_names(
-        data = as.data.frame(suppressWarnings(parameters::describe_distribution(
+        data = parameters::describe_distribution(
           x = .,
           centrality = centrality,
-          threshold = tr
-        ))),
+          threshold = tr,
+          #verbose = FALSE,
+          ci = 0.95 # TODO: https://github.com/easystats/bayestestR/issues/429
+        ),
         style = "broom"
       )
     ) %>%
@@ -128,7 +134,9 @@ centrality_data <- function(data, x, y, type = "parametric", tr = 0.2, k = 2L, .
     dplyr::ungroup() %>%
     dplyr::mutate(n_label = paste0({{ x }}, "\n(n = ", .prettyNum(n), ")")) %>%
     dplyr::arrange({{ x }}) %>%
-    dplyr::select({{ x }}, !!as.character(rlang::ensym(y)) := estimate, dplyr::matches("label"))
+    dplyr::select({{ x }}, !!as.character(rlang::ensym(y)) := estimate,
+      n_obs = n, dplyr::everything()
+    )
 }
 
 #' @title Adding `geom_signif` to `ggplot`
@@ -136,7 +144,7 @@ centrality_data <- function(data, x, y, type = "parametric", tr = 0.2, k = 2L, .
 #'
 #' @param ... Currently ignored.
 #' @param plot A `ggplot` object on which `geom_signif` needed to be added.
-#' @param df_pairwise A dataframe containing results from pairwise comparisons
+#' @param mpc_df A dataframe containing results from pairwise comparisons
 #'   (produced by `pairwiseComparisons::pairwise_comparisons()` function).
 #' @inheritParams ggbetweenstats
 #'
@@ -153,12 +161,11 @@ centrality_data <- function(data, x, y, type = "parametric", tr = 0.2, k = 2L, .
 #'   geom_boxplot()
 #'
 #' # dataframe with pairwise comparison test results
-#' df_pair <-
-#'   pairwiseComparisons::pairwise_comparisons(
-#'     data = iris,
-#'     x = Species,
-#'     y = Sepal.Length
-#'   )
+#' df_pair <- pairwiseComparisons::pairwise_comparisons(
+#'   data = iris,
+#'   x = Species,
+#'   y = Sepal.Length
+#' )
 #'
 #' # adding a geom for pairwise comparisons
 #' ggstatsplot:::ggsignif_adder(
@@ -166,54 +173,49 @@ centrality_data <- function(data, x, y, type = "parametric", tr = 0.2, k = 2L, .
 #'   data = iris,
 #'   x = Species,
 #'   y = Sepal.Length,
-#'   df_pairwise = df_pair
+#'   mpc_df = df_pair
 #' )
-#' @keywords internal
+#' @noRd
 
 ggsignif_adder <- function(plot,
-                           df_pairwise,
                            data,
                            x,
                            y,
+                           mpc_df,
                            pairwise.display = "significant",
                            ggsignif.args = list(textsize = 3, tip_length = 0.01),
                            ...) {
   # creating a column for group combinations
-  df_pairwise %<>% dplyr::mutate(groups = purrr::pmap(.l = list(group1, group2), .f = c))
+  mpc_df %<>% dplyr::mutate(groups = purrr::pmap(.l = list(group1, group2), .f = c))
 
   # for Bayes Factor, there will be no "p.value" column
-  if ("p.value" %in% names(df_pairwise)) {
-    # decide what needs to be displayed:
-    # only significant comparisons shown
-    if (pairwise.display %in% c("s", "significant")) {
-      df_pairwise %<>% dplyr::filter(p.value < 0.05)
-    }
-
-    # only non-significant comparisons shown
-    if (pairwise.display %in% c("ns", "nonsignificant", "non-significant")) {
-      df_pairwise %<>% dplyr::filter(p.value >= 0.05)
-    }
+  if ("p.value" %in% names(mpc_df)) {
+    # decide what needs to be displayed
+    if (grepl("^s", pairwise.display)) mpc_df %<>% dplyr::filter(p.value < 0.05)
+    if (grepl("^n", pairwise.display)) mpc_df %<>% dplyr::filter(p.value >= 0.05)
 
     # proceed only if there are any significant comparisons to display
-    if (dim(df_pairwise)[[1]] == 0L) {
+    if (dim(mpc_df)[[1]] == 0L) {
       return(plot)
     }
   }
 
   # arrange the dataframe so that annotations are properly aligned
-  df_pairwise %<>% dplyr::arrange(group1, group2)
+  mpc_df %<>% dplyr::arrange(group1, group2)
 
   # adding ggsignif comparisons to the plot
   plot +
     rlang::exec(
-      .f = ggsignif::geom_signif,
-      comparisons = df_pairwise$groups,
+      ggsignif::geom_signif,
+      comparisons = mpc_df$groups,
       map_signif_level = TRUE,
-      y_position = ggsignif_xy(data %>% dplyr::pull({{ x }}), data %>% dplyr::pull({{ y }})),
-      annotations = df_pairwise$label,
+      y_position = ggsignif_xy(
+        data %>% dplyr::pull({{ x }}),
+        data %>% dplyr::pull({{ y }})
+      ),
+      annotations = mpc_df$label,
       test = NULL,
       parse = TRUE,
-      vjust = 0,
       !!!ggsignif.args
     )
 }
@@ -243,6 +245,7 @@ ggsignif_xy <- function(x, y) {
   seq(y_start, y_end, length.out = n_comparions)
 }
 
+
 #' @title Making aesthetic modifications to the plot
 #' @name aesthetic_addon
 #'
@@ -251,7 +254,7 @@ ggsignif_xy <- function(x, y) {
 #' @inheritParams ggbetweenstats
 #' @param ... Additional arguments.
 #'
-#' @keywords internal
+#' @noRd
 
 aesthetic_addon <- function(plot,
                             x,
@@ -260,18 +263,16 @@ aesthetic_addon <- function(plot,
                             title = NULL,
                             subtitle = NULL,
                             caption = NULL,
-                            ggtheme = ggplot2::theme_bw(),
-                            ggstatsplot.layer = TRUE,
+                            ggtheme = ggstatsplot::theme_ggstatsplot(),
                             package = "RColorBrewer",
                             palette = "Dark2",
                             ggplot.component = NULL,
                             ...) {
-
   # if no. of factor levels is greater than the default palette color count
-  palette_message(package, palette, min_length = length(unique(levels(x)))[[1]])
+  palette_message(package, palette, length(unique(levels(x)))[[1]])
 
   # modifying the plot
-  plot <- plot +
+  plot +
     ggplot2::labs(
       x = xlab,
       y = ylab,
@@ -280,37 +281,26 @@ aesthetic_addon <- function(plot,
       caption = caption,
       color = xlab
     ) +
-    theme_ggstatsplot(ggtheme, ggstatsplot.layer) +
+    ggtheme +
     ggplot2::theme(legend.position = "none") +
     paletteer::scale_color_paletteer_d(paste0(package, "::", palette)) +
-    paletteer::scale_fill_paletteer_d(paste0(package, "::", palette))
-
-  # ---------------- adding ggplot component ---------------------------------
-
-  # return with any additional modification that needs to be made to the plot
-  plot + ggplot.component
+    ggplot.component
 }
 
 
 #' @title Adding a column to dataframe describing outlier status
 #' @name outlier_df
 #'
-#' @inheritParams long_to_wide_converter
-#' @param outlier.label Label to put on the outliers that have been tagged. This
-#'   can't be the same as x argument.
-#' @param outlier.coef Coefficient for outlier detection using Tukey's method.
-#'   With Tukey's method, outliers are below (1st Quartile) or above (3rd
-#'   Quartile) `coef` times the Inter-Quartile Range (IQR) (Default: `1.5`).
+#' @inheritParams ggbetweenstats
 #' @param ... Additional arguments.
 #'
 #' @return The dataframe entered as `data` argument is returned with two
 #'   additional columns: `isanoutlier` and `outlier` denoting which observation
 #'   are outliers and their corresponding labels.
 #'
-#' @importFrom rlang enquo ensym
-#' @importFrom stats quantile
 #' @importFrom dplyr group_by mutate ungroup
-#'
+#' @importFrom ipmisc %$%
+#' @importFrom performance check_outliers
 #'
 #' @examples
 #' # adding column for outlier and a label for that outlier
@@ -324,19 +314,13 @@ aesthetic_addon <- function(plot,
 #'   dplyr::arrange(outlier)
 #' @noRd
 
-# function body
+# add a logical column indicating whether a point is or isn't an outlier
 outlier_df <- function(data, x, y, outlier.label, outlier.coef = 1.5, ...) {
-  # defining function to detect outliers based on interquartile range
-  check_outlier <- function(var, coef = 1.5) {
-    quantiles <- stats::quantile(x = var, probs = c(0.25, 0.75), na.rm = TRUE)
-    IQR <- quantiles[2] - quantiles[1]
-    (var < (quantiles[1] - coef * IQR)) | (var > (quantiles[2] + coef * IQR))
-  }
-
-  # add a logical column indicating whether a point is or is not an outlier
-  dplyr::group_by(.data = data, {{ x }}) %>%
+  dplyr::group_by(data, {{ x }}) %>%
     dplyr::mutate(
-      isanoutlier = ifelse(check_outlier({{ y }}, outlier.coef), TRUE, FALSE),
+      isanoutlier = ifelse((.) %$% as.vector(performance::check_outliers({{ y }},
+        method = "iqr", threshold = list("iqr" = outlier.coef)
+      )), TRUE, FALSE),
       outlier = ifelse(isanoutlier, {{ outlier.label }}, NA)
     ) %>%
     dplyr::ungroup(.)
@@ -362,5 +346,37 @@ function_switch <- function(test, element, ...) {
   if (test == "anova") .f <- statsExpressions::oneway_anova
 
   # evaluate it
-  suppressWarnings(suppressMessages(rlang::exec(.fn = .f, ...)))
+  suppressWarnings(suppressMessages(rlang::exec(.f, ...)))
+}
+
+#' @title Message if palette doesn't have enough number of colors.
+#' @name palette_message
+#' @description Informs the user about not using the default color palette
+#'   when the number of factor levels is greater than 8, the maximum number of
+#'   colors allowed by `"Dark2"` palette from the `RColorBrewer` package.
+#'
+#' @importFrom dplyr filter select
+#' @importFrom rlang !!
+#' @importFrom ipmisc %$%
+#'
+#' @noRd
+
+# function body
+palette_message <- function(package, palette, min_length) {
+  # computing the palette length
+  dplyr::filter(paletteer::palettes_d_names, package == !!package, palette == !!palette) %$%
+    length[[1]] -> pl
+
+  # check if insufficient number of colors are available in a given palette
+  pl_message <- ifelse(pl < min_length, FALSE, TRUE)
+
+  # inform the user
+  if (isFALSE(pl_message)) {
+    message(cat(
+      "Warning: Number of labels is greater than default palette color count.\n",
+      "Try using another color `palette` (and/or `package`).\n"
+    ))
+  }
+
+  invisible(pl_message)
 }

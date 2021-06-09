@@ -31,7 +31,8 @@ ggbetweenstats(
   centrality.plotting = TRUE,
   centrality.type = type,
   centrality.point.args = list(size = 5, color = "darkred"),
-  centrality.label.args = list(size = 3, nudge_x = 0.4, segment.linetype = 4),
+  centrality.label.args = list(size = 3, nudge_x = 0.4, segment.linetype = 4,
+    min.segment.length = 0),
   outlier.tagging = FALSE,
   outlier.label = NULL,
   outlier.coef = 1.5,
@@ -42,8 +43,7 @@ ggbetweenstats(
     = 0.4, size = 3, stroke = 0),
   violin.args = list(width = 0.5, alpha = 0.2),
   ggsignif.args = list(textsize = 3, tip_length = 0.01),
-  ggtheme = ggplot2::theme_bw(),
-  ggstatsplot.layer = TRUE,
+  ggtheme = ggstatsplot::theme_ggstatsplot(),
   package = "RColorBrewer",
   palette = "Dark2",
   ggplot.component = NULL,
@@ -56,7 +56,14 @@ ggbetweenstats(
 be taken. Other data types (e.g., matrix,table, array, etc.) will \strong{not}
 be accepted.}
 
-\item{x}{The grouping (or independent) variable from the dataframe \code{data}.}
+\item{x}{The grouping (or independent) variable from the dataframe \code{data}. In
+case of a repeated measures or within-subjects design, if \code{subject.id}
+argument is not available or not explicitly specified, the function assumes
+that the data has already been sorted by such an id by the user and creates
+an internal identifier. So if your data is \strong{not} sorted, the results
+\emph{can} be inaccurate when there are more than two levels in \code{x} and there
+are \code{NA}s present. The data is expected to be sorted by user in
+subject-1,subject-2, ..., pattern.}
 
 \item{y}{The response (or outcome or dependent) variable from the
 dataframe \code{data}.}
@@ -65,9 +72,7 @@ dataframe \code{data}.}
 plots are \code{"box"} (for only boxplots), \code{"violin"} (for only violin plots),
 and \code{"boxviolin"} (for a combination of box and violin plots; default).}
 
-\item{type}{A character specifying the type of statistical approach.
-Four possible options:
-
+\item{type}{A character specifying the type of statistical approach:
 \itemize{
 \item \code{"parametric"}
 \item \code{"nonparametric"}
@@ -75,8 +80,7 @@ Four possible options:
 \item \code{"bayes"}
 }
 
-Corresponding abbreviations are also accepted: \code{"p"} (for parametric),
-\code{"np"} (for nonparametric), \code{"r"} (for robust), or \code{"bf"} (for Bayesian).}
+You can specify just the initial letter.}
 
 \item{pairwise.comparisons}{Logical that decides whether pairwise comparisons
 are to be displayed (default: \code{TRUE}). Please note that only
@@ -139,7 +143,7 @@ variable names for \code{x} and \code{y} will be used.}
 return \verb{95\%} confidence/credible intervals (\code{0.95}).}
 
 \item{nboot}{Number of bootstrap samples for computing confidence interval
-for the effect size (Default: \code{100}).}
+for the effect size (Default: \code{100L}).}
 
 \item{tr}{Trim level for the mean when carrying out \code{robust} tests. In case
 of an error, try reducing the value of \code{tr}, which is by default set to
@@ -205,15 +209,11 @@ the \code{geom_violin}.}
 \item{ggsignif.args}{A list of additional aesthetic
 arguments to be passed to \code{ggsignif::geom_signif}.}
 
-\item{ggtheme}{A function, \code{ggplot2} theme name. Default value is
-\code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
-extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
-\code{hrbrthemes::theme_ipsum_ps()}, etc.).}
-
-\item{ggstatsplot.layer}{Logical that decides whether \code{theme_ggstatsplot}
-theme elements are to be displayed along with the selected \code{ggtheme}
-(Default: \code{TRUE}). \code{theme_ggstatsplot} is an opinionated theme layer that
-override some aspects of the selected \code{ggtheme}.}
+\item{ggtheme}{A \code{ggplot2} theme. Default value is
+\code{ggstatsplot::theme_ggstatsplot()}. Any of the \code{ggplot2} themes (e.g.,
+\code{ggplot2::theme_bw()}), or themes from extension packages are allowed
+(e.g., \code{ggthemes::theme_fivethirtyeight()}, \code{hrbrthemes::theme_ipsum_ps()},
+etc.).}
 
 \item{package, palette}{Name of the package from which the given palette is to
 be extracted. The available palettes and packages can be checked by running
@@ -239,6 +239,10 @@ A combination of box and violin plots along with jittered data points for
 between-subjects designs with statistical details included in the plot as a
 subtitle.
 }
+\details{
+For more details, see:
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggbetweenstats.html}
+}
 \examples{
 \donttest{
 # to get reproducible results from bootstrapping
@@ -246,34 +250,23 @@ set.seed(123)
 library(ggstatsplot)
 
 # simple function call with the defaults
-ggstatsplot::ggbetweenstats(
-  data = mtcars,
-  x = am,
-  y = mpg,
-  title = "Fuel efficiency by type of car transmission",
-  caption = "Transmission (0 = automatic, 1 = manual)"
-)
+ggbetweenstats(mtcars, am, mpg)
 
 # more detailed function call
-ggstatsplot::ggbetweenstats(
-  data = datasets::morley,
+ggbetweenstats(
+  data = morley,
   x = Expt,
   y = Speed,
-  type = "nonparametric",
+  type = "robust",
   plot.type = "box",
   xlab = "The experiment number",
   ylab = "Speed-of-light measurement",
   pairwise.comparisons = TRUE,
   p.adjust.method = "fdr",
   outlier.tagging = TRUE,
-  outlier.label = Run,
-  ggtheme = ggplot2::theme_grey(),
-  ggstatsplot.layer = FALSE
+  outlier.label = Run
 )
 }
-}
-\references{
-\url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggbetweenstats.html}
 }
 \seealso{
 \code{\link{grouped_ggbetweenstats}}, \code{\link{ggwithinstats}},

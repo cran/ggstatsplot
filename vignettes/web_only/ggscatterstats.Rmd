@@ -36,11 +36,13 @@ knitr::opts_chunk$set(
 )
 ```
 
-The function `ggstatsplot::ggscatterstats` is meant to provide a
-**publication-ready scatterplot** with all statistical details included in the
-plot itself to show association between two continuous variables. This function
-is also helpful during the **data exploration** phase. We will see examples of how
-to use this function in this vignette with the `ggplot2movies` dataset.
+Lifecycle: [![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://lifecycle.r-lib.org/articles/stages.html)
+
+The function `ggscatterstats` is meant to provide a **publication-ready
+scatterplot** with all statistical details included in the plot itself to show
+association between two continuous variables. This function is also helpful
+during the **data exploration** phase. We will see examples of how to use this
+function in this vignette with the `ggplot2movies` dataset.
 
 To begin with, here are some instances where you would want to use
 `ggscatterstats`-
@@ -52,7 +54,7 @@ To begin with, here are some instances where you would want to use
 you are not familiar with this operator, here is a good explanation:
 <http://r4ds.had.co.nz/pipes.html>
 
-## Correlation plot with `ggscatterstats`
+# Correlation plot with `ggscatterstats`
 
 To illustrate how this function can be used, we will rely on the `ggplot2movies`
 dataset. This dataset provides information about movies scraped from
@@ -63,7 +65,7 @@ this dataset included in the `ggstatsplot` package itself.
 library(ggstatsplot)
 
 # see the selected data (we have data from 1813 movies)
-dplyr::glimpse(x = ggstatsplot::movies_wide)
+dplyr::glimpse(movies_wide)
 ```
 
 Now that we have a clean dataset, we can start asking some interesting
@@ -78,10 +80,10 @@ To reduce the processing time, let's only work with 30% of the dataset.
 set.seed(123)
 
 # to speed up the calculation, let's use only 10% of the data
-movies_10 <- dplyr::sample_frac(tbl = movies_long, size = 0.1)
+movies_10 <- dplyr::sample_frac(movies_long, size = 0.1)
 
 # plot
-ggstatsplot::ggscatterstats(
+ggscatterstats(
   data = movies_10, # dataframe from which variables are taken
   x = budget, # predictor/independent variable
   y = rating, # dependent variable
@@ -109,7 +111,7 @@ function returns object that is **not** further modifiable with `ggplot2`. This
 can be avoided by not plotting the marginal distributions (`marginal = FALSE`).
 Currently trying to find a workaround this problem.
 
-## Grouped analysis with `grouped_ggscatterstats`
+# Grouped analysis with `grouped_ggscatterstats`
 
 What if we want to do the same analysis do the same analysis for movies with
 different MPAA (Motion Picture Association of America) film ratings (NC-17, PG,
@@ -132,12 +134,12 @@ set.seed(123)
 # to speed up the calculation, let's use only 20% of the data
 # also since there are only 7 movies with NC-17 ratings, leave them out
 movies_20 <-
-  ggstatsplot::movies_wide %>%
-  dplyr::filter(.data = ., mpaa != "NC-17") %>%
+  movies_wide %>%
+  dplyr::filter(mpaa != "NC-17") %>%
   dplyr::sample_frac(tbl = ., size = 0.2)
 
 # plot
-ggstatsplot::grouped_ggscatterstats(
+grouped_ggscatterstats(
   # arguments relevant for ggstatsplot::ggscatterstats
   data = movies_10,
   x = budget,
@@ -148,7 +150,7 @@ ggstatsplot::grouped_ggscatterstats(
   label.expression = rating < 5 & budget < 20,
   marginal.type = "boxplot",
   ggtheme = ggthemes::theme_tufte(),
-  ggstatsplot.layer = FALSE,
+
   # arguments relevant for ggstatsplot::combine_plots
   annotation.args = list(
     title = "Relationship between movie budget and IMDB rating",
@@ -162,7 +164,7 @@ As seen from the plot, this analysis has revealed something interesting: The
 relationship we found between budget and IMDB rating holds only for PG-13 and
 R-rated movies. 
 
-## Grouped analysis with `ggscatterstats` + `purrr`
+# Grouped analysis with `ggscatterstats` + `purrr`
 
 Although this is a quick and dirty way to explore large amount of data with
 minimal effort, it does come with an important limitation: reduced flexibility.
@@ -175,20 +177,59 @@ can be easily done using `purrr`.
 See the associated vignette here:
 <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/purrr_examples.html>
 
-## Summary of tests
+# Summary of graphics
 
-Following tests are carried out for each type of analyses. Additionally, the
-correlation coefficients (and their confidence intervals) are used as effect
-sizes-
+graphical element | `geom_` used | argument for further modification
+--------- | ------- | --------------------------
+raw data | `ggplot2::geom_point` | `point.args`
+labels for raw data | `ggrepel::geom_label_repel` | `point.label.args`
+smooth line | `ggplot2::geom_smooth` | `smooth.line.args`
+marginal distributions | `ggExtra::ggMarginal` | ❌
 
-Type | Test | CI? | Function
+# Summary of tests
+
+**Hypothesis testing** and **Effect size estimation**
+
+Type | Test | CI? | Function used
 ----------- | ------------------------- | --- | -----
-Parametric | Pearson's correlation coefficient | <font color="green">Yes<font> | `correlation::correlation`
-Non-parametric | Spearman's rank correlation coefficient | <font color="green">Yes<font> | `correlation::correlation`
-Robust | Winsorized Pearson correlation coefficient | <font color="green">Yes<font> | `correlation::correlation`
-Bayes Factor | Pearson's correlation coefficient | <font color="green">Yes</font> | `correlation::correlation`
+Parametric | Pearson's correlation coefficient | ✅ | `correlation::correlation`
+Non-parametric | Spearman's rank correlation coefficient | ✅ | `correlation::correlation`
+Robust | Winsorized Pearson correlation coefficient | ✅ | `correlation::correlation`
+Bayesian | Pearson's correlation coefficient | ✅ | `correlation::correlation`
 
-## Effect size interpretation
+# Reporting
+
+If you wish to include statistical analysis results in a publication/report, the
+ideal reporting practice will be a hybrid of two approaches:
+
+- the `ggstatsplot` approach, where the plot contains both the visual and
+numerical summaries about a statistical model, and
+
+- the *standard* narrative approach, which provides interpretive context for the
+reported statistics.
+
+For example, let's see the following example:
+
+The `ggstatsplot` reporting -
+
+```{r reporting}
+ggscatterstats(mtcars, qsec, drat)
+```
+
+The narrative context (assuming `type = "parametric"`) can complement this plot
+either as a figure caption or in the main text-
+
+> Pearson's correlation test revealed that, across 32 cars, a measure of
+acceleration (1/4 mile time; `qsec`) was positively correlated with rear axle
+ratio (`drat`), but this effect was not statistically significant. The effect
+size $(r = 0.09)$ was small, as per Cohen’s (1988) conventions. The Bayes Factor
+for the same analysis revealed that the data were `r round(exp(1.20), 2)` times
+more probable under the null hypothesis as compared to the alternative
+hypothesis. This can be considered moderate evidence (Jeffreys, 1961) in favor
+of the null hypothesis (of absence of any correlation between these two
+variables).
+
+# Effect size interpretation
 
 To see how the effect sizes displayed in these tests can be interpreted, see:
 <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/effsize_interpretation.html>

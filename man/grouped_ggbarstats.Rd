@@ -59,9 +59,7 @@ separately specified here.}
     \item{\code{xlab}}{Custom text for the \code{x} axis label (Default: \code{NULL}, which
 will cause the \code{x} axis label to be the \code{x} variable).}
     \item{\code{ylab}}{Custom text for the \code{y} axis label (Default: \code{NULL}).}
-    \item{\code{type}}{A character specifying the type of statistical approach.
-Four possible options:
-
+    \item{\code{type}}{A character specifying the type of statistical approach:
 \itemize{
 \item \code{"parametric"}
 \item \code{"nonparametric"}
@@ -69,8 +67,7 @@ Four possible options:
 \item \code{"bayes"}
 }
 
-Corresponding abbreviations are also accepted: \code{"p"} (for parametric),
-\code{"np"} (for nonparametric), \code{"r"} (for robust), or \code{"bf"} (for Bayesian).}
+You can specify just the initial letter.}
     \item{\code{paired}}{Logical indicating whether data came from a within-subjects or
 repeated measures design study (Default: \code{FALSE}). If \code{TRUE}, McNemar's
 test expression will be returned. If \code{FALSE}, Pearson's chi-square test will
@@ -114,14 +111,11 @@ hypothesis under the alternative, and corresponds to Gunel and Dickey's
 \code{results.subtitle = FALSE}.}
     \item{\code{caption}}{The text for the plot caption.}
     \item{\code{legend.title}}{Title text for the legend.}
-    \item{\code{ggtheme}}{A function, \code{ggplot2} theme name. Default value is
-\code{ggplot2::theme_bw()}. Any of the \code{ggplot2} themes, or themes from
-extension packages are allowed (e.g., \code{ggthemes::theme_fivethirtyeight()},
-\code{hrbrthemes::theme_ipsum_ps()}, etc.).}
-    \item{\code{ggstatsplot.layer}}{Logical that decides whether \code{theme_ggstatsplot}
-theme elements are to be displayed along with the selected \code{ggtheme}
-(Default: \code{TRUE}). \code{theme_ggstatsplot} is an opinionated theme layer that
-override some aspects of the selected \code{ggtheme}.}
+    \item{\code{ggtheme}}{A \code{ggplot2} theme. Default value is
+\code{ggstatsplot::theme_ggstatsplot()}. Any of the \code{ggplot2} themes (e.g.,
+\code{ggplot2::theme_bw()}), or themes from extension packages are allowed
+(e.g., \code{ggthemes::theme_fivethirtyeight()}, \code{hrbrthemes::theme_ipsum_ps()},
+etc.).}
     \item{\code{package}}{Name of the package from which the given palette is to
 be extracted. The available palettes and packages can be checked by running
 \code{View(paletteer::palettes_d_names)}.}
@@ -139,6 +133,10 @@ Helper function for \code{ggstatsplot::ggbarstats} to apply this function across
 multiple levels of a given factor and combining the resulting plots using
 \code{ggstatsplot::combine_plots}.
 }
+\details{
+For more details, see:
+\url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html}
+}
 \examples{
 \donttest{
 # for reproducibility
@@ -147,8 +145,8 @@ library(ggstatsplot)
 
 # let's create a smaller dataframe
 diamonds_short <- ggplot2::diamonds \%>\%
-  dplyr::filter(.data = ., cut \%in\% c("Very Good", "Ideal")) \%>\%
-  dplyr::filter(.data = ., clarity \%in\% c("SI1", "SI2", "VS1", "VS2")) \%>\%
+  dplyr::filter(cut \%in\% c("Very Good", "Ideal")) \%>\%
+  dplyr::filter(clarity \%in\% c("SI1", "SI2", "VS1", "VS2")) \%>\%
   dplyr::sample_frac(tbl = ., size = 0.05)
 
 # plot

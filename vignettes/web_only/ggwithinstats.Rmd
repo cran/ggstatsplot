@@ -41,6 +41,8 @@ citation("ggstatsplot")
 
 ---
 
+Lifecycle: [![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://lifecycle.r-lib.org/articles/stages.html)
+
 The function `ggstatsplot::ggwithinstats` is designed to facilitate 
 **data exploration**, and for making highly customizable **publication-ready plots**,
 with relevant statistical details included in the plot itself if desired. We
@@ -57,7 +59,7 @@ To begin with, here are some instances where you would want to use
 familiar with this operator, here is a good explanation:
 <http://r4ds.had.co.nz/pipes.html>
 
-## Comparisons between groups with `ggwithistats`
+# Comparisons between groups with `ggwithistats`
 
 To illustrate how this function can be used, we will use the `bugs` dataset
 throughout this vignette. This data set, "Bugs", provides the extent to which
@@ -118,7 +120,6 @@ color palette in use.
 # for reproducibility
 set.seed(123)
 library(ggstatsplot)
-library(firatheme)
 
 # plot
 ggstatsplot::ggwithinstats(
@@ -137,8 +138,6 @@ ggstatsplot::ggwithinstats(
   outlier.label.color = "red", # outlier point label color
   mean.plotting = TRUE, # whether the mean is to be displayed
   mean.color = "darkblue", # color for mean
-  ggtheme = firatheme::theme_fira(), # a different theme
-  ggstatsplot.layer = FALSE, # turn off default modification of the used theme
   package = "yarrr", # package from which color palette is to be taken
   palette = "info2", # choosing a different color palette
   title = "Comparison of desire to kill bugs",
@@ -176,7 +175,7 @@ set.seed(123)
 library(ggstatsplot)
 
 # selecting subset of the data
-df_disgust <- dplyr::filter(.data = bugs_long, condition %in% c("LDHF", "HDHF"))
+df_disgust <- dplyr::filter(bugs_long, condition %in% c("LDHF", "HDHF"))
 
 # parametric t-test
 p1 <-
@@ -190,7 +189,7 @@ p1 <-
     title = "Parametric test",
     package = "ggsci",
     palette = "nrc_npg",
-    ggtheme = ggthemr::ggthemr(palette = "light")
+    ggtheme = hrbrthemes::theme_ipsum_pub()
   )
 
 # Mann-Whitney U test (nonparametric test)
@@ -206,8 +205,7 @@ p2 <-
     title = "Non-parametric Test",
     package = "ggsci",
     palette = "uniform_startrek",
-    ggtheme = ggthemes::theme_map(),
-    ggstatsplot.layer = FALSE
+    ggtheme = ggthemes::theme_map()
   )
 
 # robust t-test
@@ -223,8 +221,7 @@ p3 <-
     title = "Robust Test",
     package = "wesanderson",
     palette = "Royal2",
-    ggtheme = hrbrthemes::theme_ipsum_tw(),
-    ggstatsplot.layer = FALSE
+    ggtheme = hrbrthemes::theme_ipsum_tw()
   )
 
 # Bayes Factor for parametric t-test
@@ -253,7 +250,7 @@ ggstatsplot::combine_plots(
 )
 ```
 
-## Grouped analysis with `grouped_ggwithinstats`
+# Grouped analysis with `grouped_ggwithinstats`
 
 What if we want to carry out this same analysis but for each region (or gender)?
 
@@ -288,7 +285,7 @@ ggstatsplot::grouped_ggwithinstats(
   package = "ggsci",
   palette = "default_jco",
   outlier.tagging = TRUE,
-  ggstatsplot.layer = FALSE,
+  
   outlier.label = education,
   k = 3,
   # arguments relevant for ggstatsplot::combine_plots
@@ -297,7 +294,7 @@ ggstatsplot::grouped_ggwithinstats(
 )
 ```
 
-## Grouped analysis with `ggwithinstats` + `purrr` 
+# Grouped analysis with `ggwithinstats` + `purrr` 
 
 Although this grouping function provides a quick way to explore the data, it
 leaves much to be desired. For example, the same type of test and theme is
@@ -310,25 +307,38 @@ package.
 See the associated vignette here:
 <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/purrr_examples.html>
 
-## Between-subjects designs
+# Between-subjects designs
 
 For independent measures designs, `ggbetweenstats` function can be used:
 <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggbetweenstats.html>
 
-## Summary of tests
+# Summary of graphics
 
-The central tendency measure displayed will depend on the statistics:
+graphical element | `geom_` used | argument for further modification
+--------- | ------- | --------------------------
+raw data | `ggplot2::geom_point` | `point.args`
+point path | `ggplot2::geom_path` | `point.path.args`
+box plot | `ggplot2::geom_boxplot` | ❌
+density plot | `ggplot2::geom_violin` | `violin.args`
+centrality measure point | `ggplot2::geom_point` | `centrality.point.args`
+centrality measure point path | `ggplot2::geom_path` | `centrality.path.args`
+centrality measure label | `ggrepel::geom_label_repel` | `centrality.label.args`
+outlier point | `ggplot2::stat_boxplot` | ❌
+outlier label | `ggrepel::geom_label_repel` | `outlier.label.args`
+pairwise comparisons | `ggsignif::geom_ggsignif` | `ggsignif.args`
+
+# Summary of tests
+
+**Central tendency measure**
 
 Type | Measure | Function used
 ----------- | --------- | ------------------ 
 Parametric | mean | `parameters::describe_distribution`
 Non-parametric | median | `parameters::describe_distribution`
 Robust | trimmed mean | `parameters::describe_distribution`
-Bayesian | MAP estimate | `parameters::describe_distribution`
+Bayesian | MAP (maximum *a posteriori* probability) estimate | `parameters::describe_distribution`
 
-MAP: maximum a posteriori probability
-
-Following (within-subjects) tests are carried out for each type of analyses-
+**Hypothesis testing**
 
 Type | No. of groups | Test | Function used
 ----------- | --- | ------------------------- | -----
@@ -341,31 +351,66 @@ Non-parametric | 2 | Wilcoxon signed-rank test | `stats::wilcox.test`
 Robust | 2 | Yuen's test on trimmed means for dependent samples | `WRS2::yuend`
 Bayesian | 2 | Student's *t*-test | `BayesFactor::ttestBF`
 
-Following effect sizes (and confidence intervals/CI) are available for each type
-of test-
+**Effect size estimation**
 
 Type | No. of groups | Effect size | CI? | Function used
 ----------- | --- | ------------------------- | --- | -----
-Parametric | > 2 | $\eta_{p}^2$, $\omega_{p}^2$ | <font color="green">Yes<font> | `effectsize::omega_squared`, `effectsize::eta_squared`
-Non-parametric | > 2 | $W_{Kendall}$ (Kendall's coefficient of concordance) | <font color="green">Yes<font> | `effectsize::kendalls_w`
-Robust | > 2 | $\delta_{R-avg}^{AKP}$ <font color="green">Yes<font> | Algina-Keselman-Penfield robust standardized difference average | `WRS2::wmcpAKP`
-Bayes Factor | > 2 | $R_{posterior}^2$ | <font color="green">Yes<font> | `performance::r2_bayes`
-Parametric | 2 | Cohen's *d*, Hedge's *g* | <font color="green">Yes<font> | `effectsize::cohens_d`, `effectsize::hedges_g`
-Non-parametric | 2 | *r* (rank-biserial correlation) | <font color="green">Yes<font> | `effectsize::rank_biserial`
-Robust | 2 |  $\delta_{R}^{AKP}$ (Algina-Keselman-Penfield robust standardized difference) | <font color="green">Yes<font> | `WRS2::dep.effect`
-Bayesian | 2 | $\delta_{posterior}$ | <font color="green">Yes<font> | `bayestestR::describe_posterior`
+Parametric | > 2 | $\eta_{p}^2$, $\omega_{p}^2$ | ✅ | `effectsize::omega_squared`, `effectsize::eta_squared`
+Non-parametric | > 2 | $W_{Kendall}$ (Kendall's coefficient of concordance) | ✅ | `effectsize::kendalls_w`
+Robust | > 2 | $\delta_{R-avg}^{AKP}$ (Algina-Keselman-Penfield robust standardized difference average) | ✅ | `WRS2::wmcpAKP`
+Bayes Factor | > 2 | $R_{Bayesian}^2$ | ✅ | `performance::r2_bayes`
+Parametric | 2 | Cohen's *d*, Hedge's *g* | ✅ | `effectsize::cohens_d`, `effectsize::hedges_g`
+Non-parametric | 2 | *r* (rank-biserial correlation) | ✅ | `effectsize::rank_biserial`
+Robust | 2 |  $\delta_{R}^{AKP}$ (Algina-Keselman-Penfield robust standardized difference) | ✅ | `WRS2::wmcpAKP`
+Bayesian | 2 | $\delta_{posterior}$ | ✅ | `bayestestR::describe_posterior`
 
-Here is a summary of *multiple pairwise comparison* tests supported in
-*ggwithinstats*-
+**Pairwise comparison tests**
 
 Type | Test | *p*-value adjustment? | Function used
 ----------- | ---------------------------- | --- | -----
-Parametric | Student's *t*-test | <font color="green">Yes</font> | `stats::pairwise.t.test`
-Non-parametric | Durbin-Conover test | <font color="green">Yes</font> | `PMCMRplus::durbinAllPairsTest` 
-Robust | Yuen's trimmed means test | <font color="green">Yes</font> | `WRS2::rmmcp`
-Bayesian | Student's *t*-test | `NA` | `BayesFactor::ttestBF`
+Parametric | Student's *t*-test | ✅ | `stats::pairwise.t.test`
+Non-parametric | Durbin-Conover test | ✅ | `PMCMRplus::durbinAllPairsTest` 
+Robust | Yuen's trimmed means test | ✅ | `WRS2::rmmcp`
+Bayesian | Student's *t*-test | ❌ | `BayesFactor::ttestBF`
 
-## Effect size interpretation
+# Reporting
+
+If you wish to include statistical analysis results in a publication/report, the
+ideal reporting practice will be a hybrid of two approaches:
+
+- the `ggstatsplot` approach, where the plot contains both the visual and
+numerical summaries about a statistical model, and
+
+- the *standard* narrative approach, which provides interpretive context for the
+reported statistics.
+
+For example, let's see the following example:
+
+The `ggstatsplot` reporting -
+
+```{r reporting}
+library(WRS2) # for data
+ggwithinstats(WineTasting, Wine, Taste)
+```
+
+The narrative context (assuming `type = "parametric"`) can complement this plot
+either as a figure caption or in the main text-
+
+> Fisher's repeated measures one-way ANOVA revealed that, across 22 friends to
+taste each of the three wines, there was a statistically significant difference
+across persons preference for each wine. The effect size $(\omega_{p} = 0.02)$
+was medium, as per Field’s (2013) conventions. The Bayes Factor for the same
+analysis revealed that the data were `r round(exp(2.11), 2)` times more probable
+under the alternative hypothesis as compared to the null hypothesis. This can be
+considered moderate evidence (Jeffreys, 1961) in favor of the alternative
+hypothesis. This global effect was carried out by post hoc pairwise *t*-tests,
+which revealed that Wine C was preferred across participants to be the least
+desirable compared to Wines A and B.
+
+Similar reporting style can be followed when the function performs *t*-test
+instead of a one-way ANOVA.
+
+# Effect size interpretation
 
 To see how the effect sizes displayed in these tests can be interpreted, see:
 <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/effsize_interpretation.html>

@@ -12,7 +12,7 @@
 #'
 #' @examples
 #' \donttest{
-#' ggstatsplot:::grouped_list(data = ggplot2::msleep, grouping.var = vore)
+#' ggstatsplot:::grouped_list(ggplot2::msleep, grouping.var = vore)
 #' }
 #' @keywords internal
 
@@ -25,5 +25,5 @@ grouped_list <- function(data, grouping.var = NULL) {
 
   # creating a list; don't use `dplyr::group_list` because it removes names
   as_tibble(data) %>%
-    split(x = ., f = .[[rlang::quo_text(rlang::ensym(grouping.var))]], drop = TRUE)
+    split(f = .[[rlang::quo_text(rlang::ensym(grouping.var))]], drop = TRUE)
 }
