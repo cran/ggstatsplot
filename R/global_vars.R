@@ -7,6 +7,7 @@ utils::globalVariables(
     "N",
     "conf.high",
     "conf.low",
+    "count",
     "counts",
     "df.error",
     "estimate",
@@ -35,7 +36,11 @@ utils::globalVariables(
     "r.method.text",
     ".x",
     "var",
-    "renderPlot"
+    "renderPlot",
+    ".f",
+    ".fn",
+    ".ns",
+    "log_e_bf10"
   ),
   package = "ggstatsplot",
   add = FALSE

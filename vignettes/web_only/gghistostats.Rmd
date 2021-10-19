@@ -105,7 +105,7 @@ that this sample is different.
 # Grouped analysis with `grouped_gghistostats`
 
 What if we want to do the same analysis separately for each gender? 
-`ggstatsplot` provides a special helper function for such instances:
+`{ggstatsplot}` provides a special helper function for such instances:
 `grouped_gghistostats`. This is merely a wrapper function around
 `ggstatsplot::combine_plots`. It applies `gghistostats` across all **levels** of
 a specified **grouping variable** and then combines the individual plots into a
@@ -181,7 +181,7 @@ Type | Test | Function used
 ------------------ | ------------------------- | -----
 Parametric | One-sample Student's *t*-test | `stats::t.test`
 Non-parametric | One-sample Wilcoxon test | `stats::wilcox.test`
-Robust | Bootstrap-*t* method for one-sample test | `trimcibt` (custom)
+Robust | Bootstrap-*t* method for one-sample test | `WRS2::trimcibt`
 Bayesian | One-sample Student's *t*-test | `BayesFactor::ttestBF`
 
 **Effect size estimation**
@@ -190,7 +190,7 @@ Type | Effect size | CI? | Function used
 ------------ | ----------------------- | --- | -----
 Parametric | Cohen's *d*, Hedge's *g* | ✅ | `effectsize::cohens_d`, `effectsize::hedges_g`
 Non-parametric | *r* (rank-biserial correlation) | ✅ | `effectsize::rank_biserial`
-Robust | trimmed mean | ✅ | `trimcibt` (custom)
+Robust | trimmed mean | ✅ | `WRS2::trimcibt`
 Bayes Factor | $\delta_{posterior}$ | ✅ | `bayestestR::describe_posterior`
 
 # Reporting
@@ -198,7 +198,7 @@ Bayes Factor | $\delta_{posterior}$ | ✅ | `bayestestR::describe_posterior`
 If you wish to include statistical analysis results in a publication/report, the
 ideal reporting practice will be a hybrid of two approaches:
 
-- the `ggstatsplot` approach, where the plot contains both the visual and
+- the `{ggstatsplot}` approach, where the plot contains both the visual and
 numerical summaries about a statistical model, and
 
 - the *standard* narrative approach, which provides interpretive context for the
@@ -206,7 +206,7 @@ reported statistics.
 
 For example, let's see the following example:
 
-The `ggstatsplot` reporting -
+
 
 ```{r reporting}
 gghistostats(trees, Height, test.value = 75)
@@ -223,17 +223,8 @@ the data were `r round(exp(1.3), 2)` times more probable under the null
 hypothesis as compared to the alternative hypothesis. This can be considered
 moderate evidence (Jeffreys, 1961) in favor of the null hypothesis.
 
-# Effect size interpretation
-
-To see how the effect sizes displayed in these tests can be interpreted, see:
-<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/effsize_interpretation.html>
-
 # Suggestions
 
 If you find any bugs or have any suggestions/remarks, please file an issue on GitHub: 
 <https://github.com/IndrajeetPatil/ggstatsplot/issues>
 
-# Session Information
-
-For details, see-
-<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/session_info.html>

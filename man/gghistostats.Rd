@@ -83,8 +83,8 @@ parametric test} (Default: \code{TRUE}).}
 \item{effsize.type}{Type of effect size needed for \emph{parametric} tests. The
 argument can be \code{"d"} (for Cohen's \emph{d}) or \code{"g"} (for Hedge's \emph{g}).}
 
-\item{conf.level}{Confidence/Credible Interval (CI) level. Default to \code{0.95}
-(\verb{95\%}).}
+\item{conf.level}{Scalar between \code{0} and \code{1}. If unspecified, the defaults
+return \verb{95\%} confidence/credible intervals (\code{0.95}).}
 
 \item{tr}{Trim level for the mean when carrying out \code{robust} tests. In case
 of an error, try reducing the value of \code{tr}, which is by default set to
@@ -93,9 +93,9 @@ of an error, try reducing the value of \code{tr}, which is by default set to
 \item{k}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2L}).}
 
-\item{ggtheme}{A \code{ggplot2} theme. Default value is
-\code{ggstatsplot::theme_ggstatsplot()}. Any of the \code{ggplot2} themes (e.g.,
-\code{ggplot2::theme_bw()}), or themes from extension packages are allowed
+\item{ggtheme}{A \code{{ggplot2}} theme. Default value is
+\code{ggstatsplot::theme_ggstatsplot()}. Any of the \code{{ggplot2}} themes (e.g.,
+\code{theme_bw()}), or themes from extension packages are allowed
 (e.g., \code{ggthemes::theme_fivethirtyeight()}, \code{hrbrthemes::theme_ipsum_ps()},
 etc.).}
 
@@ -144,9 +144,9 @@ normal curve using \code{stats::dnorm(mean(x), sd(x))}. Default is \code{FALSE}.
 passed to the normal curve.}
 
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
-by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_}
+by \code{{ggstatsplot}}. This argument is primarily helpful for \code{grouped_}
 variants of all primary functions. Default is \code{NULL}. The argument should
-be entered as a \code{ggplot2} function or a list of \code{ggplot2} functions.}
+be entered as a \code{{ggplot2}} function or a list of \code{{ggplot2}} functions.}
 
 \item{output}{Character that describes what is to be returned: can be
 \code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
@@ -163,14 +163,15 @@ Histogram with statistical details from one-sample test included in the plot
 as a subtitle.
 }
 \details{
-For more details, see:
+For details, see:
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/gghistostats.html}
 }
 \examples{
+\donttest{
 # for reproducibility
 set.seed(123)
 library(ggstatsplot)
-\donttest{
+
 # using defaults, but modifying which centrality parameter is to be shown
 gghistostats(
   data = ToothGrowth,

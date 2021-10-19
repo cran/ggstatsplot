@@ -39,9 +39,9 @@ ggcoefstats(
 \arguments{
 \item{x}{A model object to be tidied, or a tidy data frame containing results
 from a regression model. Function internally uses
-\code{parameters::model_parameters} to get a tidy dataframe. If
-a data frame is used, it \emph{must} contain columns named \code{term} (names of
-predictors) and \code{estimate} (corresponding estimates of coefficients or
+\code{parameters::model_parameters} to get a tidy dataframe. If a dataframe is
+entered, it \emph{must} contain at the minimum two columns named \code{term} (names
+of predictors) and \code{estimate} (corresponding estimates of coefficients or
 other quantities of interest).}
 
 \item{output}{Character describing the expected output from this function:
@@ -108,17 +108,17 @@ regression coefficients are to be displayed in a single plot. Relevant only
 when the \code{output} is a plot.}
 
 \item{point.args}{Additional arguments that will be passed to
-\code{ggplot2::geom_point} geom. Please see documentation for that function to
+\code{geom_point} geom. Please see documentation for that function to
 know more about these arguments.}
 
 \item{errorbar.args}{Additional arguments that will be passed to
-\code{ggplot2::geom_errorbarh} geom. Please see documentation for that function
+\code{geom_errorbarh} geom. Please see documentation for that function
 to know more about these arguments.}
 
 \item{vline}{Decides whether to display a vertical line (Default: \code{"TRUE"}).}
 
 \item{vline.args}{Additional arguments that will be passed to
-\code{ggplot2::geom_vline} geom. Please see documentation for that function to
+\code{geom_vline} geom. Please see documentation for that function to
 know more about these arguments.}
 
 \item{stats.labels}{Logical. Decides whether the statistic and \emph{p}-values for
@@ -141,9 +141,9 @@ be extracted. The available palettes and packages can be checked by running
 be extracted. The available palettes and packages can be checked by running
 \code{View(paletteer::palettes_d_names)}.}
 
-\item{ggtheme}{A \code{ggplot2} theme. Default value is
-\code{ggstatsplot::theme_ggstatsplot()}. Any of the \code{ggplot2} themes (e.g.,
-\code{ggplot2::theme_bw()}), or themes from extension packages are allowed
+\item{ggtheme}{A \code{{ggplot2}} theme. Default value is
+\code{ggstatsplot::theme_ggstatsplot()}. Any of the \code{{ggplot2}} themes (e.g.,
+\code{theme_bw()}), or themes from extension packages are allowed
 (e.g., \code{ggthemes::theme_fivethirtyeight()}, \code{hrbrthemes::theme_ipsum_ps()},
 etc.).}
 
@@ -156,14 +156,14 @@ confidence interval whiskers and other statistical details included as
 labels.
 }
 \details{
-For more details, see:
+For details, see:
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcoefstats.html}
 }
 \note{
 \enumerate{
-\item In case you want to carry out meta-analysis using this
-function, it assumes that you have already downloaded the needed package
-(\code{metafor}, \code{metaplus}, or \code{metaBMA}) for meta-analysis.
+\item In case you want to carry out meta-analysis, you will be asked to install
+the needed packages (\code{metafor}, \code{metaplus}, or \code{metaBMA}) for meta-analysis
+(if unavailable).
 \item All rows of regression estimates where either of the following
 quantities is \code{NA} will be removed if labels are requested: \code{estimate},
 \code{statistic}, \code{p.value}.
@@ -182,12 +182,12 @@ library(ggstatsplot)
 mod <- lm(formula = mpg ~ cyl * am, data = mtcars)
 
 # to get a plot
-ggcoefstats(x = mod, output = "plot")
+ggcoefstats(mod, output = "plot")
 
 # to get a tidy dataframe
-ggcoefstats(x = mod, output = "tidy")
+ggcoefstats(mod, output = "tidy")
 
 # to get a glance summary
-ggcoefstats(x = mod, output = "glance")
+ggcoefstats(mod, output = "glance")
 }
 }

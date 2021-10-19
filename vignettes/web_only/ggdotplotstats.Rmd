@@ -53,7 +53,7 @@ it expects a labeled numeric variable.
 
 # Distribution of a sample with `ggdotplotstats`
 
-Let's begin with a very simple example from the `ggplot2` package
+Let's begin with a very simple example from the `{ggplot2}` package
 (`ggplot2::mpg`), a subset of the fuel economy data that the EPA makes available
 on <http://fueleconomy.gov>.
 
@@ -103,7 +103,7 @@ ggdotplotstats(
 What if we want to do the same analysis separately for different engines with
 different numbers of cylinders?
 
-`ggstatsplot` provides a special helper function for such instances:
+`{ggstatsplot}` provides a special helper function for such instances:
 `grouped_ggdotplotstats`. This is merely a wrapper function around
 `ggstatsplot::combine_plots`. It applies `ggdotplotstats` across all **levels** of
 a specified **grouping variable** and then combines the individual plots into a
@@ -123,11 +123,11 @@ df <- dplyr::filter(ggplot2::mpg, cyl %in% c("4", "6"))
 grouped_ggdotplotstats(
   # arguments relevant for ggstatsplot::ggdotplotstats
   data = df,
+  grouping.var = cyl, # grouping variable
   x = cty,
   y = manufacturer,
   xlab = "city miles per gallon",
   ylab = "car manufacturer",
-  grouping.var = cyl, # grouping variable
   type = "bayes", # Bayesian test
   test.value = 15.5,
   ggtheme = ggthemes::theme_fivethirtyeight(),
@@ -167,7 +167,7 @@ Type | Test | Function used
 ------------------ | ------------------------- | -----
 Parametric | One-sample Student's *t*-test | `stats::t.test`
 Non-parametric | One-sample Wilcoxon test | `stats::wilcox.test`
-Robust | Bootstrap-*t* method for one-sample test | `trimcibt` (custom)
+Robust | Bootstrap-*t* method for one-sample test | `WRS2::trimcibt`
 Bayesian | One-sample Student's *t*-test | `BayesFactor::ttestBF`
 
 **Effect size estimation**
@@ -176,7 +176,7 @@ Type | Effect size | CI? | Function used
 ------------ | ----------------------- | --- | -----
 Parametric | Cohen's *d*, Hedge's *g* | ✅ | `effectsize::cohens_d`, `effectsize::hedges_g`
 Non-parametric | *r* (rank-biserial correlation) | ✅ | `effectsize::rank_biserial`
-Robust | trimmed mean | ✅ | `trimcibt` (custom)
+Robust | trimmed mean | ✅ | `WRS2::trimcibt`
 Bayes Factor | $\delta_{posterior}$ | ✅ | `bayestestR::describe_posterior`
 
 # Reporting
@@ -184,15 +184,13 @@ Bayes Factor | $\delta_{posterior}$ | ✅ | `bayestestR::describe_posterior`
 If you wish to include statistical analysis results in a publication/report, the
 ideal reporting practice will be a hybrid of two approaches:
 
-- the `ggstatsplot` approach, where the plot contains both the visual and
+- the `{ggstatsplot}` approach, where the plot contains both the visual and
 numerical summaries about a statistical model, and
 
 - the *standard* narrative approach, which provides interpretive context for the
 reported statistics.
 
 For example, let's see the following example:
-
-The `ggstatsplot` reporting -
 
 ```{r reporting}
 ggdotplotstats(morley, Speed, Expt, test.value = 800)
@@ -209,17 +207,9 @@ under the alternative hypothesis as compared to the null hypothesis. This can be
 considered moderate evidence (Jeffreys, 1961) in favor of the alternative
 hypothesis.
 
-# Effect size interpretation
-
-To see how the effect sizes displayed in these tests can be interpreted, see:
-<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/effsize_interpretation.html>
 
 # Suggestions
 
 If you find any bugs or have any suggestions/remarks, please file an issue on GitHub: 
 <https://github.com/IndrajeetPatil/ggstatsplot/issues>
 
-# Session Information
-
-For details, see-
-<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/session_info.html>

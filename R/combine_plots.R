@@ -4,7 +4,10 @@
 #' @description
 #'
 #' Wrapper around `patchwork::wrap_plots` that will return a combined grid of
-#' plots with annotations.
+#' plots with annotations. In case you want to create a grid of plots, it is
+#' **highly recommended** that you use `{patchwork}` package directly and not
+#' this wrapper around it which is mostly useful with `{ggstatsplot}` plots. It
+#' is exported only for backward compatibility.
 #'
 #' @return Combined plot with annotation labels
 #'
@@ -18,17 +21,13 @@
 #' @inheritParams patchwork::wrap_plots
 #'
 #' @importFrom patchwork wrap_plots plot_annotation
-#' @importFrom rlang exec !!!
-#'
-#' @details For more details, see:
-#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/combine_plots.html}
 #'
 #' @examples
 #' # loading the necessary libraries
 #' library(ggplot2)
 #'
 #' # preparing the first plot
-#' p1 <- ggplot2::ggplot(
+#' p1 <- ggplot(
 #'   data = subset(iris, iris$Species == "setosa"),
 #'   aes(x = Sepal.Length, y = Sepal.Width)
 #' ) +
@@ -36,7 +35,7 @@
 #'   labs(title = "setosa")
 #'
 #' # preparing the second plot
-#' p2 <- ggplot2::ggplot(
+#' p2 <- ggplot(
 #'   data = subset(iris, iris$Species == "versicolor"),
 #'   aes(x = Sepal.Length, y = Sepal.Width)
 #' ) +
@@ -62,6 +61,6 @@ combine_plots <- function(plotlist,
                           annotation.args = list(),
                           guides = "collect",
                           ...) {
-  rlang::exec(patchwork::wrap_plots, !!!plotlist, guides = guides, !!!plotgrid.args) +
-    rlang::exec(patchwork::plot_annotation, !!!annotation.args)
+  exec(patchwork::wrap_plots, !!!plotlist, guides = guides, !!!plotgrid.args) +
+    exec(patchwork::plot_annotation, !!!annotation.args)
 }

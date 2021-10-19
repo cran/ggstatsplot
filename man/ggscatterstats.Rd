@@ -17,16 +17,17 @@ ggscatterstats(
   results.subtitle = TRUE,
   label.var = NULL,
   label.expression = NULL,
-  point.args = list(size = 3, alpha = 0.4, stroke = 0),
+  marginal = TRUE,
+  xfill = "#009E73",
+  yfill = "#D55E00",
+  point.args = list(size = 3, alpha = 0.4, stroke = 0, na.rm = TRUE),
   point.width.jitter = 0,
   point.height.jitter = 0,
   point.label.args = list(size = 3, max.overlaps = 1e+06),
-  smooth.line.args = list(size = 1.5, color = "blue"),
-  marginal = TRUE,
-  marginal.type = "densigram",
-  marginal.size = 5,
-  xfill = "#009E73",
-  yfill = "#D55E00",
+  smooth.line.args = list(size = 1.5, color = "blue", method = "lm", formula = y ~ x,
+    na.rm = TRUE),
+  xsidehistogram.args = list(fill = xfill, color = "black", na.rm = TRUE),
+  ysidehistogram.args = list(fill = yfill, color = "black", na.rm = TRUE),
   xlab = NULL,
   ylab = NULL,
   title = NULL,
@@ -84,16 +85,24 @@ of an error, try reducing the value of \code{tr}, which is by default set to
 to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
 the plot will be returned.}
 
-\item{label.var}{Variable to use for points labels. Can be entered either as
-a bare expression (e.g, \code{var1}) or as a string (e.g., \code{"var1"}).}
+\item{label.var}{Variable to use for points labels entered as a symbol (e.g.
+\code{var1}).}
 
 \item{label.expression}{An expression evaluating to a logical vector that
-determines the subset of data points to label. This argument can be entered
-either as a bare expression (e.g., \code{y < 4 & z < 20}) or as a string (e.g.,
-\code{"y < 4 & z < 20"}).}
+determines the subset of data points to label (e.g. \code{y < 4 & z < 20}).
+While using this argument with \code{purrr::pmap}, you will have to provide a
+quoted expression  (e.g. \code{quote(y < 4 & z < 20)}).}
+
+\item{marginal}{Decides whether marginal distributions will be plotted on
+axes using \code{ggside} functions. The default is \code{TRUE}. The package
+\code{ggside} must already be installed by the user.}
+
+\item{xfill, yfill}{Character describing color fill for \code{x} and \code{y} axes
+marginal distributions (default: \code{"#009E73"} (for \code{x}) and \code{"#D55E00"} (for
+\code{y})). Note that the defaults are colorblind-friendly.}
 
 \item{point.args}{A list of additional aesthetic arguments to be passed
-to \code{ggplot2::geom_point} geom used to display the raw data points.}
+to \code{geom_point} geom used to display the raw data points.}
 
 \item{point.width.jitter, point.height.jitter}{Degree of jitter in \code{x} and \code{y}
 direction, respectively. Defaults to \code{0} (0\%) of the resolution of the
@@ -106,22 +115,11 @@ these points.}
 to \code{ggrepel::geom_label_repel} geom used to display the labels.}
 
 \item{smooth.line.args}{A list of additional aesthetic arguments to be passed
-to \code{ggplot2::geom_smooth} geom used to display the regression line.}
+to \code{geom_smooth} geom used to display the regression line.}
 
-\item{marginal}{Decides whether marginal distributions will be plotted on
-axes using \code{ggExtra::ggMarginal()}. The default is \code{TRUE}. The package
-\code{ggExtra} must already be installed by the user.}
-
-\item{marginal.type}{Type of marginal distribution to be plotted on the axes
-(\code{"histogram"}, \code{"boxplot"}, \code{"density"}, \code{"violin"}, \code{"densigram"}).}
-
-\item{marginal.size}{Integer describing the relative size of the marginal
-plots compared to the main plot. A size of \code{5} means that the main plot is
-5x wider and 5x taller than the marginal plots.}
-
-\item{xfill, yfill}{Character describing color fill for \code{x} and \code{y} axes
-marginal distributions (default: \code{"#009E73"} (for \code{x}) and \code{"#D55E00"} (for
-\code{y})). Note that the defaults are colorblind-friendly.}
+\item{xsidehistogram.args, ysidehistogram.args}{A list of arguments passed to
+respective \code{geom_}s from \code{ggside} package to change the marginal
+distribution histograms plots.}
 
 \item{xlab}{Labels for \code{x} and \code{y} axis variables. If \code{NULL} (default),
 variable names for \code{x} and \code{y} will be used.}
@@ -136,16 +134,16 @@ variable names for \code{x} and \code{y} will be used.}
 
 \item{caption}{The text for the plot caption.}
 
-\item{ggtheme}{A \code{ggplot2} theme. Default value is
-\code{ggstatsplot::theme_ggstatsplot()}. Any of the \code{ggplot2} themes (e.g.,
-\code{ggplot2::theme_bw()}), or themes from extension packages are allowed
+\item{ggtheme}{A \code{{ggplot2}} theme. Default value is
+\code{ggstatsplot::theme_ggstatsplot()}. Any of the \code{{ggplot2}} themes (e.g.,
+\code{theme_bw()}), or themes from extension packages are allowed
 (e.g., \code{ggthemes::theme_fivethirtyeight()}, \code{hrbrthemes::theme_ipsum_ps()},
 etc.).}
 
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
-by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_}
+by \code{{ggstatsplot}}. This argument is primarily helpful for \code{grouped_}
 variants of all primary functions. Default is \code{NULL}. The argument should
-be entered as a \code{ggplot2} function or a list of \code{ggplot2} functions.}
+be entered as a \code{{ggplot2}} function or a list of \code{{ggplot2}} functions.}
 
 \item{output}{Character that describes what is to be returned: can be
 \code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
@@ -158,45 +156,38 @@ about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
 \item{...}{Currently ignored.}
 }
 \description{
-Scatterplots from \code{ggplot2} combined with marginal
-histograms/boxplots/density plots with statistical details added as a
-subtitle.
+Scatterplots from \code{{ggplot2}} combined with marginal densigram (density +
+histogram) plots with statistical details.
 }
 \details{
-For more details, see:
+For details, see:
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggscatterstats.html}
 }
 \note{
-\itemize{
-\item If you set \code{marginal = TRUE}, the resulting plot can \strong{not} be further
-modified with \code{ggplot2} functions since it is no longer a \code{ggplot} object. In
-case you want a \code{ggplot} object, set \code{marginal = FALSE}. Also have a look at
-the \code{ggplot.component} argument.
-\item The plot uses \code{ggrepel::geom_label_repel} to attempt to keep labels
+The plot uses \code{ggrepel::geom_label_repel} to attempt to keep labels
 from over-lapping to the largest degree possible.  As a consequence plot
 times will slow down massively (and the plot file will grow in size) if you
 have a lot of labels that overlap.
-}
 }
 \examples{
 # to get reproducible results from bootstrapping
 set.seed(123)
 library(ggstatsplot)
+library(dplyr, warn.conflicts = FALSE)
 
 # creating dataframe with rownames converted to a new column
 mtcars_new <- as_tibble(mtcars, rownames = "car")
 
 # simple function call with the defaults
-if (require("ggExtra")) {
+if (require("ggside")) {
   ggscatterstats(
     data = mtcars_new,
     x = wt,
     y = mpg,
     label.var = car,
-    label.expression = wt < 4 & mpg < 20,
-    # making further customization with `ggplot2` functions
-    ggplot.component = list(ggplot2::geom_rug(sides = "b"))
-  )
+    label.expression = wt < 4 & mpg < 20
+  ) + # making further customization with `{ggplot2}` functions
+    geom_rug(sides = "b")
 }
 }
 \seealso{

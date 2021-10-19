@@ -10,6 +10,12 @@
 \alias{tibble}
 \alias{enframe}
 \alias{as_tibble}
+\alias{exec}
+\alias{!!}
+\alias{!!!}
+\alias{\%|\%}
+\alias{\%||\%}
+\alias{:=}
 \title{Objects exported from other packages}
 \keyword{internal}
 \description{
@@ -17,6 +23,8 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{ipmisc}{\code{\link[ipmisc:reexports]{\%$\%}}, \code{\link[ipmisc:reexports]{\%<-\%}}, \code{\link[ipmisc:reexports]{\%<>\%}}, \code{\link[ipmisc:reexports]{\%>\%}}, \code{\link[ipmisc:reexports]{as_tibble}}, \code{\link[ipmisc:reexports]{enframe}}, \code{\link[ipmisc:reexports]{tibble}}}
+  \item{rlang}{\code{\link[rlang:nse-force]{!!}}, \code{\link[rlang:nse-force]{!!!}}, \code{\link[rlang:op-na-default]{\%|\%}}, \code{\link[rlang:op-null-default]{\%||\%}}, \code{\link[rlang:nse-force]{:=}}, \code{\link[rlang]{exec}}}
+
+  \item{statsExpressions}{\code{\link[statsExpressions:reexports]{\%$\%}}, \code{\link[statsExpressions:reexports]{\%<-\%}}, \code{\link[statsExpressions:reexports]{\%<>\%}}, \code{\link[statsExpressions:reexports]{\%>\%}}, \code{\link[statsExpressions:reexports]{as_tibble}}, \code{\link[statsExpressions:reexports]{enframe}}, \code{\link[statsExpressions:reexports]{tibble}}}
 }}
 

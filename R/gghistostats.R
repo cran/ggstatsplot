@@ -28,22 +28,15 @@
 #' @seealso \code{\link{grouped_gghistostats}}, \code{\link{ggdotplotstats}},
 #'  \code{\link{grouped_ggdotplotstats}}
 #'
-#' @import ggplot2
-#'
-#' @importFrom dplyr select summarize mutate
-#' @importFrom dplyr group_by n arrange
-#' @importFrom rlang enquo as_name !! %||%
-#' @importFrom stats dnorm
-#' @importFrom statsExpressions one_sample_test
-#'
-#' @details For more details, see:
-#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/gghistostats.html}
+#' @details For details, see:
+#' <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/gghistostats.html>
 #'
 #' @examples
+#' \donttest{
 #' # for reproducibility
 #' set.seed(123)
 #' library(ggstatsplot)
-#' \donttest{
+#'
 #' # using defaults, but modifying which centrality parameter is to be shown
 #' gghistostats(
 #'   data = ToothGrowth,
@@ -90,57 +83,43 @@ gghistostats <- function(data,
                          output = "plot",
                          ...) {
 
-  # convert entered stats type to a standard notation
-  type <- ipmisc::stats_type_switch(type)
+  # data -----------------------------------
 
-  # --------------------------------- data -----------------------------------
-
-  # to ensure that x will be read irrespective of whether it is quoted or unquoted
-  x <- rlang::ensym(x)
+  # cover both quoted or unquoted arguments
+  x <- ensym(x)
 
   # if dataframe is provided
-  df <- tidyr::drop_na(dplyr::select(data, {{ x }}))
+  data <- tidyr::drop_na(select(data, {{ x }}))
 
-  # if binwidth not specified
-  x_vec <- df %>% dplyr::pull({{ x }})
-  if (is.null(binwidth)) binwidth <- (max(x_vec) - min(x_vec)) / sqrt(length(x_vec))
+  # a vector for convenience
+  x_vec <- data %>% pull({{ x }})
 
-  # --------------------- subtitle/caption preparation ------------------------
+  # statistical analysis ------------------------------------------
 
-  if (isTRUE(results.subtitle)) {
-    # preparing the subtitle with statistical results
-    subtitle_df <- tryCatch(
-      statsExpressions::one_sample_test(
-        data = df,
-        x = {{ x }},
-        type = type,
-        test.value = test.value,
-        bf.prior = bf.prior,
-        effsize.type = effsize.type,
-        conf.level = conf.level,
-        tr = tr,
-        k = k
-      ),
-      error = function(e) NULL
+  if (results.subtitle) {
+    # convert entered stats type to a standard notation
+    type <- statsExpressions::stats_type_switch(type)
+
+    # relevant arguments for statistical tests
+    .f.args <- list(
+      data = data,
+      x = {{ x }},
+      test.value = test.value,
+      effsize.type = effsize.type,
+      conf.level = conf.level,
+      k = k,
+      tr = tr,
+      bf.prior = bf.prior,
+      top.text = caption
     )
 
+    # preparing the subtitle with statistical results
+    subtitle_df <- eval_f(one_sample_test, !!!.f.args, type = type)
     subtitle <- if (!is.null(subtitle_df)) subtitle_df$expression[[1]]
 
     # preparing the BF message
-    if (type == "parametric" && isTRUE(bf.message)) {
-      caption_df <- tryCatch(
-        statsExpressions::one_sample_test(
-          data = df,
-          x = {{ x }},
-          type = "bayes",
-          test.value = test.value,
-          bf.prior = bf.prior,
-          top.text = caption,
-          k = k
-        ),
-        error = function(e) NULL
-      )
-
+    if (type == "parametric" && bf.message) {
+      caption_df <- eval_f(one_sample_test, !!!.f.args, type = "bayes")
       caption <- if (!is.null(caption_df)) caption_df$expression[[1]]
     }
   }
@@ -153,44 +132,44 @@ gghistostats <- function(data,
     ))
   }
 
-  # ============================= plot ====================================
+  # plot -----------------------------------
 
   # adding axes info
-  plot <- ggplot2::ggplot(df, mapping = ggplot2::aes(x = {{ x }})) +
-    rlang::exec(
-      ggplot2::stat_bin,
-      mapping = ggplot2::aes(y = ..count.., fill = ..count..),
-      binwidth = binwidth,
+  plot <- ggplot(data, mapping = aes(x = {{ x }})) +
+    exec(
+      stat_bin,
+      mapping = aes(y = ..count.., fill = ..count..),
+      binwidth = binwidth %||% .binwidth(x_vec),
       !!!bin.args
     ) +
-    ggplot2::scale_y_continuous(
-      sec.axis = ggplot2::sec_axis(
-        trans = ~ . / nrow(df),
+    scale_y_continuous(
+      sec.axis = sec_axis(
+        trans = ~ . / nrow(data),
         labels = function(x) paste0(x * 100, "%"),
         name = "proportion"
       )
     ) +
-    ggplot2::guides(fill = FALSE)
+    guides(fill = "none")
 
   # if normal curve overlay  needs to be displayed
-  if (isTRUE(normal.curve)) {
+  if (normal.curve) {
     plot <- plot +
-      rlang::exec(
-        .f = ggplot2::stat_function,
+      exec(
+        stat_function,
         fun = function(x, mean, sd, n, bw) stats::dnorm(x, mean, sd) * n * bw,
-        args = list(mean = mean(x_vec), sd = sd(x_vec), n = length(x_vec), bw = binwidth),
+        args = list(mean = mean(x_vec), sd = sd(x_vec), n = length(x_vec), bw = binwidth %||% .binwidth(x_vec)),
         !!!normal.curve.args
       )
   }
 
-  # ---------------- centrality tagging -------------------------------------
+  # centrality plotting -------------------------------------
 
   # using custom function for adding labels
   if (isTRUE(centrality.plotting)) {
     plot <- histo_labeller(
       plot,
       x = x_vec,
-      type = ipmisc::stats_type_switch(centrality.type),
+      type = statsExpressions::stats_type_switch(centrality.type),
       tr = tr,
       k = k,
       centrality.line.args = centrality.line.args
@@ -199,8 +178,8 @@ gghistostats <- function(data,
 
   # adding the theme and labels
   plot +
-    ggplot2::labs(
-      x = xlab %||% rlang::as_name(x),
+    labs(
+      x = xlab %||% as_name(x),
       y = "count",
       title = title,
       subtitle = subtitle,
@@ -208,4 +187,93 @@ gghistostats <- function(data,
     ) +
     ggtheme +
     ggplot.component
+}
+
+
+#' @noRd
+
+.binwidth <- function(x) (max(x) - min(x)) / sqrt(length(x))
+
+
+#' @title Grouped histograms for distribution of a numeric variable
+#' @name grouped_gghistostats
+#'
+#' @description
+#'
+#' Helper function for `ggstatsplot::gghistostats` to apply this function
+#' across multiple levels of a given factor and combining the resulting plots
+#' using `ggstatsplot::combine_plots`.
+#'
+#' @inheritParams gghistostats
+#' @inheritParams grouped_ggbetweenstats
+#' @inheritDotParams gghistostats -title
+#'
+#' @seealso \code{\link{gghistostats}}, \code{\link{ggdotplotstats}},
+#'  \code{\link{grouped_ggdotplotstats}}
+#'
+#' @inherit gghistostats return references
+#' @inherit gghistostats return details
+#'
+#' @examples
+#' \donttest{
+#' # for reproducibility
+#' set.seed(123)
+#' library(ggstatsplot)
+#'
+#' # plot
+#' grouped_gghistostats(
+#'   data = iris,
+#'   x = Sepal.Length,
+#'   test.value = 5,
+#'   grouping.var = Species,
+#'   plotgrid.args = list(nrow = 1),
+#'   annotation.args = list(tag_levels = "i"),
+#' )
+#' }
+#' @export
+#'
+
+# defining the function
+grouped_gghistostats <- function(data,
+                                 x,
+                                 grouping.var,
+                                 binwidth = NULL,
+                                 output = "plot",
+                                 plotgrid.args = list(),
+                                 annotation.args = list(),
+                                 ...) {
+
+  # binwidth ------------------------------------------
+
+  # maximum value for x
+  binmax <- max(select(data, {{ x }}), na.rm = TRUE)
+
+  # minimum value for x
+  binmin <- min(select(data, {{ x }}), na.rm = TRUE)
+
+  # number of datapoints
+  bincount <- as.integer(data %>% count(.))
+
+  # dataframe ------------------------------------------
+
+  # getting the dataframe ready
+  data %<>%
+    select({{ grouping.var }}, {{ x }}) %>%
+    grouped_list(grouping.var = {{ grouping.var }})
+
+  # creating a list of plots
+  p_ls <- purrr::pmap(
+    .l = list(data = data, title = names(data), output = output),
+    .f = ggstatsplot::gghistostats,
+    # common parameters
+    x = {{ x }},
+    binwidth = binwidth %||% ((binmax - binmin) / sqrt(bincount)),
+    ...
+  )
+
+  # combining the list of plots into a single plot
+  if (output == "plot") p_ls <- combine_plots(p_ls, plotgrid.args, annotation.args)
+
+  # return the object
+  p_ls
 }

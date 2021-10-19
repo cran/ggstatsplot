@@ -112,16 +112,16 @@ be extracted. The available palettes and packages can be checked by running
 If set to \code{NULL}, manual specification of colors will be turned off and 3
 colors from the specified \code{palette} from \code{package} will be selected.}
 
-\item{ggtheme}{A \code{ggplot2} theme. Default value is
-\code{ggstatsplot::theme_ggstatsplot()}. Any of the \code{ggplot2} themes (e.g.,
-\code{ggplot2::theme_bw()}), or themes from extension packages are allowed
+\item{ggtheme}{A \code{{ggplot2}} theme. Default value is
+\code{ggstatsplot::theme_ggstatsplot()}. Any of the \code{{ggplot2}} themes (e.g.,
+\code{theme_bw()}), or themes from extension packages are allowed
 (e.g., \code{ggthemes::theme_fivethirtyeight()}, \code{hrbrthemes::theme_ipsum_ps()},
 etc.).}
 
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
-by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_}
+by \code{{ggstatsplot}}. This argument is primarily helpful for \code{grouped_}
 variants of all primary functions. Default is \code{NULL}. The argument should
-be entered as a \code{ggplot2} function or a list of \code{ggplot2} functions.}
+be entered as a \code{{ggplot2}} function or a list of \code{{ggplot2}} functions.}
 
 \item{title}{The text for the plot title.}
 
@@ -139,27 +139,24 @@ creating the visualization matrix, while the correlation analysis is carried
 out using the \code{correlation::correlation} function.
 }
 \details{
-For more details, see:
+For details, see:
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html}
 }
 \examples{
-\donttest{
 # for reproducibility
 set.seed(123)
 library(ggstatsplot)
 
-# for plot
-if (require("ggcorrplot")) {
-  ggcorrmat(iris)
-}
-# to get the correlation analyses results in a dataframe
+# to get a plot (assumes that `ggcorrplot` is installed)
+if (require("ggcorrplot")) ggcorrmat(iris)
+
+# to get a dataframe
 ggcorrmat(
   data = ggplot2::msleep,
   cor.vars = sleep_total:bodywt,
   partial = TRUE,
   output = "dataframe"
 )
-}
 }
 \seealso{
 \code{\link{grouped_ggcorrmat}} \code{\link{ggscatterstats}}

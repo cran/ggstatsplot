@@ -1,5 +1,4 @@
-#' @title Box/Violin plots for group or condition comparisons in
-#'   within-subjects (or repeated measures) designs.
+#' @title Box/Violin plots for within-subjects (or repeated measures) comparisons
 #' @name ggwithinstats
 #'
 #' @description
@@ -9,6 +8,7 @@
 #' a subtitle.
 #'
 #' @note
+#'
 #' To carry out Bayesian analysis for ANOVA designs, you will need to install
 #' the development version of `BayesFactor` (`0.9.12-4.3`). You can download it
 #' by running:
@@ -24,31 +24,28 @@
 #' @param centrality.path.args,point.path.args A list of additional aesthetic
 #'   arguments passed on to `geom_path` connecting raw data points and mean
 #'   points.
+#' @param boxplot.args A list of additional aesthetic arguments passed on to
+#'   `geom_boxplot`.
 #' @inheritParams statsExpressions::oneway_anova
 #'
 #' @seealso \code{\link{grouped_ggbetweenstats}}, \code{\link{ggbetweenstats}},
 #'  \code{\link{grouped_ggwithinstats}}
 #'
-#' @importFrom rlang exec !! enquo := !!! exec
-#' @importFrom pairwiseComparisons pairwise_comparisons pairwise_caption
-#' @importFrom dplyr select mutate row_number group_by ungroup anti_join
-#'
-#' @details For more details, see:
-#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggwithinstats.html}
+#' @details For details, see:
+#' <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggwithinstats.html>
 #'
 #' @examples
 #' \donttest{
 #' # setup
 #' set.seed(123)
 #' library(ggstatsplot)
+#' library(dplyr, warn.conflicts = FALSE)
 #'
 #' # two groups (*t*-test)
 #' ggwithinstats(
-#'   data = VR_dilemma,
-#'   x = modality,
-#'   y = score,
-#'   xlab = "Presentation modality",
-#'   ylab = "Proportion of utilitarian decisions"
+#'   data = filter(bugs_long, condition %in% c("HDHF", "HDLF")),
+#'   x = condition,
+#'   y = desire
 #' )
 #'
 #' # more than two groups (anova)
@@ -88,19 +85,46 @@ ggwithinstats <- function(data,
                           tr = 0.2,
                           centrality.plotting = TRUE,
                           centrality.type = type,
-                          centrality.point.args = list(size = 5, color = "darkred"),
-                          centrality.label.args = list(size = 3, nudge_x = 0.4, segment.linetype = 4),
+                          centrality.point.args = list(
+                            size = 5,
+                            color = "darkred"
+                          ),
+                          centrality.label.args = list(
+                            size = 3,
+                            nudge_x = 0.4,
+                            segment.linetype = 4
+                          ),
                           centrality.path = TRUE,
-                          centrality.path.args = list(size = 1, color = "red", alpha = 0.5),
-                          point.args = list(size = 3, alpha = 0.5),
+                          centrality.path.args = list(
+                            size = 1,
+                            color = "red",
+                            alpha = 0.5
+                          ),
+                          point.args = list(
+                            size = 3,
+                            alpha = 0.5
+                          ),
                           point.path = TRUE,
-                          point.path.args = list(alpha = 0.5, linetype = "dashed"),
+                          point.path.args = list(
+                            alpha = 0.5,
+                            linetype = "dashed"
+                          ),
                           outlier.tagging = FALSE,
                           outlier.label = NULL,
                           outlier.coef = 1.5,
                           outlier.label.args = list(size = 3),
-                          violin.args = list(width = 0.5, alpha = 0.2),
-                          ggsignif.args = list(textsize = 3, tip_length = 0.01),
+                          boxplot.args = list(
+                            width = 0.2,
+                            alpha = 0.5
+                          ),
+                          violin.args = list(
+                            width = 0.5,
+                            alpha = 0.2
+                          ),
+                          ggsignif.args = list(
+                            textsize = 3,
+                            tip_length = 0.01
+                          ),
                           ggtheme = ggstatsplot::theme_ggstatsplot(),
                           package = "RColorBrewer",
                           palette = "Dark2",
@@ -108,28 +132,26 @@ ggwithinstats <- function(data,
                           output = "plot",
                           ...) {
 
-  # convert entered stats type to a standard notation
-  type <- ipmisc::stats_type_switch(type)
+  # data -----------------------------------
 
   # ensure the variables work quoted or unquoted
-  c(x, y) %<-% c(rlang::ensym(x), rlang::ensym(y))
-  outlier.label <- if (!rlang::quo_is_null(rlang::enquo(outlier.label))) {
-    rlang::ensym(outlier.label)
-  }
+  c(x, y) %<-% c(ensym(x), ensym(y))
+  if (!quo_is_null(enquo(outlier.label))) ensym(outlier.label)
 
-  # --------------------------------- data -----------------------------------
+  # convert entered stats type to a standard notation
+  type <- statsExpressions::stats_type_switch(type)
 
   # creating a dataframe
   data %<>%
-    dplyr::select({{ x }}, {{ y }}, outlier.label = {{ outlier.label }}) %>%
-    dplyr::mutate({{ x }} := droplevels(as.factor({{ x }}))) %>%
-    dplyr::group_by({{ x }}) %>%
-    dplyr::mutate(.rowid = dplyr::row_number()) %>%
-    dplyr::ungroup(.) %>%
-    dplyr::anti_join(x = ., y = dplyr::filter(., is.na({{ y }})), by = ".rowid")
+    select({{ x }}, {{ y }}, outlier.label = {{ outlier.label }}) %>%
+    mutate({{ x }} := droplevels(as.factor({{ x }}))) %>%
+    group_by({{ x }}) %>%
+    mutate(.rowid = row_number()) %>%
+    ungroup(.) %>%
+    anti_join(x = ., y = filter(., is.na({{ y }})), by = ".rowid")
 
   # if `outlier.label` column is not present, just use the values from `y` column
-  if (!"outlier.label" %in% names(data)) data %<>% dplyr::mutate(outlier.label = {{ y }})
+  if (!"outlier.label" %in% names(data)) data %<>% mutate(outlier.label = {{ y }})
 
   # add a logical column indicating whether a point is or is not an outlier
   data %<>%
@@ -140,60 +162,36 @@ ggwithinstats <- function(data,
       outlier.label = outlier.label
     )
 
-  # --------------------- subtitle/caption preparation ------------------------
+  # statistical analysis ------------------------------------------
 
-  # figure out which test to run based on the no. of levels of the independent variable
-  test <- ifelse(nlevels(data %>% dplyr::pull({{ x }}))[[1]] < 3, "t", "anova")
+  # test to run; depends on the no. of levels of the independent variable
+  test <- ifelse(nlevels(data %>% pull({{ x }})) < 3, "t", "anova")
 
-  # these analyses do require latest Github version of Bayes Factor
-  if (type %in% c("parametric", "bayes") && test == "anova" &&
-    utils::packageVersion("BayesFactor") < "0.9.12-4.3") {
-    if (type == "parametric") bf.message <- FALSE else results.subtitle <- FALSE
-  }
-
-  if (isTRUE(results.subtitle)) {
-    # preparing the bayes factor message
-    if (type == "parametric" && isTRUE(bf.message)) {
-      caption_df <- tryCatch(
-        function_switch(
-          test = test,
-          # arguments relevant for expression helper functions
-          data = data,
-          x = rlang::as_string(x),
-          y = rlang::as_string(y),
-          type = "bayes",
-          bf.prior = bf.prior,
-          top.text = caption,
-          paired = TRUE,
-          k = k
-        ),
-        error = function(e) NULL
-      )
-
-      caption <- if (!is.null(caption_df)) caption_df$expression[[1]]
-    }
-
-    # extracting the subtitle using the switch function
-    subtitle_df <- tryCatch(
-      function_switch(
-        test = test,
-        # arguments relevant for expression helper functions
-        data = data,
-        x = rlang::as_string(x),
-        y = rlang::as_string(y),
-        paired = TRUE,
-        type = type,
-        effsize.type = effsize.type,
-        bf.prior = bf.prior,
-        tr = tr,
-        nboot = nboot,
-        conf.level = conf.level,
-        k = k
-      ),
-      error = function(e) NULL
+  if (results.subtitle && insight::check_if_installed("afex")) {
+    # relevant arguments for statistical tests
+    .f.args <- list(
+      data = data,
+      x = as_string(x),
+      y = as_string(y),
+      effsize.type = effsize.type,
+      conf.level = conf.level,
+      k = k,
+      tr = tr,
+      paired = TRUE,
+      bf.prior = bf.prior,
+      nboot = nboot,
+      top.text = caption
     )
 
+    .f <- function_switch(test)
+    subtitle_df <- eval_f(.f, !!!.f.args, type = type)
     subtitle <- if (!is.null(subtitle_df)) subtitle_df$expression[[1]]
+
+    # preparing the Bayes factor message
+    if (type == "parametric" && bf.message) {
+      caption_df <- eval_f(.f, !!!.f.args, type = "bayes")
+      caption <- if (!is.null(caption_df)) caption_df$expression[[1]]
+    }
   }
 
   # return early if anything other than plot
@@ -204,30 +202,18 @@ ggwithinstats <- function(data,
     ))
   }
 
-  # --------------------------------- basic plot ------------------------------
+  # plot -------------------------------------------
 
   # plot
-  plot <- ggplot2::ggplot(data, mapping = ggplot2::aes(x = {{ x }}, y = {{ y }}, group = .rowid)) +
-    rlang::exec(ggplot2::geom_point, ggplot2::aes(color = {{ x }}), !!!point.args) +
-    ggplot2::geom_boxplot(
-      mapping = ggplot2::aes({{ x }}, {{ y }}),
-      inherit.aes = FALSE,
-      width = 0.2,
-      alpha = 0.5
-    ) +
-    rlang::exec(
-      .fn = ggplot2::geom_violin,
-      mapping = ggplot2::aes({{ x }}, {{ y }}),
-      inherit.aes = FALSE,
-      !!!violin.args
-    )
+  plot <- ggplot(data, aes({{ x }}, {{ y }}, group = .rowid)) +
+    exec(geom_point, aes(color = {{ x }}), !!!point.args) +
+    exec(geom_boxplot, aes({{ x }}, {{ y }}), inherit.aes = FALSE, !!!boxplot.args) +
+    exec(geom_violin, aes({{ x }}, {{ y }}), inherit.aes = FALSE, !!!violin.args)
 
   # add a connecting path only if there are only two groups
-  if (test != "anova" && isTRUE(point.path)) {
-    plot <- plot + rlang::exec(ggplot2::geom_path, !!!point.path.args)
-  }
+  if (test == "t" && point.path) plot <- plot + exec(geom_path, !!!point.path.args)
 
-  # ---------------------------- outlier labeling -----------------------------
+  # outlier labeling -----------------------------
 
   # If `outlier.label` is not provided, outlier labels will just be values of
   # the `y` vector. If the outlier tag has been provided, just use the dataframe
@@ -236,18 +222,17 @@ ggwithinstats <- function(data,
   if (isTRUE(outlier.tagging)) {
     # applying the labels to tagged outliers with `ggrepel`
     plot <- plot +
-      rlang::exec(
+      exec(
         .fn = ggrepel::geom_label_repel,
-        data = dplyr::filter(data, isanoutlier),
-        mapping = ggplot2::aes(x = {{ x }}, y = {{ y }}, label = outlier.label),
-        show.legend = FALSE,
+        data = ~ filter(.x, isanoutlier),
+        mapping = aes(x = {{ x }}, y = {{ y }}, label = outlier.label),
         min.segment.length = 0,
         inherit.aes = FALSE,
         !!!outlier.label.args
       )
   }
 
-  # ---------------- centrality tagging -------------------------------------
+  # centrality tagging -------------------------------------
 
   # add labels for mean values
   if (isTRUE(centrality.plotting)) {
@@ -257,7 +242,7 @@ ggwithinstats <- function(data,
       x = {{ x }},
       y = {{ y }},
       k = k,
-      type = ipmisc::stats_type_switch(centrality.type),
+      type = statsExpressions::stats_type_switch(centrality.type),
       tr = tr,
       centrality.path = centrality.path,
       centrality.path.args = centrality.path.args,
@@ -266,11 +251,11 @@ ggwithinstats <- function(data,
     )
   }
 
-  # ggsignif labels -----------------------------------------------------------
+  # ggsignif labels -------------------------------------
 
   if (isTRUE(pairwise.comparisons) && test == "anova") {
     # creating dataframe with pairwise comparison results
-    mpc_df <- pairwiseComparisons::pairwise_comparisons(
+    mpc_df <- pairwise_comparisons(
       data = data,
       x = {{ x }},
       y = {{ y }},
@@ -293,21 +278,21 @@ ggwithinstats <- function(data,
     )
 
     # preparing the caption for pairwise comparisons test
-    caption <- pairwiseComparisons::pairwise_caption(
+    caption <- pairwise_caption(
       caption,
       unique(mpc_df$test.details),
       ifelse(type == "bayes", "all", pairwise.display)
     )
   }
 
-  # ------------------------ annotations and themes -------------------------
+  # annotations -------------------------
 
   # specifying annotations and other aesthetic aspects for the plot
   aesthetic_addon(
     plot = plot,
-    x = data %>% dplyr::pull({{ x }}),
-    xlab = xlab %||% rlang::as_name(x),
-    ylab = ylab %||% rlang::as_name(y),
+    x = data %>% pull({{ x }}),
+    xlab = xlab %||% as_name(x),
+    ylab = ylab %||% as_name(y),
     title = title,
     subtitle = subtitle,
     caption = caption,
@@ -316,4 +301,71 @@ ggwithinstats <- function(data,
     palette = palette,
     ggplot.component = ggplot.component
   )
+}
+
+
+#' @title Violin plots for group or condition comparisons in within-subjects
+#'   designs repeated across all levels of a grouping variable.
+#' @name grouped_ggwithinstats
+#'
+#' @description
+#'
+#' A combined plot of comparison plot created for levels of a grouping variable.
+#'
+#' @inheritParams ggwithinstats
+#' @inheritDotParams ggwithinstats -title
+#' @inheritParams grouped_ggbetweenstats
+#'
+#' @seealso \code{\link{ggwithinstats}}, \code{\link{ggbetweenstats}},
+#' \code{\link{grouped_ggbetweenstats}}
+#'
+#' @inherit ggwithinstats return references
+#'
+#' @examples
+#' \donttest{
+#' # to get reproducible results from bootstrapping
+#' set.seed(123)
+#' library(ggstatsplot)
+#' library(dplyr, warn.conflicts = FALSE)
+#' library(ggplot2)
+#'
+#' # the most basic function call
+#' grouped_ggwithinstats(
+#'   data = filter(bugs_long, condition %in% c("HDHF", "HDLF")),
+#'   x = condition,
+#'   y = desire,
+#'   grouping.var = gender,
+#'   type = "np", # non-parametric test
+#'   # additional modifications for **each** plot using `{ggplot2}` functions
+#'   ggplot.component = scale_y_continuous(
+#'     breaks = seq(0, 10, 1),
+#'     limits = c(0, 10)
+#'   )
+#' )
+#' }
+#' @export
+
+# defining the function
+grouped_ggwithinstats <- function(data,
+                                  ...,
+                                  grouping.var,
+                                  output = "plot",
+                                  plotgrid.args = list(),
+                                  annotation.args = list()) {
+
+  # creating a dataframe
+  data %<>% grouped_list(grouping.var = {{ grouping.var }})
+
+  # creating a list of return objects
+  p_ls <- purrr::pmap(
+    .l = list(data = data, title = names(data), output = output),
+    .f = ggstatsplot::ggwithinstats,
+    ...
+  )
+
+  # combining the list of plots into a single plot
+  if (output == "plot") p_ls <- combine_plots(p_ls, plotgrid.args, annotation.args)
+
+  # return the object
+  p_ls
 }

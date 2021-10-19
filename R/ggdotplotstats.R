@@ -13,11 +13,8 @@
 #' @inheritParams gghistostats
 #' @inheritParams ggcoefstats
 #'
-#' @importFrom dplyr row_number percent_rank pull
-#' @importFrom statsExpressions one_sample_test
-#'
-#' @details For more details, see:
-#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggdotplotstats.html}
+#' @details For details, see:
+#' <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggdotplotstats.html>
 #'
 #' @seealso \code{\link{grouped_gghistostats}}, \code{\link{gghistostats}},
 #'  \code{\link{grouped_ggdotplotstats}}
@@ -76,67 +73,54 @@ ggdotplotstats <- function(data,
                            output = "plot",
                            ...) {
 
-  # convert entered stats type to a standard notation
-  type <- ipmisc::stats_type_switch(type)
+  # data -----------------------------------
 
   # ensure the variables work quoted or unquoted
-  c(x, y) %<-% c(rlang::ensym(x), rlang::ensym(y))
-
-  # --------------------------- data preparation ----------------------------
+  c(x, y) %<-% c(ensym(x), ensym(y))
 
   # creating a dataframe
   data %<>%
-    dplyr::select({{ x }}, {{ y }}) %>%
+    select({{ x }}, {{ y }}) %>%
     tidyr::drop_na(.) %>%
-    dplyr::mutate({{ y }} := droplevels(as.factor({{ y }}))) %>%
-    dplyr::group_by({{ y }}) %>%
-    dplyr::summarise({{ x }} := mean({{ x }})) %>%
-    dplyr::ungroup(.) %>%
+    mutate({{ y }} := droplevels(as.factor({{ y }}))) %>%
+    group_by({{ y }}) %>%
+    summarise({{ x }} := mean({{ x }})) %>%
+    ungroup(.) %>%
     # rank ordering the data
-    dplyr::arrange({{ x }}) %>%
-    dplyr::mutate(
-      percent_rank = dplyr::percent_rank({{ x }}),
-      rank = dplyr::row_number()
+    arrange({{ x }}) %>%
+    mutate(
+      percent_rank = percent_rank({{ x }}),
+      rank = row_number()
     )
 
-  # ================ stats labels ==========================================
+  # statistical analysis ------------------------------------------
 
-  if (isTRUE(results.subtitle)) {
-    # preparing the BF message for NULL
-    if (isTRUE(bf.message) && type == "parametric") {
-      caption_df <- tryCatch(
-        statsExpressions::one_sample_test(
-          data = data,
-          x = {{ x }},
-          type = "bayes",
-          test.value = test.value,
-          bf.prior = bf.prior,
-          top.text = caption,
-          k = k
-        ),
-        error = function(e) NULL
-      )
+  if (results.subtitle) {
+    # convert entered stats type to a standard notation
+    type <- statsExpressions::stats_type_switch(type)
 
-      caption <- if (!is.null(caption_df)) caption_df$expression[[1]]
-    }
+    # relevant arguments for statistical tests
+    .f.args <- list(
+      data = data,
+      x = {{ x }},
+      test.value = test.value,
+      effsize.type = effsize.type,
+      conf.level = conf.level,
+      k = k,
+      tr = tr,
+      bf.prior = bf.prior,
+      top.text = caption
+    )
 
     # preparing the subtitle with statistical results
-    subtitle_df <- tryCatch(
-      statsExpressions::one_sample_test(
-        data = data,
-        x = {{ x }},
-        type = type,
-        test.value = test.value,
-        bf.prior = bf.prior,
-        effsize.type = effsize.type,
-        conf.level = conf.level,
-        tr = tr,
-        k = k
-      ),
-      error = function(e) NULL
-    )
-
+    subtitle_df <- eval_f(one_sample_test, !!!.f.args, type = type)
     subtitle <- if (!is.null(subtitle_df)) subtitle_df$expression[[1]]
+
+    # preparing the BF message
+    if (type == "parametric" && bf.message) {
+      caption_df <- eval_f(one_sample_test, !!!.f.args, type = "bayes")
+      caption <- if (!is.null(caption_df)) caption_df$expression[[1]]
+    }
   }
 
   # return early if anything other than plot
@@ -147,46 +131,112 @@ ggdotplotstats <- function(data,
     ))
   }
 
-  # ------------------------------ basic plot ----------------------------
+  # plot -----------------------------------
 
   # creating the basic plot
-  plot <- ggplot2::ggplot(data, mapping = ggplot2::aes({{ x }}, y = rank)) +
-    rlang::exec(ggplot2::geom_point, !!!point.args) +
-    ggplot2::scale_y_continuous(
+  plot <- ggplot(data, mapping = aes({{ x }}, y = rank)) +
+    exec(geom_point, !!!point.args) +
+    scale_y_continuous(
       name = ylab,
-      labels = data %>% dplyr::pull({{ y }}),
+      labels = data %>% pull({{ y }}),
       breaks = data$rank,
-      sec.axis = ggplot2::dup_axis(
+      sec.axis = dup_axis(
         name = "percentile",
         breaks = seq(1, nrow(data), (nrow(data) - 1) / 4),
         labels = 25 * 0:4
       )
     )
-  # ---------------- centrality tagging -------------------------------------
+  # centrality plotting -------------------------------------
 
   # using custom function for adding labels
   if (isTRUE(centrality.plotting)) {
     plot <- histo_labeller(
       plot,
-      x = data %>% dplyr::pull({{ x }}),
-      type = ipmisc::stats_type_switch(centrality.type),
+      x = data %>% pull({{ x }}),
+      type = statsExpressions::stats_type_switch(centrality.type),
       tr = tr,
       k = k,
       centrality.line.args = centrality.line.args
     )
   }
 
-  # ------------------------ annotations and themes -------------------------
+  # annotations -------------------------
 
   # specifying theme and labels for the final plot
   plot +
-    ggplot2::labs(
-      x = xlab %||% rlang::as_name(x),
-      y = ylab %||% rlang::as_name(y),
+    labs(
+      x = xlab %||% as_name(x),
+      y = ylab %||% as_name(y),
       title = title,
       subtitle = subtitle,
       caption = caption
     ) +
     ggtheme +
     ggplot.component
+}
+
+
+#' @title Grouped histograms for distribution of a labeled numeric variable
+#' @name grouped_ggdotplotstats
+#'
+#' @description
+#'
+#' Helper function for `ggstatsplot::ggdotplotstats` to apply this function
+#' across multiple levels of a given factor and combining the resulting plots
+#' using `ggstatsplot::combine_plots`.
+#'
+#' @inheritParams ggdotplotstats
+#' @inheritParams grouped_ggbetweenstats
+#' @inheritDotParams ggdotplotstats -title
+#'
+#' @seealso \code{\link{grouped_gghistostats}}, \code{\link{ggdotplotstats}},
+#'  \code{\link{gghistostats}}
+#'
+#' @inherit ggdotplotstats return references
+#' @inherit ggdotplotstats return details
+#'
+#' @examples
+#' \donttest{
+#' # for reproducibility
+#' set.seed(123)
+#' library(ggstatsplot)
+#' library(dplyr, warn.conflicts = FALSE)
+#'
+#' # removing factor level with very few no. of observations
+#' df <- filter(ggplot2::mpg, cyl %in% c("4", "6", "8"))
+#'
+#' # plot
+#' grouped_ggdotplotstats(
+#'   data = df,
+#'   x = cty,
+#'   y = manufacturer,
+#'   grouping.var = cyl,
+#'   test.value = 15.5
+#' )
+#' }
+#' @export
+
+# defining the function
+grouped_ggdotplotstats <- function(data,
+                                   ...,
+                                   grouping.var,
+                                   output = "plot",
+                                   plotgrid.args = list(),
+                                   annotation.args = list()) {
+
+  # dataframe
+  data %<>% grouped_list(grouping.var = {{ grouping.var }})
+
+  # creating a list of return objects
+  p_ls <- purrr::pmap(
+    .l = list(data = data, title = names(data), output = output),
+    .f = ggstatsplot::ggdotplotstats,
+    ...
+  )
+
+  # combining the list of plots into a single plot
+  if (output == "plot") p_ls <- combine_plots(p_ls, plotgrid.args, annotation.args)
+
+  # return the object
+  p_ls
 }

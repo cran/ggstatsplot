@@ -16,8 +16,8 @@ ggpiestats(
   label.args = list(direction = "both"),
   label.repel = FALSE,
   k = 2L,
-  proportion.test = TRUE,
-  perc.k = 0,
+  proportion.test = results.subtitle,
+  perc.k = 0L,
   bf.message = TRUE,
   ratio = NULL,
   conf.level = 0.95,
@@ -88,11 +88,11 @@ This can be helpful in case the labels are overlapping.}
 (Default: \code{k = 2L}).}
 
 \item{proportion.test}{Decides whether proportion test for \code{x} variable is to
-be carried out for each level of \code{y} (Default: \code{TRUE}). In \code{ggbarstats},
-only \emph{p}-values from this test will be displayed.}
+be carried out for each level of \code{y}. Defaults to \code{results.subtitle}. In
+\code{ggbarstats}, only \emph{p}-values from this test will be displayed.}
 
 \item{perc.k}{Numeric that decides number of decimal places for percentage
-labels (Default: \code{0}).}
+labels (Default: \code{0L}).}
 
 \item{bf.message}{Logical that decides whether to display Bayes Factor in
 favor of the \emph{null} hypothesis. This argument is relevant only \strong{for
@@ -129,9 +129,9 @@ hypothesis under the alternative, and corresponds to Gunel and Dickey's
 
 \item{legend.title}{Title text for the legend.}
 
-\item{ggtheme}{A \code{ggplot2} theme. Default value is
-\code{ggstatsplot::theme_ggstatsplot()}. Any of the \code{ggplot2} themes (e.g.,
-\code{ggplot2::theme_bw()}), or themes from extension packages are allowed
+\item{ggtheme}{A \code{{ggplot2}} theme. Default value is
+\code{ggstatsplot::theme_ggstatsplot()}. Any of the \code{{ggplot2}} themes (e.g.,
+\code{theme_bw()}), or themes from extension packages are allowed
 (e.g., \code{ggthemes::theme_fivethirtyeight()}, \code{hrbrthemes::theme_ipsum_ps()},
 etc.).}
 
@@ -144,9 +144,9 @@ be extracted. The available palettes and packages can be checked by running
 \code{View(paletteer::palettes_d_names)}.}
 
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
-by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_}
+by \code{{ggstatsplot}}. This argument is primarily helpful for \code{grouped_}
 variants of all primary functions. Default is \code{NULL}. The argument should
-be entered as a \code{ggplot2} function or a list of \code{ggplot2} functions.}
+be entered as a \code{{ggplot2}} function or a list of \code{{ggplot2}} functions.}
 
 \item{output}{Character that describes what is to be returned: can be
 \code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
@@ -163,23 +163,20 @@ Pie charts for categorical data with statistical details included in the plot
 as a subtitle.
 }
 \details{
-For more details, see:
+For details, see:
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html}
 }
 \examples{
 \donttest{
 # for reproducibility
 set.seed(123)
+library(ggstatsplot)
 
 # one sample goodness of fit proportion test
-ggstatsplot::ggpiestats(ggplot2::msleep, vore)
+ggpiestats(mtcars, x = vs)
 
 # association test (or contingency table analysis)
-ggstatsplot::ggpiestats(
-  data = mtcars,
-  x = vs,
-  y = cyl
-)
+ggpiestats(mtcars, x = vs, y = cyl)
 }
 }
 \seealso{

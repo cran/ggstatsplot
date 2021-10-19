@@ -1,5 +1,4 @@
-#' @title Box/Violin plots for group or condition comparisons in
-#'   between-subjects designs.
+#' @title Box/Violin plots for between-subjects comparisons
 #' @name ggbetweenstats
 #'
 #' @description
@@ -18,7 +17,7 @@
 #'   **significant** comparisons will be shown by default. To change this
 #'   behavior, select appropriate option with `pairwise.display` argument. The
 #'   pairwise comparison dataframes are prepared using the
-#'   `pairwiseComparisons::pairwise_comparisons` function. For more details
+#'   `pairwise_comparisons` function. For more details
 #'   about pairwise comparisons, see the documentation for that function.
 #' @param p.adjust.method Adjustment method for *p*-values for multiple
 #'   comparisons. Possible methods are: `"holm"` (default), `"hochberg"`,
@@ -84,9 +83,9 @@
 #' @param violin.args A list of additional aesthetic arguments to be passed to
 #'   the `geom_violin`.
 #' @param ggplot.component A `ggplot` component to be added to the plot prepared
-#'   by `ggstatsplot`. This argument is primarily helpful for `grouped_`
+#'   by `{ggstatsplot}`. This argument is primarily helpful for `grouped_`
 #'   variants of all primary functions. Default is `NULL`. The argument should
-#'   be entered as a `ggplot2` function or a list of `ggplot2` functions.
+#'   be entered as a `{ggplot2}` function or a list of `{ggplot2}` functions.
 #' @param package,palette Name of the package from which the given palette is to
 #'   be extracted. The available palettes and packages can be checked by running
 #'   `View(paletteer::palettes_d_names)`.
@@ -100,34 +99,24 @@
 #' @param ... Currently ignored.
 #' @inheritParams theme_ggstatsplot
 #' @param centrality.point.args,centrality.label.args A list of additional aesthetic
-#'   arguments to be passed to `ggplot2::geom_point` and
+#'   arguments to be passed to `geom_point` and
 #'   `ggrepel::geom_label_repel` geoms, which are involved in mean plotting.
 #' @param  ggsignif.args A list of additional aesthetic
 #'   arguments to be passed to `ggsignif::geom_signif`.
-#' @param ggtheme A `ggplot2` theme. Default value is
-#'   `ggstatsplot::theme_ggstatsplot()`. Any of the `ggplot2` themes (e.g.,
-#'   `ggplot2::theme_bw()`), or themes from extension packages are allowed
+#' @param ggtheme A `{ggplot2}` theme. Default value is
+#'   `ggstatsplot::theme_ggstatsplot()`. Any of the `{ggplot2}` themes (e.g.,
+#'   `theme_bw()`), or themes from extension packages are allowed
 #'   (e.g., `ggthemes::theme_fivethirtyeight()`, `hrbrthemes::theme_ipsum_ps()`,
 #'   etc.).
 #' @inheritParams statsExpressions::oneway_anova
 #' @inheritParams statsExpressions::two_sample_test
 #' @inheritParams statsExpressions::one_sample_test
 #'
-#' @import ggplot2
-#'
-#' @importFrom dplyr select group_by arrange mutate
-#' @importFrom ggrepel geom_label_repel
-#' @importFrom rlang enquo as_name !! as_string
-#' @importFrom ggrepel geom_label_repel
-#' @importFrom paletteer scale_color_paletteer_d scale_fill_paletteer_d
-#' @importFrom ggsignif geom_signif
-#' @importFrom pairwiseComparisons pairwise_comparisons pairwise_caption
-#'
 #' @seealso \code{\link{grouped_ggbetweenstats}}, \code{\link{ggwithinstats}},
 #'  \code{\link{grouped_ggwithinstats}}
 #'
-#' @details For more details, see:
-#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggbetweenstats.html}
+#' @details For details, see:
+#' <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggbetweenstats.html>
 #'
 #' @examples
 #' \donttest{
@@ -144,7 +133,6 @@
 #'   x = Expt,
 #'   y = Speed,
 #'   type = "robust",
-#'   plot.type = "box",
 #'   xlab = "The experiment number",
 #'   ylab = "Speed-of-light measurement",
 #'   pairwise.comparisons = TRUE,
@@ -180,7 +168,10 @@ ggbetweenstats <- function(data,
                            tr = 0.2,
                            centrality.plotting = TRUE,
                            centrality.type = type,
-                           centrality.point.args = list(size = 5, color = "darkred"),
+                           centrality.point.args = list(
+                             size = 5,
+                             color = "darkred"
+                           ),
                            centrality.label.args = list(
                              size = 3,
                              nudge_x = 0.4,
@@ -199,8 +190,14 @@ ggbetweenstats <- function(data,
                              size = 3,
                              stroke = 0
                            ),
-                           violin.args = list(width = 0.5, alpha = 0.2),
-                           ggsignif.args = list(textsize = 3, tip_length = 0.01),
+                           violin.args = list(
+                             width = 0.5,
+                             alpha = 0.2
+                           ),
+                           ggsignif.args = list(
+                             textsize = 3,
+                             tip_length = 0.01
+                           ),
                            ggtheme = ggstatsplot::theme_ggstatsplot(),
                            package = "RColorBrewer",
                            palette = "Dark2",
@@ -208,25 +205,23 @@ ggbetweenstats <- function(data,
                            output = "plot",
                            ...) {
 
+  # data -----------------------------------
+
   # convert entered stats type to a standard notation
-  type <- ipmisc::stats_type_switch(type)
+  type <- statsExpressions::stats_type_switch(type)
 
   # make sure both quoted and unquoted arguments are allowed
-  c(x, y) %<-% c(rlang::ensym(x), rlang::ensym(y))
-  outlier.label <- if (!rlang::quo_is_null(rlang::enquo(outlier.label))) {
-    rlang::ensym(outlier.label)
-  }
-
-  # --------------------------------- data -----------------------------------
+  c(x, y) %<-% c(ensym(x), ensym(y))
+  outlier.label <- if (!quo_is_null(enquo(outlier.label))) ensym(outlier.label)
 
   # creating a dataframe
   data %<>%
-    dplyr::select({{ x }}, {{ y }}, outlier.label = {{ outlier.label }}) %>%
+    select({{ x }}, {{ y }}, outlier.label = {{ outlier.label }}) %>%
     tidyr::drop_na(.) %>%
-    dplyr::mutate({{ x }} := droplevels(as.factor({{ x }})))
+    mutate({{ x }} := droplevels(as.factor({{ x }})))
 
   # if outlier.label column is not present, just use the values from `y` column
-  if (!"outlier.label" %in% names(data)) data %<>% dplyr::mutate(outlier.label = {{ y }})
+  if (!"outlier.label" %in% names(data)) data %<>% mutate(outlier.label = {{ y }})
 
   # add a logical column indicating whether a point is or is not an outlier
   data %<>%
@@ -237,55 +232,37 @@ ggbetweenstats <- function(data,
       outlier.label = outlier.label
     )
 
-  # --------------------- subtitle/caption preparation ------------------------
+  # statistical analysis ------------------------------------------
 
-  # figure out which test to run based on the no. of levels of the independent variable
-  test <- ifelse(nlevels(data %>% dplyr::pull({{ x }}))[[1]] < 3, "t", "anova")
+  # test to run; depends on the no. of levels of the independent variable
+  test <- ifelse(nlevels(data %>% pull({{ x }})) < 3, "t", "anova")
 
-  if (isTRUE(results.subtitle)) {
-    # preparing the Bayes factor message
-    if (type == "parametric" && isTRUE(bf.message)) {
-      caption_df <- tryCatch(
-        function_switch(
-          test = test,
-          # arguments relevant for expression helper functions
-          data = data,
-          x = rlang::as_string(x),
-          y = rlang::as_string(y),
-          type = "bayes",
-          bf.prior = bf.prior,
-          top.text = caption,
-          paired = FALSE,
-          k = k
-        ),
-        error = function(e) NULL
-      )
-
-      caption <- if (!is.null(caption_df)) caption_df$expression[[1]]
-    }
-
-    # extracting the subtitle using the switch function
-    subtitle_df <- tryCatch(
-      function_switch(
-        test = test,
-        # arguments relevant for expression helper functions
-        data = data,
-        x = rlang::as_string(x),
-        y = rlang::as_string(y),
-        paired = FALSE,
-        type = type,
-        effsize.type = effsize.type,
-        var.equal = var.equal,
-        bf.prior = bf.prior,
-        tr = tr,
-        nboot = nboot,
-        conf.level = conf.level,
-        k = k
-      ),
-      error = function(e) NULL
+  if (results.subtitle) {
+    # relevant arguments for statistical tests
+    .f.args <- list(
+      data = data,
+      x = as_string(x),
+      y = as_string(y),
+      effsize.type = effsize.type,
+      conf.level = conf.level,
+      var.equal = var.equal,
+      k = k,
+      tr = tr,
+      paired = FALSE,
+      bf.prior = bf.prior,
+      nboot = nboot,
+      top.text = caption
     )
 
+    .f <- function_switch(test)
+    subtitle_df <- eval_f(.f, !!!.f.args, type = type)
     subtitle <- if (!is.null(subtitle_df)) subtitle_df$expression[[1]]
+
+    # preparing the Bayes factor message
+    if (type == "parametric" && bf.message) {
+      caption_df <- eval_f(.f, !!!.f.args, type = "bayes")
+      caption <- if (!is.null(caption_df)) caption_df$expression[[1]]
+    }
   }
 
   # return early if anything other than plot
@@ -296,24 +273,24 @@ ggbetweenstats <- function(data,
     ))
   }
 
-  # -------------------------------- plot -----------------------------------
+  # plot -----------------------------------
 
   # first add only the points which are *not* outliers
-  plot <- ggplot2::ggplot(data, mapping = ggplot2::aes({{ x }}, {{ y }})) +
-    rlang::exec(
-      .fn = ggplot2::geom_point,
-      data = dplyr::filter(data, !isanoutlier),
-      ggplot2::aes(color = {{ x }}),
+  plot <- ggplot(data, mapping = aes({{ x }}, {{ y }})) +
+    exec(
+      geom_point,
+      data = ~ filter(.x, !isanoutlier),
+      aes(color = {{ x }}),
       !!!point.args
     )
 
   # if outliers are not being tagged, then add the points that were previously left out
   if (isFALSE(outlier.tagging)) {
     plot <- plot +
-      rlang::exec(
-        ggplot2::geom_point,
-        data = dplyr::filter(data, isanoutlier),
-        ggplot2::aes(color = {{ x }}),
+      exec(
+        geom_point,
+        data = ~ filter(.x, isanoutlier),
+        aes(color = {{ x }}),
         !!!point.args
       )
   }
@@ -322,8 +299,8 @@ ggbetweenstats <- function(data,
   if (plot.type == "violin" && isTRUE(outlier.tagging)) {
     plot <- plot +
       # add all outliers in
-      ggplot2::geom_point(
-        data = dplyr::filter(data, isanoutlier),
+      geom_point(
+        data = ~ filter(.x, isanoutlier),
         size = 3,
         stroke = 0,
         alpha = 0.7,
@@ -335,7 +312,7 @@ ggbetweenstats <- function(data,
   # adding a boxplot
   if (plot.type %in% c("box", "boxviolin")) {
     if (isTRUE(outlier.tagging)) {
-      .f <- ggplot2::stat_boxplot
+      .f <- stat_boxplot
       outlier_list <- list(
         outlier.shape = outlier.shape,
         outlier.size = 3,
@@ -343,13 +320,13 @@ ggbetweenstats <- function(data,
         outlier.color = outlier.color
       )
     } else {
-      .f <- ggplot2::geom_boxplot
-      outlier_list <- list(outlier.shape = NA, position = ggplot2::position_dodge(width = NULL))
+      .f <- geom_boxplot
+      outlier_list <- list(outlier.shape = NA, position = position_dodge(width = NULL))
     }
 
     # add a boxplot
     suppressWarnings(plot <- plot +
-      rlang::exec(
+      exec(
         .fn = .f,
         width = 0.3,
         alpha = 0.2,
@@ -361,10 +338,10 @@ ggbetweenstats <- function(data,
 
   # add violin geom
   if (plot.type %in% c("violin", "boxviolin")) {
-    plot <- plot + rlang::exec(ggplot2::geom_violin, !!!violin.args)
+    plot <- plot + exec(geom_violin, !!!violin.args)
   }
 
-  # ---------------------------- outlier labeling -----------------------------
+  # outlier labeling -----------------------------
 
   # If `outlier.label` is not provided, outlier labels will just be values of
   # the `y` vector. If the outlier tag has been provided, just use the dataframe
@@ -373,18 +350,17 @@ ggbetweenstats <- function(data,
   # applying the labels to tagged outliers with `ggrepel`
   if (isTRUE(outlier.tagging)) {
     plot <- plot +
-      rlang::exec(
+      exec(
         .fn = ggrepel::geom_label_repel,
-        data = dplyr::filter(data, isanoutlier),
-        mapping = ggplot2::aes(x = {{ x }}, y = {{ y }}, label = outlier.label),
-        show.legend = FALSE,
+        data = ~ filter(.x, isanoutlier),
+        mapping = aes(x = {{ x }}, y = {{ y }}, label = outlier.label),
         min.segment.length = 0,
         inherit.aes = FALSE,
         !!!outlier.label.args
       )
   }
 
-  # ---------------- centrality tagging -------------------------------------
+  # centrality tagging -------------------------------------
 
   # add labels for centrality measure
   if (isTRUE(centrality.plotting)) {
@@ -394,18 +370,18 @@ ggbetweenstats <- function(data,
       x = {{ x }},
       y = {{ y }},
       k = k,
-      type = ipmisc::stats_type_switch(centrality.type),
+      type = statsExpressions::stats_type_switch(centrality.type),
       tr = tr,
       centrality.point.args = centrality.point.args,
       centrality.label.args = centrality.label.args
     )
   }
 
-  # ggsignif labels -----------------------------------------------------------
+  # ggsignif labels -------------------------------------
 
   if (isTRUE(pairwise.comparisons) && test == "anova") {
     # creating dataframe with pairwise comparison results
-    mpc_df <- pairwiseComparisons::pairwise_comparisons(
+    mpc_df <- pairwise_comparisons(
       data = data,
       x = {{ x }},
       y = {{ y }},
@@ -429,21 +405,21 @@ ggbetweenstats <- function(data,
     )
 
     # preparing the caption for pairwise comparisons test
-    caption <- pairwiseComparisons::pairwise_caption(
+    caption <- pairwise_caption(
       caption,
       unique(mpc_df$test.details),
       ifelse(type == "bayes", "all", pairwise.display)
     )
   }
 
-  # ------------------------ annotations and themes -------------------------
+  # annotations ------------------------
 
   # specifying annotations and other aesthetic aspects for the plot
   aesthetic_addon(
     plot = plot,
-    x = data %>% dplyr::pull({{ x }}),
-    xlab = xlab %||% rlang::as_name(x),
-    ylab = ylab %||% rlang::as_name(y),
+    x = data %>% pull({{ x }}),
+    xlab = xlab %||% as_name(x),
+    ylab = ylab %||% as_name(y),
     title = title,
     subtitle = subtitle,
     caption = caption,
@@ -452,4 +428,84 @@ ggbetweenstats <- function(data,
     palette = palette,
     ggplot.component = ggplot.component
   )
+}
+
+
+#' @title Violin plots for group or condition comparisons in between-subjects
+#'   designs repeated across all levels of a grouping variable.
+#' @name grouped_ggbetweenstats
+#'
+#' @description
+#'
+#' Helper function for `ggstatsplot::ggbetweenstats` to apply this function
+#' across multiple levels of a given factor and combining the resulting plots
+#' using `ggstatsplot::combine_plots`.
+#'
+#' @inheritParams ggbetweenstats
+#' @inheritParams grouped_list
+#' @inheritParams combine_plots
+#' @inheritDotParams ggbetweenstats -title
+#'
+#' @seealso \code{\link{ggbetweenstats}}, \code{\link{ggwithinstats}},
+#'  \code{\link{grouped_ggwithinstats}}
+#'
+#' @inherit ggbetweenstats return references
+#'
+#' @examples
+#' \donttest{
+#' # to get reproducible results from bootstrapping
+#' set.seed(123)
+#' library(ggstatsplot)
+#' library(dplyr, warn.conflicts = FALSE)
+#' library(ggplot2)
+#'
+#' # the most basic function call
+#' grouped_ggbetweenstats(
+#'   data = filter(ggplot2::mpg, drv != "4"),
+#'   x = year,
+#'   y = hwy,
+#'   grouping.var = drv
+#' )
+#'
+#' # modifying individual plots using `ggplot.component` argument
+#' grouped_ggbetweenstats(
+#'   data = filter(
+#'     movies_long,
+#'     genre %in% c("Action", "Comedy"),
+#'     mpaa %in% c("R", "PG")
+#'   ),
+#'   x = genre,
+#'   y = rating,
+#'   grouping.var = mpaa,
+#'   ggplot.component = scale_y_continuous(
+#'     breaks = seq(1, 9, 1),
+#'     limits = (c(1, 9))
+#'   )
+#' )
+#' }
+#' @export
+
+# defining the function
+grouped_ggbetweenstats <- function(data,
+                                   ...,
+                                   grouping.var,
+                                   output = "plot",
+                                   plotgrid.args = list(),
+                                   annotation.args = list()) {
+
+  # creating a dataframe
+  data %<>% grouped_list(grouping.var = {{ grouping.var }})
+
+  # creating a list of return objects
+  p_ls <- purrr::pmap(
+    .l = list(data = data, title = names(data), output = output),
+    .f = ggstatsplot::ggbetweenstats,
+    ...
+  )
+
+  # combining the list of plots into a single plot
+  if (output == "plot") p_ls <- combine_plots(p_ls, plotgrid.args, annotation.args)
+
+  # return the object
+  p_ls
 }

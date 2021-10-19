@@ -2,8 +2,7 @@
 % Please edit documentation in R/ggwithinstats.R
 \name{ggwithinstats}
 \alias{ggwithinstats}
-\title{Box/Violin plots for group or condition comparisons in
-within-subjects (or repeated measures) designs.}
+\title{Box/Violin plots for within-subjects (or repeated measures) comparisons}
 \usage{
 ggwithinstats(
   data,
@@ -39,6 +38,7 @@ ggwithinstats(
   outlier.label = NULL,
   outlier.coef = 1.5,
   outlier.label.args = list(size = 3),
+  boxplot.args = list(width = 0.2, alpha = 0.5),
   violin.args = list(width = 0.5, alpha = 0.2),
   ggsignif.args = list(textsize = 3, tip_length = 0.01),
   ggtheme = ggstatsplot::theme_ggstatsplot(),
@@ -81,7 +81,7 @@ are to be displayed (default: \code{TRUE}). Please note that only
 \strong{significant} comparisons will be shown by default. To change this
 behavior, select appropriate option with \code{pairwise.display} argument. The
 pairwise comparison dataframes are prepared using the
-\code{pairwiseComparisons::pairwise_comparisons} function. For more details
+\code{pairwise_comparisons} function. For more details
 about pairwise comparisons, see the documentation for that function.}
 
 \item{pairwise.display}{Decides \emph{which} pairwise comparisons to display.
@@ -168,11 +168,11 @@ to be:
 Just as \code{type} argument, abbreviations are also accepted.}
 
 \item{centrality.point.args}{A list of additional aesthetic
-arguments to be passed to \code{ggplot2::geom_point} and
+arguments to be passed to \code{geom_point} and
 \code{ggrepel::geom_label_repel} geoms, which are involved in mean plotting.}
 
 \item{centrality.label.args}{A list of additional aesthetic
-arguments to be passed to \code{ggplot2::geom_point} and
+arguments to be passed to \code{geom_point} and
 \code{ggrepel::geom_label_repel} geoms, which are involved in mean plotting.}
 
 \item{centrality.path.args, point.path.args}{A list of additional aesthetic
@@ -203,15 +203,18 @@ Quartile) \code{outlier.coef} times the Inter-Quartile Range (IQR) (Default:
 \item{outlier.label.args}{A list of additional aesthetic arguments to be
 passed to \code{ggrepel::geom_label_repel} for outlier label plotting.}
 
+\item{boxplot.args}{A list of additional aesthetic arguments passed on to
+\code{geom_boxplot}.}
+
 \item{violin.args}{A list of additional aesthetic arguments to be passed to
 the \code{geom_violin}.}
 
 \item{ggsignif.args}{A list of additional aesthetic
 arguments to be passed to \code{ggsignif::geom_signif}.}
 
-\item{ggtheme}{A \code{ggplot2} theme. Default value is
-\code{ggstatsplot::theme_ggstatsplot()}. Any of the \code{ggplot2} themes (e.g.,
-\code{ggplot2::theme_bw()}), or themes from extension packages are allowed
+\item{ggtheme}{A \code{{ggplot2}} theme. Default value is
+\code{ggstatsplot::theme_ggstatsplot()}. Any of the \code{{ggplot2}} themes (e.g.,
+\code{theme_bw()}), or themes from extension packages are allowed
 (e.g., \code{ggthemes::theme_fivethirtyeight()}, \code{hrbrthemes::theme_ipsum_ps()},
 etc.).}
 
@@ -224,9 +227,9 @@ be extracted. The available palettes and packages can be checked by running
 \code{View(paletteer::palettes_d_names)}.}
 
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
-by \code{ggstatsplot}. This argument is primarily helpful for \code{grouped_}
+by \code{{ggstatsplot}}. This argument is primarily helpful for \code{grouped_}
 variants of all primary functions. Default is \code{NULL}. The argument should
-be entered as a \code{ggplot2} function or a list of \code{ggplot2} functions.}
+be entered as a \code{{ggplot2}} function or a list of \code{{ggplot2}} functions.}
 
 \item{output}{Character that describes what is to be returned: can be
 \code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
@@ -244,7 +247,7 @@ for within-subjects designs with statistical details included in the plot as
 a subtitle.
 }
 \details{
-For more details, see:
+For details, see:
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggwithinstats.html}
 }
 \note{
@@ -258,14 +261,13 @@ by running:
 # setup
 set.seed(123)
 library(ggstatsplot)
+library(dplyr, warn.conflicts = FALSE)
 
 # two groups (*t*-test)
 ggwithinstats(
-  data = VR_dilemma,
-  x = modality,
-  y = score,
-  xlab = "Presentation modality",
-  ylab = "Proportion of utilitarian decisions"
+  data = filter(bugs_long, condition \%in\% c("HDHF", "HDLF")),
+  x = condition,
+  y = desire
 )
 
 # more than two groups (anova)

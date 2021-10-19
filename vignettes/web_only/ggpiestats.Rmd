@@ -73,7 +73,7 @@ examples of both (see examples below).
 
 To help demonstrate how `ggpiestats` can be used with categorical (also known as
 nominal) data, a modified version of the original `Titanic` dataset (from the
-`datasets` library) has been provided in the `ggstatsplot` package with the name
+`datasets` library) has been provided in the `{ggstatsplot}` package with the name
 `Titanic_full`. The Titanic Passenger Survival Dataset provides information "on
 the fate of passengers on the fatal maiden voyage of the ocean liner *Titanic*,
 including economic status (class), sex, age, and survival."
@@ -109,7 +109,7 @@ flipping a coin. People had a 50/50 chance of surviving.
 set.seed(123)
 
 # to speed up the process, let's use only half of the dataset
-Titanic_full_50 <- dplyr::sample_frac(tbl = ggstatsplot::Titanic_full, size = 0.5)
+Titanic_full_50 <- dplyr::sample_frac(ggstatsplot::Titanic_full, size = 0.5)
 
 # plot
 ggstatsplot::ggpiestats(
@@ -142,7 +142,7 @@ showcase the flexibility of `ggpiestats`. We will:
 3.  We'll customize the subtitle by being more precise about which chi squared
     test this is `stat.title = "chi squared test of independence: "`
 
-4.  Finally, we'll make a call to `ggplot2` to modify the size of our plot title
+4.  Finally, we'll make a call to `{ggplot2}` to modify the size of our plot title
     and to make it right justified
 
 ```{r ggpiestats1, fig.height = 5, fig.width = 8}
@@ -150,12 +150,9 @@ showcase the flexibility of `ggpiestats`. We will:
 # set seed for reproducibility
 set.seed(123)
 
-# to speed up the process, let's use only half of the dataset
-Titanic_full_50 <- dplyr::sample_frac(tbl = ggstatsplot::Titanic_full, size = 0.5)
-
 # plot
 ggstatsplot::ggpiestats(
-  data = Titanic_full_50,
+  data = Titanic_full,
   x = Survived,
   y = Sex,
   title = "Passenger survival on the Titanic by gender", # title for the entire plot
@@ -166,7 +163,7 @@ ggstatsplot::ggpiestats(
   package = "ggsci", # package to which color palette belongs
   k = 3, # decimal places in result
   perc.k = 1 # decimal places in percentage labels
-) + # further modification with `ggplot2` commands
+) + # further modification with `{ggplot2}` commands
   ggplot2::theme(
     plot.title = ggplot2::element_text(
       color = "black",
@@ -188,7 +185,7 @@ What if we want to do the same analysis of gender but also factor in the
 passenger's age (Age)? We have information that classifies the passengers as
 Child or Adult, perhaps that makes a difference to their survival rate? 
 
-`ggstatsplot` provides a special helper function for such instances:
+`{ggstatsplot}` provides a special helper function for such instances:
 `grouped_ggpiestats`. It is a convenient wrapper function around
 `ggstatsplot::combine_plots`. It applies `ggpiestats` across all **levels** of a
 specified **grouping variable** and then combines the list of individual plots
@@ -391,7 +388,7 @@ Bayesian | Bayesian Goodness of fit $\chi^2$ test | (custom)
 
 Type | Effect size | CI? | Function used
 ----------- | ------------------------- | --- | -----
-Parametric/Non-parametric | Cramer's $V$ | ✅ | `bayestestR::describe_posterior`
+Parametric/Non-parametric | Pearson's $C$ | ✅ | `effectsize::pearsons_c`
 Bayesian | ❌ | ❌ | ❌
 
 # Reporting
@@ -399,15 +396,13 @@ Bayesian | ❌ | ❌ | ❌
 If you wish to include statistical analysis results in a publication/report, the
 ideal reporting practice will be a hybrid of two approaches:
 
-- the `ggstatsplot` approach, where the plot contains both the visual and
+- the `{ggstatsplot}` approach, where the plot contains both the visual and
 numerical summaries about a statistical model, and
 
 - the *standard* narrative approach, which provides interpretive context for the
 reported statistics.
 
 For example, let's see the following example:
-
-The `ggstatsplot` reporting -
 
 ```{r reporting}
 ggpiestats(mtcars, am, cyl)
@@ -428,17 +423,8 @@ goodness-of-fit test instead of a $\chi^2$-test.
 
 Same holds true for `ggbarstats`.
 
-# Effect size interpretation
-
-To see how the effect sizes displayed in these tests can be interpreted, see:
-<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/effsize_interpretation.html>
-
 # Suggestions
 
 If you find any bugs or have any suggestions/remarks, please file an issue on
 GitHub: <https://github.com/IndrajeetPatil/ggstatsplot/issues>
 
-# Session Information
-
-For details, see-
-<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/session_info.html>

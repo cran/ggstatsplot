@@ -1,9 +1,62 @@
-# ggstatsplot 0.8.0
+# ggstatsplot 0.9.0
 
-N.B. All statistical analysis in `ggstatsplot` is carried out in
-`statsExpressions`. Thus, to see changes related to statistical expressions,
+N.B. All statistical analysis in `{ggstatsplot}` is carried out in
+`{statsExpressions}`. Thus, to see changes related to statistical expressions,
 read the `NEWS` for that package:
 <https://indrajeetpatil.github.io/statsExpressions/news/index.html>
+
+NEW FEATURES
+
+  - The `pairwise_comparisons()` function for carrying out one-way pairwise
+    comparisons has now moved in `{ggstatsplot}` from `{pairwiseComparisons}`
+    package.
+
+BREAKING CHANGES
+
+  - A number of effect size estimates and their confidence intervals have
+    changed due to respective changes made in `{effectsize}` package version
+    `0.5` release. For full details of these changes, see:
+    <https://easystats.github.io/effectsize/news/index.html>
+
+  - For the same reason, the effect size for one-way contingency table has
+    changed from Cramer's *V* to Pearson's *C*.
+
+MAJOR CHANGES
+
+  - For plotting marginal distributions in `ggscatterstats`, `{ggstatsplot}` now
+    relies on `ggside` package instead of `ggExtra`. This was done to remove a
+    glaring inconsistency in the API. All functions in `{ggstatsplot}` produced
+    `ggplot` objects and could be further modified with `ggplot2` functions,
+    except `ggscatterstats`, which led to a lot of confusion among users (e.g.
+    #28). This change gets rid of this inconsistency. But it comes at a cost:
+    there is no more `marginal.type` argument that lets you change the type of
+    marginal distribution graphic and histogram is the only possible option.
+    Note that this is **not** a breaking change. Your past code will continue to
+    work but it will now always produce a histogram instead of other marginal
+    graphic you might have chosen.
+
+  - Minimum needed R version is now `4.0`.
+
+MINOR CHANGES
+
+  - Online vignette about `combine_plots` has been removed. In case you want to
+    create a grid of plots, it is highly recommended that you use `patchwork`
+    package directly and not this wrapper around it which is mostly useful with
+    `{ggstatsplot}` plots.
+
+  - `ggscatterstats` labeling arguments accept only unquoted inputs now, and not
+    quoted or string inputs. Allowing this was a bad design choice in the past
+    since most functions in `{ggstatsplot}`, inspired by `tidyverse`, expect
+    unquoted (`x`) - and not quoted (`"x"`) - arguments. So this function was
+    the odd one out.
+
+  - Gets rid of `ipmisc` dependency.
+
+  - Removes `movies_wide` dataset, which was virtually identical to
+    `movies_long` dataset and was not used anywhere in the package. Also removes
+    the unused `VR_dilemma` dataset.
+
+# ggstatsplot 0.8.0
 
 NEW FUNCTIONS
 
@@ -12,7 +65,7 @@ NEW FUNCTIONS
 
 MAJOR CHANGES
 
-  - There is finally a publication for `ggstatsplot` package!
+  - There is finally a publication for `{ggstatsplot}` package!
     <https://joss.theoj.org/papers/10.21105/joss.03167>
 
   - The `ggcoefstats` function defaults to `NULL` for `xlab` and `ylab`
@@ -30,7 +83,7 @@ MAJOR CHANGES
 
   - `ggstatsplot.layer` argument has been retired. If the user _chooses_ a
     certain `ggplot2` theme, it means they _want_ that theme, and not
-    `ggstatsplot`'s varnish on it. So the previous behavior was undesirable.
+    `{ggstatsplot}`'s varnish on it. So the previous behavior was undesirable.
     This is a backward compatible change, so the plots should not look
     different.
 
@@ -183,7 +236,7 @@ MAJOR CHANGES
     points (#429).
 
   - `mean.ci` argument is retired for `ggbetweenstats` and `ggwithinstats`.
-    Future `ggstatsplot` releases will be providing different centrality
+    Future `{ggstatsplot}` releases will be providing different centrality
     measures depending on the `type` argument and it is not guaranteed that all
     of them will have CIs available. So, for the sake of consistency, this
     argument is just going to be retired.
@@ -195,7 +248,7 @@ MINOR CHANGES
   - `ggcoefstats` now also displays degrees of freedom for chi-squared tests.
 
   - Expects minor changes in some of the effect sizes and their confidence
-    intervals due to changes in `statsExpressions`.
+    intervals due to changes in `{statsExpressions}`.
 
 NEW FEATURES
 
@@ -371,7 +424,7 @@ MAJOR CHANGES
 
   - `factor.levels` (for `ggpiestats`) and `labels.legend` (for `ggbarstats`)
     are deprecated. If users would like to changes the names for factor levels,
-    this should be done outside of `ggstatsplot`.
+    this should be done outside of `{ggstatsplot}`.
 
   - The non-parametric post hoc test for between-subjects design has been
     changed from Dwass-Steel-Crichtlow-Fligner test to Dunn test.
@@ -421,9 +474,9 @@ MAJOR CHANGES
     the user's console. The users are now instead advised to either extract this
     dataframe using `ggplot2::ggplot_build()` function or use the
     `pairwiseComparisons::pairwise_comparisons()` function used in the
-    background by `ggstatsplot` to carry out this analysis.
+    background by `{ggstatsplot}` to carry out this analysis.
 
-  - Due to changes in one of the downstream dependencies, `ggstatsplot` now
+  - Due to changes in one of the downstream dependencies, `{ggstatsplot}` now
     expects the minimum R version to be `3.6.0`.
 
 MINOR CHANGES
@@ -468,12 +521,12 @@ MAJOR CHANGES
 BREAKING CHANGES
 
 To give users more flexibility in terms of modifying the aesthetic defaults for
-**all** `geoms` included in the `ggstatsplot` plots (each plot typically has
+**all** `geoms` included in the `{ggstatsplot}` plots (each plot typically has
 multiple geoms), the package now uses a new form of syntax. Previously, each
 `geom` had a separate argument to specify each aesthetic (e.g., `geom_point`
 would get arguments like `point.size`, `point.color`, etc.), which resulted in
 functions with a massive number of arguments and was unsustainable in the long
-run. Instead, `ggstatsplot` functions now expect a list of such arguments for
+run. Instead, `{ggstatsplot}` functions now expect a list of such arguments for
 the respective geom (e.g., `geom_point` will have `point.args` argument where a
 list of arguments `list(size = 5, color = "darkgreen", alpha = 0.8)` can be
 supplied).
@@ -533,7 +586,7 @@ MAJOR CHANGES
   - `ggcorrmat` was never supposed to work with Kendall's correlation
     coefficient but it accidentally did. This is no longer the case.
 
-  - `ggstatsplot` now has a logo, thanks to Sarah! :)
+  - `{ggstatsplot}` now has a logo, thanks to Sarah! :)
 
   - The default `theme_ggstatsplot` changes slightly. The biggest change is that
     the title and the subtitle for plots are now aligned to the left of the
@@ -558,12 +611,12 @@ BREAKING CHANGES
     argument. For example, all aesthetic arguments for `geom_vline` can be
     provided via `vline.args`, for `geom_errorbarh` via `errorbar.args`, etc.
 
-  - `ggstatsplot` continues with its conscious uncoupling that started in
+  - `{ggstatsplot}` continues with its conscious uncoupling that started in
     `0.1.0` release: The following functions have now been moved to
-    `statsExpressions` package: `subtitle_meta_parametric` and `bf_meta_message`
-    and follow a more logical nomenclature. For the same reason, `lm_effsize_ci`
-    function is also no longer exported and lives in the `groupedstats`
-    package.
+    `{statsExpressions}` package: `subtitle_meta_parametric` and
+    `bf_meta_message` and follow a more logical nomenclature. For the same
+    reason, `lm_effsize_ci` function is also no longer exported and lives in the
+    `groupedstats` package.
 
 MAJOR CHANGES
 
@@ -594,7 +647,7 @@ BUG FIXES
 MAJOR CHANGES
 
   - `pairwise_p` has been reintroduced as a number of users found it useful to
-    call the function from `ggstatsplot` itself rather than using
+    call the function from `{ggstatsplot}` itself rather than using
     `pairwiseComparisons` package.
 
 MINOR CHANGES
@@ -655,29 +708,29 @@ MAJOR
 
 ANNOUNCEMENTS
 
-`ggstatsplot` is undergoing *conscious uncoupling* whereby all the statistical
+`{ggstatsplot}` is undergoing *conscious uncoupling* whereby all the statistical
 processing functions that make stats subtitles are being moved to a new package
-called `statsExpressions`. This new package will act as a backend that handles
+called `{statsExpressions}`. This new package will act as a backend that handles
 all things statistical processing. This **will not** affect the end users of
-`ggstatsplot` unless you have been using the helper functions.
+`{ggstatsplot}` unless you have been using the helper functions.
 
 Additionally, multiple pairwise comparison tests are being moved to an
 independent package called `pairwiseComparisons`.
 
 This uncoupling is designed to achieve two things:
 
-  - Make the code base of more manageable size in `ggstatsplot`, which will make
-    package development a bit easier.
+  - Make the code base of more manageable size in `{ggstatsplot}`, which will
+    make package development a bit easier.
 
   - Make the workflow more customizable since now you can prepare your own plots
-    and then use `statsExpressions` to display results in the plot rather than
-    relying on `ggstatsplot` default plots which are heavily opinionated and not
-    appealing to everyone.
+    and then use `{statsExpressions}` to display results in the plot rather than
+    relying on `{ggstatsplot}` default plots which are heavily opinionated and
+    not appealing to everyone.
 
 BREAKING CHANGES
 
   - All helper functions `subtitle_*` and `bf_*` have been moved to the new
-    `statsExpressions` package.
+    `{statsExpressions}` package.
 
   - To be consistent with all the other `subtitle_` and `bf_` functions,
     `subtitle_contingency_tab` and `bf_contingency_tab` now use the arguments
@@ -711,7 +764,7 @@ MINOR CHANGES
   - New dataset included: `bugs_long`, for repeated measures designs with `NA`s
     present in the data.
 
-  - `ggstatsplot` now uses `rcompanion` to compute Spearman's *rho* and
+  - `{ggstatsplot}` now uses `rcompanion` to compute Spearman's *rho* and
     Kendall's *W*. Therefore, `DescTools` is removed from dependencies.
 
   - `ggcoefstats` supports following objects: `bglmerMod`, `blmerMod`, `lme`,
@@ -839,7 +892,7 @@ MINOR CHANGES
   - Instead of using the internal function `cor_test_ci`, `ggscatterstats`
     instead used `SpearmanRho` function from `DescTools` package. This was done
     to reduce number of custom internal functions used to compute CIs for
-    various effect sizes. `ggstatsplot` therefore gains `DescTools` as a
+    various effect sizes. `{ggstatsplot}` therefore gains `DescTools` as a
     dependency.
 
   - The `sampling.plan` argument default for `ggbarstats` function has been
@@ -870,10 +923,10 @@ MINOR CHANGES
   - The internal function `outlier_df` to add a column specifying outlier status
     of any given data point is now exported.
 
-  - `ggstatsplot` previously relied on an internal function `chisq_v_ci` to
+  - `{ggstatsplot}` previously relied on an internal function `chisq_v_ci` to
     compute confidence intervals for Cramer's *V* using bootstrapping but it was
     pretty slow. It now instead relies on `rcompanion` package to compute
-    confidence intervals for *V*. `ggstatsplot`, therefore, gains a new
+    confidence intervals for *V*. `{ggstatsplot}`, therefore, gains a new
     dependency.
 
   - `subtitle_mann_nonparametric` and `subtitle_t_onesample` now computes effect
@@ -905,7 +958,7 @@ NEW FEATURES
     `ggplot` class objects.
 
   - Instead of using `effsize` to compute Cohen's *d* and Hedge's *g*,
-    `ggstatsplot` now relies on a new (#159) internal function
+    `{ggstatsplot}` now relies on a new (#159) internal function
     `effect_t_parametric` to compute them. This removes `effsize` from
     dependencies.
 
@@ -1047,7 +1100,7 @@ MAJOR CHANGES
     within-subjects designs, so having `_ggbetween_` in their names made users
     suspect if they could use these functions for within-subjects designs.
 
-  - `ggstatsplot` now depends on `R 3.5.0`. This is because some of its
+  - `{ggstatsplot}` now depends on `R 3.5.0`. This is because some of its
     dependencies require 3.5.0 to work (e.g., `broom.mixed`).
 
   - All `theme_` functions are now exported (`theme_pie()`, `theme_corrmat()`).
@@ -1080,8 +1133,8 @@ MAJOR CHANGES
   - `subtitle_t_robust` function can now handle dependent samples and gains
     `paired` argument.
 
-  - A number of tidyverse operators are now reexported by `ggstatsplot`: `%>%`,
-    `%<>%`, `%$%`.
+  - A number of tidyverse operators are now reexported by `{ggstatsplot}`:
+    `%>%`, `%<>%`, `%$%`.
 
 MINOR CHANGES
 
@@ -1132,7 +1185,7 @@ MAJOR CHANGES
   - The package now exports all functions used to create text expressions with
     results. This makes it easy for people to use these results in their own
     plots at any location they want (and not just in `subtitle`, the current
-    default for `ggstatsplot`).
+    default for `{ggstatsplot}`).
 
   - `ggcorrmat` gains `p.adjust.method` argument which allows *p*-values for
     correlations to be corrected for multiple comparisons.
@@ -1266,7 +1319,7 @@ MAJOR CHANGES
     correlation, as implemented in `WRS2::pbcor`. This was done to be consistent
     across different functions. `ggcorrmat` also uses percentage bend
     correlation as the robust correlation measure. This also means that
-    `ggstatsplot` no longer imports `MASS` and `sfsmisc`.
+    `{ggstatsplot}` no longer imports `MASS` and `sfsmisc`.
 
   - The `data` argument is no longer `NULL` for all functions, except
     `gghistostats`. In other words, the user **must** provide a dataframe from
@@ -1335,8 +1388,9 @@ NEW FEATURES
 
 MAJOR CHANGES
 
-  - To be internally consistent, all functions in `ggstatsplot` use the spelling
-    `color`, rather than `colour` in some functions, while `color` in others.
+  - To be internally consistent, all functions in `{ggstatsplot}` use the
+    spelling `color`, rather than `colour` in some functions, while `color` in
+    others.
 
   - Removed the redundant argument `binwidth.adjust` from `gghistostats`
     function. This argument was relevant for the first avatar of this function,

@@ -46,39 +46,31 @@
 #' @inheritParams ggcorrplot::ggcorrplot
 #' @inheritParams ggscatterstats
 #'
-#' @import ggplot2
-#'
 #' @importFrom dplyr select matches
 #' @importFrom purrr is_bare_numeric keep
-#' @importFrom rlang exec !!!
-#' @importFrom pairwiseComparisons p_adjust_text
-#' @importFrom statsExpressions correlation
-#' @importFrom parameters standardize_names
+#' @importFrom correlation correlation
 #'
 #' @seealso \code{\link{grouped_ggcorrmat}} \code{\link{ggscatterstats}}
 #'   \code{\link{grouped_ggscatterstats}}
 #'
-#' @details For more details, see:
-#' \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html}
+#' @details For details, see:
+#' <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html>
 #'
 #' @examples
-#' \donttest{
 #' # for reproducibility
 #' set.seed(123)
 #' library(ggstatsplot)
 #'
-#' # for plot
-#' if (require("ggcorrplot")) {
-#'   ggcorrmat(iris)
-#' }
-#' # to get the correlation analyses results in a dataframe
+#' # to get a plot (assumes that `ggcorrplot` is installed)
+#' if (require("ggcorrplot")) ggcorrmat(iris)
+#'
+#' # to get a dataframe
 #' ggcorrmat(
 #'   data = ggplot2::msleep,
 #'   cor.vars = sleep_total:bodywt,
 #'   partial = TRUE,
 #'   output = "dataframe"
 #' )
-#' }
 #' @export
 
 # defining the function
@@ -111,33 +103,24 @@ ggcorrmat <- function(data,
                       caption = NULL,
                       ...) {
 
-  # --------------------------------- data -----------------------------------
+  # dataframe -----------------------------------
 
   # creating a dataframe out of the entered variables
   if (missing(cor.vars)) {
     df <- purrr::keep(.x = data, .p = purrr::is_bare_numeric)
   } else {
-    df <- dplyr::select(data, {{ cor.vars }})
+    df <- select(data, {{ cor.vars }})
   }
 
-  # renaming the columns if so desired
-  if (!is.null(cor.vars.names)) {
-    # check if number of cor.vars is equal to the number of names entered
-    if (length(df) != length(cor.vars.names)) {
-      message("Warning: Mismatch between number of variables and names.")
-    } else {
-      colnames(df) <- cor.vars.names
-    }
-  }
-
-  # ---------------------------- statistics -----------------------------------
+  # statistical analysis ------------------------------------------
 
   # if any of the abbreviations have been entered, change them
-  type <- ipmisc::stats_type_switch(type)
+  type <- statsExpressions::stats_type_switch(type)
 
   # creating a dataframe of results
-  stats_df <- statsExpressions::correlation(
+  stats_df <- correlation::correlation(
     data = df,
+    rename = cor.vars.names,
     method = ifelse(type == "nonparametric", "spearman", "pearson"),
     p_adjust = p.adjust.method,
     ci = conf.level,
@@ -158,7 +141,7 @@ ggcorrmat <- function(data,
     return(as_tibble(parameters::standardize_names(stats_df, "broom")))
   }
 
-  # -------------------------------- plot -----------------------------------
+  # plot -------------------------------------
 
   # in case of NAs, compute minimum and maximum sample sizes of pairs
   # also compute mode
@@ -191,10 +174,10 @@ ggcorrmat <- function(data,
   insight::check_if_installed("ggcorrplot")
 
   # plotting the correlalogram
-  plot <- rlang::exec(
+  plot <- exec(
     ggcorrplot::ggcorrplot,
-    corr = as.matrix(dplyr::select(stats_df, dplyr::matches("^parameter|^r"))),
-    p.mat = as.matrix(dplyr::select(stats_df, dplyr::matches("^parameter|^p"))),
+    corr = as.matrix(select(stats_df, matches("^parameter|^r"))),
+    p.mat = as.matrix(select(stats_df, matches("^parameter|^p"))),
     sig.level = ifelse(type == "bayes", Inf, sig.level),
     ggtheme = ggtheme,
     colors = colors %||% paletteer::paletteer_d(paste0(package, "::", palette), 3L),
@@ -206,7 +189,7 @@ ggcorrmat <- function(data,
     !!!ggcorrplot.args
   )
 
-  # =========================== labels ==================================
+  # annotations ------------------------------------------
 
   # preparing the `pch` caption
   if ((pch == "cross" || pch == 4) && type != "bayes") {
@@ -220,7 +203,7 @@ ggcorrmat <- function(data,
       ),
       env = list(
         sig.level = sig.level,
-        adj.text = pairwiseComparisons::p_adjust_text(p.adjust.method),
+        adj.text = p_adjust_text(p.adjust.method),
         top.text = caption
       )
     )
@@ -228,12 +211,12 @@ ggcorrmat <- function(data,
 
   # adding text details to the plot
   plot +
-    ggplot2::theme(
-      panel.grid.major = ggplot2::element_blank(),
-      panel.grid.minor = ggplot2::element_blank(),
-      legend.title = ggplot2::element_text(size = 15)
+    theme(
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      legend.title = element_text(size = 15)
     ) +
-    ggplot2::labs(
+    labs(
       title = title,
       subtitle = subtitle,
       caption = caption,
@@ -241,4 +224,86 @@ ggcorrmat <- function(data,
       ylab = NULL
     ) +
     ggplot.component
+}
+
+
+#' @title Visualization of a correlalogram (or correlation matrix) for all
+#'   levels of a grouping variable
+#' @name grouped_ggcorrmat
+#'
+#' @description
+#'
+#' Helper function for `ggstatsplot::ggcorrmat` to apply this function across
+#' multiple levels of a given factor and combining the resulting plots using
+#' `ggstatsplot::combine_plots`.
+#'
+#' @inheritParams ggcorrmat
+#' @inheritParams grouped_ggbetweenstats
+#' @inheritDotParams ggcorrmat -title
+#'
+#' @seealso \code{\link{ggcorrmat}}, \code{\link{ggscatterstats}},
+#'   \code{\link{grouped_ggscatterstats}}
+#'
+#' @inherit ggcorrmat return references
+#' @inherit ggcorrmat return details
+#'
+#' @examples
+#' \donttest{
+#' # for reproducibility
+#' set.seed(123)
+#' library(ggstatsplot)
+#'
+#' # for plot
+#' if (require("ggcorrplot")) {
+#'   grouped_ggcorrmat(
+#'     data = iris,
+#'     grouping.var = Species,
+#'     type = "robust",
+#'     p.adjust.method = "holm",
+#'     plotgrid.args = list(ncol = 1),
+#'     annotation.args = list(tag_levels = "i")
+#'   )
+#' }
+#'
+#' # for dataframe
+#' grouped_ggcorrmat(
+#'   data = ggplot2::msleep,
+#'   grouping.var = vore,
+#'   type = "bayes",
+#'   output = "dataframe"
+#' )
+#' }
+#' @export
+
+# defining the function
+grouped_ggcorrmat <- function(data,
+                              ...,
+                              grouping.var,
+                              output = "plot",
+                              plotgrid.args = list(),
+                              annotation.args = list()) {
+
+  # dataframe
+  data %<>%
+    grouped_list({{ grouping.var }}) %>%
+    purrr::map(.f = ~ select(.x, -{{ grouping.var }}))
+
+  # creating a list of return objects
+  p_ls <- purrr::pmap(
+    .l = list(data = data, title = names(data), output = output),
+    .f = ggstatsplot::ggcorrmat,
+    ...
+  )
+
+  # combining the list of plots into a single plot
+  if (output == "plot") {
+    return(combine_plots(
+      plotlist = p_ls,
+      guides = "keep", # each legend is going to be different
+      plotgrid.args = plotgrid.args,
+      annotation.args = annotation.args
+    ))
+  } else {
+    return(bind_rows(p_ls, .id = as_name(ensym(grouping.var))))
+  }
 }

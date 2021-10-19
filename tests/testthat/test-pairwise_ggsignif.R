@@ -36,7 +36,7 @@ test_that(
     # creating the plot
     set.seed(123)
     p1 <- ggbetweenstats(
-      data = movies_wide,
+      data = movies_long,
       x = mpaa,
       y = votes,
       results.subtitle = FALSE,
@@ -48,7 +48,7 @@ test_that(
 
     set.seed(123)
     p2 <- ggbetweenstats(
-      data = movies_wide,
+      data = movies_long,
       x = mpaa,
       y = votes,
       results.subtitle = FALSE,
@@ -121,8 +121,7 @@ test_that(
       k = 3,
       type = "r",
       nboot = 20,
-      pairwise.display = "s",
-      pairwise.annotation = "p.value"
+      pairwise.display = "s"
     )
 
     # build the plot

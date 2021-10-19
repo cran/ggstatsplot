@@ -1,11 +1,11 @@
-#' @title Extracting dataframes with statistical details from `ggstatsplot`
+#' @title Extracting dataframes with statistical details from `{ggstatsplot}`
 #'
 #' @details
 #'
 #' This is a convenience function to extract dataframes with statistical details
-#' that are used to create expressions displayed in `ggstatsplot` plots as
+#' that are used to create expressions displayed in `{ggstatsplot}` plots as
 #' subtitle and/or as caption. Note that all of this analysis is carried out by
-#' the `statsExpressions` package.
+#' the `{statsExpressions}` package.
 #'
 #' For more details about underlying tests and effect size estimates, see the
 #' following vignette:
@@ -15,11 +15,7 @@
 #'
 #' A list of tibbles containing statistical analysis summaries.
 #'
-#' @note
-#' Note that if you want to use this function with `ggscatterstats`, you will
-#' have to set `marginal = FALSE` to return an object of `ggplot` type.
-#'
-#' @param p A plot from `ggstatsplot` package
+#' @param p A plot from `{ggstatsplot}` package
 #' @param ... Ignored
 #'
 #' @examples
@@ -47,5 +43,14 @@ extract_stats <- function(p, ...) {
     pairwise_comparisons_data = tryCatch(p$plot_env$mpc_df, error = function(e) NULL),
     descriptive_data = tryCatch(p$plot_env$descriptive_df, error = function(e) NULL),
     one_sample_data = tryCatch(p$plot_env$onesample_df, error = function(e) NULL)
+  )
+}
+
+#' @noRd
+
+eval_f <- function(.f, ...) {
+  tryCatch(
+    suppressWarnings(suppressMessages(exec(.f, ...))),
+    error = function(e) NULL
   )
 }

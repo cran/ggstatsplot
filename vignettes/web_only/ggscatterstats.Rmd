@@ -17,7 +17,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include = FALSE}
+```{r setup, include=FALSE}
 options(
   tibble.width = Inf,
   pillar.bold = TRUE,
@@ -59,13 +59,13 @@ you are not familiar with this operator, here is a good explanation:
 To illustrate how this function can be used, we will rely on the `ggplot2movies`
 dataset. This dataset provides information about movies scraped from
 [IMDB](https://www.imdb.com/). Specifically, we will be using cleaned version of
-this dataset included in the `ggstatsplot` package itself.
+this dataset included in the `{ggstatsplot}` package itself.
 
 ```{r ggplot2movies1}
 library(ggstatsplot)
 
 # see the selected data (we have data from 1813 movies)
-dplyr::glimpse(movies_wide)
+dplyr::glimpse(movies_long)
 ```
 
 Now that we have a clean dataset, we can start asking some interesting
@@ -75,24 +75,20 @@ budget but low IMDB rating by labeling those data points.
 
 To reduce the processing time, let's only work with 30% of the dataset.
 
-```{r ggscatterstats1,  fig.height = 6, fig.width = 8}
+```{r ggscatterstats1, fig.height=6, fig.width=8}
 # for reproducibility
 set.seed(123)
 
-# to speed up the calculation, let's use only 10% of the data
-movies_10 <- dplyr::sample_frac(movies_long, size = 0.1)
-
 # plot
 ggscatterstats(
-  data = movies_10, # dataframe from which variables are taken
+  data = movies_long, # dataframe from which variables are taken
   x = budget, # predictor/independent variable
   y = rating, # dependent variable
   xlab = "Budget (in millions of US dollars)", # label for the x-axis
   ylab = "Rating on IMDB", # label for the y-axis
   label.var = title, # variable to use for labeling data points
-  label.expression = rating < 5 & budget > 75, # expression for deciding which points to label
+  label.expression = rating < 5 & budget > 100, # expression for deciding which points to label
   point.label.args = list(alpha = 0.7, size = 4, color = "grey50"),
-  marginal.type = "density", # type of plot for marginal distribution
   xfill = "#CC79A7", # fill for marginals on the x-axis
   yfill = "#009E73", # fill for marginals on the y-axis
   title = "Relationship between movie budget and IMDB rating",
@@ -104,22 +100,15 @@ There is indeed a small, but significant, positive correlation between the
 amount of money studio invests in a movie and the ratings given by the
 audiences.
 
-**Important**: 
-
-In contrast to all other functions in this package, the `ggscatterstats`
-function returns object that is **not** further modifiable with `ggplot2`. This
-can be avoided by not plotting the marginal distributions (`marginal = FALSE`).
-Currently trying to find a workaround this problem.
-
 # Grouped analysis with `grouped_ggscatterstats`
 
 What if we want to do the same analysis do the same analysis for movies with
 different MPAA (Motion Picture Association of America) film ratings (NC-17, PG,
 PG-13, R)? 
 
-`ggstatsplot` provides a special helper function for such instances:
+`{ggstatsplot}` provides a special helper function for such instances:
 `grouped_ggstatsplot`. This is merely a wrapper function around
-`ggstatsplot::combine_plots`. It applies `ggstatsplot` across all **levels** of
+`ggstatsplot::combine_plots`. It applies `{ggstatsplot}` across all **levels** of
 a specified **grouping variable** and then combines list of individual plots
 into a single plot. Note that the grouping variable can be anything: conditions
 in a given study, groups in a study sample, different studies, etc. 
@@ -127,30 +116,21 @@ in a given study, groups in a study sample, different studies, etc.
 Let's see how we can use this function to apply `ggscatterstats` for all MPAA
 ratings. Also, let's run a robust test this time.
 
-```{r grouped1, fig.height = 12, fig.width = 7}
+```{r grouped1, fig.height=12, fig.width=7}
 # for reproducibility
 set.seed(123)
-
-# to speed up the calculation, let's use only 20% of the data
-# also since there are only 7 movies with NC-17 ratings, leave them out
-movies_20 <-
-  movies_wide %>%
-  dplyr::filter(mpaa != "NC-17") %>%
-  dplyr::sample_frac(tbl = ., size = 0.2)
 
 # plot
 grouped_ggscatterstats(
   # arguments relevant for ggstatsplot::ggscatterstats
-  data = movies_10,
+  data = movies_long,
   x = budget,
   y = rating,
-  type = "r",
   grouping.var = mpaa,
   label.var = title,
-  label.expression = rating < 5 & budget < 20,
-  marginal.type = "boxplot",
+  label.expression = rating < 5 & budget > 80,
+  type = "r",
   ggtheme = ggthemes::theme_tufte(),
-
   # arguments relevant for ggstatsplot::combine_plots
   annotation.args = list(
     title = "Relationship between movie budget and IMDB rating",
@@ -184,7 +164,7 @@ graphical element | `geom_` used | argument for further modification
 raw data | `ggplot2::geom_point` | `point.args`
 labels for raw data | `ggrepel::geom_label_repel` | `point.label.args`
 smooth line | `ggplot2::geom_smooth` | `smooth.line.args`
-marginal distributions | `ggExtra::ggMarginal` | ❌
+marginal histograms | `ggside::geom_xsidehistogram`,  `ggside::geom_ysidehistogram` | `xsidehistogram.args`, `ysidehistogram.args`
 
 # Summary of tests
 
@@ -202,15 +182,13 @@ Bayesian | Pearson's correlation coefficient | ✅ | `correlation::correlation`
 If you wish to include statistical analysis results in a publication/report, the
 ideal reporting practice will be a hybrid of two approaches:
 
-- the `ggstatsplot` approach, where the plot contains both the visual and
+- the `{ggstatsplot}` approach, where the plot contains both the visual and
 numerical summaries about a statistical model, and
 
 - the *standard* narrative approach, which provides interpretive context for the
 reported statistics.
 
 For example, let's see the following example:
-
-The `ggstatsplot` reporting -
 
 ```{r reporting}
 ggscatterstats(mtcars, qsec, drat)
@@ -229,17 +207,7 @@ hypothesis. This can be considered moderate evidence (Jeffreys, 1961) in favor
 of the null hypothesis (of absence of any correlation between these two
 variables).
 
-# Effect size interpretation
-
-To see how the effect sizes displayed in these tests can be interpreted, see:
-<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/effsize_interpretation.html>
-
 # Suggestions
 
 If you find any bugs or have any suggestions/remarks, please file an issue on GitHub: 
 <https://github.com/IndrajeetPatil/ggstatsplot/issues>
-
-# Session Information
-
-For details, see-
-<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/session_info.html>

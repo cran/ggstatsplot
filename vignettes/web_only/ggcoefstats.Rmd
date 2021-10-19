@@ -89,8 +89,8 @@ be invariant across models:
     Criterion (**AIC**) and the Bayesian Information Criterion (**BIC**) values,
     the "better" the model is.
 
-  - The output of this function will be a `ggplot2` object and, thus, it can be
-    further modified (e.g., change themes, etc.) with `ggplot2` functions.
+  - The output of this function will be a `{ggplot2}` object and, thus, it can be
+    further modified (e.g., change themes, etc.) with `{ggplot2}` functions.
 
 # Supported models
 
@@ -116,29 +116,29 @@ also supported by `ggcoefstats`. For example-
 `mixor`, `mjoint`, `mle2`, `mlm`, `multinom`, `mvord`, `negbin`, `negbinmfx`,
 `negbinirr`, `nlmerMod`, `nlrq`, `nlreg`, `nls`, `orcutt`, `orm`, `plm`,
 `poissonmfx`, `poissonirr`, `polr`, `probitmfx`, `ridgelm`, `riskRegression`,
-`rjags`, `rlm`, `rlmerMod`, `robmixglm`, `rq`, `rqs`, `rqss`, `rrvglm`, `scam`,
-`selection`, `semLm`, `semLme`, `slm`, `speedglm`, `speedlm`, `stanfit`,
-`stanreg`, `summary.lm`, `survreg`, `svyglm`, `svy_vglm`, `svyolr`, `tobit`,
-`truncreg`, `varest`, `vgam`, `vglm`, `wbgee`, `wblm`, `zeroinfl`, etc.
+`rjags`, `rlm`, `rlmerMod`, `robmixglm`, `rq`, `rqs`, `rqss`, `rrvglm`, `Sarlm`,
+`scam`, `selection`, `semLm`, `semLme`, `slm`, `speedglm`, `speedlm`, `stanfit`,
+`stanreg`, `summary.lm`, `survreg`, `systemfit`, `svyglm`, `svy_vglm`, `svyolr`,
+`tobit`, `truncreg`, `varest`, `vgam`, `vglm`, `wbgee`, `wblm`, `zeroinfl`, etc.
 
 # Summary of graphics
 
-graphical element | `geom_` used | argument for further modification --------- |
-------- | -------------------------- regression estimate | `ggplot2::geom_point`
-| `point.args` error bars | `ggplot2::geom_errorbarh` | `errorbar.args` vertical
-line | `ggplot2::geom_vline` | `vline.args` label with statistical details |
-`ggrepel::geom_label_repel` | `stats.label.args`
+graphical element | `geom_` used | argument for further modification 
+--------- | ------- | -------------------------- 
+regression estimate | `ggplot2::geom_point`| `point.args` 
+error bars | `ggplot2::geom_errorbarh` | `errorbar.args` 
+vertical line | `ggplot2::geom_vline` | `vline.args` 
+label with statistical details | `ggrepel::geom_label_repel` | `stats.label.args`
 
 # Summary of meta-analysis tests
 
 **Hypothesis testing** and **Effect size estimation**
 
-Type | Test | Effect size | CI? | Function used ----------- |
--------------------- | -------- | --- | ----- Parametric | Meta-analysis via
-random-effects models | $\beta$ | ✅ | `metafor::metafor` Robust | Meta-analysis
-via robust random-effects models | $\beta$ | ✅ | `metaplus::metaplus` Bayes |
-Meta-analysis via Bayesian random-effects models | $\beta$ | ✅ |
-`metaBMA::meta_random`
+Type | Test | Effect size | CI? | Function used 
+----------- | -------------------- | -------- | --- | -----
+Parametric | Meta-analysis via random-effects models | $\beta$ | ✅ | `metafor::metafor` 
+Robust | Meta-analysis via robust random-effects models | $\beta$ | ✅ | `metaplus::metaplus` 
+Bayes | Meta-analysis via Bayesian random-effects models | $\beta$ | ✅ | `metaBMA::meta_random`
 
 # Examples of supported models
 
@@ -195,6 +195,32 @@ ggcoefstats(
 )
 ```
 
+## Bayesian additive models for location scale and shape (`bamlss`)
+
+```{r bamlss, fig.height=5, fig.width=6}
+# setup
+set.seed(123)
+library(bamlss)
+data("SwissLabor", package = "AER")
+
+# formula
+f <- participation ~ income + age + education + youngkids + oldkids + foreign + I(age^2)
+
+# model
+b_bamlss <-
+  bamlss::bamlss(
+    formula = f,
+    family = "binomial",
+    data = SwissLabor
+  )
+
+# plot
+ggcoefstats(
+  x = b_bamlss,
+  title = "Bayesian additive models \nfor location scale and shape"
+)
+```
+
 ## Bayes Factor (`BFBayesFactor`)
 
 ```{r BFBayesFactor, fig.width=10, fig.height=10}
@@ -217,23 +243,21 @@ mod4 <- correlationBF(y = iris$Sepal.Length, x = iris$Sepal.Width)
 
 # contingency tabs (not supported)
 data("raceDolls")
-mod5 <-
-  contingencyTableBF(
-    raceDolls,
-    sampleType = "indepMulti",
-    fixedMargin = "cols"
-  )
+mod5 <- contingencyTableBF(
+  raceDolls,
+  sampleType = "indepMulti",
+  fixedMargin = "cols"
+)
 
 # anova
 data("puzzles")
-mod6 <-
-  anovaBF(
-    formula = RT ~ shape * color + ID,
-    data = puzzles,
-    whichRandom = "ID",
-    whichModels = "top",
-    progress = FALSE
-  )
+mod6 <- anovaBF(
+  formula = RT ~ shape * color + ID,
+  data = puzzles,
+  whichRandom = "ID",
+  whichModels = "top",
+  progress = FALSE
+)
 
 # regression-1
 mod7 <- regressionBF(rating ~ ., data = attitude, progress = FALSE)
@@ -620,7 +644,7 @@ combine_plots(
 
 ## linear mixed-effects model (`lmer`/`lmerMod`)
 
-```{r lmer1, fig.height=12, fig.width=7}
+```{r lmer1, fig.height=8, fig.width=6}
 # set up
 library(lme4)
 library(ggstatsplot)
@@ -630,12 +654,11 @@ set.seed(123)
 mod1 <- stats::lm(formula = scale(rating) ~ scale(budget), data = movies_long)
 
 # merMod model
-mod2 <-
-  lme4::lmer(
-    formula = scale(rating) ~ scale(budget) + (budget | genre),
-    data = movies_long,
-    control = lme4::lmerControl(calc.derivs = FALSE)
-  )
+mod2 <- lme4::lmer(
+  formula = scale(rating) ~ scale(budget) + (budget | genre),
+  data = movies_long,
+  control = lme4::lmerControl(calc.derivs = FALSE)
+)
 
 # combining the two different plots
 combine_plots(
@@ -1119,27 +1142,25 @@ hvd <- heart.valve[!is.na(heart.valve$log.grad) &
   heart.valve$num <= 50, ]
 
 # model
-fit_mjoint <-
-  joineRML::mjoint(
-    formLongFixed = list(
-      "grad" = log.grad ~ time + sex + hs,
-      "lvmi" = log.lvmi ~ time + sex
-    ),
-    formLongRandom = list(
-      "grad" = ~ 1 | num,
-      "lvmi" = ~ time | num
-    ),
-    formSurv = Surv(fuyrs, status) ~ age,
-    data = hvd,
-    inits = list("gamma" = c(0.11, 1.51, 0.80)),
-    timeVar = "time"
-  )
+fit_mjoint <- joineRML::mjoint(
+  formLongFixed = list(
+    "grad" = log.grad ~ time + sex + hs,
+    "lvmi" = log.lvmi ~ time + sex
+  ),
+  formLongRandom = list(
+    "grad" = ~ 1 | num,
+    "lvmi" = ~ time | num
+  ),
+  formSurv = Surv(fuyrs, status) ~ age,
+  data = hvd,
+  inits = list("gamma" = c(0.11, 1.51, 0.80)),
+  timeVar = "time"
+)
 
 # extract the survival fixed effects and plot them
 ggcoefstats(
   x = fit_mjoint,
-  conf.level = 0.99,
-  component = "survival",
+  component = "conditional",
   package = "yarrr",
   palette = "basel",
   title = "joint model to time-to-event data and multivariate longitudinal data"
@@ -2136,7 +2157,7 @@ ggcoefstats(
 
 ## generalized linear mixed models using AD Model Builder (`glmmadmb`)
 
-```{r glmmadmb, fig.height=5, fig.width=5}
+```{r glmmadmb, fig.height=5, fig.width=7}
 # setup
 if (isFALSE("glmmADMB" %in% installed.packages())) {
   install.packages("glmmADMB",
@@ -2176,7 +2197,7 @@ ggcoefstats(
 
 ## multilevel model to a list of data frames (`merModList`)
 
-```{r merModList, fig.height=4, fig.width=4}
+```{r merModList, fig.height=5, fig.width=6}
 # setup
 set.seed(123)
 library(lme4)
@@ -2386,32 +2407,34 @@ ggcoefstats(
 )
 ```
 
-## Mixed-Effects Ordinal Regression Analysis (`mixor`)
+<!-- mixor was removed from CRAN -->
 
-```{r mixor, fig.height=8, fig.width=6}
-# setup
-set.seed(123)
-library(mixor)
-data("SmokingPrevention")
+<!-- ## Mixed-Effects Ordinal Regression Analysis (`mixor`) -->
 
-# data frame must be sorted by id variable
-SmokingPrevention <- SmokingPrevention[order(SmokingPrevention$class), ]
+<!-- ```{r mixor, fig.height=8, fig.width=6} -->
+<!-- # setup -->
+<!-- set.seed(123) -->
+<!-- library(mixor) -->
+<!-- data("SmokingPrevention") -->
 
-# school model
-mod_mixor <-
-  mixor::mixor(
-    formula = thksord ~ thkspre + cc + tv + cctv,
-    data = SmokingPrevention,
-    id = school,
-    link = "logit"
-  )
+<!-- # data frame must be sorted by id variable -->
+<!-- SmokingPrevention <- SmokingPrevention[order(SmokingPrevention$class), ] -->
 
-# plot
-ggcoefstats(
-  x = mod_mixor,
-  title = "Mixed-Effects Ordinal Regression Analysis"
-)
-```
+<!-- # school model -->
+<!-- mod_mixor <- -->
+<!--   mixor::mixor( -->
+<!--     formula = thksord ~ thkspre + cc + tv + cctv, -->
+<!--     data = SmokingPrevention, -->
+<!--     id = school, -->
+<!--     link = "logit" -->
+<!--   ) -->
+
+<!-- # plot -->
+<!-- ggcoefstats( -->
+<!--   x = mod_mixor, -->
+<!--   title = "Mixed-Effects Ordinal Regression Analysis" -->
+<!-- ) -->
+<!-- ``` -->
 
 ## bias reduction in Binomial-response GLMs (`brglm`)
 
@@ -2980,7 +3003,7 @@ ggcoefstats(
 
 ## fit a nonlinear heteroscedastic model via maximum likelihood (`nlreg`)
 
-```{r nlreg, fig.height=5, fig.width=5}
+```{r nlreg, fig.height=5, fig.width=7}
 set.seed(123)
 library(nlreg)
 library(boot)
@@ -3135,7 +3158,7 @@ ggcoefstats(
 
 ## mixed effects Cox model (`coxme`)
 
-```{r coxme, fig.height=4, fig.width=4}
+```{r coxme, fig.height=8, fig.width=6}
 # setup
 set.seed(123)
 library(survival)
@@ -3648,8 +3671,7 @@ ggcoefstats(
   point.args = list(color = "red", shape = 15),
   vline.args = list(size = 1, color = "#CC79A7", linetype = "dotdash"),
   title = "robust regression using an M estimator",
-  ggtheme = ggthemes::theme_stata(),
-  ggstatsplot.layer = FALSE
+  ggtheme = ggthemes::theme_stata()
 )
 ```
 
@@ -3780,7 +3802,7 @@ ggcoefstats(
 
 ## instrumental-variable regression (`ivreg`)
 
-```{r ivreg, fig.height=5, fig.width=5}
+```{r ivreg, fig.height=7, fig.width=5}
 # setup
 suppressPackageStartupMessages(library(AER))
 set.seed(123)
@@ -3986,31 +4008,35 @@ ggcoefstats(
 )
 ```
 
-## Bayesian additive models for location scale and shape (`bamlss`)
+## Linear Equation System Estimation (`systemfit`)
 
-```{r bamlss, fig.height=5, fig.width=6}
-# setup
-set.seed(123)
-library(bamlss)
-data("SwissLabor", package = "AER")
+```{r systemfit, fig.height=7, fig.width=8}
+library(systemfit)
 
-# formula
-f <- participation ~ income + age + education + youngkids + oldkids + foreign + I(age^2)
+# data
+data("Kmenta")
+eqDemand <- consump ~ price + income
+eqSupply <- consump ~ price + farmPrice + trend
+system <- list(demand = eqDemand, supply = eqSupply)
+inst1 <- ~ income + farmPrice
+inst2 <- ~ income + farmPrice + trend
+instlist <- list(inst1, inst2)
 
 # model
-b_bamlss <-
-  bamlss::bamlss(
-    formula = f,
-    family = "binomial",
-    data = SwissLabor
-  )
+m_systemfit <- systemfit(
+  system,
+  "2SLS",
+  inst = instlist,
+  data = Kmenta
+)
 
 # plot
 ggcoefstats(
-  x = b_bamlss,
-  title = "Bayesian additive models \nfor location scale and shape"
+  x = m_systemfit,
+  title = "Linear Equation System Estimation"
 )
 ```
+
 
 ## generalized method of moment estimation (`gmm`)
 
@@ -4039,6 +4065,36 @@ ggcoefstats(
   title = "generalized method of moment estimation"
 )
 ```
+
+## Spatial simultaneous autoregressive model estimation\n by maximum likelihood (`Sarlm`)
+
+```{r Sarlm}
+library(spatialreg)
+
+# data
+data(oldcol, package = "spdep")
+listw <- spdep::nb2listw(COL.nb, style = "W")
+ev <- eigenw(listw)
+W <- as(listw, "CsparseMatrix")
+trMatc <- trW(W, type = "mult")
+
+# model
+COL.lag.eig <- lagsarlm(
+  CRIME ~ INC + HOVAL,
+  data = COL.OLD,
+  listw = listw,
+  method = "eigen",
+  quiet = FALSE,
+  control = list(pre_eig = ev, OrdVsign = 1)
+)
+
+# plot
+ggcoefstats(
+  x = COL.lag.eig,
+  title = "Spatial simultaneous autoregressive model estimation\n by maximum likelihood"
+)
+```
+
 
 ## fit a GLM with lasso or elasticnet regularization (`glmnet`)
 
@@ -5340,9 +5396,3 @@ not supported.
 
 If you find any bugs or have any suggestions/remarks, please file an issue on
 `GitHub`: <https://github.com/IndrajeetPatil/ggstatsplot/issues>
-
-# Session Information
-
-For details, see-
-<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/session_info.html>
-
