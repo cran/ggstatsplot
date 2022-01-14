@@ -30,10 +30,7 @@
 #'   x = cty,
 #'   y = manufacturer,
 #'   title = "Fuel economy data",
-#'   xlab = "city miles per gallon",
-#'   caption = substitute(
-#'     paste(italic("Source"), ": EPA dataset on http://fueleconomy.gov")
-#'   )
+#'   xlab = "city miles per gallon"
 #' )
 #' }
 #' @export
@@ -97,19 +94,19 @@ ggdotplotstats <- function(data,
 
   if (results.subtitle) {
     # convert entered stats type to a standard notation
-    type <- statsExpressions::stats_type_switch(type)
+    type <- stats_type_switch(type)
 
     # relevant arguments for statistical tests
     .f.args <- list(
-      data = data,
-      x = {{ x }},
-      test.value = test.value,
+      data         = data,
+      x            = {{ x }},
+      test.value   = test.value,
       effsize.type = effsize.type,
-      conf.level = conf.level,
-      k = k,
-      tr = tr,
-      bf.prior = bf.prior,
-      top.text = caption
+      conf.level   = conf.level,
+      k            = k,
+      tr           = tr,
+      bf.prior     = bf.prior,
+      top.text     = caption
     )
 
     # preparing the subtitle with statistical results
@@ -141,7 +138,7 @@ ggdotplotstats <- function(data,
       labels = data %>% pull({{ y }}),
       breaks = data$rank,
       sec.axis = dup_axis(
-        name = "percentile",
+        name   = "percentile",
         breaks = seq(1, nrow(data), (nrow(data) - 1) / 4),
         labels = 25 * 0:4
       )
@@ -152,10 +149,10 @@ ggdotplotstats <- function(data,
   if (isTRUE(centrality.plotting)) {
     plot <- histo_labeller(
       plot,
-      x = data %>% pull({{ x }}),
-      type = statsExpressions::stats_type_switch(centrality.type),
-      tr = tr,
-      k = k,
+      x                    = data %>% pull({{ x }}),
+      type                 = stats_type_switch(centrality.type),
+      tr                   = tr,
+      k                    = k,
       centrality.line.args = centrality.line.args
     )
   }
@@ -165,11 +162,11 @@ ggdotplotstats <- function(data,
   # specifying theme and labels for the final plot
   plot +
     labs(
-      x = xlab %||% as_name(x),
-      y = ylab %||% as_name(y),
-      title = title,
+      x        = xlab %||% as_name(x),
+      y        = ylab %||% as_name(y),
+      title    = title,
       subtitle = subtitle,
-      caption = caption
+      caption  = caption
     ) +
     ggtheme +
     ggplot.component
@@ -207,11 +204,11 @@ ggdotplotstats <- function(data,
 #'
 #' # plot
 #' grouped_ggdotplotstats(
-#'   data = df,
-#'   x = cty,
-#'   y = manufacturer,
+#'   data         = df,
+#'   x            = cty,
+#'   y            = manufacturer,
 #'   grouping.var = cyl,
-#'   test.value = 15.5
+#'   test.value   = 15.5
 #' )
 #' }
 #' @export

@@ -120,26 +120,28 @@
 #'
 #' @examples
 #' \donttest{
-#' # to get reproducible results from bootstrapping
-#' set.seed(123)
-#' library(ggstatsplot)
+#' if (require("PMCMRplus")) {
+#'   # to get reproducible results from bootstrapping
+#'   set.seed(123)
+#'   library(ggstatsplot)
 #'
-#' # simple function call with the defaults
-#' ggbetweenstats(mtcars, am, mpg)
+#'   # simple function call with the defaults
+#'   ggbetweenstats(mtcars, am, mpg)
 #'
-#' # more detailed function call
-#' ggbetweenstats(
-#'   data = morley,
-#'   x = Expt,
-#'   y = Speed,
-#'   type = "robust",
-#'   xlab = "The experiment number",
-#'   ylab = "Speed-of-light measurement",
-#'   pairwise.comparisons = TRUE,
-#'   p.adjust.method = "fdr",
-#'   outlier.tagging = TRUE,
-#'   outlier.label = Run
-#' )
+#'   # more detailed function call
+#'   ggbetweenstats(
+#'     data = morley,
+#'     x = Expt,
+#'     y = Speed,
+#'     type = "robust",
+#'     xlab = "The experiment number",
+#'     ylab = "Speed-of-light measurement",
+#'     pairwise.comparisons = TRUE,
+#'     p.adjust.method = "fdr",
+#'     outlier.tagging = TRUE,
+#'     outlier.label = Run
+#'   )
+#' }
 #' }
 #' @export
 
@@ -208,7 +210,7 @@ ggbetweenstats <- function(data,
   # data -----------------------------------
 
   # convert entered stats type to a standard notation
-  type <- statsExpressions::stats_type_switch(type)
+  type <- stats_type_switch(type)
 
   # make sure both quoted and unquoted arguments are allowed
   c(x, y) %<-% c(ensym(x), ensym(y))
@@ -226,9 +228,9 @@ ggbetweenstats <- function(data,
   # add a logical column indicating whether a point is or is not an outlier
   data %<>%
     outlier_df(
-      x = {{ x }},
-      y = {{ y }},
-      outlier.coef = outlier.coef,
+      x             = {{ x }},
+      y             = {{ y }},
+      outlier.coef  = outlier.coef,
       outlier.label = outlier.label
     )
 
@@ -240,18 +242,18 @@ ggbetweenstats <- function(data,
   if (results.subtitle) {
     # relevant arguments for statistical tests
     .f.args <- list(
-      data = data,
-      x = as_string(x),
-      y = as_string(y),
+      data         = data,
+      x            = as_string(x),
+      y            = as_string(y),
       effsize.type = effsize.type,
-      conf.level = conf.level,
-      var.equal = var.equal,
-      k = k,
-      tr = tr,
-      paired = FALSE,
-      bf.prior = bf.prior,
-      nboot = nboot,
-      top.text = caption
+      conf.level   = conf.level,
+      var.equal    = var.equal,
+      k            = k,
+      tr           = tr,
+      paired       = FALSE,
+      bf.prior     = bf.prior,
+      nboot        = nboot,
+      top.text     = caption
     )
 
     .f <- function_switch(test)
@@ -289,7 +291,7 @@ ggbetweenstats <- function(data,
     plot <- plot +
       exec(
         geom_point,
-        data = ~ filter(.x, isanoutlier),
+        data      = ~ filter(.x, isanoutlier),
         aes(color = {{ x }}),
         !!!point.args
       )
@@ -300,12 +302,12 @@ ggbetweenstats <- function(data,
     plot <- plot +
       # add all outliers in
       geom_point(
-        data = ~ filter(.x, isanoutlier),
-        size = 3,
+        data   = ~ filter(.x, isanoutlier),
+        size   = 3,
         stroke = 0,
-        alpha = 0.7,
-        color = outlier.color,
-        shape = outlier.shape
+        alpha  = 0.7,
+        color  = outlier.color,
+        shape  = outlier.shape
       )
   }
 
@@ -327,11 +329,11 @@ ggbetweenstats <- function(data,
     # add a boxplot
     suppressWarnings(plot <- plot +
       exec(
-        .fn = .f,
+        .fn   = .f,
         width = 0.3,
         alpha = 0.2,
-        geom = "boxplot",
-        coef = outlier.coef,
+        geom  = "boxplot",
+        coef  = outlier.coef,
         !!!outlier_list
       ))
   }
@@ -351,11 +353,11 @@ ggbetweenstats <- function(data,
   if (isTRUE(outlier.tagging)) {
     plot <- plot +
       exec(
-        .fn = ggrepel::geom_label_repel,
-        data = ~ filter(.x, isanoutlier),
-        mapping = aes(x = {{ x }}, y = {{ y }}, label = outlier.label),
+        .fn                = ggrepel::geom_label_repel,
+        data               = ~ filter(.x, isanoutlier),
+        mapping            = aes(x = {{ x }}, y = {{ y }}, label = outlier.label),
         min.segment.length = 0,
-        inherit.aes = FALSE,
+        inherit.aes        = FALSE,
         !!!outlier.label.args
       )
   }
@@ -365,13 +367,13 @@ ggbetweenstats <- function(data,
   # add labels for centrality measure
   if (isTRUE(centrality.plotting)) {
     plot <- centrality_ggrepel(
-      plot = plot,
-      data = data,
-      x = {{ x }},
-      y = {{ y }},
-      k = k,
-      type = statsExpressions::stats_type_switch(centrality.type),
-      tr = tr,
+      plot                  = plot,
+      data                  = data,
+      x                     = {{ x }},
+      y                     = {{ y }},
+      k                     = k,
+      type                  = stats_type_switch(centrality.type),
+      tr                    = tr,
       centrality.point.args = centrality.point.args,
       centrality.label.args = centrality.label.args
     )
@@ -382,31 +384,32 @@ ggbetweenstats <- function(data,
   if (isTRUE(pairwise.comparisons) && test == "anova") {
     # creating dataframe with pairwise comparison results
     mpc_df <- pairwise_comparisons(
-      data = data,
-      x = {{ x }},
-      y = {{ y }},
-      type = type,
-      tr = tr,
-      paired = FALSE,
-      var.equal = var.equal,
+      data            = data,
+      x               = {{ x }},
+      y               = {{ y }},
+      type            = type,
+      tr              = tr,
+      paired          = FALSE,
+      var.equal       = var.equal,
       p.adjust.method = p.adjust.method,
-      k = k
+      k               = k
     )
 
     # adding the layer for pairwise comparisons
     plot <- ggsignif_adder(
-      plot = plot,
-      mpc_df = mpc_df,
-      data = data,
-      x = {{ x }},
-      y = {{ y }},
+      plot             = plot,
+      mpc_df           = mpc_df,
+      data             = data,
+      x                = {{ x }},
+      y                = {{ y }},
       pairwise.display = pairwise.display,
-      ggsignif.args = ggsignif.args
+      ggsignif.args    = ggsignif.args
     )
 
     # preparing the caption for pairwise comparisons test
     caption <- pairwise_caption(
       caption,
+      bf.message = ifelse(type == "parametric", bf.message, FALSE),
       unique(mpc_df$test.details),
       ifelse(type == "bayes", "all", pairwise.display)
     )
@@ -416,16 +419,16 @@ ggbetweenstats <- function(data,
 
   # specifying annotations and other aesthetic aspects for the plot
   aesthetic_addon(
-    plot = plot,
-    x = data %>% pull({{ x }}),
-    xlab = xlab %||% as_name(x),
-    ylab = ylab %||% as_name(y),
-    title = title,
-    subtitle = subtitle,
-    caption = caption,
-    ggtheme = ggtheme,
-    package = package,
-    palette = palette,
+    plot             = plot,
+    x                = data %>% pull({{ x }}),
+    xlab             = xlab %||% as_name(x),
+    ylab             = ylab %||% as_name(y),
+    title            = title,
+    subtitle         = subtitle,
+    caption          = caption,
+    ggtheme          = ggtheme,
+    package          = package,
+    palette          = palette,
     ggplot.component = ggplot.component
   )
 }
@@ -453,35 +456,37 @@ ggbetweenstats <- function(data,
 #'
 #' @examples
 #' \donttest{
-#' # to get reproducible results from bootstrapping
-#' set.seed(123)
-#' library(ggstatsplot)
-#' library(dplyr, warn.conflicts = FALSE)
-#' library(ggplot2)
+#' if (require("PMCMRplus")) {
+#'   # to get reproducible results from bootstrapping
+#'   set.seed(123)
+#'   library(ggstatsplot)
+#'   library(dplyr, warn.conflicts = FALSE)
+#'   library(ggplot2)
 #'
-#' # the most basic function call
-#' grouped_ggbetweenstats(
-#'   data = filter(ggplot2::mpg, drv != "4"),
-#'   x = year,
-#'   y = hwy,
-#'   grouping.var = drv
-#' )
-#'
-#' # modifying individual plots using `ggplot.component` argument
-#' grouped_ggbetweenstats(
-#'   data = filter(
-#'     movies_long,
-#'     genre %in% c("Action", "Comedy"),
-#'     mpaa %in% c("R", "PG")
-#'   ),
-#'   x = genre,
-#'   y = rating,
-#'   grouping.var = mpaa,
-#'   ggplot.component = scale_y_continuous(
-#'     breaks = seq(1, 9, 1),
-#'     limits = (c(1, 9))
+#'   # the most basic function call
+#'   grouped_ggbetweenstats(
+#'     data = filter(ggplot2::mpg, drv != "4"),
+#'     x = year,
+#'     y = hwy,
+#'     grouping.var = drv
 #'   )
-#' )
+#'
+#'   # modifying individual plots using `ggplot.component` argument
+#'   grouped_ggbetweenstats(
+#'     data = filter(
+#'       movies_long,
+#'       genre %in% c("Action", "Comedy"),
+#'       mpaa %in% c("R", "PG")
+#'     ),
+#'     x = genre,
+#'     y = rating,
+#'     grouping.var = mpaa,
+#'     ggplot.component = scale_y_continuous(
+#'       breaks = seq(1, 9, 1),
+#'       limits = (c(1, 9))
+#'     )
+#'   )
+#' }
 #' }
 #' @export
 

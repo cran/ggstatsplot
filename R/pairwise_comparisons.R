@@ -39,120 +39,121 @@
 #'
 #' @importFrom stats p.adjust pairwise.t.test na.omit aov
 #' @importFrom WRS2 lincon rmmcp
-#' @importFrom PMCMRplus durbinAllPairsTest kwAllPairsDunnTest gamesHowellTest
 #'
 #' @references For more, see:
 #' <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/pairwise.html>
 #'
 #' @examples
 #' \donttest{
-#' # for reproducibility
-#' set.seed(123)
-#' library(ggstatsplot)
-#' library(statsExpressions) # for data
+#' if (require("PMCMRplus")) {
+#'   # for reproducibility
+#'   set.seed(123)
+#'   library(ggstatsplot)
+#'   library(statsExpressions) # for data
 #'
-#' # show all columns and make the column titles bold
-#' # as a user, you don't need to do this; this is just for the package website
-#' options(tibble.width = Inf, pillar.bold = TRUE, pillar.neg = TRUE, pillar.subtle_num = TRUE)
+#'   # show all columns and make the column titles bold
+#'   # as a user, you don't need to do this; this is just for the package website
+#'   options(tibble.width = Inf, pillar.bold = TRUE, pillar.neg = TRUE, pillar.subtle_num = TRUE)
 #'
-#' #------------------- between-subjects design ----------------------------
+#'   #------------------- between-subjects design ----------------------------
 #'
-#' # parametric
-#' # if `var.equal = TRUE`, then Student's t-test will be run
-#' pairwise_comparisons(
-#'   data = mtcars,
-#'   x = cyl,
-#'   y = wt,
-#'   type = "parametric",
-#'   var.equal = TRUE,
-#'   paired = FALSE,
-#'   p.adjust.method = "none"
-#' )
+#'   # parametric
+#'   # if `var.equal = TRUE`, then Student's t-test will be run
+#'   pairwise_comparisons(
+#'     data            = mtcars,
+#'     x               = cyl,
+#'     y               = wt,
+#'     type            = "parametric",
+#'     var.equal       = TRUE,
+#'     paired          = FALSE,
+#'     p.adjust.method = "none"
+#'   )
 #'
-#' # if `var.equal = FALSE`, then Games-Howell test will be run
-#' pairwise_comparisons(
-#'   data = mtcars,
-#'   x = cyl,
-#'   y = wt,
-#'   type = "parametric",
-#'   var.equal = FALSE,
-#'   paired = FALSE,
-#'   p.adjust.method = "bonferroni"
-#' )
+#'   # if `var.equal = FALSE`, then Games-Howell test will be run
+#'   pairwise_comparisons(
+#'     data            = mtcars,
+#'     x               = cyl,
+#'     y               = wt,
+#'     type            = "parametric",
+#'     var.equal       = FALSE,
+#'     paired          = FALSE,
+#'     p.adjust.method = "bonferroni"
+#'   )
 #'
-#' # non-parametric (Dunn test)
-#' pairwise_comparisons(
-#'   data = mtcars,
-#'   x = cyl,
-#'   y = wt,
-#'   type = "nonparametric",
-#'   paired = FALSE,
-#'   p.adjust.method = "none"
-#' )
+#'   # non-parametric (Dunn test)
+#'   pairwise_comparisons(
+#'     data            = mtcars,
+#'     x               = cyl,
+#'     y               = wt,
+#'     type            = "nonparametric",
+#'     paired          = FALSE,
+#'     p.adjust.method = "none"
+#'   )
 #'
-#' # robust (Yuen's trimmed means t-test)
-#' pairwise_comparisons(
-#'   data = mtcars,
-#'   x = cyl,
-#'   y = wt,
-#'   type = "robust",
-#'   paired = FALSE,
-#'   p.adjust.method = "fdr"
-#' )
+#'   # robust (Yuen's trimmed means *t*-test)
+#'   pairwise_comparisons(
+#'     data            = mtcars,
+#'     x               = cyl,
+#'     y               = wt,
+#'     type            = "robust",
+#'     paired          = FALSE,
+#'     p.adjust.method = "fdr"
+#'   )
 #'
-#' # Bayes Factor (Student's t-test)
-#' pairwise_comparisons(
-#'   data = mtcars,
-#'   x = cyl,
-#'   y = wt,
-#'   type = "bayes",
-#'   paired = FALSE
-#' )
+#'   # Bayes Factor (Student's *t*-test)
+#'   pairwise_comparisons(
+#'     data   = mtcars,
+#'     x      = cyl,
+#'     y      = wt,
+#'     type   = "bayes",
+#'     paired = FALSE
+#'   )
 #'
-#' #------------------- within-subjects design ----------------------------
+#'   #------------------- within-subjects design ----------------------------
 #'
-#' # parametric (Student's t-test)
-#' pairwise_comparisons(
-#'   data = bugs_long,
-#'   x = condition,
-#'   y = desire,
-#'   subject.id = subject,
-#'   type = "parametric",
-#'   paired = TRUE,
-#'   p.adjust.method = "BH"
-#' )
+#'   # parametric (Student's *t*-test)
+#'   pairwise_comparisons(
+#'     data            = bugs_long,
+#'     x               = condition,
+#'     y               = desire,
+#'     subject.id      = subject,
+#'     type            = "parametric",
+#'     paired          = TRUE,
+#'     p.adjust.method = "BH"
+#'   )
 #'
-#' # non-parametric (Durbin-Conover test)
-#' pairwise_comparisons(
-#'   data = bugs_long,
-#'   x = condition,
-#'   y = desire,
-#'   subject.id = subject,
-#'   type = "nonparametric",
-#'   paired = TRUE,
-#'   p.adjust.method = "BY"
-#' )
+#'   # non-parametric (Durbin-Conover test)
+#'   pairwise_comparisons(
+#'     data            = bugs_long,
+#'     x               = condition,
+#'     y               = desire,
+#'     subject.id      = subject,
+#'     type            = "nonparametric",
+#'     paired          = TRUE,
+#'     p.adjust.method = "BY"
+#'   )
 #'
-#' # robust (Yuen's trimmed means t-test)
-#' pairwise_comparisons(
-#'   data = bugs_long,
-#'   x = condition,
-#'   y = desire,
-#'   subject.id = subject,
-#'   type = "robust",
-#'   paired = TRUE,
-#'   p.adjust.method = "hommel"
-#' )
+#'   # robust (Yuen's trimmed means t-test)
+#'   pairwise_comparisons(
+#'     data            = bugs_long,
+#'     x               = condition,
+#'     y               = desire,
+#'     subject.id      = subject,
+#'     type            = "robust",
+#'     paired          = TRUE,
+#'     p.adjust.method = "hommel"
+#'   )
 #'
-#' # Bayes Factor (Student's t-test)
-#' pairwise_comparisons(
-#'   data = bugs_long,
-#'   x = condition,
-#'   y = desire,
-#'   subject.id = subject,
-#'   type = "bayes",
-#'   paired = TRUE
-#' )
+#'   # Bayes Factor (Student's *t*-test)
+#'   pairwise_comparisons(
+#'     data       = bugs_long,
+#'     x          = condition,
+#'     y          = desire,
+#'     subject.id = subject,
+#'     type       = "bayes",
+#'     paired     = TRUE
+#'   )
+#' }
 #' }
 #' @export
 
@@ -172,6 +173,9 @@ pairwise_comparisons <- function(data,
   # standardize stats type
   type <- stats_type_switch(type)
 
+  # fail early if the needed package is not available
+  if (type != "robust") check_if_installed("PMCMRplus", reason = "for pairwise comparisons")
+
   # ensure the arguments work quoted or unquoted
   c(x, y) %<-% c(ensym(x), ensym(y))
 
@@ -180,11 +184,11 @@ pairwise_comparisons <- function(data,
   # cleaning up dataframe
   data %<>%
     long_to_wide_converter(
-      x = {{ x }},
-      y = {{ y }},
+      x          = {{ x }},
+      y          = {{ y }},
       subject.id = {{ subject.id }},
-      paired = paired,
-      spread = FALSE
+      paired     = paired,
+      spread     = FALSE
     )
 
   # for some tests, it's better to have these as vectors
@@ -216,15 +220,15 @@ pairwise_comparisons <- function(data,
   # running the appropriate test
   if (type != "robust") {
     df <- suppressWarnings(exec(
-      .fn = .f,
+      .fn             = .f,
       # Dunn, Games-Howell, Student's t-test
-      x = y_vec,
-      g = x_vec,
+      x               = y_vec,
+      g               = x_vec,
       # Durbin-Conover test
-      groups = x_vec,
-      blocks = g_vec,
+      groups          = x_vec,
+      blocks          = g_vec,
       # Student
-      paired = paired,
+      paired          = paired,
       # common
       p.adjust.method = "none",
       # problematic for other methods
@@ -267,12 +271,12 @@ pairwise_comparisons <- function(data,
       ),
       # internal function to carry out BF t-test
       .f = ~ two_sample_test(
-        data = .x,
-        x = {{ x }},
-        y = {{ y }},
-        paired = paired,
+        data     = .x,
+        x        = {{ x }},
+        y        = {{ y }},
+        paired   = paired,
         bf.prior = bf.prior,
-        type = "bayes"
+        type     = "bayes"
       )
     ) %>%
       filter(term == "Difference") %>%
@@ -305,9 +309,9 @@ pairwise_comparisons <- function(data,
       mutate(
         label = case_when(
           p.value.adjustment != "None" ~ paste0(
-            "list(~italic(p)[", p.value.adjustment, "-corrected]==", format_num(p.value, k, TRUE), ")"
+            "list(~italic(p)[", p.value.adjustment, "-corrected]==", format_value(p.value, k), ")"
           ),
-          TRUE ~ paste0("list(~italic(p)[uncorrected]==", format_num(p.value, k, TRUE), ")")
+          TRUE ~ paste0("list(~italic(p)[uncorrected]==", format_value(p.value, k), ")")
         )
       ) %>%
       ungroup()
@@ -329,10 +333,7 @@ pairwise_comparisons <- function(data,
 #'
 #' @inheritParams pairwise_comparisons
 #'
-#' @importFrom dplyr case_when
-#'
 #' @examples
-#'
 #' p_adjust_text("none")
 #' p_adjust_text("BY")
 #' @keywords internal
@@ -373,32 +374,35 @@ p_adjust_text <- function(p.adjust.method) {
 #'   comparisons being displayed.
 #' @param ... Ignored.
 #'
-#' @importFrom dplyr case_when
-#'
 #' @examples
-#'
 #' pairwise_caption("my caption", "Student's t-test")
 #' @keywords internal
 #' @noRd
 
 pairwise_caption <- function(caption,
                              test.description,
+                             bf.message,
                              pairwise.display = "significant",
                              ...) {
-  # create expression
-  substitute(
-    atop(
-      displaystyle(top.text),
-      expr = paste("Pairwise test: ", bold(test), "; Comparisons shown: ", bold(display))
-    ),
-    env = list(
-      top.text = caption,
-      test = test.description,
-      display = case_when(
-        substr(pairwise.display, 1L, 1L) == "s" ~ "only significant",
-        substr(pairwise.display, 1L, 1L) == "n" ~ "only non-significant",
-        TRUE ~ "all"
-      )
-    )
+
+  # ' needs to be escaped inside glue
+  test <- sub("'", "\\'", test.description, fixed = TRUE)
+  display <- case_when(
+    substr(pairwise.display, 1L, 1L) == "s" ~ "only significant",
+    substr(pairwise.display, 1L, 1L) == "n" ~ "only non-significant",
+    TRUE ~ "all"
   )
+
+  # returned parsed glue expression
+  if (bf.message) {
+    parse(text = glue("atop(displaystyle({caption}),
+                    list('Pairwise test:'~bold('{test}'), 'Comparisons shown:'~bold('{display}')))"))
+  } else {
+    if (!is.null(caption)) {
+      parse(text = glue("atop(displaystyle('{caption}'),
+                    list('Pairwise test:'~bold('{test}'), 'Comparisons shown:'~bold('{display}')))"))
+    } else {
+      parse(text = glue("list('Pairwise test:'~bold('{test}'), 'Comparisons shown:'~bold('{display}'))"))
+    }
+  }
 }

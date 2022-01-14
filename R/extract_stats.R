@@ -20,15 +20,17 @@
 #'
 #' @examples
 #' \donttest{
-#' set.seed(123)
-#' library(ggstatsplot)
+#' if (require("PMCMRplus")) {
+#'   set.seed(123)
+#'   library(ggstatsplot)
 #'
-#' # in case of group comparisons
-#' p <- ggbetweenstats(mtcars, cyl, mpg)
-#' extract_stats(p)
+#'   # in case of group comparisons
+#'   p <- ggbetweenstats(mtcars, cyl, mpg)
+#'   extract_stats(p)
 #'
-#' # the exact details depend on the function
-#' extract_stats(ggbarstats(mtcars, cyl, am))
+#'   # the exact details depend on the function
+#'   extract_stats(ggbarstats(mtcars, cyl, am))
+#' }
 #' }
 #' @export
 
@@ -38,11 +40,11 @@ extract_stats <- function(p, ...) {
 
   # the exact details will depend on the function
   list(
-    subtitle_data = tryCatch(p$plot_env$subtitle_df, error = function(e) NULL),
-    caption_data = tryCatch(p$plot_env$caption_df, error = function(e) NULL),
+    subtitle_data             = tryCatch(p$plot_env$subtitle_df, error = function(e) NULL),
+    caption_data              = tryCatch(p$plot_env$caption_df, error = function(e) NULL),
     pairwise_comparisons_data = tryCatch(p$plot_env$mpc_df, error = function(e) NULL),
-    descriptive_data = tryCatch(p$plot_env$descriptive_df, error = function(e) NULL),
-    one_sample_data = tryCatch(p$plot_env$onesample_df, error = function(e) NULL)
+    descriptive_data          = tryCatch(p$plot_env$descriptive_df, error = function(e) NULL),
+    one_sample_data           = tryCatch(p$plot_env$onesample_df, error = function(e) NULL)
   )
 }
 

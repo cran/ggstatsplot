@@ -5,6 +5,7 @@ test_that(
   code = {
     skip_on_cran()
     skip_if(getRversion() < "4.0")
+    skip_if_not_installed("PMCMRplus")
 
     # creating the plot
     set.seed(123)
@@ -43,7 +44,7 @@ test_that(
     expect_snapshot(within(pb$plot$labels, rm(subtitle, caption)))
 
     # checking x-axis sample size labels
-    expect_identical(
+    expect_equal(
       ggplot2::layer_scales(p)$x$labels,
       c(
         "carni\n(n = 9)",
@@ -53,7 +54,7 @@ test_that(
       )
     )
 
-    expect_identical(pb$plot$labels$subtitle, p_subtitle)
+    expect_equal(pb$plot$labels$subtitle, p_subtitle, ignore_attr = TRUE)
   }
 )
 
@@ -64,6 +65,7 @@ test_that(
   code = {
     skip_on_cran()
     skip_if(getRversion() < "4.0")
+    skip_if_not_installed("PMCMRplus")
 
     # creating the plot
     set.seed(123)
@@ -74,7 +76,6 @@ test_that(
       y = n,
       type = "np",
       k = 2L,
-      pairwise.comparisons = FALSE,
       conf.level = 0.90,
       outlier.tagging = TRUE,
       outlier.label = "name",
@@ -90,15 +91,15 @@ test_that(
     # check data
     set.seed(123)
     expect_snapshot(list(pb$data[[1]], pb$data[[2]], pb$data[[4]], pb$data[[5]]))
-    expect_snapshot(within(pb$plot$labels, rm(caption)))
+    expect_snapshot(pb$plot$labels)
 
     # check if the y-axis labels have changed
-    expect_identical(
+    expect_equal(
       pb$layout$panel_params[[1]]$x$scale$labels,
       c("4\n(n = 11)", "6\n(n = 7)", "8\n(n = 14)")
     )
 
-    expect_identical(
+    expect_equal(
       pb$layout$panel_params[[1]]$y$breaks,
       c(1, 2, 3, 4, 5, 6)
     )
@@ -120,13 +121,7 @@ test_that(
     # build
     pb1 <- ggplot2::ggplot_build(p1)
 
-    expect_identical(
-      pb1$data[[6]]$label,
-      c(
-        "list(~widehat(mu)[mean]=='0.98')",
-        "list(~widehat(mu)[mean]=='1.39')"
-      )
-    )
+    expect_snapshot(pb1$data[[6]]$label)
   }
 )
 
@@ -182,7 +177,7 @@ test_that(
     ))
 
     expect_snapshot(within(pb1$plot$labels, rm(subtitle, caption)))
-    expect_snapshot(within(pb2$plot$labels, rm(subtitle, caption)))
+    expect_snapshot(within(pb2$plot$labels, rm(subtitle)))
   }
 )
 
@@ -214,6 +209,6 @@ test_that(
     )$expression[[1]]
 
     # test
-    expect_identical(subtitle_exp, sub)
+    expect_equal(as.character(subtitle_exp), as.character(sub))
   }
 )

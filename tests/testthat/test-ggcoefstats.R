@@ -315,7 +315,7 @@ test_that(
         output = "subtitle"
       )
 
-    expect_identical(using_function1, ggcoef_label)
+    expect_equal(using_function1, ggcoef_label)
   }
 )
 
@@ -434,6 +434,7 @@ test_that("plots are rendered correctly - ggcoefstats", {
   skip_if_not_installed("survival")
   skip_on_os("linux")
   skip_if(getRversion() < "4.1")
+  skip_if(getRversion() >= "4.2")
 
   # vdiffr tests --------------------------------
 

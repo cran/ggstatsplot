@@ -2,36 +2,39 @@ test_that("plots are rendered correctly", {
   skip_on_cran()
   skip_if_not_installed("vdiffr")
   skip_if(getRversion() < "4.1")
+  skip_if(getRversion() >= "4.2")
 
   ## ----ggbetweenstats-------------------------------
 
-  set.seed(123)
-  vdiffr::expect_doppelganger(
-    title = "ggbetweenstats works",
-    fig = ggbetweenstats(
-      data = dplyr::filter(
-        movies_long,
-        genre %in% c("Action", "Action Comedy", "Action Drama", "Comedy")
-      ),
-      x = mpaa,
-      y = length
+  if (require("PMCMRplus")) {
+    set.seed(123)
+    vdiffr::expect_doppelganger(
+      title = "ggbetweenstats works",
+      fig = ggbetweenstats(
+        data = dplyr::filter(
+          movies_long,
+          genre %in% c("Action", "Action Comedy", "Action Drama", "Comedy")
+        ),
+        x = mpaa,
+        y = length
+      )
     )
-  )
 
 
-  set.seed(123)
-  vdiffr::expect_doppelganger(
-    title = "grouped_ggbetweenstats works",
-    fig = grouped_ggbetweenstats(
-      data = dplyr::filter(
-        movies_long,
-        genre %in% c("Action", "Action Comedy", "Action Drama", "Comedy")
-      ),
-      x = mpaa,
-      y = length,
-      grouping.var = genre
+    set.seed(123)
+    vdiffr::expect_doppelganger(
+      title = "grouped_ggbetweenstats works",
+      fig = grouped_ggbetweenstats(
+        data = dplyr::filter(
+          movies_long,
+          genre %in% c("Action", "Action Comedy", "Action Drama", "Comedy")
+        ),
+        x = mpaa,
+        y = length,
+        grouping.var = genre
+      )
     )
-  )
+  }
 
   ## ----ggwithinstats--------------------------------
 

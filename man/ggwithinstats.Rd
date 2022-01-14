@@ -250,37 +250,33 @@ a subtitle.
 For details, see:
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggwithinstats.html}
 }
-\note{
-To carry out Bayesian analysis for ANOVA designs, you will need to install
-the development version of \code{BayesFactor} (\verb{0.9.12-4.3}). You can download it
-by running:
-\code{remotes::install_github("richarddmorey/BayesFactor/pkg/BayesFactor")}.
-}
 \examples{
 \donttest{
-# setup
-set.seed(123)
-library(ggstatsplot)
-library(dplyr, warn.conflicts = FALSE)
+if (require("PMCMRplus")) {
+  # setup
+  set.seed(123)
+  library(ggstatsplot)
+  library(dplyr, warn.conflicts = FALSE)
 
-# two groups (*t*-test)
-ggwithinstats(
-  data = filter(bugs_long, condition \%in\% c("HDHF", "HDLF")),
-  x = condition,
-  y = desire
-)
+  # two groups (*t*-test)
+  ggwithinstats(
+    data = filter(bugs_long, condition \%in\% c("HDHF", "HDLF")),
+    x    = condition,
+    y    = desire
+  )
 
-# more than two groups (anova)
-library(WRS2)
+  # more than two groups (anova)
+  library(WRS2)
 
-ggwithinstats(
-  data = WineTasting,
-  x = Wine,
-  y = Taste,
-  type = "r",
-  outlier.tagging = TRUE,
-  outlier.label = Taster
-)
+  ggwithinstats(
+    data            = WineTasting,
+    x               = Wine,
+    y               = Taste,
+    type            = "r",
+    outlier.tagging = TRUE,
+    outlier.label   = Taster
+  )
+}
 }
 }
 \seealso{
