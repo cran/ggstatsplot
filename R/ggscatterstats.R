@@ -39,7 +39,6 @@
 #' @inheritParams ggbetweenstats
 #' @inheritParams gghistostats
 #'
-#'
 #' @seealso \code{\link{grouped_ggscatterstats}}, \code{\link{ggcorrmat}},
 #' \code{\link{grouped_ggcorrmat}}
 #'
@@ -48,7 +47,7 @@
 #'
 #' @note
 #' The plot uses `ggrepel::geom_label_repel` to attempt to keep labels
-#' from over-lapping to the largest degree possible.  As a consequence plot
+#' from over-lapping to the largest degree possible. As a consequence plot
 #' times will slow down massively (and the plot file will grow in size) if you
 #' have a lot of labels that overlap.
 #'
@@ -73,8 +72,6 @@
 #'     geom_rug(sides = "b")
 #' }
 #' @export
-
-# defining the function
 ggscatterstats <- function(data,
                            x,
                            y,
@@ -136,7 +133,6 @@ ggscatterstats <- function(data,
 
   # statistical analysis ------------------------------------------
 
-  # adding a subtitle with statistical results
   if (results.subtitle) {
     # convert entered stats type to a standard notation
     type <- stats_type_switch(type)
@@ -149,8 +145,7 @@ ggscatterstats <- function(data,
       conf.level = conf.level,
       k = k,
       tr = tr,
-      bf.prior = bf.prior,
-      top.text = caption
+      bf.prior = bf.prior
     )
 
     subtitle_df <- eval_f(corr_test, !!!.f.args, type = type)
@@ -177,7 +172,7 @@ ggscatterstats <- function(data,
   pos <- position_jitter(width = point.width.jitter, height = point.height.jitter)
 
   # preparing the scatterplot
-  plot <- ggplot(data, mapping = aes({{ x }}, {{ y }})) +
+  plotScatter <- ggplot(data, mapping = aes({{ x }}, {{ y }})) +
     exec(geom_point, position = pos, !!!point.args) +
     exec(geom_smooth, level = conf.level, !!!smooth.line.args)
 
@@ -187,17 +182,13 @@ ggscatterstats <- function(data,
     label.var <- ensym(label.var)
 
     # select data based on expression
-    if (!quo_is_null(enquo(label.expression))) {
-      label_data <- filter(data, !!enexpr(label.expression))
-    } else {
-      label_data <- data
-    }
+    if (!quo_is_null(enquo(label.expression))) data %<>% filter(!!enexpr(label.expression))
 
     # display points labels using `geom_repel_label`
-    plot <- plot +
+    plotScatter <- plotScatter +
       exec(
         ggrepel::geom_label_repel,
-        data = label_data,
+        data = data,
         mapping = aes(label = {{ label.var }}),
         min.segment.length = 0,
         position = pos,
@@ -207,7 +198,7 @@ ggscatterstats <- function(data,
 
   # annotations -------------------------------------
 
-  plot <- plot +
+  plotScatter <- plotScatter +
     labs(
       x = xlab %||% as_name(x),
       y = ylab %||% as_name(y),
@@ -225,15 +216,14 @@ ggscatterstats <- function(data,
     check_if_installed("ggside", minimum_version = "0.1.2")
 
     # adding marginal distributions
-    plot <- plot +
+    plotScatter <- plotScatter +
       exec(ggside::geom_xsidehistogram, mapping = aes(y = after_stat(count)), !!!xsidehistogram.args) +
       exec(ggside::geom_ysidehistogram, mapping = aes(x = after_stat(count)), !!!ysidehistogram.args) +
       ggside::scale_ysidex_continuous() +
       ggside::scale_xsidey_continuous()
   }
 
-  # return the final plot
-  plot
+  plotScatter
 }
 
 
@@ -297,8 +287,6 @@ ggscatterstats <- function(data,
 #'   annotation.args = list(tag_levels = "a")
 #' )
 #' @export
-
-# defining the function
 grouped_ggscatterstats <- function(data,
                                    ...,
                                    grouping.var,
@@ -308,7 +296,7 @@ grouped_ggscatterstats <- function(data,
   # getting the dataframe ready
   data %<>% grouped_list({{ grouping.var }})
 
-  # creating a list of plots using `pmap`
+  # creating a list of plots
   p_ls <- purrr::pmap(
     .l = list(data = data, title = names(data), output = output),
     .f = ggstatsplot::ggscatterstats,
@@ -318,6 +306,5 @@ grouped_ggscatterstats <- function(data,
   # combining the list of plots into a single plot
   if (output == "plot") p_ls <- combine_plots(p_ls, plotgrid.args, annotation.args)
 
-  # return the object
   p_ls
 }

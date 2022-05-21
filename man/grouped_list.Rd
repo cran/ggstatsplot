@@ -7,16 +7,17 @@
 grouped_list(data, grouping.var = NULL)
 }
 \arguments{
-\item{data}{A dataframe (or a tibble) from which variables specified are to
+\item{data}{A data frame (or a tibble) from which variables specified are to
 be taken. Other data types (e.g., matrix,table, array, etc.) will \strong{not}
-be accepted.}
+be accepted. Additionally, grouped data frames from \code{{dplyr}} should be
+ungrouped before they are entered as \code{data}.}
 
 \item{grouping.var}{A single grouping variable.}
 }
 \description{
-This function splits the dataframe into a list, with the length
-of the list equal to the factor levels of the grouping variable. Each
-element of the list will be a tibble.
+This function splits the data frame into a list, with the length of the list
+equal to the factor levels of the grouping variable. Each element of the list
+will be a tibble.
 }
 \examples{
 \donttest{

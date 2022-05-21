@@ -2,7 +2,7 @@
 % Please edit documentation in R/ggwithinstats.R
 \name{ggwithinstats}
 \alias{ggwithinstats}
-\title{Box/Violin plots for within-subjects (or repeated measures) comparisons}
+\title{Box/Violin plots for repeated measures comparisons}
 \usage{
 ggwithinstats(
   data,
@@ -50,21 +50,21 @@ ggwithinstats(
 )
 }
 \arguments{
-\item{data}{A dataframe (or a tibble) from which variables specified are to
+\item{data}{A data frame (or a tibble) from which variables specified are to
 be taken. Other data types (e.g., matrix,table, array, etc.) will \strong{not}
-be accepted.}
+be accepted. Additionally, grouped data frames from \code{{dplyr}} should be
+ungrouped before they are entered as \code{data}.}
 
-\item{x}{The grouping (or independent) variable from the dataframe \code{data}. In
-case of a repeated measures or within-subjects design, if \code{subject.id}
-argument is not available or not explicitly specified, the function assumes
-that the data has already been sorted by such an id by the user and creates
-an internal identifier. So if your data is \strong{not} sorted, the results
-\emph{can} be inaccurate when there are more than two levels in \code{x} and there
-are \code{NA}s present. The data is expected to be sorted by user in
+\item{x}{The grouping (or independent) variable from \code{data}. In case of a
+repeated measures or within-subjects design, if \code{subject.id} argument is
+not available or not explicitly specified, the function assumes that the
+data has already been sorted by such an id by the user and creates an
+internal identifier. So if your data is \strong{not} sorted, the results \emph{can}
+be inaccurate when there are more than two levels in \code{x} and there are
+\code{NA}s present. The data is expected to be sorted by user in
 subject-1,subject-2, ..., pattern.}
 
-\item{y}{The response (or outcome or dependent) variable from the
-dataframe \code{data}.}
+\item{y}{The response (or outcome or dependent) variable from \code{data}.}
 
 \item{type}{A character specifying the type of statistical approach:
 \itemize{
@@ -105,7 +105,11 @@ argument can be \code{"eta"} (partial eta-squared) or \code{"omega"} (partial
 omega-squared).}
 
 \item{bf.prior}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
-width to use in calculating Bayes factors.}
+width to use in calculating Bayes factors and posterior estimates. In
+addition to numeric arguments, several named values are also recognized:
+\code{"medium"}, \code{"wide"}, and \code{"ultrawide"}, corresponding to \emph{r} scale values
+of 1/2, sqrt(2)/2, and 1, respectively. In case of an ANOVA, this value
+corresponds to scale for fixed effects.}
 
 \item{bf.message}{Logical that decides whether to display Bayes Factor in
 favor of the \emph{null} hypothesis. This argument is relevant only \strong{for
@@ -115,13 +119,14 @@ parametric test} (Default: \code{TRUE}).}
 to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
 the plot will be returned.}
 
-\item{xlab}{Labels for \code{x} and \code{y} axis variables. If \code{NULL} (default),
-variable names for \code{x} and \code{y} will be used.}
+\item{xlab}{Label for \code{x} axis variable. If \code{NULL} (default),
+variable name for \code{x} will be used.}
 
-\item{ylab}{Labels for \code{x} and \code{y} axis variables. If \code{NULL} (default),
-variable names for \code{x} and \code{y} will be used.}
+\item{ylab}{Labels for \code{y} axis variable. If \code{NULL} (default),
+variable name for \code{y} will be used.}
 
-\item{caption}{The text for the plot caption.}
+\item{caption}{The text for the plot caption. This argument is relevant only
+if \code{bf.message = FALSE}.}
 
 \item{title}{The text for the plot title.}
 
@@ -167,11 +172,7 @@ to be:
 
 Just as \code{type} argument, abbreviations are also accepted.}
 
-\item{centrality.point.args}{A list of additional aesthetic
-arguments to be passed to \code{geom_point} and
-\code{ggrepel::geom_label_repel} geoms, which are involved in mean plotting.}
-
-\item{centrality.label.args}{A list of additional aesthetic
+\item{centrality.point.args, centrality.label.args}{A list of additional aesthetic
 arguments to be passed to \code{geom_point} and
 \code{ggrepel::geom_label_repel} geoms, which are involved in mean plotting.}
 
@@ -214,15 +215,16 @@ arguments to be passed to \code{ggsignif::geom_signif}.}
 
 \item{ggtheme}{A \code{{ggplot2}} theme. Default value is
 \code{ggstatsplot::theme_ggstatsplot()}. Any of the \code{{ggplot2}} themes (e.g.,
-\code{theme_bw()}), or themes from extension packages are allowed
-(e.g., \code{ggthemes::theme_fivethirtyeight()}, \code{hrbrthemes::theme_ipsum_ps()},
-etc.).}
+\code{theme_bw()}), or themes from extension packages are allowed (e.g.,
+\code{ggthemes::theme_fivethirtyeight()}, \code{hrbrthemes::theme_ipsum_ps()}, etc.).
+But note that sometimes these themes will remove some of the details that
+\code{{ggstatsplot}} plots typically contains. For example, if relevant,
+\code{ggbetweenstats()} shows details about multiple comparison test as a label
+on the secondary Y-axis. Some themes (e.g.
+\code{ggthemes::theme_fivethirtyeight()}) will remove the secondary Y-axis and
+thus the details as well.}
 
-\item{package}{Name of the package from which the given palette is to
-be extracted. The available palettes and packages can be checked by running
-\code{View(paletteer::palettes_d_names)}.}
-
-\item{palette}{Name of the package from which the given palette is to
+\item{package, palette}{Name of the package from which the given palette is to
 be extracted. The available palettes and packages can be checked by running
 \code{View(paletteer::palettes_d_names)}.}
 
@@ -252,31 +254,29 @@ For details, see:
 }
 \examples{
 \donttest{
-if (require("PMCMRplus")) {
-  # setup
-  set.seed(123)
-  library(ggstatsplot)
-  library(dplyr, warn.conflicts = FALSE)
+# setup
+set.seed(123)
+library(ggstatsplot)
+library(dplyr, warn.conflicts = FALSE)
 
-  # two groups (*t*-test)
-  ggwithinstats(
-    data = filter(bugs_long, condition \%in\% c("HDHF", "HDLF")),
-    x    = condition,
-    y    = desire
-  )
+# two groups (*t*-test)
+ggwithinstats(
+  data = filter(bugs_long, condition \%in\% c("HDHF", "HDLF")),
+  x    = condition,
+  y    = desire
+)
 
-  # more than two groups (anova)
-  library(WRS2)
+# more than two groups (anova)
+library(WRS2)
 
-  ggwithinstats(
-    data            = WineTasting,
-    x               = Wine,
-    y               = Taste,
-    type            = "r",
-    outlier.tagging = TRUE,
-    outlier.label   = Taster
-  )
-}
+ggwithinstats(
+  data            = WineTasting,
+  x               = Wine,
+  y               = Taste,
+  type            = "r",
+  outlier.tagging = TRUE,
+  outlier.label   = Taster
+)
 }
 }
 \seealso{

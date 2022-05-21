@@ -40,9 +40,10 @@ ggscatterstats(
 )
 }
 \arguments{
-\item{data}{A dataframe (or a tibble) from which variables specified are to
+\item{data}{A data frame (or a tibble) from which variables specified are to
 be taken. Other data types (e.g., matrix,table, array, etc.) will \strong{not}
-be accepted.}
+be accepted. Additionally, grouped data frames from \code{{dplyr}} should be
+ungrouped before they are entered as \code{data}.}
 
 \item{x}{The column in \code{data} containing the explanatory variable to be
 plotted on the \code{x}-axis.}
@@ -121,24 +122,30 @@ to \code{geom_smooth} geom used to display the regression line.}
 respective \code{geom_}s from \code{ggside} package to change the marginal
 distribution histograms plots.}
 
-\item{xlab}{Labels for \code{x} and \code{y} axis variables. If \code{NULL} (default),
-variable names for \code{x} and \code{y} will be used.}
+\item{xlab}{Label for \code{x} axis variable. If \code{NULL} (default),
+variable name for \code{x} will be used.}
 
-\item{ylab}{Labels for \code{x} and \code{y} axis variables. If \code{NULL} (default),
-variable names for \code{x} and \code{y} will be used.}
+\item{ylab}{Labels for \code{y} axis variable. If \code{NULL} (default),
+variable name for \code{y} will be used.}
 
 \item{title}{The text for the plot title.}
 
 \item{subtitle}{The text for the plot subtitle. Will work only if
 \code{results.subtitle = FALSE}.}
 
-\item{caption}{The text for the plot caption.}
+\item{caption}{The text for the plot caption. This argument is relevant only
+if \code{bf.message = FALSE}.}
 
 \item{ggtheme}{A \code{{ggplot2}} theme. Default value is
 \code{ggstatsplot::theme_ggstatsplot()}. Any of the \code{{ggplot2}} themes (e.g.,
-\code{theme_bw()}), or themes from extension packages are allowed
-(e.g., \code{ggthemes::theme_fivethirtyeight()}, \code{hrbrthemes::theme_ipsum_ps()},
-etc.).}
+\code{theme_bw()}), or themes from extension packages are allowed (e.g.,
+\code{ggthemes::theme_fivethirtyeight()}, \code{hrbrthemes::theme_ipsum_ps()}, etc.).
+But note that sometimes these themes will remove some of the details that
+\code{{ggstatsplot}} plots typically contains. For example, if relevant,
+\code{ggbetweenstats()} shows details about multiple comparison test as a label
+on the secondary Y-axis. Some themes (e.g.
+\code{ggthemes::theme_fivethirtyeight()}) will remove the secondary Y-axis and
+thus the details as well.}
 
 \item{ggplot.component}{A \code{ggplot} component to be added to the plot prepared
 by \code{{ggstatsplot}}. This argument is primarily helpful for \code{grouped_}
@@ -165,7 +172,7 @@ For details, see:
 }
 \note{
 The plot uses \code{ggrepel::geom_label_repel} to attempt to keep labels
-from over-lapping to the largest degree possible.  As a consequence plot
+from over-lapping to the largest degree possible. As a consequence plot
 times will slow down massively (and the plot file will grow in size) if you
 have a lot of labels that overlap.
 }

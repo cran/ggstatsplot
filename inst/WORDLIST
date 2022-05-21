@@ -2,6 +2,7 @@ AKP
 APA
 APA's
 Aalen's
+Acknowledgements
 Algina
 Cikara
 Codecov
@@ -32,8 +33,10 @@ LDHF
 LDLF
 LFHD
 Lifecycle
+LinkedIn
 Lüdecke
 MPAA
+MacOS
 Mair
 Makowski
 Mangiafico
@@ -60,6 +63,7 @@ Tufte
 Welch
 Welch's
 Welch’s
+Wiernik
 Wilk
 Winsorized
 Yuen's
@@ -98,6 +102,7 @@ faq
 freighteningness
 fueleconomy
 geoms
+ggbarstats
 ggbetweenstats
 ggcoefstats
 ggcorrmat
@@ -150,7 +155,6 @@ pre
 purrr
 readme
 reproducibility
-ridgeplot
 setosa
 statsExpressions
 textit
@@ -160,6 +164,7 @@ tibbles
 tidiers
 tidyverse
 uber
+ungrouped
 unjittered
 versicolor
 virginica

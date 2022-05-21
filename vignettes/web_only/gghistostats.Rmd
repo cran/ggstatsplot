@@ -127,7 +127,7 @@ grouped_gghistostats(
   test.value = 20, ## test value against which sample mean is to be compared
   centrality.line.args = list(color = "#D55E00", linetype = "dashed"),
   # ggtheme = ggthemes::theme_stata(), ## changing default theme
-   ## turn off ggstatsplot theme layer
+  ## turn off ggstatsplot theme layer
   ## arguments relevant for combine_plots
   annotation.args = list(
     title = "Distribution of ACT scores across genders",
@@ -169,10 +169,10 @@ normality curve | `ggplot2::stat_function` | `normal.curve.args`
 
 Type | Measure | Function used
 ----------- | --------- | ------------------ 
-Parametric | mean | `parameters::describe_distribution`
-Non-parametric | median | `parameters::describe_distribution`
-Robust | trimmed mean | `parameters::describe_distribution`
-Bayesian | MAP (maximum *a posteriori* probability) estimate | `parameters::describe_distribution`
+Parametric | mean | `datawizard::describe_distribution`
+Non-parametric | median | `datawizard::describe_distribution`
+Robust | trimmed mean | `datawizard::describe_distribution`
+Bayesian | MAP (maximum *a posteriori* probability) estimate | `datawizard::describe_distribution`
 
 **Hypothesis testing**
 

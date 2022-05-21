@@ -10,8 +10,10 @@
 #' @param plot.type Character describing the *type* of plot. Currently supported
 #'   plots are `"box"` (for only boxplots), `"violin"` (for only violin plots),
 #'   and `"boxviolin"` (for a combination of box and violin plots; default).
-#' @param xlab,ylab Labels for `x` and `y` axis variables. If `NULL` (default),
-#'   variable names for `x` and `y` will be used.
+#' @param xlab Label for `x` axis variable. If `NULL` (default),
+#'   variable name for `x` will be used.
+#' @param ylab Labels for `y` axis variable. If `NULL` (default),
+#'   variable name for `y` will be used.
 #' @param pairwise.comparisons Logical that decides whether pairwise comparisons
 #'   are to be displayed (default: `TRUE`). Please note that only
 #'   **significant** comparisons will be shown by default. To change this
@@ -31,8 +33,6 @@
 #'   You can use this argument to make sure that your plot is not uber-cluttered
 #'   when you have multiple groups being compared and scores of pairwise
 #'   comparisons being displayed.
-#' @param bf.prior A number between `0.5` and `2` (default `0.707`), the prior
-#'   width to use in calculating Bayes factors.
 #' @param bf.message Logical that decides whether to display Bayes Factor in
 #'   favor of the *null* hypothesis. This argument is relevant only **for
 #'   parametric test** (Default: `TRUE`).
@@ -42,7 +42,8 @@
 #' @param title The text for the plot title.
 #' @param subtitle The text for the plot subtitle. Will work only if
 #'   `results.subtitle = FALSE`.
-#' @param caption The text for the plot caption.
+#' @param caption The text for the plot caption. This argument is relevant only
+#'   if `bf.message = FALSE`.
 #' @param outlier.color Default aesthetics for outliers (Default: `"black"`).
 #' @param outlier.tagging Decides whether outliers should be tagged (Default:
 #'   `FALSE`).
@@ -105,9 +106,14 @@
 #'   arguments to be passed to `ggsignif::geom_signif`.
 #' @param ggtheme A `{ggplot2}` theme. Default value is
 #'   `ggstatsplot::theme_ggstatsplot()`. Any of the `{ggplot2}` themes (e.g.,
-#'   `theme_bw()`), or themes from extension packages are allowed
-#'   (e.g., `ggthemes::theme_fivethirtyeight()`, `hrbrthemes::theme_ipsum_ps()`,
-#'   etc.).
+#'   `theme_bw()`), or themes from extension packages are allowed (e.g.,
+#'   `ggthemes::theme_fivethirtyeight()`, `hrbrthemes::theme_ipsum_ps()`, etc.).
+#'   But note that sometimes these themes will remove some of the details that
+#'   `{ggstatsplot}` plots typically contains. For example, if relevant,
+#'   `ggbetweenstats()` shows details about multiple comparison test as a label
+#'   on the secondary Y-axis. Some themes (e.g.
+#'   `ggthemes::theme_fivethirtyeight()`) will remove the secondary Y-axis and
+#'   thus the details as well.
 #' @inheritParams statsExpressions::oneway_anova
 #' @inheritParams statsExpressions::two_sample_test
 #' @inheritParams statsExpressions::one_sample_test
@@ -144,8 +150,6 @@
 #' }
 #' }
 #' @export
-
-# defining the function
 ggbetweenstats <- function(data,
                            x,
                            y,
@@ -252,11 +256,10 @@ ggbetweenstats <- function(data,
       tr           = tr,
       paired       = FALSE,
       bf.prior     = bf.prior,
-      nboot        = nboot,
-      top.text     = caption
+      nboot        = nboot
     )
 
-    .f <- function_switch(test)
+    .f <- .f_switch(test)
     subtitle_df <- eval_f(.f, !!!.f.args, type = type)
     subtitle <- if (!is.null(subtitle_df)) subtitle_df$expression[[1]]
 
@@ -406,18 +409,17 @@ ggbetweenstats <- function(data,
       ggsignif.args    = ggsignif.args
     )
 
-    # preparing the caption for pairwise comparisons test
-    caption <- pairwise_caption(
-      caption,
-      bf.message = ifelse(type == "parametric", bf.message, FALSE),
-      unique(mpc_df$test.details),
+    # preparing the secondary label axis to give pairwise comparisons test details
+    seclabel <- pairwise_seclabel(
+      unique(mpc_df$test),
       ifelse(type == "bayes", "all", pairwise.display)
     )
+  } else {
+    seclabel <- NULL
   }
 
   # annotations ------------------------
 
-  # specifying annotations and other aesthetic aspects for the plot
   aesthetic_addon(
     plot             = plot,
     x                = data %>% pull({{ x }}),
@@ -426,6 +428,7 @@ ggbetweenstats <- function(data,
     title            = title,
     subtitle         = subtitle,
     caption          = caption,
+    seclabel         = seclabel,
     ggtheme          = ggtheme,
     package          = package,
     palette          = palette,
@@ -489,8 +492,6 @@ ggbetweenstats <- function(data,
 #' }
 #' }
 #' @export
-
-# defining the function
 grouped_ggbetweenstats <- function(data,
                                    ...,
                                    grouping.var,
@@ -511,6 +512,5 @@ grouped_ggbetweenstats <- function(data,
   # combining the list of plots into a single plot
   if (output == "plot") p_ls <- combine_plots(p_ls, plotgrid.args, annotation.args)
 
-  # return the object
   p_ls
 }
