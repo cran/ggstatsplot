@@ -1,7 +1,7 @@
-27a7a85c1198fe86bb85d79cc968fd69 *DESCRIPTION
+d919a3165cb470fce2b9fd29d5f60861 *DESCRIPTION
 d32239bcb673463ab874e80d47fae504 *LICENSE
 14817b612f3d5561335c11d15edf06c3 *NAMESPACE
-5d6893fc97351feb01058b043f77be3b *NEWS.md
+170f553b2103ce90a888702cfa05465b *NEWS.md
 1c3dd1e81c8966b44fa880050ff907c8 *R/attach.R
 9c5084ed8bc48190e0aa2253d46a45a3 *R/combine_plots.R
 252b0ab00cd4f09f08ae5fe41f219f48 *R/data.R
@@ -9,7 +9,7 @@ d32239bcb673463ab874e80d47fae504 *LICENSE
 ec1c72cd971a1f3c4a09b26b3af35799 *R/ggbarstats.R
 f3ff78ad34fb5b9c744baeecfbc5e800 *R/ggbetweenstats.R
 8f1f81adbe235d89b39541a5e3f2f61f *R/ggbetweenstats_helpers.R
-43338a778fe0e7a22ed92992d38f53ac *R/ggcoefstats.R
+1656a8d426f0ea48c24c2529e3185955 *R/ggcoefstats.R
 6c855d96c181792f56249fe7a00b2f69 *R/ggcorrmat.R
 dc67698bf1ce67c48308a762faaba0d9 *R/ggdotplotstats.R
 534279d66209e1da4432d597ab410900 *R/gghistostats.R
@@ -19,7 +19,7 @@ f556e909bed5d9aee2295c6142801656 *R/ggpiestats_ggbarstats_helpers.R
 ed4c8b12d1d5e2d7472012c46cb7f502 *R/ggscatterstats.R
 00794cca9f44cb62e67dcff758e891a1 *R/ggstatsplot-package.R
 73db572bfdbbc482f40bc4487fa7efb6 *R/ggwithinstats.R
-c32b976815d36dd8514d30586e295f69 *R/global_vars.R
+3d3b6799df5f5a2465d9dce5525a80f6 *R/global_vars.R
 c050161085f64a3af370760acf489456 *R/reexports.R
 b73e1653412b61b68fef3c903ce40a60 *R/utils.R
 59f83522eea446abcf8f224193e88095 *README.md
@@ -33,10 +33,10 @@ c5ee4fa2f5ea32bdf87e02ea71a415f8 *data/iris_long.rdata
 88ac5ab444c66103aed6e26f6745ad82 *inst/WORDLIST
 bac426289ae495d742f134a8a177a0d0 *inst/doc/additional.R
 e0db2376b491eed697c395705a32791a *inst/doc/additional.Rmd
-85e6bc87e79da5601a4583f70b7313d4 *inst/doc/additional.html
+2e9632a899156cec53d6a38c86b2c954 *inst/doc/additional.html
 e8cdab40722b8e47bf5d24696f2c1bae *inst/doc/ggstatsplot.R
 4967c393206970d43c6fa0d53a745cba *inst/doc/ggstatsplot.Rmd
-229609d67cd8d874acb701a8b65ceae8 *inst/doc/ggstatsplot.html
+d3d9779aebb94accc9c8797c44663b07 *inst/doc/ggstatsplot.html
 fcc615e447eaef765e684962c57834e4 *man/Titanic_full.Rd
 802fc4c2df4afaaf8de39a8b423f5a7b *man/bugs_long.Rd
 f0129fe021cf55e403fbedf234df0572 *man/bugs_wide.Rd
@@ -83,7 +83,7 @@ ffc8838546e57be0efb6bc931bc7fe62 *man/grouped_ggwithinstats.Rd
 60b3c782db7b3dd47f39ee75124ec41f *man/grouped_list.Rd
 c95659cd08a5a4bbcb000544f96979ed *man/iris_long.Rd
 5c77088044af75a4008f0a14fa4ec90c *man/movies_long.Rd
-590139c31fbb4b73b46de683f85c0458 *man/reexports.Rd
+790ad6c7bc224a9c39ea5b19e15677ff *man/reexports.Rd
 74d4e925f232d1884383172f91ee354e *man/theme_ggstatsplot.Rd
 50f330eeca8db092d6807e04457bd06d *tests/spelling.R
 110824c5a8c44e9404f022486b05be76 *tests/testthat.R
