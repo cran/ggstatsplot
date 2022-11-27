@@ -1,13 +1,13 @@
 # pairwise comparisons testing is done `test-pairwise_ggsignif.R`
 
+skip_if(getRversion() < "4.1")
+skip_if_not_installed("PMCMRplus")
+
 # checking labels and data from plot -------------------------------------
 
 test_that(
   desc = "plotting features work as expected",
   code = {
-    skip_if(getRversion() < "4.1")
-
-
     set.seed(123)
     vdiffr::expect_doppelganger(
       title = "outlier tagging works",
@@ -68,9 +68,6 @@ test_that(
 test_that(
   desc = "checking if `plot.type` argument works",
   code = {
-    skip_if(getRversion() < "4.1")
-
-
     set.seed(123)
     vdiffr::expect_doppelganger(
       title = "box plot",
@@ -116,17 +113,50 @@ test_that(
     subtitle_exp <- ggbetweenstats(
       data = df,
       x = am,
-      y = wt,
-      output = "subtitle"
-    )
+      y = wt
+    ) %>%
+      extract_subtitle()
 
     set.seed(123)
     sub <- two_sample_test(
       data = df,
       x = am,
       y = wt
-    )$expression[[1]]
+    )$expression[[1L]]
 
     expect_equal(as.character(subtitle_exp), as.character(sub))
+  }
+)
+
+# grouped_ggbetweenstats defaults --------------------------------------------------
+
+test_that(
+  desc = "grouped_ggbetweenstats defaults",
+  code = {
+    # expect error when no grouping.var is specified
+    expect_snapshot_error(grouped_ggbetweenstats(mtcars, x = am, y = wt))
+
+    # creating a smaller data frame
+    set.seed(123)
+    dat <- dplyr::sample_frac(movies_long, size = 0.25) %>%
+      dplyr::filter(
+        mpaa %in% c("R", "PG-13"),
+        genre %in% c("Drama", "Comedy")
+      )
+
+    set.seed(123)
+    vdiffr::expect_doppelganger(
+      title = "default plot as expected",
+      fig = grouped_ggbetweenstats(
+        data = dat,
+        x = genre,
+        y = rating,
+        grouping.var = mpaa,
+        outlier.tagging = TRUE,
+        outlier.label = title,
+        outlier.coef = 5,
+        ggplot.component = ggplot2::scale_y_continuous(breaks = seq(1, 9, 1)),
+      )
+    )
   }
 )

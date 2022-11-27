@@ -5,6 +5,11 @@
 #' Pie charts for categorical data with statistical details included in the plot
 #' as a subtitle.
 #'
+#' @section Summary of graphics:
+#'
+#' ```{r child="man/rmd-fragments/ggpiestats_graphics.Rmd"}
+#' ```
+#'
 #' @param x The variable to use as the **rows** in the contingency table. Please
 #'   note that if there are empty factor levels in your variable, they will be
 #'   dropped.
@@ -30,7 +35,8 @@
 #' @inheritParams ggbetweenstats
 #' @inheritParams statsExpressions::contingency_table
 #' @inheritParams theme_ggstatsplot
-#' @inheritParams gghistostats
+#'
+#' @inheritSection statsExpressions::contingency_table Contingency table analyses
 #'
 #' @seealso \code{\link{grouped_ggpiestats}}, \code{\link{ggbarstats}},
 #'  \code{\link{grouped_ggbarstats}}
@@ -42,13 +48,18 @@
 #' \donttest{
 #' # for reproducibility
 #' set.seed(123)
-#' library(ggstatsplot)
 #'
 #' # one sample goodness of fit proportion test
-#' ggpiestats(mtcars, x = vs)
+#' p <- ggpiestats(mtcars, vs)
+#'
+#' # looking at the plot
+#' p
+#'
+#' # extracting details from statistical tests
+#' extract_stats(p)
 #'
 #' # association test (or contingency table analysis)
-#' ggpiestats(mtcars, x = vs, y = cyl)
+#' ggpiestats(mtcars, vs, cyl)
 #' }
 #' @export
 ggpiestats <- function(data,
@@ -78,7 +89,6 @@ ggpiestats <- function(data,
                        package = "RColorBrewer",
                        palette = "Dark2",
                        ggplot.component = NULL,
-                       output = "plot",
                        ...) {
   # data frame ------------------------------------------
 
@@ -95,7 +105,7 @@ ggpiestats <- function(data,
   # creating a data frame
   data %<>%
     select({{ x }}, {{ y }}, .counts = {{ counts }}) %>%
-    tidyr::drop_na(.)
+    tidyr::drop_na()
 
   # untable the data frame based on the count for each observation
   if (".counts" %in% names(data)) data %<>% tidyr::uncount(weights = .counts)
@@ -135,21 +145,13 @@ ggpiestats <- function(data,
     )
 
     subtitle_df <- .eval_f(contingency_table, !!!.f.args, type = type)
-    if (!is.null(subtitle_df)) subtitle <- subtitle_df$expression[[1]]
+    if (!is.null(subtitle_df)) subtitle <- subtitle_df$expression[[1L]]
 
     # preparing Bayes Factor caption
     if (type != "bayes" && bf.message && isFALSE(paired)) {
       caption_df <- .eval_f(contingency_table, !!!.f.args, type = "bayes")
-      if (!is.null(caption_df)) caption <- caption_df$expression[[1]]
+      if (!is.null(caption_df)) caption <- caption_df$expression[[1L]]
     }
-  }
-
-  # return early if anything other than plot
-  if (output != "plot") {
-    return(switch(output,
-      "caption" = caption,
-      subtitle
-    ))
   }
 
   # plot ------------------------------------------
@@ -252,7 +254,7 @@ ggpiestats <- function(data,
 #' @examples
 #' \donttest{
 #' set.seed(123)
-#' library(ggstatsplot)
+#'
 #'
 #' # grouped one-sample proportion test
 #' grouped_ggpiestats(mtcars, x = cyl, grouping.var = am)
@@ -261,7 +263,6 @@ ggpiestats <- function(data,
 grouped_ggpiestats <- function(data,
                                ...,
                                grouping.var,
-                               output = "plot",
                                plotgrid.args = list(),
                                annotation.args = list()) {
   # creating a data frame
@@ -269,13 +270,11 @@ grouped_ggpiestats <- function(data,
 
   # creating a list of return objects
   p_ls <- purrr::pmap(
-    .l = list(data = data, title = names(data), output = output),
+    .l = list(data = data, title = names(data)),
     .f = ggstatsplot::ggpiestats,
     ...
   )
 
-  # combining the list of plots into a single plot
-  if (output == "plot") p_ls <- combine_plots(p_ls, plotgrid.args, annotation.args)
 
-  p_ls
+  combine_plots(p_ls, plotgrid.args, annotation.args)
 }

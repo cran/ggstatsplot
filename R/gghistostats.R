@@ -6,6 +6,11 @@
 #' Histogram with statistical details from one-sample test included in the plot
 #' as a subtitle.
 #'
+#' @section Summary of graphics:
+#'
+#' ```{r child="man/rmd-fragments/gghistostats_graphics.Rmd"}
+#' ```
+#'
 #' @param ... Currently ignored.
 #' @param normal.curve A logical value that decides whether to super-impose a
 #'   normal curve using `stats::dnorm(mean(x), sd(x))`. Default is `FALSE`.
@@ -25,6 +30,8 @@
 #' @inheritParams statsExpressions::one_sample_test
 #' @inheritParams ggbetweenstats
 #'
+#' @inheritSection statsExpressions::one_sample_test One-sample tests
+#'
 #' @seealso \code{\link{grouped_gghistostats}}, \code{\link{ggdotplotstats}},
 #'  \code{\link{grouped_ggdotplotstats}}
 #'
@@ -35,15 +42,20 @@
 #' \donttest{
 #' # for reproducibility
 #' set.seed(123)
-#' library(ggstatsplot)
 #'
-#' # using defaults, but modifying which centrality parameter is to be shown
-#' gghistostats(
+#' # creating a plot
+#' p <- gghistostats(
 #'   data            = ToothGrowth,
 #'   x               = len,
 #'   xlab            = "Tooth length",
 #'   centrality.type = "np"
 #' )
+#'
+#' # looking at the plot
+#' p
+#'
+#' # extracting details from statistical tests
+#' extract_stats(p)
 #' }
 #' @export
 gghistostats <- function(data,
@@ -63,22 +75,13 @@ gghistostats <- function(data,
                          k = 2L,
                          ggtheme = ggstatsplot::theme_ggstatsplot(),
                          results.subtitle = TRUE,
-                         bin.args = list(
-                           color = "black",
-                           fill = "grey50",
-                           alpha = 0.7
-                         ),
+                         bin.args = list(color = "black", fill = "grey50", alpha = 0.7),
                          centrality.plotting = TRUE,
                          centrality.type = type,
-                         centrality.line.args = list(
-                           color = "blue",
-                           size = 1,
-                           linetype = "dashed"
-                         ),
+                         centrality.line.args = list(color = "blue", linewidth = 1, linetype = "dashed"),
                          normal.curve = FALSE,
-                         normal.curve.args = list(size = 2),
+                         normal.curve.args = list(linewidth = 2),
                          ggplot.component = NULL,
-                         output = "plot",
                          ...) {
   # data -----------------------------------
 
@@ -108,21 +111,13 @@ gghistostats <- function(data,
 
     # preparing the subtitle with statistical results
     subtitle_df <- .eval_f(one_sample_test, !!!.f.args, type = type)
-    subtitle <- if (!is.null(subtitle_df)) subtitle_df$expression[[1]]
+    subtitle <- if (!is.null(subtitle_df)) subtitle_df$expression[[1L]]
 
     # preparing the BF message
     if (type == "parametric" && bf.message) {
       caption_df <- .eval_f(one_sample_test, !!!.f.args, type = "bayes")
-      caption <- if (!is.null(caption_df)) caption_df$expression[[1]]
+      caption <- if (!is.null(caption_df)) caption_df$expression[[1L]]
     }
-  }
-
-  # return early if anything other than plot
-  if (output != "plot") {
-    return(switch(output,
-      "caption" = caption,
-      subtitle
-    ))
   }
 
   # plot -----------------------------------
@@ -130,15 +125,15 @@ gghistostats <- function(data,
   plot <- ggplot(data, mapping = aes(x = {{ x }})) +
     exec(
       stat_bin,
-      mapping   = aes(y = ..count.., fill = ..count..),
-      binwidth  = binwidth %||% .binwidth(x_vec),
+      mapping  = aes(y = after_stat(count), fill = after_stat(count)),
+      binwidth = binwidth %||% .binwidth(x_vec),
       !!!bin.args
     ) +
     scale_y_continuous(
       sec.axis = sec_axis(
-        trans   = ~ . / nrow(data),
-        labels  = function(x) paste0(x * 100, "%"),
-        name    = "proportion"
+        trans  = ~ . / nrow(data),
+        labels = function(x) paste0(x * 100, "%"),
+        name   = "proportion"
       )
     ) +
     guides(fill = "none")
@@ -209,7 +204,6 @@ gghistostats <- function(data,
 #' \donttest{
 #' # for reproducibility
 #' set.seed(123)
-#' library(ggstatsplot)
 #'
 #' # plot
 #' grouped_gghistostats(
@@ -226,7 +220,6 @@ grouped_gghistostats <- function(data,
                                  x,
                                  grouping.var,
                                  binwidth = NULL,
-                                 output = "plot",
                                  plotgrid.args = list(),
                                  annotation.args = list(),
                                  ...) {
@@ -241,15 +234,12 @@ grouped_gghistostats <- function(data,
 
   # creating a list of plots
   p_ls <- purrr::pmap(
-    .l       = list(data = data, title = names(data), output = output),
+    .l       = list(data = data, title = names(data)),
     .f       = ggstatsplot::gghistostats,
     x        = {{ x }},
     binwidth = binwidth %||% .binwidth(x_vec),
     ...
   )
 
-  # combining the list of plots into a single plot
-  if (output == "plot") p_ls <- combine_plots(p_ls, plotgrid.args, annotation.args)
-
-  p_ls
+  combine_plots(p_ls, plotgrid.args, annotation.args)
 }

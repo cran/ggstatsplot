@@ -8,7 +8,6 @@ grouped_ggdotplotstats(
   data,
   ...,
   grouping.var,
-  output = "plot",
   plotgrid.args = list(),
   annotation.args = list()
 )
@@ -42,8 +41,9 @@ You can specify just the initial letter.}
 \code{0}).}
     \item{\code{k}}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2L}).}
-    \item{\code{conf.level}}{Scalar between \code{0} and \code{1}. If unspecified, the defaults
-return \verb{95\%} confidence/credible intervals (\code{0.95}).}
+    \item{\code{conf.level}}{Scalar between \code{0} and \code{1} (default: \verb{95\%}
+confidence/credible intervals, \code{0.95}). If \code{NULL}, no confidence intervals
+will be computed.}
     \item{\code{tr}}{Trim level for the mean when carrying out \code{robust} tests. In case
 of an error, try reducing the value of \code{tr}, which is by default set to
 \code{0.2}. Lowering the value might help.}
@@ -111,14 +111,6 @@ variable name for \code{y} will be used.}
 
 \item{grouping.var}{A single grouping variable.}
 
-\item{output}{Character that describes what is to be returned: can be
-\code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
-\code{"subtitle"} will return the expression containing statistical results. If
-you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
-Setting this to \code{"caption"} will return the expression containing details
-about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
-\code{bf.message = TRUE}, otherwise this will return a \code{NULL}.}
-
 \item{plotgrid.args}{A \code{list} of additional arguments passed to
 \code{patchwork::wrap_plots}, except for \code{guides} argument which is already
 separately specified here.}
@@ -139,7 +131,6 @@ For details, see:
 \donttest{
 # for reproducibility
 set.seed(123)
-library(ggstatsplot)
 library(dplyr, warn.conflicts = FALSE)
 
 # removing factor level with very few no. of observations

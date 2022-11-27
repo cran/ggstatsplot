@@ -1,9 +1,28 @@
-# ggstatsplot 0.9.5
+# ggstatsplot 0.10.0
 
 N.B. All statistical analysis in `{ggstatsplot}` is carried out in
 `{statsExpressions}`. Thus, to see changes related to statistical expressions,
 read the `NEWS` for that package:
 <https://indrajeetpatil.github.io/statsExpressions/news/index.html>
+
+BREAKING CHANGES
+
+- The `output` parameter for all functions has been removed. All functions now
+  return only the plot, which itself contains all necessary details that were
+  previously extracted using the `output` argument. You can extract all the 
+  necessary details (including expressions containing statistical details) 
+  from a plot using `extract_stats()` function. There are two additional helpers
+  to get expressions: `extract_subtitle()` and `extract_caption()`.
+
+MAJOR CHANGES
+
+- `xfill` and `yfill` arguments for `ggscatterstats()` have been removed. You 
+  can specify all aesthetic modifications for side histograms in scatter plot
+  using `xsidehistogram.args` and `ysidehistogram.args` arguments.
+
+- Updates to changes made in the latest `{ggplot2}` release (`3.4.0`).
+
+# ggstatsplot 0.9.5
 
 MAJOR CHANGES
 

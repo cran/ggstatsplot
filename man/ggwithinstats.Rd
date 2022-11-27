@@ -30,7 +30,7 @@ ggwithinstats(
   centrality.point.args = list(size = 5, color = "darkred"),
   centrality.label.args = list(size = 3, nudge_x = 0.4, segment.linetype = 4),
   centrality.path = TRUE,
-  centrality.path.args = list(size = 1, color = "red", alpha = 0.5),
+  centrality.path.args = list(linewidth = 1, color = "red", alpha = 0.5),
   point.args = list(size = 3, alpha = 0.5),
   point.path = TRUE,
   point.path.args = list(alpha = 0.5, linetype = "dashed"),
@@ -45,7 +45,6 @@ ggwithinstats(
   package = "RColorBrewer",
   palette = "Dark2",
   ggplot.component = NULL,
-  output = "plot",
   ...
 )
 }
@@ -136,8 +135,9 @@ if \code{bf.message = FALSE}.}
 \item{k}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2L}).}
 
-\item{conf.level}{Scalar between \code{0} and \code{1}. If unspecified, the defaults
-return \verb{95\%} confidence/credible intervals (\code{0.95}).}
+\item{conf.level}{Scalar between \code{0} and \code{1} (default: \verb{95\%}
+confidence/credible intervals, \code{0.95}). If \code{NULL}, no confidence intervals
+will be computed.}
 
 \item{nboot}{Number of bootstrap samples for computing confidence interval
 for the effect size (Default: \code{100L}).}
@@ -233,14 +233,6 @@ by \code{{ggstatsplot}}. This argument is primarily helpful for \code{grouped_}
 variants of all primary functions. Default is \code{NULL}. The argument should
 be entered as a \code{{ggplot2}} function or a list of \code{{ggplot2}} functions.}
 
-\item{output}{Character that describes what is to be returned: can be
-\code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
-\code{"subtitle"} will return the expression containing statistical results. If
-you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
-Setting this to \code{"caption"} will return the expression containing details
-about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
-\code{bf.message = TRUE}, otherwise this will return a \code{NULL}.}
-
 \item{...}{Currently ignored.}
 }
 \description{
@@ -252,32 +244,227 @@ a subtitle.
 For details, see:
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggwithinstats.html}
 }
+\section{Summary of graphics}{
+\tabular{lll}{
+   graphical element \tab \code{geom} used \tab argument for further modification \cr
+   raw data \tab \code{ggplot2::geom_point()} \tab \code{point.args} \cr
+   point path \tab \code{ggplot2::geom_path()} \tab \code{point.path.args} \cr
+   box plot \tab \code{ggplot2::geom_boxplot()} \tab \code{boxplot.args} \cr
+   density plot \tab \code{ggplot2::geom_violin()} \tab \code{violin.args} \cr
+   centrality measure point \tab \code{ggplot2::geom_point()} \tab \code{centrality.point.args} \cr
+   centrality measure point path \tab \code{ggplot2::geom_path()} \tab \code{centrality.path.args} \cr
+   centrality measure label \tab \code{ggrepel::geom_label_repel()} \tab \code{centrality.label.args} \cr
+   outlier point \tab \code{ggplot2::stat_boxplot()} \tab \code{NA} \cr
+   outlier label \tab \code{ggrepel::geom_label_repel()} \tab \code{outlier.label.args} \cr
+   pairwise comparisons \tab \code{ggsignif::geom_signif()} \tab \code{ggsignif.args} \cr
+}
+}
+
+\section{Centrality measures}{
+
+
+
+The table below provides summary about:
+\itemize{
+\item statistical test carried out for inferential statistics
+\item type of effect size estimate and a measure of uncertainty for this estimate
+\item functions used internally to compute these details
+}\tabular{lll}{
+   Type \tab Measure \tab Function used \cr
+   Parametric \tab mean \tab \code{datawizard::describe_distribution()} \cr
+   Non-parametric \tab median \tab \code{datawizard::describe_distribution()} \cr
+   Robust \tab trimmed mean \tab \code{datawizard::describe_distribution()} \cr
+   Bayesian \tab MAP \tab \code{datawizard::describe_distribution()} \cr
+}
+
+}
+
+\section{Two-sample tests}{
+
+
+
+The table below provides summary about:
+\itemize{
+\item statistical test carried out for inferential statistics
+\item type of effect size estimate and a measure of uncertainty for this estimate
+\item functions used internally to compute these details
+}
+\subsection{between-subjects}{
+
+\strong{Hypothesis testing}\tabular{llll}{
+   Type \tab No. of groups \tab Test \tab Function used \cr
+   Parametric \tab 2 \tab Student's or Welch's \emph{t}-test \tab \code{stats::t.test()} \cr
+   Non-parametric \tab 2 \tab Mann-Whitney \emph{U} test \tab \code{stats::wilcox.test()} \cr
+   Robust \tab 2 \tab Yuen's test for trimmed means \tab \code{WRS2::yuen()} \cr
+   Bayesian \tab 2 \tab Student's \emph{t}-test \tab \code{BayesFactor::ttestBF()} \cr
+}
+
+
+\strong{Effect size estimation}\tabular{lllll}{
+   Type \tab No. of groups \tab Effect size \tab CI available? \tab Function used \cr
+   Parametric \tab 2 \tab Cohen's \emph{d}, Hedge's \emph{g} \tab Yes \tab \code{effectsize::cohens_d()}, \code{effectsize::hedges_g()} \cr
+   Non-parametric \tab 2 \tab \emph{r} (rank-biserial correlation) \tab Yes \tab \code{effectsize::rank_biserial()} \cr
+   Robust \tab 2 \tab Algina-Keselman-Penfield robust standardized difference \tab Yes \tab \code{WRS2::akp.effect()} \cr
+   Bayesian \tab 2 \tab difference \tab Yes \tab \code{bayestestR::describe_posterior()} \cr
+}
+
+}
+
+\subsection{within-subjects}{
+
+\strong{Hypothesis testing}\tabular{llll}{
+   Type \tab No. of groups \tab Test \tab Function used \cr
+   Parametric \tab 2 \tab Student's \emph{t}-test \tab \code{stats::t.test()} \cr
+   Non-parametric \tab 2 \tab Wilcoxon signed-rank test \tab \code{stats::wilcox.test()} \cr
+   Robust \tab 2 \tab Yuen's test on trimmed means for dependent samples \tab \code{WRS2::yuend()} \cr
+   Bayesian \tab 2 \tab Student's \emph{t}-test \tab \code{BayesFactor::ttestBF()} \cr
+}
+
+
+\strong{Effect size estimation}\tabular{lllll}{
+   Type \tab No. of groups \tab Effect size \tab CI available? \tab Function used \cr
+   Parametric \tab 2 \tab Cohen's \emph{d}, Hedge's \emph{g} \tab Yes \tab \code{effectsize::cohens_d()}, \code{effectsize::hedges_g()} \cr
+   Non-parametric \tab 2 \tab \emph{r} (rank-biserial correlation) \tab Yes \tab \code{effectsize::rank_biserial()} \cr
+   Robust \tab 2 \tab Algina-Keselman-Penfield robust standardized difference \tab Yes \tab \code{WRS2::wmcpAKP()} \cr
+   Bayesian \tab 2 \tab difference \tab Yes \tab \code{bayestestR::describe_posterior()} \cr
+}
+
+}
+
+}
+
+\section{One-way ANOVA}{
+
+
+
+The table below provides summary about:
+\itemize{
+\item statistical test carried out for inferential statistics
+\item type of effect size estimate and a measure of uncertainty for this estimate
+\item functions used internally to compute these details
+}
+\subsection{between-subjects}{
+
+\strong{Hypothesis testing}\tabular{llll}{
+   Type \tab No. of groups \tab Test \tab Function used \cr
+   Parametric \tab > 2 \tab Fisher's or Welch's one-way ANOVA \tab \code{stats::oneway.test()} \cr
+   Non-parametric \tab > 2 \tab Kruskal-Wallis one-way ANOVA \tab \code{stats::kruskal.test()} \cr
+   Robust \tab > 2 \tab Heteroscedastic one-way ANOVA for trimmed means \tab \code{WRS2::t1way()} \cr
+   Bayes Factor \tab > 2 \tab Fisher's ANOVA \tab \code{BayesFactor::anovaBF()} \cr
+}
+
+
+\strong{Effect size estimation}\tabular{lllll}{
+   Type \tab No. of groups \tab Effect size \tab CI available? \tab Function used \cr
+   Parametric \tab > 2 \tab partial eta-squared, partial omega-squared \tab Yes \tab \code{effectsize::omega_squared()}, \code{effectsize::eta_squared()} \cr
+   Non-parametric \tab > 2 \tab rank epsilon squared \tab Yes \tab \code{effectsize::rank_epsilon_squared()} \cr
+   Robust \tab > 2 \tab Explanatory measure of effect size \tab Yes \tab \code{WRS2::t1way()} \cr
+   Bayes Factor \tab > 2 \tab Bayesian R-squared \tab Yes \tab \code{performance::r2_bayes()} \cr
+}
+
+}
+
+\subsection{within-subjects}{
+
+\strong{Hypothesis testing}\tabular{llll}{
+   Type \tab No. of groups \tab Test \tab Function used \cr
+   Parametric \tab > 2 \tab One-way repeated measures ANOVA \tab \code{afex::aov_ez()} \cr
+   Non-parametric \tab > 2 \tab Friedman rank sum test \tab \code{stats::friedman.test()} \cr
+   Robust \tab > 2 \tab Heteroscedastic one-way repeated measures ANOVA for trimmed means \tab \code{WRS2::rmanova()} \cr
+   Bayes Factor \tab > 2 \tab One-way repeated measures ANOVA \tab \code{BayesFactor::anovaBF()} \cr
+}
+
+
+\strong{Effect size estimation}\tabular{lllll}{
+   Type \tab No. of groups \tab Effect size \tab CI available? \tab Function used \cr
+   Parametric \tab > 2 \tab partial eta-squared, partial omega-squared \tab Yes \tab \code{effectsize::omega_squared()}, \code{effectsize::eta_squared()} \cr
+   Non-parametric \tab > 2 \tab Kendall's coefficient of concordance \tab Yes \tab \code{effectsize::kendalls_w()} \cr
+   Robust \tab > 2 \tab Algina-Keselman-Penfield robust standardized difference average \tab Yes \tab \code{WRS2::wmcpAKP()} \cr
+   Bayes Factor \tab > 2 \tab Bayesian R-squared \tab Yes \tab \code{performance::r2_bayes()} \cr
+}
+
+}
+
+}
+
+\section{Pairwise comparison tests}{
+
+
+
+The table below provides summary about:
+\itemize{
+\item statistical test carried out for inferential statistics
+\item type of effect size estimate and a measure of uncertainty for this estimate
+\item functions used internally to compute these details
+}
+\subsection{between-subjects}{
+
+\strong{Hypothesis testing}\tabular{lllll}{
+   Type \tab Equal variance? \tab Test \tab \emph{p}-value adjustment? \tab Function used \cr
+   Parametric \tab No \tab Games-Howell test \tab Yes \tab \code{PMCMRplus::gamesHowellTest()} \cr
+   Parametric \tab Yes \tab Student's \emph{t}-test \tab Yes \tab \code{stats::pairwise.t.test()} \cr
+   Non-parametric \tab No \tab Dunn test \tab Yes \tab \code{PMCMRplus::kwAllPairsDunnTest()} \cr
+   Robust \tab No \tab Yuen's trimmed means test \tab Yes \tab \code{WRS2::lincon()} \cr
+   Bayesian \tab \code{NA} \tab Student's \emph{t}-test \tab \code{NA} \tab \code{BayesFactor::ttestBF()} \cr
+}
+
+
+\strong{Effect size estimation}
+
+Not supported.
+}
+
+\subsection{within-subjects}{
+
+\strong{Hypothesis testing}\tabular{llll}{
+   Type \tab Test \tab \emph{p}-value adjustment? \tab Function used \cr
+   Parametric \tab Student's \emph{t}-test \tab Yes \tab \code{stats::pairwise.t.test()} \cr
+   Non-parametric \tab Durbin-Conover test \tab Yes \tab \code{PMCMRplus::durbinAllPairsTest()} \cr
+   Robust \tab Yuen's trimmed means test \tab Yes \tab \code{WRS2::rmmcp()} \cr
+   Bayesian \tab Student's \emph{t}-test \tab \code{NA} \tab \code{BayesFactor::ttestBF()} \cr
+}
+
+
+\strong{Effect size estimation}
+
+Not supported.
+}
+
+}
+
 \examples{
+\dontshow{if (requireNamespace("afex", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 \donttest{
-# setup
+# for reproducibility
 set.seed(123)
-library(ggstatsplot)
 library(dplyr, warn.conflicts = FALSE)
 
-# two groups (*t*-test)
-ggwithinstats(
+# create a plot
+p <- ggwithinstats(
   data = filter(bugs_long, condition \%in\% c("HDHF", "HDLF")),
   x    = condition,
-  y    = desire
+  y    = desire,
+  type = "np"
 )
 
-# more than two groups (anova)
-library(WRS2)
 
+# looking at the plot
+p
+
+# extracting details from statistical tests
+extract_stats(p)
+
+# modifying defaults
 ggwithinstats(
-  data            = WineTasting,
-  x               = Wine,
-  y               = Taste,
-  type            = "r",
+  data            = bugs_long,
+  x               = condition,
+  y               = desire,
+  type            = "robust",
   outlier.tagging = TRUE,
-  outlier.label   = Taster
+  outlier.label   = region
 )
 }
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link{grouped_ggbetweenstats}}, \code{\link{ggbetweenstats}},

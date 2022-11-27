@@ -4,9 +4,12 @@
 #' @description
 #'
 #' Correlation matrix or a data frame containing results from pairwise
-#' correlation tests. The package internally uses `ggcorrplot::ggcorrplot` for
-#' creating the visualization matrix, while the correlation analysis is carried
-#' out using the `correlation::correlation` function.
+#' correlation tests.
+#'
+#' @section Summary of graphics:
+#'
+#' ```{r child="man/rmd-fragments/ggcorrmat_graphics.Rmd"}
+#' ```
 #'
 #' @param ... Currently ignored.
 #' @param data Dataframe from which variables specified are preferentially to be
@@ -46,8 +49,7 @@
 #' @inheritParams ggcorrplot::ggcorrplot
 #' @inheritParams ggscatterstats
 #'
-#' @importFrom purrr is_bare_numeric keep
-#' @importFrom correlation correlation
+#' @inheritSection statsExpressions::corr_test Correlation analyses
 #'
 #' @seealso \code{\link{grouped_ggcorrmat}} \code{\link{ggscatterstats}}
 #'   \code{\link{grouped_ggscatterstats}}
@@ -55,13 +57,13 @@
 #' @details For details, see:
 #' <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html>
 #'
-#' @examples
+#' @examplesIf requireNamespace("ggcorrplot", quietly = TRUE)
 #' # for reproducibility
 #' set.seed(123)
-#' library(ggstatsplot)
+#' library(ggcorrplot) # for plot
 #'
-#' # to get a plot (assumes that `ggcorrplot` is installed)
-#' if (require("ggcorrplot")) ggcorrmat(iris)
+#' # to get a plot
+#' ggcorrmat(iris)
 #'
 #' # to get a data frame
 #' ggcorrmat(
@@ -140,7 +142,7 @@ ggcorrmat <- function(data,
   # legend title with information about correlation type and sample
   if (!anyNA(data) || partial) {
     legend.title <- bquote(atop(
-      atop(scriptstyle(bold("sample sizes:")), italic(n) ~ "=" ~ .(.prettyNum(mpc_df$n_Obs[[1]]))),
+      atop(scriptstyle(bold("sample sizes:")), italic(n) ~ "=" ~ .(.prettyNum(mpc_df$n_Obs[[1L]]))),
       atop(scriptstyle(bold(.(r.type))), .(r.method.text))
     ))
   } else {
@@ -200,11 +202,11 @@ ggcorrmat <- function(data,
       legend.title     = element_text(size = 15)
     ) +
     labs(
-      title            = title,
-      subtitle         = subtitle,
-      caption          = caption,
-      xlab             = NULL,
-      ylab             = NULL
+      title    = title,
+      subtitle = subtitle,
+      caption  = caption,
+      xlab     = NULL,
+      ylab     = NULL
     ) +
     ggplot.component
 }
@@ -230,23 +232,21 @@ ggcorrmat <- function(data,
 #' @inherit ggcorrmat return references
 #' @inherit ggcorrmat return details
 #'
-#' @examples
+#' @examplesIf requireNamespace("ggcorrplot", quietly = TRUE)
 #' \donttest{
 #' # for reproducibility
 #' set.seed(123)
-#' library(ggstatsplot)
+#' library(ggcorrplot) # for plot
 #'
 #' # for plot
-#' if (require("ggcorrplot")) {
-#'   grouped_ggcorrmat(
-#'     data = iris,
-#'     grouping.var = Species,
-#'     type = "robust",
-#'     p.adjust.method = "holm",
-#'     plotgrid.args = list(ncol = 1),
-#'     annotation.args = list(tag_levels = "i")
-#'   )
-#' }
+#' grouped_ggcorrmat(
+#'   data = iris,
+#'   grouping.var = Species,
+#'   type = "robust",
+#'   p.adjust.method = "holm",
+#'   plotgrid.args = list(ncol = 1),
+#'   annotation.args = list(tag_levels = "i")
+#' )
 #'
 #' # for data frame
 #' grouped_ggcorrmat(
@@ -275,7 +275,6 @@ grouped_ggcorrmat <- function(data,
     ...
   )
 
-  # combining the list of plots into a single plot
   if (output == "plot") {
     return(combine_plots(
       plotlist = p_ls,

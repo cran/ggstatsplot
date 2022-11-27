@@ -8,7 +8,6 @@ grouped_ggbarstats(
   data,
   ...,
   grouping.var,
-  output = "plot",
   plotgrid.args = list(),
   annotation.args = list()
 )
@@ -80,8 +79,9 @@ thus the details as well.}
 You can specify just the initial letter.}
     \item{\code{k}}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2L}).}
-    \item{\code{conf.level}}{Scalar between \code{0} and \code{1}. If unspecified, the defaults
-return \verb{95\%} confidence/credible intervals (\code{0.95}).}
+    \item{\code{conf.level}}{Scalar between \code{0} and \code{1} (default: \verb{95\%}
+confidence/credible intervals, \code{0.95}). If \code{NULL}, no confidence intervals
+will be computed.}
     \item{\code{paired}}{Logical indicating whether data came from a within-subjects or
 repeated measures design study (Default: \code{FALSE}). If \code{TRUE}, McNemar's
 test expression will be returned. If \code{FALSE}, Pearson's chi-square test will
@@ -111,14 +111,6 @@ variable name for \code{y} will be used.}
 
 \item{grouping.var}{A single grouping variable.}
 
-\item{output}{Character that describes what is to be returned: can be
-\code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
-\code{"subtitle"} will return the expression containing statistical results. If
-you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
-Setting this to \code{"caption"} will return the expression containing details
-about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
-\code{bf.message = TRUE}, otherwise this will return a \code{NULL}.}
-
 \item{plotgrid.args}{A \code{list} of additional arguments passed to
 \code{patchwork::wrap_plots}, except for \code{guides} argument which is already
 separately specified here.}
@@ -139,7 +131,7 @@ For details, see:
 \donttest{
 # for reproducibility
 set.seed(123)
-library(ggstatsplot)
+
 library(dplyr, warn.conflicts = FALSE)
 
 # let's create a smaller data frame

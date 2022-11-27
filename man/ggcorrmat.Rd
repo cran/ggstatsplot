@@ -77,8 +77,9 @@ Bayesian correlation based on frequentist partialization) are returned.}
 correlation coefficient is regarded as insignificant and flagged as such in
 the plot. Relevant only when \code{output = "plot"}.}
 
-\item{conf.level}{Scalar between \code{0} and \code{1}. If unspecified, the defaults
-return \verb{95\%} confidence/credible intervals (\code{0.95}).}
+\item{conf.level}{Scalar between \code{0} and \code{1} (default: \verb{95\%}
+confidence/credible intervals, \code{0.95}). If \code{NULL}, no confidence intervals
+will be computed.}
 
 \item{bf.prior}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
 width to use in calculating Bayes factors and posterior estimates. In
@@ -136,21 +137,48 @@ if \code{bf.message = FALSE}.}
 }
 \description{
 Correlation matrix or a data frame containing results from pairwise
-correlation tests. The package internally uses \code{ggcorrplot::ggcorrplot} for
-creating the visualization matrix, while the correlation analysis is carried
-out using the \code{correlation::correlation} function.
+correlation tests.
 }
 \details{
 For details, see:
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html}
 }
+\section{Summary of graphics}{
+\tabular{lll}{
+   graphical element \tab \code{geom} used \tab argument for further modification \cr
+   correlation matrix \tab \code{ggcorrplot::ggcorrplot()} \tab \code{ggcorrplot.args} \cr
+}
+}
+
+\section{Correlation analyses}{
+
+
+
+The table below provides summary about:
+\itemize{
+\item statistical test carried out for inferential statistics
+\item type of effect size estimate and a measure of uncertainty for this estimate
+\item functions used internally to compute these details
+}
+
+\strong{Hypothesis testing} and \strong{Effect size estimation}\tabular{llll}{
+   Type \tab Test \tab CI available? \tab Function used \cr
+   Parametric \tab Pearson's correlation coefficient \tab Yes \tab \code{correlation::correlation()} \cr
+   Non-parametric \tab Spearman's rank correlation coefficient \tab Yes \tab \code{correlation::correlation()} \cr
+   Robust \tab Winsorized Pearson correlation coefficient \tab Yes \tab \code{correlation::correlation()} \cr
+   Bayesian \tab Bayesian Pearson's correlation coefficient \tab Yes \tab \code{correlation::correlation()} \cr
+}
+
+}
+
 \examples{
+\dontshow{if (requireNamespace("ggcorrplot", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # for reproducibility
 set.seed(123)
-library(ggstatsplot)
+library(ggcorrplot) # for plot
 
-# to get a plot (assumes that `ggcorrplot` is installed)
-if (require("ggcorrplot")) ggcorrmat(iris)
+# to get a plot
+ggcorrmat(iris)
 
 # to get a data frame
 ggcorrmat(
@@ -159,6 +187,7 @@ ggcorrmat(
   partial = TRUE,
   output = "dataframe"
 )
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link{grouped_ggcorrmat}} \code{\link{ggscatterstats}}

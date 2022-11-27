@@ -6,6 +6,11 @@
 #' Scatterplots from `{ggplot2}` combined with marginal densigram (density +
 #' histogram) plots with statistical details.
 #'
+#' @section Summary of graphics:
+#'
+#' ```{r child="man/rmd-fragments/gghistostats_graphics.Rmd"}
+#' ```
+#'
 #' @param ... Currently ignored.
 #' @param label.var Variable to use for points labels entered as a symbol (e.g.
 #'   `var1`).
@@ -28,9 +33,6 @@
 #'   because this information will be passed to two different `geom`s: one
 #'   displaying the **points** and the other displaying the ***labels** for
 #'   these points.
-#' @param xfill,yfill Character describing color fill for `x` and `y` axes
-#'  marginal distributions (default: `"#009E73"` (for `x`) and `"#D55E00"` (for
-#'  `y`)). Note that the defaults are colorblind-friendly.
 #' @param xsidehistogram.args,ysidehistogram.args A list of arguments passed to
 #'   respective `geom_`s from `ggside` package to change the marginal
 #'   distribution histograms plots.
@@ -39,6 +41,8 @@
 #' @inheritParams ggbetweenstats
 #' @inheritParams gghistostats
 #'
+#' @inheritSection statsExpressions::corr_test Correlation analyses
+#'
 #' @seealso \code{\link{grouped_ggscatterstats}}, \code{\link{ggcorrmat}},
 #' \code{\link{grouped_ggcorrmat}}
 #'
@@ -46,31 +50,32 @@
 #' <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggscatterstats.html>
 #'
 #' @note
-#' The plot uses `ggrepel::geom_label_repel` to attempt to keep labels
+#' The plot uses `ggrepel::geom_label_repel()` to attempt to keep labels
 #' from over-lapping to the largest degree possible. As a consequence plot
 #' times will slow down massively (and the plot file will grow in size) if you
 #' have a lot of labels that overlap.
 #'
-#' @examples
-#' # to get reproducible results from bootstrapping
+#' @examplesIf requireNamespace("ggside", quietly = TRUE)
 #' set.seed(123)
-#' library(ggstatsplot)
-#' library(dplyr, warn.conflicts = FALSE)
+#' library(ggside) # for plotting marginals
 #'
-#' # creating data frame with rownames converted to a new column
-#' mtcars_new <- as_tibble(mtcars, rownames = "car")
+#' # creating a plot
+#' p <- ggscatterstats(
+#'   iris,
+#'   x = Sepal.Width,
+#'   y = Petal.Length,
+#'   label.var = Species,
+#'   label.expression = Sepal.Length > 7.6
+#' ) +
+#'   ggplot2::geom_rug(sides = "b")
 #'
-#' # simple function call with the defaults
-#' if (require("ggside")) {
-#'   ggscatterstats(
-#'     data = mtcars_new,
-#'     x = wt,
-#'     y = mpg,
-#'     label.var = car,
-#'     label.expression = wt < 4 & mpg < 20
-#'   ) + # making further customization with `{ggplot2}` functions
-#'     geom_rug(sides = "b")
-#' }
+#'
+#' # looking at the plot
+#' p
+#'
+#' # extracting details from statistical tests
+#' extract_stats(p)
+#'
 #' @export
 ggscatterstats <- function(data,
                            x,
@@ -85,34 +90,13 @@ ggscatterstats <- function(data,
                            label.var = NULL,
                            label.expression = NULL,
                            marginal = TRUE,
-                           xfill = "#009E73",
-                           yfill = "#D55E00",
-                           point.args = list(
-                             size = 3,
-                             alpha = 0.4,
-                             stroke = 0,
-                             na.rm = TRUE
-                           ),
+                           point.args = list(size = 3, alpha = 0.4, stroke = 0),
                            point.width.jitter = 0,
                            point.height.jitter = 0,
                            point.label.args = list(size = 3, max.overlaps = 1e6),
-                           smooth.line.args = list(
-                             size = 1.5,
-                             color = "blue",
-                             method = "lm",
-                             formula = y ~ x,
-                             na.rm = TRUE
-                           ),
-                           xsidehistogram.args = list(
-                             fill = xfill,
-                             color = "black",
-                             na.rm = TRUE
-                           ),
-                           ysidehistogram.args = list(
-                             fill = yfill,
-                             color = "black",
-                             na.rm = TRUE
-                           ),
+                           smooth.line.args = list(linewidth = 1.5, color = "blue", method = "lm", formula = y ~ x),
+                           xsidehistogram.args = list(fill = "#009E73", color = "black"),
+                           ysidehistogram.args = list(fill = "#D55E00", color = "black"),
                            xlab = NULL,
                            ylab = NULL,
                            title = NULL,
@@ -120,7 +104,6 @@ ggscatterstats <- function(data,
                            caption = NULL,
                            ggtheme = ggstatsplot::theme_ggstatsplot(),
                            ggplot.component = NULL,
-                           output = "plot",
                            ...) {
   # data ---------------------------------------
 
@@ -148,24 +131,16 @@ ggscatterstats <- function(data,
     )
 
     subtitle_df <- .eval_f(corr_test, !!!.f.args, type = type)
-    subtitle <- if (!is.null(subtitle_df)) subtitle_df$expression[[1]]
+    subtitle <- if (!is.null(subtitle_df)) subtitle_df$expression[[1L]]
 
     # preparing the BF message for null hypothesis support
     if (type == "parametric" && bf.message) {
       caption_df <- .eval_f(corr_test, !!!.f.args, type = "bayes")
-      caption <- if (!is.null(caption_df)) caption_df$expression[[1]]
+      caption <- if (!is.null(caption_df)) caption_df$expression[[1L]]
     }
   }
 
-  # quit early if only subtitle is needed
-  if (output != "plot") {
-    return(switch(output,
-      "caption" = caption,
-      subtitle
-    ))
-  }
-
-  # plot ------------------------------------------
+  # basic plot ------------------------------------------
 
   # creating jittered positions
   pos <- position_jitter(width = point.width.jitter, height = point.height.jitter)
@@ -173,7 +148,7 @@ ggscatterstats <- function(data,
   # preparing the scatterplot
   plotScatter <- ggplot(data, mapping = aes({{ x }}, {{ y }})) +
     exec(geom_point, position = pos, !!!point.args) +
-    exec(geom_smooth, level = conf.level, !!!smooth.line.args)
+    exec(geom_smooth, level = conf.level, !!!smooth.line.args, na.rm = TRUE)
 
   # point labels --------------------------------
 
@@ -199,11 +174,11 @@ ggscatterstats <- function(data,
 
   plotScatter <- plotScatter +
     labs(
-      x = xlab %||% as_name(x),
-      y = ylab %||% as_name(y),
-      title = title,
+      x        = xlab %||% as_name(x),
+      y        = ylab %||% as_name(y),
+      title    = title,
       subtitle = subtitle,
-      caption = caption
+      caption  = caption
     ) +
     ggtheme +
     ggplot.component
@@ -211,8 +186,7 @@ ggscatterstats <- function(data,
   # marginal  ---------------------------------------------
 
   if (marginal) {
-    # installed?
-    check_if_installed("ggside", minimum_version = "0.1.2")
+    check_if_installed("ggside", minimum_version = "0.2.1")
 
     # adding marginal distributions
     plotScatter <- plotScatter +
@@ -245,10 +219,11 @@ ggscatterstats <- function(data,
 #' @inherit ggscatterstats return references
 #' @inherit ggscatterstats return details
 #'
-#' @examples
+#' @examplesIf requireNamespace("ggside", quietly = TRUE)
+#' \donttest{
 #' # to ensure reproducibility
 #' set.seed(123)
-#' library(ggstatsplot)
+#'
 #' library(dplyr, warn.conflicts = FALSE)
 #' library(ggplot2)
 #'
@@ -285,11 +260,11 @@ ggscatterstats <- function(data,
 #'   label.var       = "title",
 #'   annotation.args = list(tag_levels = "a")
 #' )
+#' }
 #' @export
 grouped_ggscatterstats <- function(data,
                                    ...,
                                    grouping.var,
-                                   output = "plot",
                                    plotgrid.args = list(),
                                    annotation.args = list()) {
   # getting the data frame ready
@@ -297,13 +272,11 @@ grouped_ggscatterstats <- function(data,
 
   # creating a list of plots
   p_ls <- purrr::pmap(
-    .l = list(data = data, title = names(data), output = output),
+    .l = list(data = data, title = names(data)),
     .f = ggstatsplot::ggscatterstats,
     ...
   )
 
-  # combining the list of plots into a single plot
-  if (output == "plot") p_ls <- combine_plots(p_ls, plotgrid.args, annotation.args)
 
-  p_ls
+  combine_plots(p_ls, plotgrid.args, annotation.args)
 }

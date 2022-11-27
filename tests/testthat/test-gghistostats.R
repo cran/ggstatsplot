@@ -1,11 +1,10 @@
+skip_if(getRversion() < "4.1")
+
 # checking default outputs -----------------------------------------
 
 test_that(
   desc = "checking default outputs",
   code = {
-    skip_if(getRversion() < "4.1")
-
-
     set.seed(123)
     vdiffr::expect_doppelganger(
       title = "parametric - without NA",
@@ -59,10 +58,7 @@ test_that(
         binwidth = 1,
         results.subtitle = FALSE,
         normal.curve = TRUE,
-        normal.curve.args = list(
-          color = "red",
-          size = 0.8
-        )
+        normal.curve.args = list(color = "red", linewidth = 0.8)
       )
     )
   }
@@ -79,9 +75,9 @@ test_that(
       data = ggplot2::msleep,
       x = brainwt,
       type = "np",
-      output = "subtitle",
       test.value = 0.25
-    )
+    ) %>%
+      extract_subtitle()
 
     set.seed(123)
     sub <- one_sample_test(
@@ -89,8 +85,7 @@ test_that(
       x = brainwt,
       type = "np",
       test.value = 0.25
-    )$expression[[1]]
-
+    )$expression[[1L]]
 
     expect_equal(p_sub, sub, ignore_attr = TRUE)
   }
@@ -102,5 +97,37 @@ test_that(
   desc = ".binwidth works as expected",
   code = {
     expect_equal(ggstatsplot:::.binwidth(mtcars$wt), 0.6913737, tolerance = 0.001)
+  }
+)
+
+# grouped_gghistostats works ---------------------------------------------
+
+test_that(
+  desc = "grouped_gghistostats plotting works as expected",
+  code = {
+    set.seed(123)
+    vdiffr::expect_doppelganger(
+      title = "defaults as expected",
+      fig = grouped_gghistostats(
+        data = ggplot2::msleep,
+        x = brainwt,
+        grouping.var = vore,
+        normal.curve = TRUE
+      )
+    )
+
+    set.seed(123)
+    vdiffr::expect_doppelganger(
+      title = "modification with ggplot2 works",
+      fig = suppressWarnings(grouped_gghistostats(
+        data = ggplot2::msleep,
+        x = brainwt,
+        grouping.var = vore,
+        results.subtitle = FALSE,
+        ggplot.component = ggplot2::scale_x_continuous(
+          sec.axis = ggplot2::dup_axis(name = ggplot2::element_blank())
+        )
+      ))
+    )
   }
 )

@@ -29,21 +29,9 @@
                                 x,
                                 y,
                                 centrality.path = FALSE,
-                                centrality.path.args = list(
-                                  color = "red",
-                                  size = 1,
-                                  alpha = 0.5
-                                ),
-                                centrality.point.args = list(
-                                  size = 5,
-                                  color = "darkred"
-                                ),
-                                centrality.label.args = list(
-                                  size = 3,
-                                  nudge_x = 0.4,
-                                  segment.linetype = 4,
-                                  min.segment.length = 0
-                                ),
+                                centrality.path.args = list(linewidth = 1, color = "red", alpha = 0.5),
+                                centrality.point.args = list(size = 5, color = "darkred"),
+                                centrality.label.args = list(size = 3, nudge_x = 0.4, segment.linetype = 4),
                                 ...) {
   # creating the data frame
   centrality_df <- suppressWarnings(centrality_description(data, {{ x }}, {{ y }}, ...))
@@ -54,14 +42,13 @@
       exec(
         geom_path,
         data = centrality_df,
-        mapping = aes(x = {{ x }}, y = {{ y }}, group = 1),
+        mapping = aes({{ x }}, {{ y }}, group = 1L),
         inherit.aes = FALSE,
         !!!centrality.path.args
       )
   }
 
-  # highlight the mean of each group
-  plot +
+  plot + # highlight the mean of each group
     exec(
       geom_point,
       mapping = aes({{ x }}, {{ y }}),
@@ -72,7 +59,7 @@
     exec(
       ggrepel::geom_label_repel,
       data = centrality_df,
-      mapping = aes(x = {{ x }}, y = {{ y }}, label = expression),
+      mapping = aes({{ x }}, {{ y }}, label = expression),
       inherit.aes = FALSE,
       parse = TRUE,
       !!!centrality.label.args
@@ -131,7 +118,7 @@
     if (grepl("^n", pairwise.display)) mpc_df %<>% filter(p.value >= 0.05)
 
     # proceed only if there are any significant comparisons to display
-    if (dim(mpc_df)[[1]] == 0L) {
+    if (dim(mpc_df)[[1L]] == 0L) {
       return(plot)
     }
   }
@@ -237,7 +224,7 @@
                              ggplot.component = NULL,
                              ...) {
   # if no. of factor levels is greater than the default palette color count
-  .palette_message(package, palette, length(unique(levels(x)))[[1]])
+  .palette_message(package, palette, length(unique(levels(x)))[[1L]])
 
   # modifying the plot
   plot +
@@ -269,10 +256,6 @@
 #'   additional columns: `isanoutlier` and `outlier` denoting which observation
 #'   are outliers and their corresponding labels.
 #'
-#' @importFrom dplyr group_by mutate ungroup
-#' @importFrom statsExpressions %$%
-#' @importFrom performance check_outliers
-#'
 #' @examples
 #' # adding column for outlier and a label for that outlier
 #' ggstatsplot:::.outlier_df(
@@ -287,10 +270,10 @@
 .outlier_df <- function(data, x, y, outlier.label, outlier.coef = 1.5, ...) {
   group_by(data, {{ x }}) %>%
     mutate(
-      isanoutlier = ifelse((.) %$% as.vector(performance::check_outliers({{ y }}, method = "iqr", threshold = list("iqr" = outlier.coef))), TRUE, FALSE),
+      isanoutlier = (.) %$% as.vector(performance::check_outliers({{ y }}, method = "iqr", threshold = list("iqr" = outlier.coef))),
       outlier = ifelse(isanoutlier, {{ outlier.label }}, NA)
     ) %>%
-    ungroup(.)
+    ungroup()
 }
 
 

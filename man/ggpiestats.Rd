@@ -32,7 +32,6 @@ ggpiestats(
   package = "RColorBrewer",
   palette = "Dark2",
   ggplot.component = NULL,
-  output = "plot",
   ...
 )
 }
@@ -105,8 +104,9 @@ is equal theoretical proportions across the levels of the nominal variable.
 This means if there are two levels this will be \code{ratio = c(0.5,0.5)} or if
 there are four levels this will be \code{ratio = c(0.25,0.25,0.25,0.25)}, etc.}
 
-\item{conf.level}{Scalar between \code{0} and \code{1}. If unspecified, the defaults
-return \verb{95\%} confidence/credible intervals (\code{0.95}).}
+\item{conf.level}{Scalar between \code{0} and \code{1} (default: \verb{95\%}
+confidence/credible intervals, \code{0.95}). If \code{NULL}, no confidence intervals
+will be computed.}
 
 \item{sampling.plan}{Character describing the sampling plan. Possible options
 are \code{"indepMulti"} (independent multinomial; default), \code{"poisson"},
@@ -151,14 +151,6 @@ by \code{{ggstatsplot}}. This argument is primarily helpful for \code{grouped_}
 variants of all primary functions. Default is \code{NULL}. The argument should
 be entered as a \code{{ggplot2}} function or a list of \code{{ggplot2}} functions.}
 
-\item{output}{Character that describes what is to be returned: can be
-\code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
-\code{"subtitle"} will return the expression containing statistical results. If
-you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
-Setting this to \code{"caption"} will return the expression containing details
-about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
-\code{bf.message = TRUE}, otherwise this will return a \code{NULL}.}
-
 \item{...}{Currently ignored.}
 }
 \description{
@@ -169,17 +161,80 @@ as a subtitle.
 For details, see:
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html}
 }
+\section{Summary of graphics}{
+\tabular{lll}{
+   graphical element \tab \code{geom} used \tab argument for further modification \cr
+   pie slices \tab \code{ggplot2::geom_col()} \tab \code{NA} \cr
+   labels \tab \code{ggplot2::geom_label()}/\code{ggrepel::geom_label_repel()} \tab \code{label.args} \cr
+}
+}
+
+\section{Contingency table analyses}{
+
+
+
+The table below provides summary about:
+\itemize{
+\item statistical test carried out for inferential statistics
+\item type of effect size estimate and a measure of uncertainty for this estimate
+\item functions used internally to compute these details
+}
+\subsection{two-way table}{
+
+\strong{Hypothesis testing}\tabular{llll}{
+   Type \tab Design \tab Test \tab Function used \cr
+   Parametric/Non-parametric \tab Unpaired \tab Pearson's chi-squared test \tab \code{stats::chisq.test()} \cr
+   Bayesian \tab Unpaired \tab Bayesian Pearson's chi-squared test \tab \code{BayesFactor::contingencyTableBF()} \cr
+   Parametric/Non-parametric \tab Paired \tab McNemar's chi-squared test \tab \code{stats::mcnemar.test()} \cr
+   Bayesian \tab Paired \tab No \tab No \cr
+}
+
+
+\strong{Effect size estimation}\tabular{lllll}{
+   Type \tab Design \tab Effect size \tab CI available? \tab Function used \cr
+   Parametric/Non-parametric \tab Unpaired \tab Cramer's \emph{V} \tab Yes \tab \code{effectsize::cramers_v()} \cr
+   Bayesian \tab Unpaired \tab Cramer's \emph{V} \tab Yes \tab \code{effectsize::cramers_v()} \cr
+   Parametric/Non-parametric \tab Paired \tab Cohen's \emph{g} \tab Yes \tab \code{effectsize::cohens_g()} \cr
+   Bayesian \tab Paired \tab No \tab No \tab No \cr
+}
+
+}
+
+\subsection{one-way table}{
+
+\strong{Hypothesis testing}\tabular{lll}{
+   Type \tab Test \tab Function used \cr
+   Parametric/Non-parametric \tab Goodness of fit chi-squared test \tab \code{stats::chisq.test()} \cr
+   Bayesian \tab Bayesian Goodness of fit chi-squared test \tab (custom) \cr
+}
+
+
+\strong{Effect size estimation}\tabular{llll}{
+   Type \tab Effect size \tab CI available? \tab Function used \cr
+   Parametric/Non-parametric \tab Pearson's \emph{C} \tab Yes \tab \code{effectsize::pearsons_c()} \cr
+   Bayesian \tab No \tab No \tab No \cr
+}
+
+}
+
+}
+
 \examples{
 \donttest{
 # for reproducibility
 set.seed(123)
-library(ggstatsplot)
 
 # one sample goodness of fit proportion test
-ggpiestats(mtcars, x = vs)
+p <- ggpiestats(mtcars, vs)
+
+# looking at the plot
+p
+
+# extracting details from statistical tests
+extract_stats(p)
 
 # association test (or contingency table analysis)
-ggpiestats(mtcars, x = vs, y = cyl)
+ggpiestats(mtcars, vs, cyl)
 }
 }
 \seealso{

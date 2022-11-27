@@ -9,7 +9,6 @@ grouped_ggbetweenstats(
   data,
   ...,
   grouping.var,
-  output = "plot",
   plotgrid.args = list(),
   annotation.args = list()
 )
@@ -146,8 +145,9 @@ subject-1,subject-2, ..., pattern.}
 You can specify just the initial letter.}
     \item{\code{k}}{Number of digits after decimal point (should be an integer)
 (Default: \code{k = 2L}).}
-    \item{\code{conf.level}}{Scalar between \code{0} and \code{1}. If unspecified, the defaults
-return \verb{95\%} confidence/credible intervals (\code{0.95}).}
+    \item{\code{conf.level}}{Scalar between \code{0} and \code{1} (default: \verb{95\%}
+confidence/credible intervals, \code{0.95}). If \code{NULL}, no confidence intervals
+will be computed.}
     \item{\code{effsize.type}}{Type of effect size needed for \emph{parametric} tests. The
 argument can be \code{"eta"} (partial eta-squared) or \code{"omega"} (partial
 omega-squared).}
@@ -170,14 +170,6 @@ for the effect size (Default: \code{100L}).}
 
 \item{grouping.var}{A single grouping variable.}
 
-\item{output}{Character that describes what is to be returned: can be
-\code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
-\code{"subtitle"} will return the expression containing statistical results. If
-you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
-Setting this to \code{"caption"} will return the expression containing details
-about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
-\code{bf.message = TRUE}, otherwise this will return a \code{NULL}.}
-
 \item{plotgrid.args}{A \code{list} of additional arguments passed to
 \code{patchwork::wrap_plots}, except for \code{guides} argument which is already
 separately specified here.}
@@ -191,39 +183,39 @@ across multiple levels of a given factor and combining the resulting plots
 using \code{ggstatsplot::combine_plots}.
 }
 \examples{
+\dontshow{if (requireNamespace("PMCMRplus", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 \donttest{
-if (require("PMCMRplus")) {
-  # to get reproducible results from bootstrapping
-  set.seed(123)
-  library(ggstatsplot)
-  library(dplyr, warn.conflicts = FALSE)
-  library(ggplot2)
+# for reproducibility
+set.seed(123)
+library(PMCMRplus) # for pairwise comparisons
+library(dplyr, warn.conflicts = FALSE)
+library(ggplot2)
 
-  # the most basic function call
-  grouped_ggbetweenstats(
-    data = filter(ggplot2::mpg, drv != "4"),
-    x = year,
-    y = hwy,
-    grouping.var = drv
-  )
+# the most basic function call
+grouped_ggbetweenstats(
+  data = filter(ggplot2::mpg, drv != "4"),
+  x = year,
+  y = hwy,
+  grouping.var = drv
+)
 
-  # modifying individual plots using `ggplot.component` argument
-  grouped_ggbetweenstats(
-    data = filter(
-      movies_long,
-      genre \%in\% c("Action", "Comedy"),
-      mpaa \%in\% c("R", "PG")
-    ),
-    x = genre,
-    y = rating,
-    grouping.var = mpaa,
-    ggplot.component = scale_y_continuous(
-      breaks = seq(1, 9, 1),
-      limits = (c(1, 9))
-    )
+# modifying individual plots using `ggplot.component` argument
+grouped_ggbetweenstats(
+  data = filter(
+    movies_long,
+    genre \%in\% c("Action", "Comedy"),
+    mpaa \%in\% c("R", "PG")
+  ),
+  x = genre,
+  y = rating,
+  grouping.var = mpaa,
+  ggplot.component = scale_y_continuous(
+    breaks = seq(1, 9, 1),
+    limits = (c(1, 9))
   )
+)
 }
-}
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link{ggbetweenstats}}, \code{\link{ggwithinstats}},

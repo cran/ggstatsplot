@@ -2,9 +2,15 @@
 % Please edit documentation in R/extract_stats.R
 \name{extract_stats}
 \alias{extract_stats}
-\title{Extracting data frames from \code{{ggstatsplot}} plots}
+\alias{extract_subtitle}
+\alias{extract_caption}
+\title{Extracting data frames or expressions from \code{{ggstatsplot}} plots}
 \usage{
 extract_stats(p, ...)
+
+extract_subtitle(p)
+
+extract_caption(p)
 }
 \arguments{
 \item{p}{A plot from \code{{ggstatsplot}} package}
@@ -16,13 +22,16 @@ A list of tibbles containing summaries of various statistical analyses.
 The exact details included will depend on the function.
 }
 \description{
-Extracting data frames from \code{{ggstatsplot}} plots
+Extracting data frames or expressions from \code{{ggstatsplot}} plots
 }
 \details{
-This is a convenience function to extract data frames with statistical details
-that are used to create expressions displayed in \code{{ggstatsplot}} plots as
-subtitle, caption, etc. Note that all of this analysis is carried out by
-the \code{{statsExpressions}} \href{https://indrajeetpatil.github.io/statsExpressions/}{package}.
+These are convenience functions to extract data frames or expressions with
+statistical details that are used to create expressions displayed in
+\code{{ggstatsplot}} plots as subtitle, caption, etc. Note that all of this
+analysis is carried out by the \code{{statsExpressions}}
+\href{https://indrajeetpatil.github.io/statsExpressions/}{package}. And so if you
+are using these functions only to extract data frames, you are better off
+using that package.
 
 The only exception is the \code{ggcorrmat()} function. But, if a data frame is
 what you want, you shouldn't be using \code{ggcorrmat()} anyway. You can use
@@ -30,17 +39,28 @@ what you want, you shouldn't be using \code{ggcorrmat()} anyway. You can use
 default.
 }
 \examples{
+\dontshow{if (requireNamespace("PMCMRplus", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 \donttest{
-if (require("PMCMRplus")) {
-  set.seed(123)
-  library(ggstatsplot)
+set.seed(123)
 
-  # in case of group comparisons
-  p <- ggbetweenstats(mtcars, cyl, mpg)
-  extract_stats(p)
+# non-grouped function -----------------------------
 
-  # the exact details depend on the function
-  extract_stats(ggbarstats(mtcars, cyl, am))
+p <- ggbetweenstats(mtcars, cyl, mpg)
+extract_stats(p)
+
+# the exact details depend on the function
+ggbarstats(mtcars, cyl, am) \%>\% extract_stats()
+
+# grouped function -----------------------------
+p <- grouped_ggbarstats(
+  Titanic_full,
+  x = Survived,
+  y = Sex,
+  grouping.var = Age
+)
+
+extract_stats(p[[1L]])
+extract_stats(p[[2L]])
 }
-}
+\dontshow{\}) # examplesIf}
 }

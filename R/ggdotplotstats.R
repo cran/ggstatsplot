@@ -6,6 +6,11 @@
 #' A dot chart (as described by William S. Cleveland) with statistical details
 #' from one-sample test.
 #'
+#' @section Summary of graphics:
+#'
+#' ```{r child="man/rmd-fragments/gghistostats_graphics.Rmd"}
+#' ```
+#'
 #' @param ... Currently ignored.
 #' @param y Label or grouping variable.
 #' @param point.args A list of additional aesthetic arguments passed to
@@ -13,25 +18,33 @@
 #' @inheritParams gghistostats
 #' @inheritParams ggcoefstats
 #'
-#' @details For details, see:
-#' <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggdotplotstats.html>
+#' @inheritSection statsExpressions::one_sample_test One-sample tests
 #'
 #' @seealso \code{\link{grouped_gghistostats}}, \code{\link{gghistostats}},
 #'  \code{\link{grouped_ggdotplotstats}}
+#'
+#' @details For details, see:
+#' <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggdotplotstats.html>
 #'
 #' @examples
 #' \donttest{
 #' # for reproducibility
 #' set.seed(123)
 #'
-#' # plot
-#' ggdotplotstats(
+#' # creating a plot
+#' p <- ggdotplotstats(
 #'   data = ggplot2::mpg,
 #'   x = cty,
 #'   y = manufacturer,
 #'   title = "Fuel economy data",
 #'   xlab = "city miles per gallon"
 #' )
+#'
+#' # looking at the plot
+#' p
+#'
+#' # extracting details from statistical tests
+#' extract_stats(p)
 #' }
 #' @export
 ggdotplotstats <- function(data,
@@ -51,21 +64,12 @@ ggdotplotstats <- function(data,
                            tr = 0.2,
                            k = 2L,
                            results.subtitle = TRUE,
-                           point.args = list(
-                             color = "black",
-                             size = 3,
-                             shape = 16
-                           ),
+                           point.args = list(color = "black", size = 3, shape = 16),
                            centrality.plotting = TRUE,
                            centrality.type = type,
-                           centrality.line.args = list(
-                             color = "blue",
-                             size = 1,
-                             linetype = "dashed"
-                           ),
+                           centrality.line.args = list(color = "blue", linewidth = 1, linetype = "dashed"),
                            ggplot.component = NULL,
                            ggtheme = ggstatsplot::theme_ggstatsplot(),
-                           output = "plot",
                            ...) {
   # data -----------------------------------
 
@@ -75,11 +79,11 @@ ggdotplotstats <- function(data,
   # creating a data frame
   data %<>%
     select({{ x }}, {{ y }}) %>%
-    tidyr::drop_na(.) %>%
+    tidyr::drop_na() %>%
     mutate({{ y }} := droplevels(as.factor({{ y }}))) %>%
     group_by({{ y }}) %>%
     summarise({{ x }} := mean({{ x }})) %>%
-    ungroup(.) %>%
+    ungroup() %>%
     # rank ordering the data
     arrange({{ x }}) %>%
     mutate(
@@ -107,21 +111,13 @@ ggdotplotstats <- function(data,
 
     # preparing the subtitle with statistical results
     subtitle_df <- .eval_f(one_sample_test, !!!.f.args, type = type)
-    subtitle <- if (!is.null(subtitle_df)) subtitle_df$expression[[1]]
+    subtitle <- if (!is.null(subtitle_df)) subtitle_df$expression[[1L]]
 
     # preparing the BF message
     if (type == "parametric" && bf.message) {
       caption_df <- .eval_f(one_sample_test, !!!.f.args, type = "bayes")
-      caption <- if (!is.null(caption_df)) caption_df$expression[[1]]
+      caption <- if (!is.null(caption_df)) caption_df$expression[[1L]]
     }
-  }
-
-  # return early if anything other than plot
-  if (output != "plot") {
-    return(switch(output,
-      "caption" = caption,
-      subtitle
-    ))
   }
 
   # plot -----------------------------------
@@ -190,7 +186,6 @@ ggdotplotstats <- function(data,
 #' \donttest{
 #' # for reproducibility
 #' set.seed(123)
-#' library(ggstatsplot)
 #' library(dplyr, warn.conflicts = FALSE)
 #'
 #' # removing factor level with very few no. of observations
@@ -209,7 +204,6 @@ ggdotplotstats <- function(data,
 grouped_ggdotplotstats <- function(data,
                                    ...,
                                    grouping.var,
-                                   output = "plot",
                                    plotgrid.args = list(),
                                    annotation.args = list()) {
   # data frame
@@ -217,13 +211,10 @@ grouped_ggdotplotstats <- function(data,
 
   # creating a list of return objects
   p_ls <- purrr::pmap(
-    .l = list(data = data, title = names(data), output = output),
+    .l = list(data = data, title = names(data)),
     .f = ggstatsplot::ggdotplotstats,
     ...
   )
 
-  # combining the list of plots into a single plot
-  if (output == "plot") p_ls <- combine_plots(p_ls, plotgrid.args, annotation.args)
-
-  p_ls
+  combine_plots(p_ls, plotgrid.args, annotation.args)
 }

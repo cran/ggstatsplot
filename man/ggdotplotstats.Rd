@@ -25,10 +25,9 @@ ggdotplotstats(
   point.args = list(color = "black", size = 3, shape = 16),
   centrality.plotting = TRUE,
   centrality.type = type,
-  centrality.line.args = list(color = "blue", size = 1, linetype = "dashed"),
+  centrality.line.args = list(color = "blue", linewidth = 1, linetype = "dashed"),
   ggplot.component = NULL,
   ggtheme = ggstatsplot::theme_ggstatsplot(),
-  output = "plot",
   ...
 )
 }
@@ -83,8 +82,9 @@ parametric test} (Default: \code{TRUE}).}
 \item{effsize.type}{Type of effect size needed for \emph{parametric} tests. The
 argument can be \code{"d"} (for Cohen's \emph{d}) or \code{"g"} (for Hedge's \emph{g}).}
 
-\item{conf.level}{Scalar between \code{0} and \code{1}. If unspecified, the defaults
-return \verb{95\%} confidence/credible intervals (\code{0.95}).}
+\item{conf.level}{Scalar between \code{0} and \code{1} (default: \verb{95\%}
+confidence/credible intervals, \code{0.95}). If \code{NULL}, no confidence intervals
+will be computed.}
 
 \item{tr}{Trim level for the mean when carrying out \code{robust} tests. In case
 of an error, try reducing the value of \code{tr}, which is by default set to
@@ -146,14 +146,6 @@ on the secondary Y-axis. Some themes (e.g.
 \code{ggthemes::theme_fivethirtyeight()}) will remove the secondary Y-axis and
 thus the details as well.}
 
-\item{output}{Character that describes what is to be returned: can be
-\code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
-\code{"subtitle"} will return the expression containing statistical results. If
-you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
-Setting this to \code{"caption"} will return the expression containing details
-about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
-\code{bf.message = TRUE}, otherwise this will return a \code{NULL}.}
-
 \item{...}{Currently ignored.}
 }
 \description{
@@ -164,19 +156,64 @@ from one-sample test.
 For details, see:
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggdotplotstats.html}
 }
+\section{Summary of graphics}{
+\tabular{lll}{
+   graphical element \tab \code{geom} used \tab argument for further modification \cr
+   histogram bin \tab \code{ggplot2::stat_bin()} \tab \code{bin.args} \cr
+   centrality measure line \tab \code{ggplot2::geom_vline()} \tab \code{centrality.line.args} \cr
+   normality curve \tab \code{ggplot2::stat_function()} \tab \code{normal.curve.args} \cr
+}
+}
+
+\section{One-sample tests}{
+
+
+
+The table below provides summary about:
+\itemize{
+\item statistical test carried out for inferential statistics
+\item type of effect size estimate and a measure of uncertainty for this estimate
+\item functions used internally to compute these details
+}
+
+\strong{Hypothesis testing}\tabular{lll}{
+   Type \tab Test \tab Function used \cr
+   Parametric \tab One-sample Student's \emph{t}-test \tab \code{stats::t.test()} \cr
+   Non-parametric \tab One-sample Wilcoxon test \tab \code{stats::wilcox.test()} \cr
+   Robust \tab Bootstrap-\emph{t} method for one-sample test \tab \code{WRS2::trimcibt()} \cr
+   Bayesian \tab One-sample Student's \emph{t}-test \tab \code{BayesFactor::ttestBF()} \cr
+}
+
+
+\strong{Effect size estimation}\tabular{llll}{
+   Type \tab Effect size \tab CI available? \tab Function used \cr
+   Parametric \tab Cohen's \emph{d}, Hedge's \emph{g} \tab Yes \tab \code{effectsize::cohens_d()}, \code{effectsize::hedges_g()} \cr
+   Non-parametric \tab \emph{r} (rank-biserial correlation) \tab Yes \tab \code{effectsize::rank_biserial()} \cr
+   Robust \tab trimmed mean \tab Yes \tab \code{WRS2::trimcibt()} \cr
+   Bayes Factor \tab difference \tab Yes \tab \code{bayestestR::describe_posterior()} \cr
+}
+
+}
+
 \examples{
 \donttest{
 # for reproducibility
 set.seed(123)
 
-# plot
-ggdotplotstats(
+# creating a plot
+p <- ggdotplotstats(
   data = ggplot2::mpg,
   x = cty,
   y = manufacturer,
   title = "Fuel economy data",
   xlab = "city miles per gallon"
 )
+
+# looking at the plot
+p
+
+# extracting details from statistical tests
+extract_stats(p)
 }
 }
 \seealso{

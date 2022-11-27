@@ -7,15 +7,16 @@
 #' confidence interval whiskers and other statistical details included as
 #' labels.
 #'
+#' @section Summary of graphics:
+#'
+#' ```{r child="man/rmd-fragments/ggcoefstats_graphics.Rmd"}
+#' ```
+#'
 #' @param x A model object to be tidied, or a tidy data frame from a regression
 #'   model. Function internally uses `parameters::model_parameters()` to get a
 #'   tidy data frame. If a data frame, it *must* contain at the minimum two
 #'   columns named `term` (names of predictors) and `estimate` (corresponding
 #'   estimates of coefficients or other quantities of interest).
-#' @param output Character describing the expected output from this function:
-#'   - `"plot"` (visualization of regression coefficients)
-#'   - `"tidy"` (tidy data frame of results `parameters::model_parameters()`)
-#'   - `"glance"` (object from `performance::model_performance()`)
 #' @param statistic Relevant statistic for the model (`"t"`, `"f"`, `"z"`, or
 #'   `"chi"`) in the label. Relevant only if `x` is a *data frame*.
 #' @param effectsize.type This is the same as `effectsize_type` argument of
@@ -66,14 +67,15 @@
 #'   function to know more about these arguments.
 #' @param only.significant If `TRUE`, only stats labels for significant effects
 #'   is shown (Default: `FALSE`). This can be helpful when a large number of
-#'   regression coefficients are to be displayed in a single plot. Relevant only
-#'   when the `output` is a plot.
+#'   regression coefficients are to be displayed in a single plot.
 #' @param ... Additional arguments to tidying method. For more, see
 #'   `parameters::model_parameters`.
 #' @inheritParams parameters::model_parameters
 #' @inheritParams theme_ggstatsplot
 #' @inheritParams statsExpressions::meta_analysis
 #' @inheritParams ggbetweenstats
+#'
+#' @inheritSection statsExpressions::meta_analysis Random-effects meta-analysis
 #'
 #' @note
 #'
@@ -92,31 +94,29 @@
 #' @details For details, see:
 #' <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcoefstats.html>
 #'
-#' @examples
+#' @examplesIf requireNamespace("lme4", quietly = TRUE)
 #' \donttest{
 #' # for reproducibility
 #' set.seed(123)
-#' library(ggstatsplot)
 #' library(lme4)
 #'
 #' # model object
 #' mod <- lm(formula = mpg ~ cyl * am, data = mtcars)
 #'
-#' # to get a plot
-#' ggcoefstats(mod, output = "plot")
+#' # creating a plot
+#' p <- ggcoefstats(mod)
 #'
-#' # to get a tidy data frame
-#' ggcoefstats(mod, output = "tidy")
+#' # looking at the plot
+#' p
 #'
-#' # to get a glance summary
-#' ggcoefstats(mod, output = "glance")
+#' # extracting details from statistical tests
+#' extract_stats(p)
 #'
 #' # further arguments can be passed to `parameters::model_parameters()`
 #' ggcoefstats(lmer(Reaction ~ Days + (Days | Subject), sleepstudy), effects = "fixed")
 #' }
 #' @export
 ggcoefstats <- function(x,
-                        output = "plot",
                         statistic = NULL,
                         conf.int = TRUE,
                         conf.level = 0.95,
@@ -136,7 +136,7 @@ ggcoefstats <- function(x,
                         point.args = list(size = 3, color = "blue", na.rm = TRUE),
                         errorbar.args = list(height = 0, na.rm = TRUE),
                         vline = TRUE,
-                        vline.args = list(size = 1, linetype = "dashed"),
+                        vline.args = list(linewidth = 1, linetype = "dashed"),
                         stats.labels = TRUE,
                         stats.label.color = NULL,
                         stats.label.args = list(size = 3, direction = "y", min.segment.length = 0),
@@ -185,7 +185,7 @@ ggcoefstats <- function(x,
   # check for duplicate terms and columns -------------------------
 
   # check if there are repeated terms (relevant for `maov`, `lqm`, etc.)
-  if (any(duplicated(select(tidy_df, term)))) {
+  if (anyDuplicated(tidy_df$term)) {
     tidy_df %<>%
       tidyr::unite(
         col    = "term",
@@ -196,7 +196,7 @@ ggcoefstats <- function(x,
   }
 
   # halt if there are still repeated terms
-  if (any(duplicated(tidy_df$term))) rlang::abort("Elements in `term` column must be unique.")
+  if (anyDuplicated(tidy_df$term)) rlang::abort("Elements in `term` column must be unique.")
 
   # if tidy data frame doesn't contain p-value or statistic column, a label
   # can't be prepared
@@ -240,7 +240,7 @@ ggcoefstats <- function(x,
 
   if (!is.null(glance_df) && all(c("AIC", "BIC") %in% names(glance_df))) {
     glance_df %<>% mutate(expression = list(parse(text = glue("list(AIC=='{format_value(AIC, 0L)}', BIC=='{format_value(BIC, 0L)}')"))))
-    caption <- glance_df$expression[[1]]
+    caption <- glance_df$expression[[1L]]
   }
 
   # meta analysis -------------------------
@@ -251,75 +251,63 @@ ggcoefstats <- function(x,
 
     # results from frequentist random-effects meta-analysis
     subtitle_df <- meta_analysis(tidy_df, type = meta.type, k = k)
-    subtitle <- subtitle_df$expression[[1]]
+    subtitle <- subtitle_df$expression[[1L]]
 
     # results from Bayesian random-effects meta-analysis (only for parametric)
     if (meta.type == "parametric" && bf.message) {
       caption_df <- meta_analysis(tidy_df, type = "bayes", k = k)
-      caption <- caption_df$expression[[1]]
+      caption <- caption_df$expression[[1L]]
     }
   }
 
   # basic plot -------------------------
 
-  if (output == "plot") {
-    plot <- ggplot(tidy_df, mapping = aes(estimate, term)) +
-      exec(geom_point, !!!point.args)
+  plot <- ggplot(tidy_df, mapping = aes(estimate, term)) +
+    exec(geom_point, !!!point.args)
 
-    # if the confidence intervals are to be displayed on the plot
-    if (conf.int) {
-      plot <- plot +
-        exec(
-          geom_errorbarh,
-          data    = tidy_df,
-          mapping = aes(xmin = conf.low, xmax = conf.high),
-          !!!errorbar.args
-        )
-    }
-
-    # if needed, adding the vertical line
-    if (vline) plot <- plot + exec(geom_vline, xintercept = 0, !!!vline.args)
-
-    # ggrepel labels -------------------------
-
-    if (stats.labels) {
-      if (is.null(stats.label.color) && .palette_message(package, palette, length(tidy_df$term))) {
-        stats.label.color <- paletteer::paletteer_d(paste0(package, "::", palette), length(tidy_df$term))
-      }
-
-      plot <- plot +
-        exec(
-          ggrepel::geom_label_repel,
-          data    = tidy_df,
-          mapping = aes(x = estimate, y = term, label = expression),
-          parse   = TRUE,
-          color   = stats.label.color %||% "black",
-          na.rm   = TRUE,
-          !!!stats.label.args
-        )
-    }
-
-    # annotations -------------------------
-
+  # if the confidence intervals are to be displayed on the plot
+  if (conf.int) {
     plot <- plot +
-      labs(
-        x        = xlab %||% "estimate",
-        y        = ylab %||% "term",
-        caption  = caption,
-        subtitle = subtitle,
-        title    = title
-      ) +
-      ggtheme +
-      theme(plot.caption = element_text(size = 10))
+      exec(
+        geom_errorbarh,
+        data    = tidy_df,
+        mapping = aes(xmin = conf.low, xmax = conf.high),
+        !!!errorbar.args
+      )
   }
 
-  # output -------------------------
+  # if needed, adding the vertical line
+  if (vline) plot <- plot + exec(geom_vline, xintercept = 0, !!!vline.args)
 
-  switch(output,
-    "subtitle" = subtitle,
-    "caption"  = caption,
-    "tidy"     = tidy_df,
-    "glance"   = glance_df,
-    plot
-  )
+  # ggrepel labels -------------------------
+
+  if (stats.labels) {
+    if (is.null(stats.label.color) && .palette_message(package, palette, length(tidy_df$term))) {
+      stats.label.color <- paletteer::paletteer_d(paste0(package, "::", palette), length(tidy_df$term))
+    }
+
+    plot <- plot +
+      exec(
+        ggrepel::geom_label_repel,
+        data    = tidy_df,
+        mapping = aes(x = estimate, y = term, label = expression),
+        parse   = TRUE,
+        color   = stats.label.color %||% "black",
+        na.rm   = TRUE,
+        !!!stats.label.args
+      )
+  }
+
+  # annotations -------------------------
+
+  plot +
+    labs(
+      x        = xlab %||% "estimate",
+      y        = ylab %||% "term",
+      caption  = caption,
+      subtitle = subtitle,
+      title    = title
+    ) +
+    ggtheme +
+    theme(plot.caption = element_text(size = 10))
 }

@@ -1,7 +1,4 @@
-df_meta <- tibble(
-  estimate = c(0.111, 0.245, 0.8, 1.1, 0.03),
-  std.error = c(0.05, 0.111, 0.001, 0.2, 0.01)
-)
+skip_if(getRversion() < "4.1")
 
 # errors ------------------------------------------
 
@@ -12,7 +9,6 @@ test_that("ggcoefstats doesn't work if no estimate column found", {
 # default plots for each statistic ------------------------------------------
 
 test_that("default plots are rendered correctly for each type of statistic", {
-  skip_if(getRversion() < "4.1")
   skip_if_not_installed("survival")
 
   library(survival)
@@ -59,8 +55,12 @@ test_that("default plots are rendered correctly for each type of statistic", {
   )
 })
 
+df_meta <- tibble(
+  estimate = c(0.111, 0.245, 0.8, 1.1, 0.03),
+  std.error = c(0.05, 0.111, 0.001, 0.2, 0.01)
+)
+
 test_that("meta-analysis works", {
-  skip_if(getRversion() < "4.1")
   skip_if_not_installed("metafor")
   skip_on_os(c("windows", "linux", "solaris"))
 
@@ -86,8 +86,6 @@ test_that("meta-analysis works", {
 test_that(
   desc = "plot modifications work as expected",
   code = {
-    skip_if(getRversion() < "4.1")
-
     set.seed(123)
     mod1 <- stats::lm(data = mtcars, formula = wt ~ mpg * am)
 
@@ -101,7 +99,7 @@ test_that(
         only.significant = TRUE,
         package = "ggsci",
         palette = "category20c_d3",
-        k = 3
+        k = 3L
       ))
     )
 
@@ -124,27 +122,9 @@ test_that(
         subtitle = "Source: `{ggplot2}` package",
         package = "wesanderson",
         palette = "BottleRocket2",
-        k = 3
+        k = 3L
       )
     )
-  }
-)
-
-# data frame outputs ----------------------------------------------
-
-test_that(
-  desc = "data frame outputs as expected",
-  code = {
-    options(tibble.width = Inf)
-
-    set.seed(123)
-    mod <- stats::lm(wt ~ mpg, mtcars)
-
-    set.seed(123)
-    tidy_df <- ggcoefstats(mod, output = "tidy")
-    glance_df <- ggcoefstats(x = mod, output = "glance")
-
-    expect_snapshot(list(tidy_df, glance_df))
   }
 )
 
@@ -153,7 +133,6 @@ test_that(
 test_that(
   desc = "missing values in numeric columns",
   code = {
-    skip_if(getRversion() < "4.1")
     skip_if_not_installed("lme4")
     skip_on_os(c("windows", "linux", "solaris"))
 
@@ -174,8 +153,6 @@ test_that(
 test_that(
   desc = "edge cases",
   code = {
-    skip_if(getRversion() < "4.1")
-
     set.seed(123)
     df_base <- tidy_model_parameters(stats::lm(wt ~ am * cyl, mtcars))
 
@@ -199,6 +176,10 @@ test_that(
 test_that(
   desc = "meta analysis subtitle and caption",
   code = {
+    skip_if_not_installed("metafor")
+    skip_if_not_installed("metaBMA")
+    skip_if_not_installed("metaplus")
+
     set.seed(123)
     subtitle_expr <- suppressWarnings(meta_analysis(df_meta, type = "p"))
 
@@ -210,20 +191,20 @@ test_that(
       df_meta,
       meta.analytic.effect = TRUE,
       bf.message = FALSE,
-      meta.type = "p",
-      output = "subtitle"
-    ))
+      meta.type = "p"
+    ) %>%
+      extract_subtitle())
 
     set.seed(123)
     ggcoef_caption <- suppressWarnings(ggcoefstats(
       df_meta,
       meta.analytic.effect = TRUE,
       bf.message = TRUE,
-      meta.type = "p",
-      output = "caption"
-    ))
+      meta.type = "p"
+    ) %>%
+      extract_caption())
 
-    expect_equal(subtitle_expr$expression[[1]], ggcoef_subtitle)
-    expect_equal(caption_expr$expression[[1]], ggcoef_caption)
+    expect_equal(subtitle_expr$expression[[1L]], ggcoef_subtitle)
+    expect_equal(caption_expr$expression[[1L]], ggcoef_caption)
   }
 )

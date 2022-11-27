@@ -6,7 +6,6 @@
 \usage{
 ggcoefstats(
   x,
-  output = "plot",
   statistic = NULL,
   conf.int = TRUE,
   conf.level = 0.95,
@@ -26,7 +25,7 @@ ggcoefstats(
   point.args = list(size = 3, color = "blue", na.rm = TRUE),
   errorbar.args = list(height = 0, na.rm = TRUE),
   vline = TRUE,
-  vline.args = list(size = 1, linetype = "dashed"),
+  vline.args = list(linewidth = 1, linetype = "dashed"),
   stats.labels = TRUE,
   stats.label.color = NULL,
   stats.label.args = list(size = 3, direction = "y", min.segment.length = 0),
@@ -42,13 +41,6 @@ model. Function internally uses \code{parameters::model_parameters()} to get a
 tidy data frame. If a data frame, it \emph{must} contain at the minimum two
 columns named \code{term} (names of predictors) and \code{estimate} (corresponding
 estimates of coefficients or other quantities of interest).}
-
-\item{output}{Character describing the expected output from this function:
-\itemize{
-\item \code{"plot"} (visualization of regression coefficients)
-\item \code{"tidy"} (tidy data frame of results \code{parameters::model_parameters()})
-\item \code{"glance"} (object from \code{performance::model_performance()})
-}}
 
 \item{statistic}{Relevant statistic for the model (\code{"t"}, \code{"f"}, \code{"z"}, or
 \code{"chi"}) in the label. Relevant only if \code{x} is a \emph{data frame}.}
@@ -105,8 +97,7 @@ if \code{bf.message = FALSE}.}
 
 \item{only.significant}{If \code{TRUE}, only stats labels for significant effects
 is shown (Default: \code{FALSE}). This can be helpful when a large number of
-regression coefficients are to be displayed in a single plot. Relevant only
-when the \code{output} is a plot.}
+regression coefficients are to be displayed in a single plot.}
 
 \item{point.args}{Additional arguments that will be passed to
 \code{geom_point} geom. Please see documentation for that function to
@@ -174,26 +165,58 @@ is recommended that you install development versions of \code{{easystats}}
 packages using the \code{install_latest()} function from \code{{easystats}}.
 }
 }
+\section{Summary of graphics}{
+\tabular{lll}{
+   graphical element \tab \code{geom} used \tab argument for further modification \cr
+   regression estimate \tab \code{ggplot2::geom_point()} \tab \code{point.args} \cr
+   error bars \tab \code{ggplot2::geom_errorbarh()} \tab \code{errorbar.args} \cr
+   vertical line \tab \code{ggplot2::geom_vline()} \tab \code{vline.args} \cr
+   label with statistical details \tab \code{ggrepel::geom_label_repel()} \tab \code{stats.label.args} \cr
+}
+}
+
+\section{Random-effects meta-analysis}{
+
+
+
+The table below provides summary about:
+\itemize{
+\item statistical test carried out for inferential statistics
+\item type of effect size estimate and a measure of uncertainty for this estimate
+\item functions used internally to compute these details
+}
+
+\strong{Hypothesis testing} and \strong{Effect size estimation}\tabular{llll}{
+   Type \tab Test \tab CI available? \tab Function used \cr
+   Parametric \tab Pearson's correlation coefficient \tab Yes \tab \code{correlation::correlation()} \cr
+   Non-parametric \tab Spearman's rank correlation coefficient \tab Yes \tab \code{correlation::correlation()} \cr
+   Robust \tab Winsorized Pearson correlation coefficient \tab Yes \tab \code{correlation::correlation()} \cr
+   Bayesian \tab Bayesian Pearson's correlation coefficient \tab Yes \tab \code{correlation::correlation()} \cr
+}
+
+}
+
 \examples{
+\dontshow{if (requireNamespace("lme4", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 \donttest{
 # for reproducibility
 set.seed(123)
-library(ggstatsplot)
 library(lme4)
 
 # model object
 mod <- lm(formula = mpg ~ cyl * am, data = mtcars)
 
-# to get a plot
-ggcoefstats(mod, output = "plot")
+# creating a plot
+p <- ggcoefstats(mod)
 
-# to get a tidy data frame
-ggcoefstats(mod, output = "tidy")
+# looking at the plot
+p
 
-# to get a glance summary
-ggcoefstats(mod, output = "glance")
+# extracting details from statistical tests
+extract_stats(p)
 
 # further arguments can be passed to `parameters::model_parameters()`
 ggcoefstats(lmer(Reaction ~ Days + (Days | Subject), sleepstudy), effects = "fixed")
 }
+\dontshow{\}) # examplesIf}
 }

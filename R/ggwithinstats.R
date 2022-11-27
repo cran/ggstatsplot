@@ -7,6 +7,11 @@
 #' for within-subjects designs with statistical details included in the plot as
 #' a subtitle.
 #'
+#' @section Summary of graphics:
+#'
+#' ```{r child="man/rmd-fragments/ggwithinstats_graphics.Rmd"}
+#' ```
+#'
 #' @inheritParams ggbetweenstats
 #' @param point.path,centrality.path Logical that decides whether individual data
 #'   points and means, respectively, should be connected using `geom_path`. Both
@@ -21,36 +26,46 @@
 #'   `geom_boxplot`.
 #' @inheritParams statsExpressions::oneway_anova
 #'
+#' @inheritSection statsExpressions::centrality_description Centrality measures
+#' @inheritSection statsExpressions::two_sample_test Two-sample tests
+#' @inheritSection statsExpressions::oneway_anova One-way ANOVA
+#' @inheritSection statsExpressions::pairwise_comparisons Pairwise comparison tests
+#'
 #' @seealso \code{\link{grouped_ggbetweenstats}}, \code{\link{ggbetweenstats}},
 #'  \code{\link{grouped_ggwithinstats}}
 #'
 #' @details For details, see:
 #' <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggwithinstats.html>
 #'
-#' @examples
+#' @examplesIf requireNamespace("afex", quietly = TRUE)
 #' \donttest{
-#' # setup
+#' # for reproducibility
 #' set.seed(123)
-#' library(ggstatsplot)
 #' library(dplyr, warn.conflicts = FALSE)
 #'
-#' # two groups (*t*-test)
-#' ggwithinstats(
+#' # create a plot
+#' p <- ggwithinstats(
 #'   data = filter(bugs_long, condition %in% c("HDHF", "HDLF")),
 #'   x    = condition,
-#'   y    = desire
+#'   y    = desire,
+#'   type = "np"
 #' )
 #'
-#' # more than two groups (anova)
-#' library(WRS2)
 #'
+#' # looking at the plot
+#' p
+#'
+#' # extracting details from statistical tests
+#' extract_stats(p)
+#'
+#' # modifying defaults
 #' ggwithinstats(
-#'   data            = WineTasting,
-#'   x               = Wine,
-#'   y               = Taste,
-#'   type            = "r",
+#'   data            = bugs_long,
+#'   x               = condition,
+#'   y               = desire,
+#'   type            = "robust",
 #'   outlier.tagging = TRUE,
-#'   outlier.label   = Taster
+#'   outlier.label   = region
 #' )
 #' }
 #' @export
@@ -79,7 +94,7 @@ ggwithinstats <- function(data,
                           centrality.point.args = list(size = 5, color = "darkred"),
                           centrality.label.args = list(size = 3, nudge_x = 0.4, segment.linetype = 4),
                           centrality.path = TRUE,
-                          centrality.path.args = list(size = 1, color = "red", alpha = 0.5),
+                          centrality.path.args = list(linewidth = 1, color = "red", alpha = 0.5),
                           point.args = list(size = 3, alpha = 0.5),
                           point.path = TRUE,
                           point.path.args = list(alpha = 0.5, linetype = "dashed"),
@@ -94,7 +109,6 @@ ggwithinstats <- function(data,
                           package = "RColorBrewer",
                           palette = "Dark2",
                           ggplot.component = NULL,
-                          output = "plot",
                           ...) {
   # data -----------------------------------
 
@@ -111,7 +125,7 @@ ggwithinstats <- function(data,
     mutate({{ x }} := droplevels(as.factor({{ x }}))) %>%
     group_by({{ x }}) %>%
     mutate(.rowid = row_number()) %>%
-    ungroup(.) %>%
+    ungroup() %>%
     anti_join(x = ., y = filter(., is.na({{ y }})), by = ".rowid")
 
   # if `outlier.label` column is not present, just use the values from `y` column
@@ -149,24 +163,16 @@ ggwithinstats <- function(data,
     # styler: off
     .f          <- .f_switch(test)
     subtitle_df <- .eval_f(.f, !!!.f.args, type = type)
-    subtitle    <- if (!is.null(subtitle_df)) subtitle_df$expression[[1]]
+    subtitle    <- if (!is.null(subtitle_df)) subtitle_df$expression[[1L]]
     # styler: on
 
     # preparing the Bayes factor message
     if (type == "parametric" && bf.message) {
       # styler: off
       caption_df <- .eval_f(.f, !!!.f.args, type = "bayes")
-      caption    <- if (!is.null(caption_df)) caption_df$expression[[1]]
+      caption    <- if (!is.null(caption_df)) caption_df$expression[[1L]]
       # styler: on
     }
-  }
-
-  # return early if anything other than plot
-  if (output != "plot") {
-    return(switch(output,
-      "caption" = caption,
-      subtitle
-    ))
   }
 
   # plot -------------------------------------------
@@ -218,6 +224,9 @@ ggwithinstats <- function(data,
 
   # ggsignif labels -------------------------------------
 
+  # initialize
+  seclabel <- NULL
+
   if (isTRUE(pairwise.comparisons) && test == "anova") {
     mpc_df <- pairwise_comparisons(
       data            = data,
@@ -246,8 +255,6 @@ ggwithinstats <- function(data,
       unique(mpc_df$test),
       ifelse(type == "bayes", "all", pairwise.display)
     )
-  } else {
-    seclabel <- NULL
   }
 
   # annotations -------------------------
@@ -286,32 +293,28 @@ ggwithinstats <- function(data,
 #'
 #' @inherit ggwithinstats return references
 #'
-#' @examples
+#' @examplesIf requireNamespace("afex", quietly = TRUE)
 #' \donttest{
-#' if (require("PMCMRplus")) {
-#'   # to get reproducible results from bootstrapping
-#'   set.seed(123)
-#'   library(ggstatsplot)
-#'   library(dplyr, warn.conflicts = FALSE)
-#'   library(ggplot2)
+#' # for reproducibility
+#' set.seed(123)
+#' library(dplyr, warn.conflicts = FALSE)
+#' library(ggplot2)
 #'
-#'   # the most basic function call
-#'   grouped_ggwithinstats(
-#'     data             = filter(bugs_long, condition %in% c("HDHF", "HDLF")),
-#'     x                = condition,
-#'     y                = desire,
-#'     grouping.var     = gender,
-#'     type             = "np", # non-parametric test
-#'     # additional modifications for **each** plot using `{ggplot2}` functions
-#'     ggplot.component = scale_y_continuous(breaks = seq(0, 10, 1), limits = c(0, 10))
-#'   )
-#' }
+#' # the most basic function call
+#' grouped_ggwithinstats(
+#'   data             = filter(bugs_long, condition %in% c("HDHF", "HDLF")),
+#'   x                = condition,
+#'   y                = desire,
+#'   grouping.var     = gender,
+#'   type             = "np",
+#'   # additional modifications for **each** plot using `{ggplot2}` functions
+#'   ggplot.component = scale_y_continuous(breaks = seq(0, 10, 1), limits = c(0, 10))
+#' )
 #' }
 #' @export
 grouped_ggwithinstats <- function(data,
                                   ...,
                                   grouping.var,
-                                  output = "plot",
                                   plotgrid.args = list(),
                                   annotation.args = list()) {
   # creating a data frame
@@ -319,13 +322,10 @@ grouped_ggwithinstats <- function(data,
 
   # creating a list of return objects
   p_ls <- purrr::pmap(
-    .l = list(data = data, title = names(data), output = output),
+    .l = list(data = data, title = names(data)),
     .f = ggstatsplot::ggwithinstats,
     ...
   )
 
-  # combining the list of plots into a single plot
-  if (output == "plot") p_ls <- combine_plots(p_ls, plotgrid.args, annotation.args)
-
-  p_ls
+  combine_plots(p_ls, plotgrid.args, annotation.args)
 }

@@ -18,16 +18,14 @@ ggscatterstats(
   label.var = NULL,
   label.expression = NULL,
   marginal = TRUE,
-  xfill = "#009E73",
-  yfill = "#D55E00",
-  point.args = list(size = 3, alpha = 0.4, stroke = 0, na.rm = TRUE),
+  point.args = list(size = 3, alpha = 0.4, stroke = 0),
   point.width.jitter = 0,
   point.height.jitter = 0,
   point.label.args = list(size = 3, max.overlaps = 1e+06),
-  smooth.line.args = list(size = 1.5, color = "blue", method = "lm", formula = y ~ x,
-    na.rm = TRUE),
-  xsidehistogram.args = list(fill = xfill, color = "black", na.rm = TRUE),
-  ysidehistogram.args = list(fill = yfill, color = "black", na.rm = TRUE),
+  smooth.line.args = list(linewidth = 1.5, color = "blue", method = "lm", formula = y ~
+    x),
+  xsidehistogram.args = list(fill = "#009E73", color = "black"),
+  ysidehistogram.args = list(fill = "#D55E00", color = "black"),
   xlab = NULL,
   ylab = NULL,
   title = NULL,
@@ -35,7 +33,6 @@ ggscatterstats(
   caption = NULL,
   ggtheme = ggstatsplot::theme_ggstatsplot(),
   ggplot.component = NULL,
-  output = "plot",
   ...
 )
 }
@@ -61,8 +58,9 @@ be plotted on the \code{y}-axis.}
 
 You can specify just the initial letter.}
 
-\item{conf.level}{Scalar between \code{0} and \code{1}. If unspecified, the defaults
-return \verb{95\%} confidence/credible intervals (\code{0.95}).}
+\item{conf.level}{Scalar between \code{0} and \code{1} (default: \verb{95\%}
+confidence/credible intervals, \code{0.95}). If \code{NULL}, no confidence intervals
+will be computed.}
 
 \item{bf.prior}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
 width to use in calculating Bayes factors and posterior estimates. In
@@ -97,10 +95,6 @@ quoted expression  (e.g. \code{quote(y < 4 & z < 20)}).}
 \item{marginal}{Decides whether marginal distributions will be plotted on
 axes using \code{ggside} functions. The default is \code{TRUE}. The package
 \code{ggside} must already be installed by the user.}
-
-\item{xfill, yfill}{Character describing color fill for \code{x} and \code{y} axes
-marginal distributions (default: \code{"#009E73"} (for \code{x}) and \code{"#D55E00"} (for
-\code{y})). Note that the defaults are colorblind-friendly.}
 
 \item{point.args}{A list of additional aesthetic arguments to be passed
 to \code{geom_point} geom used to display the raw data points.}
@@ -152,14 +146,6 @@ by \code{{ggstatsplot}}. This argument is primarily helpful for \code{grouped_}
 variants of all primary functions. Default is \code{NULL}. The argument should
 be entered as a \code{{ggplot2}} function or a list of \code{{ggplot2}} functions.}
 
-\item{output}{Character that describes what is to be returned: can be
-\code{"plot"} (default) or \code{"subtitle"} or \code{"caption"}. Setting this to
-\code{"subtitle"} will return the expression containing statistical results. If
-you have set \code{results.subtitle = FALSE}, then this will return a \code{NULL}.
-Setting this to \code{"caption"} will return the expression containing details
-about Bayes Factor analysis, but valid only when \code{type = "parametric"} and
-\code{bf.message = TRUE}, otherwise this will return a \code{NULL}.}
-
 \item{...}{Currently ignored.}
 }
 \description{
@@ -171,31 +157,63 @@ For details, see:
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggscatterstats.html}
 }
 \note{
-The plot uses \code{ggrepel::geom_label_repel} to attempt to keep labels
+The plot uses \code{ggrepel::geom_label_repel()} to attempt to keep labels
 from over-lapping to the largest degree possible. As a consequence plot
 times will slow down massively (and the plot file will grow in size) if you
 have a lot of labels that overlap.
 }
-\examples{
-# to get reproducible results from bootstrapping
-set.seed(123)
-library(ggstatsplot)
-library(dplyr, warn.conflicts = FALSE)
-
-# creating data frame with rownames converted to a new column
-mtcars_new <- as_tibble(mtcars, rownames = "car")
-
-# simple function call with the defaults
-if (require("ggside")) {
-  ggscatterstats(
-    data = mtcars_new,
-    x = wt,
-    y = mpg,
-    label.var = car,
-    label.expression = wt < 4 & mpg < 20
-  ) + # making further customization with `{ggplot2}` functions
-    geom_rug(sides = "b")
+\section{Summary of graphics}{
+\tabular{lll}{
+   graphical element \tab \code{geom} used \tab argument for further modification \cr
+   histogram bin \tab \code{ggplot2::stat_bin()} \tab \code{bin.args} \cr
+   centrality measure line \tab \code{ggplot2::geom_vline()} \tab \code{centrality.line.args} \cr
+   normality curve \tab \code{ggplot2::stat_function()} \tab \code{normal.curve.args} \cr
 }
+}
+
+\section{Correlation analyses}{
+
+
+
+The table below provides summary about:
+\itemize{
+\item statistical test carried out for inferential statistics
+\item type of effect size estimate and a measure of uncertainty for this estimate
+\item functions used internally to compute these details
+}
+
+\strong{Hypothesis testing} and \strong{Effect size estimation}\tabular{llll}{
+   Type \tab Test \tab CI available? \tab Function used \cr
+   Parametric \tab Pearson's correlation coefficient \tab Yes \tab \code{correlation::correlation()} \cr
+   Non-parametric \tab Spearman's rank correlation coefficient \tab Yes \tab \code{correlation::correlation()} \cr
+   Robust \tab Winsorized Pearson correlation coefficient \tab Yes \tab \code{correlation::correlation()} \cr
+   Bayesian \tab Bayesian Pearson's correlation coefficient \tab Yes \tab \code{correlation::correlation()} \cr
+}
+
+}
+
+\examples{
+\dontshow{if (requireNamespace("ggside", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+set.seed(123)
+library(ggside) # for plotting marginals
+
+# creating a plot
+p <- ggscatterstats(
+  iris,
+  x = Sepal.Width,
+  y = Petal.Length,
+  label.var = Species,
+  label.expression = Sepal.Length > 7.6
+) +
+  ggplot2::geom_rug(sides = "b")
+
+
+# looking at the plot
+p
+
+# extracting details from statistical tests
+extract_stats(p)
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link{grouped_ggscatterstats}}, \code{\link{ggcorrmat}},
