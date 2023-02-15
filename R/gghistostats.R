@@ -38,8 +38,7 @@
 #' @details For details, see:
 #' <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/gghistostats.html>
 #'
-#' @examples
-#' \donttest{
+#' @examplesIf identical(Sys.getenv("NOT_CRAN"), "true")
 #' # for reproducibility
 #' set.seed(123)
 #'
@@ -56,7 +55,6 @@
 #'
 #' # extracting details from statistical tests
 #' extract_stats(p)
-#' }
 #' @export
 gghistostats <- function(data,
                          x,
@@ -200,8 +198,7 @@ gghistostats <- function(data,
 #' @inherit gghistostats return references
 #' @inherit gghistostats return details
 #'
-#' @examples
-#' \donttest{
+#' @examplesIf identical(Sys.getenv("NOT_CRAN"), "true")
 #' # for reproducibility
 #' set.seed(123)
 #'
@@ -214,7 +211,6 @@ gghistostats <- function(data,
 #'   plotgrid.args   = list(nrow = 1),
 #'   annotation.args = list(tag_levels = "i")
 #' )
-#' }
 #' @export
 grouped_gghistostats <- function(data,
                                  x,
@@ -223,23 +219,12 @@ grouped_gghistostats <- function(data,
                                  plotgrid.args = list(),
                                  annotation.args = list(),
                                  ...) {
-  # extract a vector for convenience
-  x_vec <- data %>% pull({{ x }})
-
-  # data frame ------------------------------------------
-
-  data %<>%
-    select({{ grouping.var }}, {{ x }}) %>%
-    .grouped_list(grouping.var = {{ grouping.var }})
-
-  # creating a list of plots
-  p_ls <- purrr::pmap(
-    .l       = list(data = data, title = names(data)),
-    .f       = ggstatsplot::gghistostats,
-    x        = {{ x }},
-    binwidth = binwidth %||% .binwidth(x_vec),
+  purrr::pmap(
+    .l = .grouped_list(data, {{ grouping.var }}),
+    .f = gghistostats,
+    x = {{ x }},
+    binwidth = binwidth %||% .binwidth(data %>% pull({{ x }})),
     ...
-  )
-
-  combine_plots(p_ls, plotgrid.args, annotation.args)
+  ) %>%
+    combine_plots(plotgrid.args, annotation.args)
 }

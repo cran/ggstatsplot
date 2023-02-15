@@ -39,9 +39,9 @@ ggbetweenstats(
   outlier.color = "black",
   outlier.label.args = list(size = 3),
   point.args = list(position = ggplot2::position_jitterdodge(dodge.width = 0.6), alpha =
-    0.4, size = 3, stroke = 0),
-  violin.args = list(width = 0.5, alpha = 0.2),
-  ggsignif.args = list(textsize = 3, tip_length = 0.01),
+    0.4, size = 3, stroke = 0, na.rm = TRUE),
+  violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+  ggsignif.args = list(textsize = 3, tip_length = 0.01, na.rm = TRUE),
   ggtheme = ggstatsplot::theme_ggstatsplot(),
   package = "RColorBrewer",
   palette = "Dark2",
@@ -434,8 +434,7 @@ Not supported.
 }
 
 \examples{
-\dontshow{if (requireNamespace("PMCMRplus", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-\donttest{
+\dontshow{if (identical(Sys.getenv("NOT_CRAN"), "true") && requireNamespace("PMCMRplus", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # for reproducibility
 set.seed(123)
 library(PMCMRplus) # for pairwise comparisons
@@ -460,7 +459,6 @@ ggbetweenstats(
   outlier.tagging = TRUE,
   outlier.label   = Run
 )
-}
 \dontshow{\}) # examplesIf}
 }
 \seealso{

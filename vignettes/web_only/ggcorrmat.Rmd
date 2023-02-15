@@ -26,10 +26,13 @@ pkgs <- c(
   "gapminder"
 )
 
-if (!all(purrr::map(pkgs, requireNamespace, quietly = TRUE))) {
-  knitr::opts_chunk$set(eval = FALSE)
-} else {
+successfully_loaded <- purrr::map_lgl(pkgs, requireNamespace, quietly = TRUE)
+can_evaluate <- all(successfully_loaded)
+
+if (can_evaluate) {
   purrr::walk(pkgs, library, character.only = TRUE)
+} else {
+  knitr::opts_chunk$set(eval = FALSE)
 }
 ```
 
@@ -48,12 +51,10 @@ citation("ggstatsplot")
 
 Lifecycle: [![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 
-The function `ggcorrmat` provides a quick way to produce **publication-ready correlation matrix** (aka *correlalogram*) plot. The function can also be used
+The function `ggcorrmat()` provides a quick way to produce **publication-ready correlation matrix** (aka *correlalogram*) plot. The function can also be used
 for quick **data exploration**. In addition to the plot, it can also be used to
 get a correlation coefficient matrix or the associated *p*-value matrix.
-Currently, the plot can display Pearson's *r* (and its Bayesian version),
-Spearman's *rho*, and *robust* correlation coefficient (Winsorized Pearson's
-*r*). This function is a convenient wrapper around `ggcorrplot::ggcorrplot`
+This function is a convenient wrapper around `ggcorrplot::ggcorrplot()`
 function with some additional functionality.
 
 We will see examples of how to use this function in this vignette with the
@@ -66,7 +67,7 @@ To begin with, here are some instances where you would want to use
   - to quickly explore correlation between (all) numeric variables in the
   dataset
 
-## Correlation matrix plot with `ggcorrmat`
+## Correlation matrix plot with `ggcorrmat()`
 
 For the first example, we will use the `gapminder` dataset (available in
 eponymous [package](https://CRAN.R-project.org/package=gapminder) on CRAN)
@@ -117,7 +118,7 @@ ggcorrmat(
     "population",
     "GDP (per capita)"
   ),
-  type = "spearman", ## which correlation coefficient is to be computed
+  type = "np", ## which correlation coefficient is to be computed
   lab.col = "red", ## label color
   ggtheme = ggplot2::theme_light(), ## selected ggplot2 theme
   ## turn off default ggestatsplot theme overlay
@@ -196,12 +197,12 @@ ggcorrmat(
     "width (in mm)",
     "depth (in mm)"
   ),
-  type = "spearman",
+  type = "np",
   title = "Relationship between diamond attributes and price",
   subtitle = "Dataset: Diamonds from ggplot2 package",
   colors = c("#0072B2", "#D55E00", "#CC79A7"),
   pch = "square cross",
-  ## additional aesthetic arguments passed to `ggcorrmat`
+  ## additional aesthetic arguments passed to `ggcorrmat()`
   ggcorrplot.args = list(
     lab_col = "yellow",
     lab_size = 6,
@@ -221,53 +222,16 @@ As seen here, and unsurprisingly, the strongest predictor of the diamond price
 is its carat value, which a unit of mass equal to 200 mg. In other words, the
 heavier the diamond, the more expensive it is going to be.
 
-## Dataframe containing statistics with `ggcorrmat`
-
-Another utility of `ggcorrmat` is in obtaining a data frame containing all
-details from statistical analyses. Such data frames can be easily embedded in
-manuscripts as tables.
-
-```{r}
-#| label = "ggcorrmat5"
-
-## to get correlations
-ggcorrmat(
-  data = dplyr::sample_frac(ggplot2::txhousing, size = 0.15),
-  cor.vars = sales:inventory,
-  output = "dataframe",
-  type = "robust",
-  digits = 3
-)
-```
-
-Note that if `cor.vars` are not specified, all numeric variables will be used.
-Moreover, you can also use abbreviations to specify what output you want in
-return. Additionally, one can also carry out **partial** correlation analysis:
-
-```{r}
-#| label = "ggcorrmat6"
-options(pillar.sigfig = 4)
-
-## getting the correlation coefficient matrix
-ggcorrmat(
-  data = iris, ## all numeric variables from data will be used
-  type = "np", ## non-parametric
-  partial = TRUE,
-  output = "dataframe"
-)
-```
-
 ## Grouped analysis with `grouped_ggcorrmat`
 
 What if we want to do the same analysis separately for each quality of the
 diamond `cut` (Fair, Good, Very Good, Premium, Ideal)? 
 
 `{ggstatsplot}` provides a special helper function for such instances:
-`grouped_ggcorrmat`. This is merely a wrapper function around
-`combine_plots`. It applies `ggcorrmat` across all **levels** of
+`grouped_ggcorrmat()`. This is merely a wrapper function around
+`combine_plots()`. It applies `ggcorrmat()` across all **levels** of
 a specified **grouping variable** and then combines list of individual plots
-into a single plot. Note that the grouping variable can be anything: conditions
-in a given study, groups in a study sample, different studies, etc. 
+into a single plot. 
 
 ```{r}
 #| label = "ggcorrmat7",
@@ -275,11 +239,11 @@ in a given study, groups in a study sample, different studies, etc.
 #| fig.width = 10
 
 grouped_ggcorrmat(
-  ## arguments relevant for `ggcorrmat`
+  ## arguments relevant for `ggcorrmat()`
   data = ggplot2::diamonds,
-  type = "bayes", ## Bayesian test
+  cor.vars = c(price, carat, depth),
   grouping.var = cut,
-  ## arguments relevant for `combine_plots`
+  ## arguments relevant for `combine_plots()`
   plotgrid.args = list(nrow = 3),
   annotation.args = list(
     tag_levels = "a",
@@ -292,26 +256,20 @@ grouped_ggcorrmat(
 Note that this function also makes it easy to run the same correlation matrix
 across different levels of a factor/grouping variable.
 
-```{r}
-#| label = "ggcorrmat8"
+## Data frame
 
-## let's obtain correlation coefficients with their CIs
-grouped_ggcorrmat(
-  data = ggplot2::msleep,
-  cor.vars = sleep_total:awake,
-  grouping.var = vore,
-  output = "dataframe"
-)
-```
+If you want a data frame of (grouped) correlation matrix, use
+`correlation::correlation()` instead. It can also do grouped analysis when 
+used with output from `dplyr::group_by()`.
 
-## Grouped analysis with `ggcorrmat` + `{purrr}`
+## Grouped analysis with `ggcorrmat()` + `{purrr}`
 
 Although `grouped_` function is good for quickly exploring the data, it reduces
 the flexibility with which this function can be used. This is the because the
 common parameters used are applied to plots corresponding to all levels of the
 grouping variable and there is no way to customize the arguments for different
 levels of the grouping variable. We will see how this can be done using the
-`{purrr}` package.  
+`{purrr}` package.
 
 See the associated vignette here:
 <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/purrr_examples.html>

@@ -21,8 +21,7 @@
 #'
 #' @inherit ggpiestats return details
 #'
-#' @examples
-#' \donttest{
+#' @examplesIf identical(Sys.getenv("NOT_CRAN"), "true")
 #' # for reproducibility
 #' set.seed(123)
 #'
@@ -34,7 +33,6 @@
 #'
 #' # extracting details from statistical tests
 #' extract_stats(p)
-#' }
 #' @export
 ggbarstats <- function(data,
                        x,
@@ -82,7 +80,7 @@ ggbarstats <- function(data,
   if (".counts" %in% names(data)) data %<>% tidyr::uncount(weights = .counts)
 
   # x and y need to be a factor; also drop the unused levels of the factors
-  data %<>% mutate(across(.fns = ~ droplevels(as.factor(.x))))
+  data %<>% mutate(across(.cols = everything(), .fns = ~ droplevels(as.factor(.x))))
 
   # TO DO: until one-way table is supported by `BayesFactor`
   if (nlevels(data %>% pull({{ y }})) == 1L) c(bf.message, proportion.test) %<-% c(FALSE, FALSE)
@@ -184,9 +182,9 @@ ggbarstats <- function(data,
 #'
 #' @description
 #'
-#' Helper function for `ggstatsplot::ggbarstats` to apply this function across
+#' Helper function for `ggstatsplot::ggbarstats()` to apply this function across
 #' multiple levels of a given factor and combining the resulting plots using
-#' `ggstatsplot::combine_plots`.
+#' `ggstatsplot::combine_plots()`.
 #'
 #' @inheritParams ggbarstats
 #' @inheritParams grouped_ggbetweenstats
@@ -199,11 +197,9 @@ ggbarstats <- function(data,
 #' @inherit ggbarstats return details
 #' @inherit ggbarstats return return
 #'
-#' @examples
-#' \donttest{
+#' @examplesIf identical(Sys.getenv("NOT_CRAN"), "true")
 #' # for reproducibility
 #' set.seed(123)
-#'
 #' library(dplyr, warn.conflicts = FALSE)
 #'
 #' # let's create a smaller data frame
@@ -220,22 +216,16 @@ ggbarstats <- function(data,
 #'   grouping.var  = cut,
 #'   plotgrid.args = list(nrow = 2)
 #' )
-#' }
 #' @export
 grouped_ggbarstats <- function(data,
                                ...,
                                grouping.var,
                                plotgrid.args = list(),
                                annotation.args = list()) {
-  # creating a data frame
-  data %<>% .grouped_list(grouping.var = {{ grouping.var }})
-
-  # creating a list of return objects
-  p_ls <- purrr::pmap(
-    .l = list(data = data, title = names(data)),
-    .f = ggstatsplot::ggbarstats,
+  purrr::pmap(
+    .l = .grouped_list(data, {{ grouping.var }}),
+    .f = ggbarstats,
     ...
-  )
-
-  combine_plots(p_ls, plotgrid.args, annotation.args)
+  ) %>%
+    combine_plots(plotgrid.args, annotation.args)
 }

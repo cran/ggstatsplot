@@ -1,11 +1,8 @@
-# pairwise comparisons testing is done `test-pairwise_ggsignif.R`
-
-skip_if(getRversion() < "4.1")
+# graphical pairwise comparisons are tested in `test-pairwise_ggsignif.R`
 skip_if_not_installed("PMCMRplus")
 skip_if_not_installed("afex")
 skip_if_not_installed("WRS2")
 
-# data
 data_bugs_2 <- dplyr::filter(bugs_long, subject <= 30L, condition %in% c("HDLF", "HDHF"))
 
 # defaults plots ---------------------------------
@@ -14,7 +11,7 @@ test_that(
   desc = "defaults plots",
   code = {
     set.seed(123)
-    vdiffr::expect_doppelganger(
+    expect_doppelganger(
       title = "defaults plots - two groups",
       fig = ggwithinstats(
         data = data_bugs_2,
@@ -33,7 +30,7 @@ test_that(
     )
 
     set.seed(123)
-    vdiffr::expect_doppelganger(
+    expect_doppelganger(
       title = "defaults plots - more than two groups",
       fig = ggwithinstats(
         data = WRS2::WineTasting,
@@ -54,7 +51,7 @@ test_that(
   desc = "aesthetic modifications work",
   code = {
     set.seed(123)
-    vdiffr::expect_doppelganger(
+    expect_doppelganger(
       title = "ggplot2 commands work",
       fig = ggwithinstats(
         data = WRS2::WineTasting,
@@ -67,7 +64,7 @@ test_that(
     )
 
     set.seed(123)
-    vdiffr::expect_doppelganger(
+    expect_doppelganger(
       title = "centrality path can be turned off",
       fig = ggwithinstats(
         iris_long,
@@ -92,7 +89,7 @@ test_that(
 
     # outlier tagging is not required
     set.seed(123)
-    vdiffr::expect_doppelganger(
+    expect_doppelganger(
       title = "default plots",
       fig = grouped_ggwithinstats(
         data = filter(bugs_long, condition %in% c("HDHF", "HDLF")),
@@ -104,7 +101,7 @@ test_that(
     )
 
     set.seed(123)
-    vdiffr::expect_doppelganger(
+    expect_doppelganger(
       title = "outlier tagging and themes work",
       fig = grouped_ggwithinstats(
         data = filter(bugs_long, condition %in% c("HDHF", "HDLF")),

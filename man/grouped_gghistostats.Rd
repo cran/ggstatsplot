@@ -20,7 +20,7 @@ be taken. Other data types (e.g., matrix,table, array, etc.) will \strong{not}
 be accepted. Additionally, grouped data frames from \code{{dplyr}} should be
 ungrouped before they are entered as \code{data}.}
 
-\item{x}{A numeric variable from the dataframe \code{data}.}
+\item{x}{A numeric variable from the data frame \code{data}.}
 
 \item{grouping.var}{A single grouping variable.}
 
@@ -31,11 +31,11 @@ and explore multiple widths to find the best to illustrate the stories in
 your data.}
 
 \item{plotgrid.args}{A \code{list} of additional arguments passed to
-\code{patchwork::wrap_plots}, except for \code{guides} argument which is already
+\code{patchwork::wrap_plots()}, except for \code{guides} argument which is already
 separately specified here.}
 
 \item{annotation.args}{A \code{list} of additional arguments passed to
-\code{patchwork::plot_annotation}.}
+\code{patchwork::plot_annotation()}.}
 
 \item{...}{
   Arguments passed on to \code{\link[=gghistostats]{gghistostats}}
@@ -139,7 +139,7 @@ For details, see:
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/gghistostats.html}
 }
 \examples{
-\donttest{
+\dontshow{if (identical(Sys.getenv("NOT_CRAN"), "true")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # for reproducibility
 set.seed(123)
 
@@ -152,7 +152,7 @@ grouped_gghistostats(
   plotgrid.args   = list(nrow = 1),
   annotation.args = list(tag_levels = "i")
 )
-}
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link{gghistostats}}, \code{\link{ggdotplotstats}},

@@ -112,26 +112,25 @@ variable name for \code{y} will be used.}
 \item{grouping.var}{A single grouping variable.}
 
 \item{plotgrid.args}{A \code{list} of additional arguments passed to
-\code{patchwork::wrap_plots}, except for \code{guides} argument which is already
+\code{patchwork::wrap_plots()}, except for \code{guides} argument which is already
 separately specified here.}
 
 \item{annotation.args}{A \code{list} of additional arguments passed to
-\code{patchwork::plot_annotation}.}
+\code{patchwork::plot_annotation()}.}
 }
 \description{
-Helper function for \code{ggstatsplot::ggbarstats} to apply this function across
+Helper function for \code{ggstatsplot::ggbarstats()} to apply this function across
 multiple levels of a given factor and combining the resulting plots using
-\code{ggstatsplot::combine_plots}.
+\code{ggstatsplot::combine_plots()}.
 }
 \details{
 For details, see:
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html}
 }
 \examples{
-\donttest{
+\dontshow{if (identical(Sys.getenv("NOT_CRAN"), "true")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # for reproducibility
 set.seed(123)
-
 library(dplyr, warn.conflicts = FALSE)
 
 # let's create a smaller data frame
@@ -148,7 +147,7 @@ grouped_ggbarstats(
   grouping.var  = cut,
   plotgrid.args = list(nrow = 2)
 )
-}
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link{ggbarstats}}, \code{\link{ggpiestats}},

@@ -110,11 +110,11 @@ hypothesis under the alternative, and corresponds to Gunel and Dickey's
 \item{grouping.var}{A single grouping variable.}
 
 \item{plotgrid.args}{A \code{list} of additional arguments passed to
-\code{patchwork::wrap_plots}, except for \code{guides} argument which is already
+\code{patchwork::wrap_plots()}, except for \code{guides} argument which is already
 separately specified here.}
 
 \item{annotation.args}{A \code{list} of additional arguments passed to
-\code{patchwork::plot_annotation}.}
+\code{patchwork::plot_annotation()}.}
 }
 \description{
 Helper function for \code{ggstatsplot::ggpiestats} to apply this
@@ -126,13 +126,11 @@ For details, see:
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html}
 }
 \examples{
-\donttest{
+\dontshow{if (identical(Sys.getenv("NOT_CRAN"), "true")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 set.seed(123)
-
-
 # grouped one-sample proportion test
 grouped_ggpiestats(mtcars, x = cyl, grouping.var = am)
-}
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link{ggbarstats}}, \code{\link{ggpiestats}},

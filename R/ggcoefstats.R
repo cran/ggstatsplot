@@ -94,8 +94,7 @@
 #' @details For details, see:
 #' <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcoefstats.html>
 #'
-#' @examplesIf requireNamespace("lme4", quietly = TRUE)
-#' \donttest{
+#' @examplesIf identical(Sys.getenv("NOT_CRAN"), "true") && requireNamespace("lme4", quietly = TRUE)
 #' # for reproducibility
 #' set.seed(123)
 #' library(lme4)
@@ -114,7 +113,6 @@
 #'
 #' # further arguments can be passed to `parameters::model_parameters()`
 #' ggcoefstats(lmer(Reaction ~ Days + (Days | Subject), sleepstudy), effects = "fixed")
-#' }
 #' @export
 ggcoefstats <- function(x,
                         statistic = NULL,
@@ -255,7 +253,7 @@ ggcoefstats <- function(x,
 
     # results from Bayesian random-effects meta-analysis (only for parametric)
     if (meta.type == "parametric" && bf.message) {
-      caption_df <- meta_analysis(tidy_df, type = "bayes", k = k)
+      caption_df <- suppressWarnings(meta_analysis(tidy_df, type = "bayes", k = k))
       caption <- caption_df$expression[[1L]]
     }
   }

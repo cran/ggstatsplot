@@ -126,8 +126,7 @@
 #' @details For details, see:
 #' <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggbetweenstats.html>
 #'
-#' @examplesIf requireNamespace("PMCMRplus", quietly = TRUE)
-#' \donttest{
+#' @examplesIf identical(Sys.getenv("NOT_CRAN"), "true") && requireNamespace("PMCMRplus", quietly = TRUE)
 #' # for reproducibility
 #' set.seed(123)
 #' library(PMCMRplus) # for pairwise comparisons
@@ -152,7 +151,6 @@
 #'   outlier.tagging = TRUE,
 #'   outlier.label   = Run
 #' )
-#' }
 #' @export
 ggbetweenstats <- function(data,
                            x,
@@ -195,10 +193,11 @@ ggbetweenstats <- function(data,
                              position = ggplot2::position_jitterdodge(dodge.width = 0.60),
                              alpha = 0.4,
                              size = 3,
-                             stroke = 0
+                             stroke = 0,
+                             na.rm = TRUE
                            ),
-                           violin.args = list(width = 0.5, alpha = 0.2),
-                           ggsignif.args = list(textsize = 3, tip_length = 0.01),
+                           violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+                           ggsignif.args = list(textsize = 3, tip_length = 0.01, na.rm = TRUE),
                            ggtheme = ggstatsplot::theme_ggstatsplot(),
                            package = "RColorBrewer",
                            palette = "Dark2",
@@ -213,7 +212,6 @@ ggbetweenstats <- function(data,
   c(x, y) %<-% c(ensym(x), ensym(y))
   outlier.label <- if (!quo_is_null(enquo(outlier.label))) ensym(outlier.label)
 
-  # creating a dataframe
   data %<>%
     select({{ x }}, {{ y }}, outlier.label = {{ outlier.label }}) %>%
     tidyr::drop_na() %>%
@@ -342,7 +340,7 @@ ggbetweenstats <- function(data,
 
   # add labels for centrality measure
   if (isTRUE(centrality.plotting)) {
-    plot <- .centrality_ggrepel(
+    plot <- suppressWarnings(.centrality_ggrepel(
       plot                  = plot,
       data                  = data,
       x                     = {{ x }},
@@ -352,7 +350,7 @@ ggbetweenstats <- function(data,
       tr                    = tr,
       centrality.point.args = centrality.point.args,
       centrality.label.args = centrality.label.args
-    )
+    ))
   }
 
   # ggsignif labels -------------------------------------
@@ -430,8 +428,7 @@ ggbetweenstats <- function(data,
 #'
 #' @inherit ggbetweenstats return references
 #'
-#' @examplesIf requireNamespace("PMCMRplus", quietly = TRUE)
-#' \donttest{
+#' @examplesIf identical(Sys.getenv("NOT_CRAN"), "true") && requireNamespace("PMCMRplus", quietly = TRUE)
 #' # for reproducibility
 #' set.seed(123)
 #' library(PMCMRplus) # for pairwise comparisons
@@ -461,22 +458,16 @@ ggbetweenstats <- function(data,
 #'     limits = (c(1, 9))
 #'   )
 #' )
-#' }
 #' @export
 grouped_ggbetweenstats <- function(data,
                                    ...,
                                    grouping.var,
                                    plotgrid.args = list(),
                                    annotation.args = list()) {
-  # creating a dataframe
-  data %<>% .grouped_list(grouping.var = {{ grouping.var }})
-
-  # creating a list of return objects
-  p_ls <- purrr::pmap(
-    .l = list(data = data, title = names(data)),
-    .f = ggstatsplot::ggbetweenstats,
+  purrr::pmap(
+    .l = .grouped_list(data, {{ grouping.var }}),
+    .f = ggbetweenstats,
     ...
-  )
-
-  combine_plots(p_ls, plotgrid.args, annotation.args)
+  ) %>%
+    combine_plots(plotgrid.args, annotation.args)
 }

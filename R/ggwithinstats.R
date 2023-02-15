@@ -37,8 +37,7 @@
 #' @details For details, see:
 #' <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggwithinstats.html>
 #'
-#' @examplesIf requireNamespace("afex", quietly = TRUE)
-#' \donttest{
+#' @examplesIf identical(Sys.getenv("NOT_CRAN"), "true") && requireNamespace("afex", quietly = TRUE)
 #' # for reproducibility
 #' set.seed(123)
 #' library(dplyr, warn.conflicts = FALSE)
@@ -67,7 +66,6 @@
 #'   outlier.tagging = TRUE,
 #'   outlier.label   = region
 #' )
-#' }
 #' @export
 ggwithinstats <- function(data,
                           x,
@@ -95,16 +93,16 @@ ggwithinstats <- function(data,
                           centrality.label.args = list(size = 3, nudge_x = 0.4, segment.linetype = 4),
                           centrality.path = TRUE,
                           centrality.path.args = list(linewidth = 1, color = "red", alpha = 0.5),
-                          point.args = list(size = 3, alpha = 0.5),
+                          point.args = list(size = 3, alpha = 0.5, na.rm = TRUE),
                           point.path = TRUE,
                           point.path.args = list(alpha = 0.5, linetype = "dashed"),
                           outlier.tagging = FALSE,
                           outlier.label = NULL,
                           outlier.coef = 1.5,
                           outlier.label.args = list(size = 3),
-                          boxplot.args = list(width = 0.2, alpha = 0.5),
-                          violin.args = list(width = 0.5, alpha = 0.2),
-                          ggsignif.args = list(textsize = 3, tip_length = 0.01),
+                          boxplot.args = list(width = 0.2, alpha = 0.5, na.rm = TRUE),
+                          violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+                          ggsignif.args = list(textsize = 3, tip_length = 0.01, na.rm = TRUE),
                           ggtheme = ggstatsplot::theme_ggstatsplot(),
                           package = "RColorBrewer",
                           palette = "Dark2",
@@ -132,18 +130,17 @@ ggwithinstats <- function(data,
   if (!"outlier.label" %in% names(data)) data %<>% mutate(outlier.label = {{ y }})
 
   # add a logical column indicating whether a point is or is not an outlier
-  data %<>%
-    .outlier_df(
-      x             = {{ x }},
-      y             = {{ y }},
-      outlier.coef  = outlier.coef,
-      outlier.label = outlier.label
-    )
+  data %<>% .outlier_df(
+    x             = {{ x }},
+    y             = {{ y }},
+    outlier.coef  = outlier.coef,
+    outlier.label = outlier.label
+  )
 
   # statistical analysis ------------------------------------------
 
   # test to run; depends on the no. of levels of the independent variable
-  test <- ifelse(nlevels(data %>% pull({{ x }})) < 3, "t", "anova")
+  test <- ifelse(nlevels(data %>% pull({{ x }})) < 3L, "t", "anova")
 
   if (results.subtitle && check_if_installed("afex")) {
     # relevant arguments for statistical tests
@@ -207,7 +204,7 @@ ggwithinstats <- function(data,
   # centrality tagging -------------------------------------
 
   if (isTRUE(centrality.plotting)) {
-    plot <- .centrality_ggrepel(
+    plot <- suppressWarnings(.centrality_ggrepel(
       plot                  = plot,
       data                  = data,
       x                     = {{ x }},
@@ -219,7 +216,7 @@ ggwithinstats <- function(data,
       centrality.path.args  = centrality.path.args,
       centrality.point.args = centrality.point.args,
       centrality.label.args = centrality.label.args
-    )
+    ))
   }
 
   # ggsignif labels -------------------------------------
@@ -293,8 +290,7 @@ ggwithinstats <- function(data,
 #'
 #' @inherit ggwithinstats return references
 #'
-#' @examplesIf requireNamespace("afex", quietly = TRUE)
-#' \donttest{
+#' @examplesIf identical(Sys.getenv("NOT_CRAN"), "true") && requireNamespace("afex", quietly = TRUE)
 #' # for reproducibility
 #' set.seed(123)
 #' library(dplyr, warn.conflicts = FALSE)
@@ -310,22 +306,16 @@ ggwithinstats <- function(data,
 #'   # additional modifications for **each** plot using `{ggplot2}` functions
 #'   ggplot.component = scale_y_continuous(breaks = seq(0, 10, 1), limits = c(0, 10))
 #' )
-#' }
 #' @export
 grouped_ggwithinstats <- function(data,
                                   ...,
                                   grouping.var,
                                   plotgrid.args = list(),
                                   annotation.args = list()) {
-  # creating a data frame
-  data %<>% .grouped_list(grouping.var = {{ grouping.var }})
-
-  # creating a list of return objects
-  p_ls <- purrr::pmap(
-    .l = list(data = data, title = names(data)),
-    .f = ggstatsplot::ggwithinstats,
+  purrr::pmap(
+    .l = .grouped_list(data, {{ grouping.var }}),
+    .f = ggwithinstats,
     ...
-  )
-
-  combine_plots(p_ls, plotgrid.args, annotation.args)
+  ) %>%
+    combine_plots(plotgrid.args, annotation.args)
 }

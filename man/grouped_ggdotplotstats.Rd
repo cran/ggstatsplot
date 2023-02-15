@@ -27,7 +27,7 @@ ungrouped before they are entered as \code{data}.}
     \item{\code{centrality.line.args}}{A list of additional aesthetic arguments to be
 passed to the \code{geom_line} used to display the lines corresponding to the
 centrality parameter.}
-    \item{\code{x}}{A numeric variable from the dataframe \code{data}.}
+    \item{\code{x}}{A numeric variable from the data frame \code{data}.}
     \item{\code{type}}{A character specifying the type of statistical approach:
 \itemize{
 \item \code{"parametric"}
@@ -112,11 +112,11 @@ variable name for \code{y} will be used.}
 \item{grouping.var}{A single grouping variable.}
 
 \item{plotgrid.args}{A \code{list} of additional arguments passed to
-\code{patchwork::wrap_plots}, except for \code{guides} argument which is already
+\code{patchwork::wrap_plots()}, except for \code{guides} argument which is already
 separately specified here.}
 
 \item{annotation.args}{A \code{list} of additional arguments passed to
-\code{patchwork::plot_annotation}.}
+\code{patchwork::plot_annotation()}.}
 }
 \description{
 Helper function for \code{ggstatsplot::ggdotplotstats} to apply this function
@@ -128,7 +128,7 @@ For details, see:
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggdotplotstats.html}
 }
 \examples{
-\donttest{
+\dontshow{if (identical(Sys.getenv("NOT_CRAN"), "true")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # for reproducibility
 set.seed(123)
 library(dplyr, warn.conflicts = FALSE)
@@ -144,7 +144,7 @@ grouped_ggdotplotstats(
   grouping.var = cyl,
   test.value   = 15.5
 )
-}
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link{grouped_gghistostats}}, \code{\link{ggdotplotstats}},

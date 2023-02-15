@@ -1,15 +1,16 @@
 #' @title Custom function for adding labeled lines for `x`-axis variable.
 #' @name .histo_labeller
-#' @description Helper function for adding centrality parameter value and/or a
-#'   test value for the continuous, numeric `x`-axis variable.
+#'
+#' @description
+#' Helper function for adding centrality parameter value and/or a test value for
+#' the continuous, numeric `x`-axis variable.
 #'
 #' @param plot A `ggplot` object for which the labeled lines need to be added
 #'   for a test value and/or a centrality parameter (mean/median) value.
 #' @param ... Currently ignored.
 #' @inheritParams statsExpressions::one_sample_test
 #'
-#' @examples
-#' \donttest{
+#' @examplesIf identical(Sys.getenv("NOT_CRAN"), "true")
 #' library(ggplot2)
 #'
 #' # creating a plot; lines and labels will be superposed on this plot
@@ -22,7 +23,6 @@
 #'   x = mtcars$wt,
 #'   centrality.line.args = list(color = "blue", linewidth = 1, linetype = "dashed"),
 #' )
-#' }
 #'
 #' @keywords internal
 #' @noRd

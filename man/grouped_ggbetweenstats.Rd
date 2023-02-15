@@ -171,11 +171,11 @@ for the effect size (Default: \code{100L}).}
 \item{grouping.var}{A single grouping variable.}
 
 \item{plotgrid.args}{A \code{list} of additional arguments passed to
-\code{patchwork::wrap_plots}, except for \code{guides} argument which is already
+\code{patchwork::wrap_plots()}, except for \code{guides} argument which is already
 separately specified here.}
 
 \item{annotation.args}{A \code{list} of additional arguments passed to
-\code{patchwork::plot_annotation}.}
+\code{patchwork::plot_annotation()}.}
 }
 \description{
 Helper function for \code{ggstatsplot::ggbetweenstats} to apply this function
@@ -183,8 +183,7 @@ across multiple levels of a given factor and combining the resulting plots
 using \code{ggstatsplot::combine_plots}.
 }
 \examples{
-\dontshow{if (requireNamespace("PMCMRplus", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-\donttest{
+\dontshow{if (identical(Sys.getenv("NOT_CRAN"), "true") && requireNamespace("PMCMRplus", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # for reproducibility
 set.seed(123)
 library(PMCMRplus) # for pairwise comparisons
@@ -214,7 +213,6 @@ grouped_ggbetweenstats(
     limits = (c(1, 9))
   )
 )
-}
 \dontshow{\}) # examplesIf}
 }
 \seealso{

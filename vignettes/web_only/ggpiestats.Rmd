@@ -320,7 +320,7 @@ Details about underlying functions used to create graphics and statistical tests
 
 ## Reporting
 
-```{r child="reporting.Rmd"}
+```{asis, file="../../man/md-fragments/reporting.md"}
 ```
 
 For example, let's see the following example:
@@ -349,4 +349,3 @@ Same holds true for `ggbarstats`.
 
 If you find any bugs or have any suggestions/remarks, please file an issue on
 GitHub: <https://github.com/IndrajeetPatil/ggstatsplot/issues>
-

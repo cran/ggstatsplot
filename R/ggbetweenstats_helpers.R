@@ -33,7 +33,6 @@
                                 centrality.point.args = list(size = 5, color = "darkred"),
                                 centrality.label.args = list(size = 3, nudge_x = 0.4, segment.linetype = 4),
                                 ...) {
-  # creating the data frame
   centrality_df <- suppressWarnings(centrality_description(data, {{ x }}, {{ y }}, ...))
 
   # if there should be lines connecting mean values across groups
@@ -106,19 +105,18 @@
                             y,
                             mpc_df,
                             pairwise.display = "significant",
-                            ggsignif.args = list(textsize = 3, tip_length = 0.01),
+                            ggsignif.args = list(textsize = 3, tip_length = 0.01, na.rm = TRUE),
                             ...) {
   # creating a column for group combinations
   mpc_df %<>% mutate(groups = purrr::pmap(.l = list(group1, group2), .f = c))
 
   # for Bayes Factor, there will be no "p.value" column
   if ("p.value" %in% names(mpc_df)) {
-    # decide what needs to be displayed
-    if (grepl("^s", pairwise.display)) mpc_df %<>% filter(p.value < 0.05)
-    if (grepl("^n", pairwise.display)) mpc_df %<>% filter(p.value >= 0.05)
+    if (startsWith(pairwise.display, "s")) mpc_df %<>% filter(p.value < 0.05) # sig
+    if (startsWith(pairwise.display, "n")) mpc_df %<>% filter(p.value >= 0.05) # non-sig
 
     # proceed only if there are any significant comparisons to display
-    if (dim(mpc_df)[[1L]] == 0L) {
+    if (nrow(mpc_df) == 0L) {
       return(plot)
     }
   }
@@ -194,7 +192,6 @@
     TRUE ~ "all"
   )
 
-  # returned parsed glue expression
   parse(text = glue("list('Pairwise test:'~bold('{test}'), 'Bars shown:'~bold('{display}'))"))
 }
 
@@ -226,7 +223,6 @@
   # if no. of factor levels is greater than the default palette color count
   .palette_message(package, palette, length(unique(levels(x)))[[1L]])
 
-  # modifying the plot
   plot +
     labs(
       x        = xlab,

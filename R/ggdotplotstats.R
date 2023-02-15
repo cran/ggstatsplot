@@ -26,8 +26,7 @@
 #' @details For details, see:
 #' <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggdotplotstats.html>
 #'
-#' @examples
-#' \donttest{
+#' @examplesIf identical(Sys.getenv("NOT_CRAN"), "true")
 #' # for reproducibility
 #' set.seed(123)
 #'
@@ -45,7 +44,6 @@
 #'
 #' # extracting details from statistical tests
 #' extract_stats(p)
-#' }
 #' @export
 ggdotplotstats <- function(data,
                            x,
@@ -73,10 +71,12 @@ ggdotplotstats <- function(data,
                            ...) {
   # data -----------------------------------
 
+  # convert entered stats type to a standard notation
+  type <- stats_type_switch(type)
+
   # ensure the variables work quoted or unquoted
   c(x, y) %<-% c(ensym(x), ensym(y))
 
-  # creating a data frame
   data %<>%
     select({{ x }}, {{ y }}) %>%
     tidyr::drop_na() %>%
@@ -94,9 +94,6 @@ ggdotplotstats <- function(data,
   # statistical analysis ------------------------------------------
 
   if (results.subtitle) {
-    # convert entered stats type to a standard notation
-    type <- stats_type_switch(type)
-
     # relevant arguments for statistical tests
     .f.args <- list(
       data         = data,
@@ -182,8 +179,7 @@ ggdotplotstats <- function(data,
 #' @inherit ggdotplotstats return references
 #' @inherit ggdotplotstats return details
 #'
-#' @examples
-#' \donttest{
+#' @examplesIf identical(Sys.getenv("NOT_CRAN"), "true")
 #' # for reproducibility
 #' set.seed(123)
 #' library(dplyr, warn.conflicts = FALSE)
@@ -199,22 +195,16 @@ ggdotplotstats <- function(data,
 #'   grouping.var = cyl,
 #'   test.value   = 15.5
 #' )
-#' }
 #' @export
 grouped_ggdotplotstats <- function(data,
                                    ...,
                                    grouping.var,
                                    plotgrid.args = list(),
                                    annotation.args = list()) {
-  # data frame
-  data %<>% .grouped_list(grouping.var = {{ grouping.var }})
-
-  # creating a list of return objects
-  p_ls <- purrr::pmap(
-    .l = list(data = data, title = names(data)),
-    .f = ggstatsplot::ggdotplotstats,
+  purrr::pmap(
+    .l = .grouped_list(data, {{ grouping.var }}),
+    .f = ggdotplotstats,
     ...
-  )
-
-  combine_plots(p_ls, plotgrid.args, annotation.args)
+  ) %>%
+    combine_plots(plotgrid.args, annotation.args)
 }

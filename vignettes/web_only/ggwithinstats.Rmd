@@ -28,10 +28,13 @@ pkgs <- c(
   "WRS2"
 )
 
-if (!all(purrr::map(pkgs, requireNamespace, quietly = TRUE))) {
-  knitr::opts_chunk$set(eval = FALSE)
-} else {
+successfully_loaded <- purrr::map_lgl(pkgs, requireNamespace, quietly = TRUE)
+can_evaluate <- all(successfully_loaded)
+
+if (can_evaluate) {
   purrr::walk(pkgs, library, character.only = TRUE)
+} else {
+  knitr::opts_chunk$set(eval = FALSE)
 }
 ```
 
@@ -314,7 +317,7 @@ Details about underlying functions used to create graphics and statistical tests
 
 ## Reporting
 
-```{r child="reporting.Rmd"}
+```{asis, file="../../man/md-fragments/reporting.md"}
 ```
 
 For example, let's see the following example:
