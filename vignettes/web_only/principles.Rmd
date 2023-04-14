@@ -24,9 +24,7 @@ source("../setup.R")
 #| label = "suggested_pkgs",
 #| include = FALSE
 
-pkgs <- c(
-  "PMCMRplus"
-)
+pkgs <- "PMCMRplus"
 
 successfully_loaded <- purrr::map_lgl(pkgs, requireNamespace, quietly = TRUE)
 can_evaluate <- all(successfully_loaded)
@@ -104,9 +102,7 @@ ggbetweenstats(
   y = rating,
   title = "IMDB rating by film genre",
   xlab = "Genre",
-  ylab = "IMDB rating (average)",
-  outlier.tagging = TRUE,
-  outlier.label = title
+  ylab = "IMDB rating (average)"
 )
 ```
 
