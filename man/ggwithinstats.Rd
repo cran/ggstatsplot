@@ -9,7 +9,6 @@ ggwithinstats(
   x,
   y,
   type = "parametric",
-  pairwise.comparisons = TRUE,
   pairwise.display = "significant",
   p.adjust.method = "holm",
   effsize.type = "unbiased",
@@ -71,14 +70,6 @@ subject-1,subject-2, ..., pattern.}
 
 You can specify just the initial letter.}
 
-\item{pairwise.comparisons}{Logical that decides whether pairwise comparisons
-are to be displayed (default: \code{TRUE}). Please note that only
-\strong{significant} comparisons will be shown by default. To change this
-behavior, select appropriate option with \code{pairwise.display} argument. The
-pairwise comparison dataframes are prepared using the
-\code{pairwise_comparisons} function. For more details
-about pairwise comparisons, see the documentation for that function.}
-
 \item{pairwise.display}{Decides \emph{which} pairwise comparisons to display.
 Available options are:
 \itemize{
@@ -89,7 +80,8 @@ Available options are:
 
 You can use this argument to make sure that your plot is not uber-cluttered
 when you have multiple groups being compared and scores of pairwise
-comparisons being displayed.}
+comparisons being displayed. If set to \code{"none"}, no pairwise comparisons
+will be displayed.}
 
 \item{p.adjust.method}{Adjustment method for \emph{p}-values for multiple
 comparisons. Possible methods are: \code{"holm"} (default), \code{"hochberg"},
@@ -169,28 +161,28 @@ to be:
 Just as \code{type} argument, abbreviations are also accepted.}
 
 \item{centrality.point.args, centrality.label.args}{A list of additional aesthetic
-arguments to be passed to \code{geom_point} and
+arguments to be passed to \code{ggplot2::geom_point()} and
 \code{ggrepel::geom_label_repel} geoms, which are involved in mean plotting.}
 
 \item{centrality.path.args, point.path.args}{A list of additional aesthetic
-arguments passed on to \code{geom_path} connecting raw data points and mean
-points.}
+arguments passed on to \code{ggplot2::geom_path()} connecting raw data points
+and mean points.}
 
 \item{point.args}{A list of additional aesthetic arguments to be passed to
-the \code{geom_point} displaying the raw data.}
+the \code{ggplot2::geom_point()} displaying the raw data.}
 
-\item{point.path, centrality.path}{Logical that decides whether individual data
-points and means, respectively, should be connected using \code{geom_path}. Both
-default to \code{TRUE}. Note that \code{point.path} argument is relevant only when
-there are two groups (i.e., in case of a \emph{t}-test). In case of large number
-of data points, it is advisable to set \code{point.path = FALSE} as these lines
-can overwhelm the plot.}
+\item{point.path, centrality.path}{Logical that decides whether individual
+data points and means, respectively, should be connected using
+\code{ggplot2::geom_path()}. Both default to \code{TRUE}. Note that \code{point.path}
+argument is relevant only when there are two groups (i.e., in case of a
+\emph{t}-test). In case of large number of data points, it is advisable to set
+\code{point.path = FALSE} as these lines can overwhelm the plot.}
 
 \item{boxplot.args}{A list of additional aesthetic arguments passed on to
-\code{geom_boxplot}.}
+\code{ggplot2::geom_boxplot()}.}
 
 \item{violin.args}{A list of additional aesthetic arguments to be passed to
-the \code{geom_violin}.}
+the \code{ggplot2::geom_violin()}.}
 
 \item{ggsignif.args}{A list of additional aesthetic
 arguments to be passed to \code{ggsignif::geom_signif}.}
@@ -435,10 +427,23 @@ extract_stats(p)
 
 # modifying defaults
 ggwithinstats(
-  data            = bugs_long,
-  x               = condition,
-  y               = desire,
-  type            = "robust"
+  data = bugs_long,
+  x    = condition,
+  y    = desire,
+  type = "robust"
+)
+
+# you can remove a specific geom by setting `width` to `0` for that geom
+ggbetweenstats(
+  data = bugs_long,
+  x = condition,
+  y = desire,
+  # to remove violin plot
+  violin.args = list(width = 0),
+  # to remove boxplot
+  boxplot.args = list(width = 0),
+  # to remove points
+  point.args = list(alpha = 0)
 )
 \dontshow{\}) # examplesIf}
 }

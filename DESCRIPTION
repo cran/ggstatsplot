@@ -1,7 +1,7 @@
 Type: Package
 Package: ggstatsplot
 Title: 'ggplot2' Based Plots with Statistical Details
-Version: 0.11.1
+Version: 0.12.0
 Authors@R: 
     c(person(given = "Indrajeet",
              family = "Patil",
@@ -29,15 +29,16 @@ URL: https://indrajeetpatil.github.io/ggstatsplot/,
         https://github.com/IndrajeetPatil/ggstatsplot
 BugReports: https://github.com/IndrajeetPatil/ggstatsplot/issues
 Depends: R (>= 4.1.0)
-Imports: correlation (>= 0.8.4), datawizard (>= 0.7.1), dplyr (>=
-        1.1.1), ggplot2 (>= 3.4.2), ggrepel (>= 0.9.3), ggsignif, glue,
-        insight (>= 0.19.1), paletteer, parameters (>= 0.20.3),
-        patchwork, performance (>= 0.10.2), purrr (>= 1.0.1), rlang,
-        stats, statsExpressions (>= 1.5.0), tidyr, utils
-Suggests: afex, BayesFactor (>= 0.9.12-4.4), gapminder, ggcorrplot (>=
-        0.1.4), ggside (>= 0.2.2), knitr, lme4, MASS, metaBMA, metafor,
-        metaplus, PMCMRplus, psych, rmarkdown, survival, testthat (>=
-        3.1.7), tibble, vdiffr (>= 1.0.5), WRS2
+Imports: correlation (>= 0.8.4), datawizard (>= 0.8.0), dplyr (>=
+        1.1.2), ggcorrplot (>= 0.1.4), ggplot2 (>= 3.4.2), ggrepel (>=
+        0.9.3), ggside (>= 0.2.2), ggsignif (>= 0.6.4), glue, insight
+        (>= 0.19.3), paletteer, parameters (>= 0.21.1), patchwork,
+        performance (>= 0.10.4), purrr (>= 1.0.1), rlang, stats,
+        statsExpressions (>= 1.5.1), tidyr, utils
+Suggests: afex, BayesFactor (>= 0.9.12-4.4), gapminder, knitr, lme4,
+        MASS, metaBMA, metafor, metaplus, PMCMRplus (>= 1.9.7), psych,
+        rmarkdown, survival, testthat (>= 3.1.10), tibble, vdiffr (>=
+        1.0.5), WRS2
 VignetteBuilder: knitr
 Encoding: UTF-8
 Language: en-US
@@ -45,10 +46,11 @@ LazyData: true
 RoxygenNote: 7.2.3.9000
 Config/testthat/edition: 3
 Config/testthat/parallel: true
+Config/Needs/check: anthonynorth/roxyglobals
 NeedsCompilation: no
-Packaged: 2023-04-14 07:04:40 UTC; indrajeetpatil
+Packaged: 2023-08-07 12:37:09 UTC; indrajeetpatil
 Author: Indrajeet Patil [cre, aut, cph]
     (<https://orcid.org/0000-0003-1995-6531>, @patilindrajeets),
   Chuck Powell [ctb] (<https://orcid.org/0000-0002-3606-2188>)
 Repository: CRAN
-Date/Publication: 2023-04-14 07:50:03 UTC
+Date/Publication: 2023-08-07 13:40:02 UTC

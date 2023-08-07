@@ -12,20 +12,10 @@
 #' ```{r child="man/rmd-fragments/ggbetweenstats_graphics.Rmd"}
 #' ```
 #'
-#' @param plot.type Character describing the *type* of plot. Currently supported
-#'   plots are `"box"` (for only boxplots), `"violin"` (for only violin plots),
-#'   and `"boxviolin"` (for a combination of box and violin plots; default).
 #' @param xlab Label for `x` axis variable. If `NULL` (default),
 #'   variable name for `x` will be used.
 #' @param ylab Labels for `y` axis variable. If `NULL` (default),
 #'   variable name for `y` will be used.
-#' @param pairwise.comparisons Logical that decides whether pairwise comparisons
-#'   are to be displayed (default: `TRUE`). Please note that only
-#'   **significant** comparisons will be shown by default. To change this
-#'   behavior, select appropriate option with `pairwise.display` argument. The
-#'   pairwise comparison dataframes are prepared using the
-#'   `pairwise_comparisons` function. For more details
-#'   about pairwise comparisons, see the documentation for that function.
 #' @param p.adjust.method Adjustment method for *p*-values for multiple
 #'   comparisons. Possible methods are: `"holm"` (default), `"hochberg"`,
 #'   `"hommel"`, `"bonferroni"`, `"BH"`, `"BY"`, `"fdr"`, `"none"`.
@@ -37,7 +27,8 @@
 #'
 #'   You can use this argument to make sure that your plot is not uber-cluttered
 #'   when you have multiple groups being compared and scores of pairwise
-#'   comparisons being displayed.
+#'   comparisons being displayed. If set to `"none"`, no pairwise comparisons
+#'   will be displayed.
 #' @param bf.message Logical that decides whether to display Bayes Factor in
 #'   favor of the *null* hypothesis. This argument is relevant only **for
 #'   parametric test** (Default: `TRUE`).
@@ -70,9 +61,11 @@
 #'
 #'   Just as `type` argument, abbreviations are also accepted.
 #' @param point.args A list of additional aesthetic arguments to be passed to
-#'   the `geom_point` displaying the raw data.
+#'   the `ggplot2::geom_point()` displaying the raw data.
+#' @param boxplot.args A list of additional aesthetic arguments passed on to
+#'   `ggplot2::geom_boxplot()`.
 #' @param violin.args A list of additional aesthetic arguments to be passed to
-#'   the `geom_violin`.
+#'   the `ggplot2::geom_violin()`.
 #' @param ggplot.component A `ggplot` component to be added to the plot prepared
 #'   by `{ggstatsplot}`. This argument is primarily helpful for `grouped_`
 #'   variants of all primary functions. Default is `NULL`. The argument should
@@ -83,7 +76,7 @@
 #' @param ... Currently ignored.
 #' @inheritParams theme_ggstatsplot
 #' @param centrality.point.args,centrality.label.args A list of additional aesthetic
-#'   arguments to be passed to `geom_point` and
+#'   arguments to be passed to `ggplot2::geom_point()` and
 #'   `ggrepel::geom_label_repel` geoms, which are involved in mean plotting.
 #' @param  ggsignif.args A list of additional aesthetic
 #'   arguments to be passed to `ggsignif::geom_signif`.
@@ -108,6 +101,8 @@
 #' @seealso \code{\link{grouped_ggbetweenstats}}, \code{\link{ggwithinstats}},
 #'  \code{\link{grouped_ggwithinstats}}
 #'
+#' @autoglobal
+#'
 #' @details For details, see:
 #' <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggbetweenstats.html>
 #'
@@ -128,19 +123,28 @@
 #' # modifying defaults
 #' ggbetweenstats(
 #'   morley,
-#'   x               = Expt,
-#'   y               = Speed,
-#'   type            = "robust",
-#'   xlab            = "The experiment number",
-#'   ylab            = "Speed-of-light measurement"
+#'   x    = Expt,
+#'   y    = Speed,
+#'   type = "robust",
+#'   xlab = "The experiment number",
+#'   ylab = "Speed-of-light measurement"
+#' )
+#'
+#' # you can remove a specific geom to reduce complexity of the plot
+#' ggbetweenstats(
+#'   mtcars, am, wt,
+#'   # to remove violin plot
+#'   violin.args = list(width = 0),
+#'   # to remove boxplot
+#'   boxplot.args = list(width = 0),
+#'   # to remove points
+#'   point.args = list(alpha = 0)
 #' )
 #' @export
 ggbetweenstats <- function(data,
                            x,
                            y,
-                           plot.type = "boxviolin",
                            type = "parametric",
-                           pairwise.comparisons = TRUE,
                            pairwise.display = "significant",
                            p.adjust.method = "holm",
                            effsize.type = "unbiased",
@@ -173,6 +177,7 @@ ggbetweenstats <- function(data,
                              stroke = 0,
                              na.rm = TRUE
                            ),
+                           boxplot.args = list(width = 0.3, alpha = 0.2, na.rm = TRUE),
                            violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
                            ggsignif.args = list(textsize = 3, tip_length = 0.01, na.rm = TRUE),
                            ggtheme = ggstatsplot::theme_ggstatsplot(),
@@ -182,7 +187,7 @@ ggbetweenstats <- function(data,
                            ...) {
   # data -----------------------------------
 
-  # convert entered stats type to a standard notation
+
   type <- stats_type_switch(type)
 
   # make sure both quoted and unquoted arguments are allowed
@@ -196,10 +201,9 @@ ggbetweenstats <- function(data,
   # statistical analysis ------------------------------------------
 
   # test to run; depends on the no. of levels of the independent variable
-  test <- ifelse(nlevels(data %>% pull({{ x }})) < 3, "t", "anova")
+  test <- ifelse(nlevels(data %>% pull({{ x }})) < 3L, "t", "anova")
 
   if (results.subtitle) {
-    # relevant arguments for statistical tests
     .f.args <- list(
       data         = data,
       x            = as_string(x),
@@ -227,17 +231,9 @@ ggbetweenstats <- function(data,
   # plot -----------------------------------
 
   plot <- ggplot(data, mapping = aes({{ x }}, {{ y }})) +
-    exec(geom_point, aes(color = {{ x }}), !!!point.args)
-
-  if (plot.type %in% c("box", "boxviolin")) {
-    suppressWarnings({
-      plot <- plot + exec(geom_boxplot, width = 0.3, alpha = 0.2)
-    })
-  }
-
-  if (plot.type %in% c("violin", "boxviolin")) {
-    plot <- plot + exec(geom_violin, !!!violin.args)
-  }
+    exec(geom_point, aes(color = {{ x }}), !!!point.args) +
+    exec(geom_boxplot, !!!boxplot.args, outlier.shape = NA) +
+    exec(geom_violin, !!!violin.args)
 
   # centrality tagging -------------------------------------
 
@@ -259,7 +255,7 @@ ggbetweenstats <- function(data,
 
   seclabel <- NULL
 
-  if (isTRUE(pairwise.comparisons) && test == "anova") {
+  if (pairwise.display != "none" && test == "anova") {
     mpc_df <- pairwise_comparisons(
       data            = data,
       x               = {{ x }},
@@ -283,7 +279,7 @@ ggbetweenstats <- function(data,
       ggsignif.args    = ggsignif.args
     )
 
-    # preparing the secondary label axis to give pairwise comparisons test details
+    # secondary label axis to give pairwise comparisons test details
     seclabel <- .pairwise_seclabel(
       unique(mpc_df$test),
       ifelse(type == "bayes", "all", pairwise.display)
@@ -323,6 +319,8 @@ ggbetweenstats <- function(data,
 #' @inheritParams .grouped_list
 #' @inheritParams combine_plots
 #' @inheritDotParams ggbetweenstats -title
+#'
+#' @autoglobal
 #'
 #' @seealso \code{\link{ggbetweenstats}}, \code{\link{ggwithinstats}},
 #'  \code{\link{grouped_ggwithinstats}}
@@ -365,10 +363,7 @@ grouped_ggbetweenstats <- function(data,
                                    grouping.var,
                                    plotgrid.args = list(),
                                    annotation.args = list()) {
-  purrr::pmap(
-    .l = .grouped_list(data, {{ grouping.var }}),
-    .f = ggbetweenstats,
-    ...
-  ) %>%
+  .grouped_list(data, {{ grouping.var }}) %>%
+    purrr::pmap(.f = ggbetweenstats, ...) %>%
     combine_plots(plotgrid.args, annotation.args)
 }

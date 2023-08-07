@@ -22,20 +22,10 @@ ungrouped before they are entered as \code{data}.}
 \item{...}{
   Arguments passed on to \code{\link[=ggbetweenstats]{ggbetweenstats}}
   \describe{
-    \item{\code{plot.type}}{Character describing the \emph{type} of plot. Currently supported
-plots are \code{"box"} (for only boxplots), \code{"violin"} (for only violin plots),
-and \code{"boxviolin"} (for a combination of box and violin plots; default).}
     \item{\code{xlab}}{Label for \code{x} axis variable. If \code{NULL} (default),
 variable name for \code{x} will be used.}
     \item{\code{ylab}}{Labels for \code{y} axis variable. If \code{NULL} (default),
 variable name for \code{y} will be used.}
-    \item{\code{pairwise.comparisons}}{Logical that decides whether pairwise comparisons
-are to be displayed (default: \code{TRUE}). Please note that only
-\strong{significant} comparisons will be shown by default. To change this
-behavior, select appropriate option with \code{pairwise.display} argument. The
-pairwise comparison dataframes are prepared using the
-\code{pairwise_comparisons} function. For more details
-about pairwise comparisons, see the documentation for that function.}
     \item{\code{p.adjust.method}}{Adjustment method for \emph{p}-values for multiple
 comparisons. Possible methods are: \code{"holm"} (default), \code{"hochberg"},
 \code{"hommel"}, \code{"bonferroni"}, \code{"BH"}, \code{"BY"}, \code{"fdr"}, \code{"none"}.}
@@ -49,7 +39,8 @@ Available options are:
 
 You can use this argument to make sure that your plot is not uber-cluttered
 when you have multiple groups being compared and scores of pairwise
-comparisons being displayed.}
+comparisons being displayed. If set to \code{"none"}, no pairwise comparisons
+will be displayed.}
     \item{\code{bf.message}}{Logical that decides whether to display Bayes Factor in
 favor of the \emph{null} hypothesis. This argument is relevant only \strong{for
 parametric test} (Default: \code{TRUE}).}
@@ -85,9 +76,11 @@ to be:
 
 Just as \code{type} argument, abbreviations are also accepted.}
     \item{\code{point.args}}{A list of additional aesthetic arguments to be passed to
-the \code{geom_point} displaying the raw data.}
+the \code{ggplot2::geom_point()} displaying the raw data.}
+    \item{\code{boxplot.args}}{A list of additional aesthetic arguments passed on to
+\code{ggplot2::geom_boxplot()}.}
     \item{\code{violin.args}}{A list of additional aesthetic arguments to be passed to
-the \code{geom_violin}.}
+the \code{ggplot2::geom_violin()}.}
     \item{\code{ggplot.component}}{A \code{ggplot} component to be added to the plot prepared
 by \code{{ggstatsplot}}. This argument is primarily helpful for \code{grouped_}
 variants of all primary functions. Default is \code{NULL}. The argument should
@@ -96,7 +89,7 @@ be entered as a \code{{ggplot2}} function or a list of \code{{ggplot2}} function
 be extracted. The available palettes and packages can be checked by running
 \code{View(paletteer::palettes_d_names)}.}
     \item{\code{centrality.point.args,centrality.label.args}}{A list of additional aesthetic
-arguments to be passed to \code{geom_point} and
+arguments to be passed to \code{ggplot2::geom_point()} and
 \code{ggrepel::geom_label_repel} geoms, which are involved in mean plotting.}
     \item{\code{ggsignif.args}}{A list of additional aesthetic
 arguments to be passed to \code{ggsignif::geom_signif}.}
