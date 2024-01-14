@@ -38,36 +38,37 @@
 #' # extracting details from statistical tests
 #' extract_stats(p)
 #' @export
-ggbarstats <- function(data,
-                       x,
-                       y,
-                       counts = NULL,
-                       type = "parametric",
-                       paired = FALSE,
-                       results.subtitle = TRUE,
-                       label = "percentage",
-                       label.args = list(alpha = 1.0, fill = "white"),
-                       sample.size.label.args = list(size = 4.0),
-                       k = 2L,
-                       proportion.test = results.subtitle,
-                       perc.k = 0L,
-                       bf.message = TRUE,
-                       ratio = NULL,
-                       conf.level = 0.95,
-                       sampling.plan = "indepMulti",
-                       fixed.margin = "rows",
-                       prior.concentration = 1.0,
-                       title = NULL,
-                       subtitle = NULL,
-                       caption = NULL,
-                       legend.title = NULL,
-                       xlab = NULL,
-                       ylab = NULL,
-                       ggtheme = ggstatsplot::theme_ggstatsplot(),
-                       package = "RColorBrewer",
-                       palette = "Dark2",
-                       ggplot.component = NULL,
-                       ...) {
+ggbarstats <- function(
+    data,
+    x,
+    y,
+    counts = NULL,
+    type = "parametric",
+    paired = FALSE,
+    results.subtitle = TRUE,
+    label = "percentage",
+    label.args = list(alpha = 1.0, fill = "white"),
+    sample.size.label.args = list(size = 4.0),
+    k = 2L,
+    proportion.test = results.subtitle,
+    perc.k = 0L,
+    bf.message = TRUE,
+    ratio = NULL,
+    conf.level = 0.95,
+    sampling.plan = "indepMulti",
+    fixed.margin = "rows",
+    prior.concentration = 1.0,
+    title = NULL,
+    subtitle = NULL,
+    caption = NULL,
+    legend.title = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    ggtheme = ggstatsplot::theme_ggstatsplot(),
+    package = "RColorBrewer",
+    palette = "Dark2",
+    ggplot.component = NULL,
+    ...) {
   # data frame ------------------------------------------
 
   type <- stats_type_switch(type)
@@ -86,7 +87,7 @@ ggbarstats <- function(data,
   data %<>% mutate(across(.cols = everything(), .fns = ~ droplevels(as.factor(.x))))
 
   # TO DO: until one-way table is supported by `BayesFactor`
-  if (nlevels(data %>% pull({{ y }})) == 1L) c(bf.message, proportion.test) %<-% c(FALSE, FALSE)
+  if (nlevels(pull(data, {{ y }})) == 1L) c(bf.message, proportion.test) %<-% c(FALSE, FALSE)
   if (type == "bayes") proportion.test <- FALSE
 
   # statistical analysis ------------------------------------------
@@ -106,12 +107,12 @@ ggbarstats <- function(data,
     )
 
     subtitle_df <- .eval_f(contingency_table, !!!.f.args, type = type)
-    if (!is.null(subtitle_df)) subtitle <- subtitle_df$expression[[1L]]
+    subtitle <- .extract_expression(subtitle_df)
 
     # Bayes Factor caption
     if (type != "bayes" && bf.message && isFALSE(paired)) {
       caption_df <- .eval_f(contingency_table, !!!.f.args, type = "bayes")
-      if (!is.null(caption_df)) caption <- caption_df$expression[[1L]]
+      caption <- .extract_expression(caption_df)
     }
   }
 
@@ -124,13 +125,13 @@ ggbarstats <- function(data,
   onesample_df <- onesample_data(data, {{ x }}, {{ y }}, k)
 
   # if no. of factor levels is greater than the default palette color count
-  .palette_message(package, palette, nlevels(data %>% pull({{ x }})))
+  .is_palette_sufficient(package, palette, nlevels(pull(data, {{ x }})))
 
   # plot
   plotBar <- ggplot(descriptive_df, aes({{ y }}, perc, fill = {{ x }})) +
     geom_bar(stat = "identity", position = "fill", color = "black") +
     scale_y_continuous(
-      labels       = function(x) paste0(x * 100L, "%"),
+      labels       = ~ insight::format_percent(., digits = 0L),
       breaks       = seq(from = 0.0, to = 1.0, by = 0.10),
       minor_breaks = seq(from = 0.05, to = 0.95, by = 0.10)
     ) +
@@ -222,11 +223,12 @@ ggbarstats <- function(data,
 #'   plotgrid.args = list(nrow = 2)
 #' )
 #' @export
-grouped_ggbarstats <- function(data,
-                               ...,
-                               grouping.var,
-                               plotgrid.args = list(),
-                               annotation.args = list()) {
+grouped_ggbarstats <- function(
+    data,
+    ...,
+    grouping.var,
+    plotgrid.args = list(),
+    annotation.args = list()) {
   .grouped_list(data, {{ grouping.var }}) %>%
     purrr::pmap(.f = ggbarstats, ...) %>%
     combine_plots(plotgrid.args, annotation.args)

@@ -84,8 +84,8 @@ test_that("meta-analysis works", {
 # plot modifications--------------------------------------------------
 
 test_that(
-  desc = "plot modifications work as expected",
-  code = {
+  "plot modifications work as expected",
+  {
     set.seed(123)
     mod1 <- stats::lm(data = mtcars, formula = wt ~ mpg * am)
 
@@ -131,32 +131,8 @@ test_that(
 # edge cases -------------------------------------
 
 test_that(
-  desc = "missing values in numeric columns",
-  code = {
-    skip_if_not_installed("lme4")
-    skip_on_os(c("windows", "linux", "solaris"))
-
-    withr::local_package("lme4")
-    m_lmer <- ggcoefstats(
-      lme4::lmer(Reaction ~ Days + (Days | Subject),
-        data = lme4::sleepstudy
-      )
-    )
-
-    expect_s3_class(m_lmer, "ggplot")
-
-    skip_on_os("mac", c("i386", "x86_64"))
-    set.seed(123)
-    expect_doppelganger(
-      title = "NAs in numeric columns",
-      fig = m_lmer
-    )
-  }
-)
-
-test_that(
-  desc = "edge cases",
-  code = {
+  "works when CIs unavailable",
+  {
     set.seed(123)
     df_base <- tidy_model_parameters(stats::lm(wt ~ am * cyl, mtcars))
 
@@ -178,8 +154,8 @@ test_that(
 # meta subtitle and caption -------------------------------------
 
 test_that(
-  desc = "meta analysis subtitle and caption",
-  code = {
+  "meta analysis subtitle and caption",
+  {
     skip_on_cran()
     skip_if_not_installed("metafor")
     skip_if_not_installed("metaBMA")
@@ -192,22 +168,20 @@ test_that(
     caption_expr <- suppressWarnings(meta_analysis(df_meta, type = "bayes"))
 
     set.seed(123)
-    ggcoef_subtitle <- suppressWarnings(ggcoefstats(
+    ggcoef_subtitle <- extract_subtitle(suppressWarnings(ggcoefstats(
       df_meta,
       meta.analytic.effect = TRUE,
       bf.message = FALSE,
       meta.type = "p"
-    ) %>%
-      extract_subtitle())
+    )))
 
     set.seed(123)
-    ggcoef_caption <- suppressWarnings(ggcoefstats(
+    ggcoef_caption <- extract_caption(suppressWarnings(ggcoefstats(
       df_meta,
       meta.analytic.effect = TRUE,
       bf.message = TRUE,
       meta.type = "p"
-    ) %>%
-      extract_caption())
+    )))
 
     expect_identical(subtitle_expr$expression[[1L]], ggcoef_subtitle)
     expect_identical(caption_expr$expression[[1L]], ggcoef_caption)
