@@ -73,7 +73,7 @@ gghistostats <- function(
     effsize.type = "g",
     conf.level = 0.95,
     tr = 0.2,
-    k = 2L,
+    digits = 2L,
     ggtheme = ggstatsplot::theme_ggstatsplot(),
     results.subtitle = TRUE,
     bin.args = list(color = "black", fill = "grey50", alpha = 0.7),
@@ -89,21 +89,20 @@ gghistostats <- function(
   x <- ensym(x)
   data <- tidyr::drop_na(select(data, {{ x }}))
   x_vec <- pull(data, {{ x }})
+  type <- stats_type_switch(type)
 
   # statistical analysis ------------------------------------------
 
   if (results.subtitle) {
-    type <- stats_type_switch(type)
-
     .f.args <- list(
-      data         = data,
-      x            = {{ x }},
-      test.value   = test.value,
+      data = data,
+      x = {{ x }},
+      test.value = test.value,
       effsize.type = effsize.type,
-      conf.level   = conf.level,
-      k            = k,
-      tr           = tr,
-      bf.prior     = bf.prior
+      conf.level = conf.level,
+      digits = digits,
+      tr = tr,
+      bf.prior = bf.prior
     )
 
     # subtitle with statistical results
@@ -128,9 +127,9 @@ gghistostats <- function(
     ) +
     scale_y_continuous(
       sec.axis = sec_axis(
-        trans  = ~ . / nrow(data),
+        transform = ~ . / nrow(data),
         labels = function(x) insight::format_percent(x, digits = 0L),
-        name   = "proportion"
+        name = "proportion"
       )
     ) +
     guides(fill = "none")
@@ -151,10 +150,10 @@ gghistostats <- function(
   if (isTRUE(centrality.plotting)) {
     plot_hist <- .histo_labeller(
       plot_hist,
-      x                    = x_vec,
-      type                 = stats_type_switch(centrality.type),
-      tr                   = tr,
-      k                    = k,
+      x = x_vec,
+      type = stats_type_switch(centrality.type),
+      tr = tr,
+      digits = digits,
       centrality.line.args = centrality.line.args
     )
   }
