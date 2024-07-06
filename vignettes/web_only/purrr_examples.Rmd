@@ -1,10 +1,10 @@
 ---
-title: "Using '{ggstatsplot}' with the '{purrr}' package"
+title: "Using 'ggstatsplot' with the 'purrr' package"
 output:
   rmarkdown::html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{using '{ggstatsplot}' with the '{purrr}' package}
+  %\VignetteIndexEntry{Using 'ggstatsplot' with the 'purrr' package}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -386,7 +386,6 @@ plot_list <-
         "Continent: Europe"
       ),
       effsize.type = list("d", "d", "g", "g"),
-      normal.curve = list(TRUE, FALSE, FALSE, TRUE),
       ggtheme = list(
         ggplot2::theme_classic(),
         hrbrthemes::theme_ipsum_tw(),
