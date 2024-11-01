@@ -6,7 +6,7 @@
 \alias{extract_caption}
 \title{Extracting data frames or expressions from \code{{ggstatsplot}} plots}
 \usage{
-extract_stats(p, ...)
+extract_stats(p)
 
 extract_subtitle(p)
 
@@ -14,8 +14,6 @@ extract_caption(p)
 }
 \arguments{
 \item{p}{A plot from \code{{ggstatsplot}} package}
-
-\item{...}{Ignored}
 }
 \value{
 A list of tibbles containing summaries of various statistical analyses.
@@ -35,11 +33,11 @@ using that package.
 
 The only exception is the \code{ggcorrmat()} function. But, if a data frame is
 what you want, you shouldn't be using \code{ggcorrmat()} anyway. You can use
-\code{correlation::correlation()} function which provides tidy data frames by
+\code{\link[correlation:correlation]{correlation::correlation()}} function which provides tidy data frames by
 default.
 }
 \examples{
-\dontshow{if (identical(Sys.getenv("NOT_CRAN"), "true")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (identical(Sys.getenv("NOT_CRAN"), "true")) withAutoprint(\{ # examplesIf}
 set.seed(123)
 
 # non-grouped plot
@@ -60,7 +58,6 @@ extract_caption(p2)
 
 extract_stats(p1)
 
-extract_stats(p2[[1L]])
-extract_stats(p2[[2L]])
+extract_stats(p2)
 \dontshow{\}) # examplesIf}
 }

@@ -639,7 +639,7 @@ plot that will be invariant across models:
   their **confidence intervals** (`95%` is the default). The estimate
   can either be effect sizes (for tests that depend on the
   `F`-statistic) or regression coefficients (for tests with `t`-,
-  $\chi^{2}$-, and `z`-statistic), etc. The function will, by default,
+  $`\chi^{2}`$-, and `z`-statistic), etc. The function will, by default,
   display a helpful `x`-axis label that should clear up what estimates
   are being displayed. The confidence intervals can sometimes be
   asymmetric if bootstrapping was used.
@@ -697,18 +697,12 @@ extract_subtitle(p)
 #> list(italic("F")["Welch"](2, 18.03) == "31.62", italic(p) == 
 #>     "1.27e-06", widehat(omega["p"]^2) == "0.74", CI["95%"] ~ 
 #>     "[" * "0.53", "1.00" * "]", italic("n")["obs"] == "32")
-```
-
-``` r
 
 # extracting expression present in the caption
 extract_caption(p)
 #> list(log[e] * (BF["01"]) == "-14.92", widehat(italic(R^"2"))["Bayesian"]^"posterior" == 
 #>     "0.71", CI["95%"]^HDI ~ "[" * "0.57", "0.79" * "]", italic("r")["Cauchy"]^"JZS" == 
 #>     "0.71")
-```
-
-``` r
 
 # a list of tibbles containing statistical analysis summaries
 extract_stats(p)
@@ -775,6 +769,9 @@ extract_stats(p)
 #> 
 #> $glance_data
 #> NULL
+#> 
+#> attr(,"class")
+#> [1] "ggstatsplot_stats" "list"
 ```
 
 Note that all of this analysis is carried out by `{statsExpressions}`

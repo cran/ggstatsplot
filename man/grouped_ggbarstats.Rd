@@ -21,8 +21,8 @@ ungrouped before they are entered as \code{data}.}
 \item{...}{
   Arguments passed on to \code{\link[=ggbarstats]{ggbarstats}}
   \describe{
-    \item{\code{sample.size.label.args}}{Additional aesthetic arguments that will be passed to
-\code{ggplot2::geom_text()}.}
+    \item{\code{sample.size.label.args}}{Additional aesthetic arguments that will be
+passed to \code{\link[ggplot2:geom_text]{ggplot2::geom_text()}}.}
     \item{\code{x}}{The variable to use as the \strong{rows} in the contingency table. Please
 note that if there are empty factor levels in your variable, they will be
 dropped.}
@@ -31,17 +31,17 @@ Please note that if there are empty factor levels in your variable, they
 will be dropped. Default is \code{NULL}. If \code{NULL}, one-sample proportion test
 (a goodness of fit test) will be run for the \code{x} variable. Otherwise an
 appropriate association test will be run. This argument can not be \code{NULL}
-for \code{ggbarstats} function.}
+for \code{\link[=ggbarstats]{ggbarstats()}}.}
     \item{\code{proportion.test}}{Decides whether proportion test for \code{x} variable is to
 be carried out for each level of \code{y}. Defaults to \code{results.subtitle}. In
-\code{ggbarstats}, only \emph{p}-values from this test will be displayed.}
-    \item{\code{digits.perc}}{Numeric that decides number of decimal places for percentage
-labels (Default: \code{0L}).}
+\code{\link[=ggbarstats]{ggbarstats()}}, only \emph{p}-values from this test will be displayed.}
+    \item{\code{digits.perc}}{Numeric that decides number of decimal places for
+percentage labels (Default: \code{0L}).}
     \item{\code{label}}{Character decides what information needs to be displayed
 on the label in each pie slice. Possible options are \code{"percentage"}
 (default), \code{"counts"}, \code{"both"}.}
     \item{\code{label.args}}{Additional aesthetic arguments that will be passed to
-\code{ggplot2::geom_label()}.}
+\code{\link[ggplot2:geom_text]{ggplot2::geom_label()}}.}
     \item{\code{legend.title}}{Title text for the legend.}
     \item{\code{bf.message}}{Logical that decides whether to display Bayes Factor in
 favor of the \emph{null} hypothesis. This argument is relevant only \strong{for
@@ -61,13 +61,13 @@ be entered as a \code{{ggplot2}} function or a list of \code{{ggplot2}} function
 be extracted. The available palettes and packages can be checked by running
 \code{View(paletteer::palettes_d_names)}.}
     \item{\code{ggtheme}}{A \code{{ggplot2}} theme. Default value is
-\code{ggstatsplot::theme_ggstatsplot()}. Any of the \code{{ggplot2}} themes (e.g.,
-\code{theme_bw()}), or themes from extension packages are allowed (e.g.,
-\code{ggthemes::theme_fivethirtyeight()}, \code{hrbrthemes::theme_ipsum_ps()}, etc.).
-But note that sometimes these themes will remove some of the details that
-\code{{ggstatsplot}} plots typically contains. For example, if relevant,
-\code{ggbetweenstats()} shows details about multiple comparison test as a label
-on the secondary Y-axis. Some themes (e.g.
+\code{\link[=theme_ggstatsplot]{theme_ggstatsplot()}}. Any of the \code{{ggplot2}} themes (e.g.,
+\code{\link[ggplot2:ggtheme]{ggplot2::theme_bw()}}), or themes from extension packages are allowed
+(e.g., \code{ggthemes::theme_fivethirtyeight()}, \code{hrbrthemes::theme_ipsum_ps()},
+etc.). But note that sometimes these themes will remove some of the details
+that \code{{ggstatsplot}} plots typically contains. For example, if relevant,
+\code{\link[=ggbetweenstats]{ggbetweenstats()}} shows details about multiple comparison test as a
+label on the secondary Y-axis. Some themes (e.g.
 \code{ggthemes::theme_fivethirtyeight()}) will remove the secondary Y-axis and
 thus the details as well.}
     \item{\code{type}}{A character specifying the type of statistical approach:
@@ -97,10 +97,14 @@ proportion test (should sum to \code{1}). Default is \code{NULL}, which means th
 is equal theoretical proportions across the levels of the nominal variable.
 E.g., \code{ratio = c(0.5, 0.5)} for two levels,
 \code{ratio = c(0.25, 0.25, 0.25, 0.25)} for four levels, etc.}
-    \item{\code{sampling.plan}}{Character describing the sampling plan. Possible options
-are \code{"indepMulti"} (independent multinomial; default), \code{"poisson"},
-\code{"jointMulti"} (joint multinomial), \code{"hypergeom"} (hypergeometric). For
-more, see \code{?BayesFactor::contingencyTableBF()}.}
+    \item{\code{sampling.plan}}{Character describing the sampling plan. Possible options:
+\itemize{
+\item \code{"indepMulti"} (independent multinomial; default)
+\item \code{"poisson"}
+\item \code{"jointMulti"} (joint multinomial)
+\item \code{"hypergeom"} (hypergeometric).
+For more, see \code{\link[BayesFactor:contingencyTableBF]{BayesFactor::contingencyTableBF()}}.
+}}
     \item{\code{fixed.margin}}{For the independent multinomial sampling plan, which
 margin is fixed (\code{"rows"} or \code{"cols"}). Defaults to \code{"rows"}.}
     \item{\code{prior.concentration}}{Specifies the prior concentration parameter, set
@@ -116,11 +120,11 @@ variable name for \code{y} will be used.}
 \item{grouping.var}{A single grouping variable.}
 
 \item{plotgrid.args}{A \code{list} of additional arguments passed to
-\code{patchwork::wrap_plots()}, except for \code{guides} argument which is already
+\code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}, except for \code{guides} argument which is already
 separately specified here.}
 
 \item{annotation.args}{A \code{list} of additional arguments passed to
-\code{patchwork::plot_annotation()}.}
+\code{\link[patchwork:plot_annotation]{patchwork::plot_annotation()}}.}
 }
 \description{
 Helper function for \code{ggstatsplot::ggbarstats()} to apply this function across
@@ -132,7 +136,7 @@ For details, see:
 \url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html}
 }
 \examples{
-\dontshow{if (identical(Sys.getenv("NOT_CRAN"), "true")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (identical(Sys.getenv("NOT_CRAN"), "true")) withAutoprint(\{ # examplesIf}
 # for reproducibility
 set.seed(123)
 library(dplyr, warn.conflicts = FALSE)

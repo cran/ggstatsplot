@@ -13,14 +13,14 @@
 #' ```
 #'
 #' @param x A model object to be tidied, or a tidy data frame from a regression
-#'   model. Function internally uses `parameters::model_parameters()` to get a
+#'   model. Function internally uses [`parameters::model_parameters()`] to get a
 #'   tidy data frame. If a data frame, it *must* contain at the minimum two
 #'   columns named `term` (names of predictors) and `estimate` (corresponding
 #'   estimates of coefficients or other quantities of interest).
 #' @param statistic Relevant statistic for the model (`"t"`, `"f"`, `"z"`, or
 #'   `"chi"`) in the label. Relevant only if `x` is a *data frame*.
 #' @param effectsize.type This is the same as `es_type` argument of
-#'   `parameters::model_parameters()`. Defaults to `"eta"`, and relevant for
+#'   [`parameters::model_parameters()`]. Defaults to `"eta"`, and relevant for
 #'   ANOVA-like objects.
 #' @param bf.message Logical that decides whether results from running a
 #'   Bayesian meta-analysis assuming that the effect size *d* varies across
@@ -28,9 +28,6 @@
 #'   should be displayed in caption. Defaults to `TRUE`.
 #' @param subtitle The text for the plot subtitle. The input to this argument
 #'   will be ignored if `meta.analytic.effect` is set to `TRUE`.
-#' @param point.args Additional arguments that will be passed to
-#'   `geom_point` geom. Please see documentation for that function to
-#'   know more about these arguments.
 #' @param conf.int Logical. Decides whether to display confidence intervals as
 #'   error bars (Default: `TRUE`).
 #' @param conf.level Numeric deciding level of confidence or credible intervals
@@ -41,13 +38,13 @@
 #'   relevant if a data frame with estimates and their standard errors is
 #'   entered.
 #' @param meta.type Type of statistics used to carry out random-effects
-#'   meta-analysis. If `"parametric"` (default), `metafor::rma` function will be
-#'   used. If `"robust"`, `metaplus::metaplus` function will be used. If
-#'   `"bayes"`, `metaBMA::meta_random` function will be used.
+#'   meta-analysis. If `"parametric"` (default), [`metafor::rma()`] will be
+#'   used. If `"robust"`, [`metaplus::metaplus()`] will be used. If `"bayes"`,
+#'   [`metaBMA::meta_random()`] will be used.
 #' @param exclude.intercept Logical that decides whether the intercept should be
 #'   excluded from the plot (Default: `FALSE`).
 #' @param errorbar.args Additional arguments that will be passed to
-#'   `geom_errorbarh` geom. Please see documentation for that function
+#'   `geom_errorbarh()` geom. Please see documentation for that function
 #'   to know more about these arguments.
 #' @param vline Decides whether to display a vertical line (Default: `"TRUE"`).
 #' @param vline.args Additional arguments that will be passed to
@@ -58,18 +55,17 @@
 #'   coefficient value.
 #' @param stats.labels Logical. Decides whether the statistic and *p*-values for
 #'   each coefficient are to be attached to each dot as a text label using
-#'   `ggrepel` (Default: `TRUE`).
+#'   `{ggrepel}` (Default: `TRUE`).
 #' @param stats.label.color Color for the labels. If set to `NULL`, colors will
 #'   be chosen from the specified `package` (Default: `"RColorBrewer"`) and
 #'   `palette` (Default: `"Dark2"`).
 #' @param stats.label.args Additional arguments that will be passed to
-#'   `ggrepel::geom_label_repel()`. Please see documentation for that
-#'   function to know more about these arguments.
+#'   [`ggrepel::geom_label_repel()`].
 #' @param only.significant If `TRUE`, only stats labels for significant effects
 #'   is shown (Default: `FALSE`). This can be helpful when a large number of
 #'   regression coefficients are to be displayed in a single plot.
 #' @param ... Additional arguments to tidying method. For more, see
-#'   `parameters::model_parameters`.
+#'   [`parameters::model_parameters()`].
 #' @inheritParams parameters::model_parameters
 #' @inheritParams theme_ggstatsplot
 #' @inheritParams statsExpressions::meta_analysis
@@ -173,33 +169,11 @@ ggcoefstats <- function(
     )
 
     # anova objects need further cleaning
+    # nolint next: line_length_linter.
     if (all(c("df", "df.error") %in% names(tidy_df))) tidy_df %<>% mutate(effectsize = paste0("partial ", effectsize.type, "-squared"))
   }
 
-  # tidy data frame cleanup -------------------------
-
-  if (is.null(tidy_df) || !"estimate" %in% names(tidy_df)) {
-    rlang::abort("The tidy data frame *must* contain 'estimate' column.")
-  }
-
-  # create a new term column if it's not present
-  if (!"term" %in% names(tidy_df)) tidy_df %<>% mutate(term = paste0("term_", row_number()))
-
-  # check for duplicate terms and columns -------------------------
-
-  # check if there are repeated terms (relevant for `maov`, `lqm`, etc.)
-  if (anyDuplicated(tidy_df$term)) {
-    tidy_df %<>%
-      tidyr::unite(
-        col    = "term",
-        matches("term|variable|parameter|method|curve|response|component|contrast|group"),
-        remove = TRUE,
-        sep    = "_"
-      )
-  }
-
-  # halt if there are still repeated terms
-  if (anyDuplicated(tidy_df$term)) rlang::abort("Elements in `term` column must be unique.")
+  tidy_df <- .preprocess_tidy_data(tidy_df, sort)
 
   # if tidy data frame doesn't contain p-value or statistic column, no label
   if (!(all(c("p.value", "statistic") %in% names(tidy_df)))) stats.labels <- FALSE
@@ -212,7 +186,6 @@ ggcoefstats <- function(
     conf.int <- FALSE
   }
 
-  # whether to show model intercept
   if (exclude.intercept) tidy_df %<>% filter(!grepl("(Intercept)", term, TRUE))
 
   # label -------------------------
@@ -226,19 +199,12 @@ ggcoefstats <- function(
     }
   }
 
-  # sorting -------------------------
-
-  tidy_df %<>% parameters::sort_parameters(sort = sort, column = "estimate")
-
-  # `term` needs to be a factor column; otherwise, ggplot2 will sort the `x`-axis
-  # labels alphabetically and terms won't appear in the expected order
-  tidy_df %<>% dplyr::mutate(term = factor(term, tidy_df$term))
-
   # summary caption -------------------------
 
   glance_df <- performance::model_performance(x, verbose = FALSE) %>% as_tibble()
 
   if (!is.null(glance_df) && all(c("AIC", "BIC") %in% names(glance_df))) {
+    # nolint next: line_length_linter.
     glance_df %<>% mutate(expression = list(parse(text = glue("list(AIC=='{format_value(AIC, 0L)}', BIC=='{format_value(BIC, 0L)}')"))))
     caption <- .extract_expression(glance_df)
   }
@@ -248,11 +214,9 @@ ggcoefstats <- function(
   if (meta.analytic.effect) {
     meta.type <- stats_type_switch(meta.type)
 
-    # frequentist
     subtitle_df <- meta_analysis(tidy_df, type = meta.type, digits = digits)
     subtitle <- .extract_expression(subtitle_df)
 
-    # Bayesian
     if (meta.type == "parametric" && bf.message) {
       caption_df <- suppressWarnings(meta_analysis(tidy_df, type = "bayes", digits = digits))
       caption <- .extract_expression(caption_df)
@@ -275,7 +239,6 @@ ggcoefstats <- function(
       )
   }
 
-  # adding the vertical line
   if (vline) plot_coef <- plot_coef + exec(geom_vline, xintercept = 0, !!!vline.args)
 
   # ggrepel labels -------------------------
@@ -296,7 +259,7 @@ ggcoefstats <- function(
       )
   }
 
-  # annotations -------------------------
+  # annotations ---------------------------------------------
 
   plot_coef +
     labs(
@@ -308,4 +271,35 @@ ggcoefstats <- function(
     ) +
     ggtheme +
     theme(plot.caption = element_text(size = 10))
+}
+
+
+#' @noRd
+.preprocess_tidy_data <- function(data, sort) {
+  if (is.null(data) || !"estimate" %in% names(data)) {
+    rlang::abort("The tidy data frame *must* contain 'estimate' column.")
+  }
+
+  # create a new term column if it's not present
+  if (!"term" %in% names(data)) data %<>% mutate(term = paste0("term_", row_number()))
+
+  # check if there are repeated terms (relevant for `maov`, `lqm`, etc.)
+  if (anyDuplicated(data$term)) {
+    data %<>%
+      tidyr::unite(
+        col    = "term",
+        matches("term|variable|parameter|method|curve|response|component|contrast|group"),
+        remove = TRUE,
+        sep    = "_"
+      )
+  }
+
+  # halt if there are still repeated terms
+  if (anyDuplicated(data$term)) rlang::abort("Elements in `term` column must be unique.")
+
+  data %<>% parameters::sort_parameters(sort = sort, column = "estimate")
+
+  # `term` needs to be a factor column; otherwise, ggplot2 will sort the `x`-axis
+  # labels alphabetically and terms won't appear in the expected order
+  data %>% dplyr::mutate(term = factor(term, data$term))
 }

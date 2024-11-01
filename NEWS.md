@@ -1,4 +1,4 @@
-# ggstatsplot 0.12.4
+# ggstatsplot 0.12.5
 
 N.B. All statistical analysis in `{ggstatsplot}` is carried out in
 `{statsExpressions}`. Thus, to see changes related to statistical expressions,
@@ -7,9 +7,29 @@ read the `NEWS` for that package:
 
 ## MAJOR CHANGES
 
-- The feature to superimpose normality curve on a histogram (in `gghistostats()`) has been removed. 
-  This feature always felt like an ad hoc addition to the plot, and has nothing to do with the key
-  statistical analysis in question (which is not about checking the normality of the distribution).
+- `extract_stats()` returns a list of class `ggstatsplot_stats` which
+  contains all the statistical summaries and expressions for a given plot.
+  
+- `extract_stats()`, `extract_subtitle()`, `extract_caption()` now works 
+  out of the box for the grouped plots as well.
+
+## BUG FIXES
+
+- `ggpiestats()` and `ggbarstats()` now respect `ratio()` argument for
+  proportion tests run in case of two-way contingency tables (#818).
+
+## MINOR CHANGES
+
+- Unused dataset has been removed: `bugs_wide`.
+
+# ggstatsplot 0.12.4
+
+## MAJOR CHANGES
+
+- The feature to superimpose normality curve on a histogram (in
+  `gghistostats()`) has been removed. This feature always felt like an ad hoc
+  addition to the plot, and has nothing to do with the key statistical analysis
+  in question (which is not about checking the normality of the distribution).
 
 ## MINOR CHANGES
 
@@ -17,7 +37,8 @@ read the `NEWS` for that package:
 
 ## BUG FIXES
 
-- Empty groups in factors are no longer dropped in `ggpiestats()` and `ggbarstats()` (#935).
+- Empty groups in factors are no longer dropped in `ggpiestats()` and
+  `ggbarstats()` (#935).
 
 # ggstatsplot 0.12.3
 

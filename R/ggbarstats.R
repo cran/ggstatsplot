@@ -13,8 +13,8 @@
 #'
 #' @inheritParams ggpiestats
 #' @inheritParams ggbetweenstats
-#' @param sample.size.label.args Additional aesthetic arguments that will be passed to
-#'   `ggplot2::geom_text()`.
+#' @param sample.size.label.args Additional aesthetic arguments that will be
+#'   passed to [`ggplot2::geom_text()`].
 #'
 #' @inheritSection statsExpressions::contingency_table Contingency table analyses
 #'
@@ -121,7 +121,7 @@ ggbarstats <- function(
   descriptive_df <- descriptive_data(data, {{ x }}, {{ y }}, label, digits.perc)
 
   # data frame containing all details needed for prop test
-  onesample_df <- onesample_data(data, {{ x }}, {{ y }}, digits)
+  onesample_df <- onesample_data(data, {{ x }}, {{ y }}, digits, ratio)
 
   # if no. of factor levels is greater than the default palette color count
   .is_palette_sufficient(package, palette, nlevels(pull(data, {{ x }})))
