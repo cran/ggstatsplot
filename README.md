@@ -27,10 +27,10 @@ makes data exploration simpler and faster.
 
 ## Installation
 
-| Type | Source | Command |
-|----|----|----|
-| Release | [![CRAN Status](https://www.r-pkg.org/badges/version/ggstatsplot)](https://cran.r-project.org/package=ggstatsplot) | `install.packages("ggstatsplot")` |
-| Development | [![Project Status](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/##active) | `pak::pak("IndrajeetPatil/ggstatsplot")` |
+| Type        | Command                                  |
+|:------------|:-----------------------------------------|
+| Release     | `install.packages("ggstatsplot")`        |
+| Development | `pak::pak("IndrajeetPatil/ggstatsplot")` |
 
 ## Citation
 
@@ -89,9 +89,9 @@ To see the detailed documentation for each function in the stable
 
 - [Publication](https://joss.theoj.org/papers/10.21105/joss.03167)
 
-- [Vignettes](https://indrajeetpatil.github.io/ggstatsplot/articles/)
+- [Presentation](https://indrajeetpatil.github.io/intro-to-ggstatsplot/#/ggstatsplot-informative-statistical-visualizations)
 
-- [Presentation](https://indrajeetpatil.github.io/ggstatsplot_slides/slides/ggstatsplot_presentation.html#1)
+- [Vignettes](https://indrajeetpatil.github.io/ggstatsplot/articles/)
 
 ## Summary of available plots
 
@@ -626,36 +626,10 @@ For more, also read the following vignette:
 ### `ggcoefstats()`
 
 The function `ggcoefstats()` generates **dot-and-whisker plots** for
-regression models saved in a tidy data frame. The tidy data frames are
-prepared using `parameters::model_parameters()`. Additionally, if
-available, the model summary indices are also extracted from
+regression models. The tidy data frames are prepared using
+`parameters::model_parameters()`. Additionally, if available, the model
+summary indices are also extracted from
 `performance::model_performance()`.
-
-Although the statistical models displayed in the plot may differ based
-on the class of models being investigated, there are few aspects of the
-plot that will be invariant across models:
-
-- The dot-whisker plot contains a dot representing the **estimate** and
-  their **confidence intervals** (`95%` is the default). The estimate
-  can either be effect sizes (for tests that depend on the
-  `F`-statistic) or regression coefficients (for tests with `t`-,
-  $`\chi^{2}`$-, and `z`-statistic), etc. The function will, by default,
-  display a helpful `x`-axis label that should clear up what estimates
-  are being displayed. The confidence intervals can sometimes be
-  asymmetric if bootstrapping was used.
-
-- The label attached to dot will provide more details from the
-  statistical test carried out and it will typically contain estimate,
-  statistic, and *p*-value.e
-
-- The caption will contain diagnostic information, if available, about
-  models that can be useful for model selection: The smaller the
-  Akaike’s Information Criterion (**AIC**) and the Bayesian Information
-  Criterion (**BIC**) values, the “better” the model is.
-
-- The output of this function will be a `{ggplot2}` object and, thus, it
-  can be further modified (e.g. change themes) with `{ggplot2}`
-  functions.
 
 ``` r
 set.seed(123)

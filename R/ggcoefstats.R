@@ -7,6 +7,30 @@
 #' confidence interval whiskers and other statistical details included as
 #' labels.
 #'
+#'  Although the statistical models displayed in the plot may differ based on the
+#'  class of models being investigated, there are few aspects of the plot that will
+#'  be invariant across models:
+#'
+#'   - The dot-whisker plot contains a dot representing the **estimate** and their
+#'     **confidence intervals** (`95%` is the default). The estimate can either be
+#'     effect sizes (for tests that depend on the `F`-statistic) or regression
+#'     coefficients (for tests with `t`-, `chi^2`-, and `z`-statistic), etc. The
+#'     function will, by default, display a helpful `x`-axis label that should
+#'     clear up what estimates are being displayed. The confidence intervals can
+#'     sometimes be asymmetric if bootstrapping was used.
+#'
+#'   - The label attached to dot will provide more details from the statistical
+#'     test carried out and it will typically contain estimate, statistic, and
+#'     *p*-value.
+#'
+#'   - The caption will contain diagnostic information, if available, about
+#'     models that can be useful for model selection: The smaller the Akaike's
+#'     Information Criterion (**AIC**) and the Bayesian Information Criterion
+#'     (**BIC**) values, the "better" the model is.
+#'
+#'   - The output of this function will be a `{ggplot2}` object and, thus,
+#'     it can be further modified (e.g. change themes) with `{ggplot2}`.
+#'
 #' @section Summary of graphics:
 #'
 #' ```{r child="man/rmd-fragments/ggcoefstats_graphics.Rmd"}
@@ -113,39 +137,40 @@
 #' ggcoefstats(lmer(Reaction ~ Days + (Days | Subject), sleepstudy), effects = "fixed")
 #' @export
 ggcoefstats <- function(
-    x,
-    statistic = NULL,
-    conf.int = TRUE,
-    conf.level = 0.95,
-    digits = 2L,
-    exclude.intercept = FALSE,
-    effectsize.type = "eta",
-    meta.analytic.effect = FALSE,
-    meta.type = "parametric",
-    bf.message = TRUE,
-    sort = "none",
-    xlab = NULL,
-    ylab = NULL,
-    title = NULL,
-    subtitle = NULL,
-    caption = NULL,
-    only.significant = FALSE,
-    point.args = list(size = 3.0, color = "blue", na.rm = TRUE),
-    errorbar.args = list(height = 0, na.rm = TRUE),
-    vline = TRUE,
-    vline.args = list(linewidth = 1.0, linetype = "dashed"),
-    stats.labels = TRUE,
-    stats.label.color = NULL,
-    stats.label.args = list(
-      size = 3.0,
-      direction = "y",
-      min.segment.length = 0,
-      na.rm = TRUE
-    ),
-    package = "RColorBrewer",
-    palette = "Dark2",
-    ggtheme = ggstatsplot::theme_ggstatsplot(),
-    ...) {
+  x,
+  statistic = NULL,
+  conf.int = TRUE,
+  conf.level = 0.95,
+  digits = 2L,
+  exclude.intercept = FALSE,
+  effectsize.type = "eta",
+  meta.analytic.effect = FALSE,
+  meta.type = "parametric",
+  bf.message = TRUE,
+  sort = "none",
+  xlab = NULL,
+  ylab = NULL,
+  title = NULL,
+  subtitle = NULL,
+  caption = NULL,
+  only.significant = FALSE,
+  point.args = list(size = 3.0, color = "blue", na.rm = TRUE),
+  errorbar.args = list(height = 0, na.rm = TRUE),
+  vline = TRUE,
+  vline.args = list(linewidth = 1.0, linetype = "dashed"),
+  stats.labels = TRUE,
+  stats.label.color = NULL,
+  stats.label.args = list(
+    size = 3.0,
+    direction = "y",
+    min.segment.length = 0,
+    na.rm = TRUE
+  ),
+  package = "RColorBrewer",
+  palette = "Dark2",
+  ggtheme = ggstatsplot::theme_ggstatsplot(),
+  ...
+) {
   # model check -------------------------
 
   # if a data frame is entered then `statistic` is necessary to create labels
@@ -173,7 +198,7 @@ ggcoefstats <- function(
     if (all(c("df", "df.error") %in% names(tidy_df))) tidy_df %<>% mutate(effectsize = paste0("partial ", effectsize.type, "-squared"))
   }
 
-  tidy_df <- .preprocess_tidy_data(tidy_df, sort)
+  tidy_df <- .preprocess_tidy_data(tidy_df, sort) %>% dplyr::filter(!is.na(estimate))
 
   # if tidy data frame doesn't contain p-value or statistic column, no label
   if (!(all(c("p.value", "statistic") %in% names(tidy_df)))) stats.labels <- FALSE
