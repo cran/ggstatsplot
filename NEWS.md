@@ -1,23 +1,38 @@
-# ggstatsplot 0.13.0
+# ggstatsplot 0.13.1
 
 N.B. All statistical analysis in `{ggstatsplot}` is carried out in
 `{statsExpressions}`. Thus, to see changes related to statistical expressions,
 read the `NEWS` for that package:
 <https://indrajeetpatil.github.io/statsExpressions/news/index.html>
 
+## MAJOR CHANGES
+
+- The license for the package has been changed from `GPL-3` to `MIT`.
+
+- `ggdotplotstats()` displays uncertainty (confidence intervals) for the
+  centrality measure estimates in the plot. This is controlled by the `conf.int`
+  argument. The default is `TRUE`, which means that the confidence intervals are
+  displayed. If you do not want to display them, set `conf.int = FALSE`.
+
+# ggstatsplot 0.13.0
+
 ## BREAKING CHANGES
 
 - The minimum needed R version is now bumped to `R 4.3`.
+
+## MINOR CHANGES
+
+- Fixes failing tests due to `{easystats}` package updates.
 
 # ggstatsplot 0.12.5
 
 ## MAJOR CHANGES
 
-- `extract_stats()` returns a list of class `ggstatsplot_stats` which
-  contains all the statistical summaries and expressions for a given plot.
-  
-- `extract_stats()`, `extract_subtitle()`, `extract_caption()` now works 
-  out of the box for the grouped plots as well.
+- `extract_stats()` returns a list of class `ggstatsplot_stats` which contains
+  all the statistical summaries and expressions for a given plot.
+
+- `extract_stats()`, `extract_subtitle()`, `extract_caption()` now works out of
+  the box for the grouped plots as well.
 
 ## BUG FIXES
 
