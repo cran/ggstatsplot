@@ -1,7 +1,7 @@
 Type: Package
 Package: ggstatsplot
 Title: 'ggplot2' Based Plots with Statistical Details
-Version: 0.13.1
+Version: 0.13.2
 Authors@R: 
     c(person(given = "Indrajeet",
              family = "Patil",
@@ -29,13 +29,13 @@ URL: https://indrajeetpatil.github.io/ggstatsplot/,
         https://github.com/IndrajeetPatil/ggstatsplot
 BugReports: https://github.com/IndrajeetPatil/ggstatsplot/issues
 Depends: R (>= 4.3.0)
-Imports: correlation (>= 0.8.7), datawizard (>= 1.1.0), dplyr (>=
-        1.1.4), ggcorrplot (>= 0.1.4.1), ggplot2 (>= 3.5.2), ggrepel
-        (>= 0.9.6), ggside (>= 0.3.1), ggsignif (>= 0.6.4), glue (>=
-        1.8.0), insight (>= 1.2.0), paletteer (>= 1.6.0), parameters
-        (>= 0.25.0), patchwork (>= 1.3.0), performance (>= 0.13.0),
-        purrr (>= 1.0.4), rlang (>= 1.1.6), statsExpressions (>=
-        1.7.0), tidyr (>= 1.3.1), utils
+Imports: correlation (>= 0.8.8), datawizard (>= 1.2.0), dplyr (>=
+        1.1.4), ggcorrplot (>= 0.1.4.1), ggplot2 (>= 4.0.0), ggrepel
+        (>= 0.9.6), ggside (>= 0.3.2), ggsignif (>= 0.6.4), glue (>=
+        1.8.0), insight (>= 1.4.2), magrittr (>= 2.0.3), paletteer (>=
+        1.6.0), parameters (>= 0.28.2), patchwork (>= 1.3.2),
+        performance (>= 0.15.1), purrr (>= 1.1.0), rlang (>= 1.1.6),
+        statsExpressions (>= 1.7.1), tidyr (>= 1.3.1), utils
 Suggests: afex, bayestestR, BayesFactor (>= 0.9.12-4.7), gapminder,
         knitr, lme4 (>= 1.1-37), MASS, metaBMA, metafor, metaplus,
         psych, rmarkdown, rstantools, stats, survival, testthat (>=
@@ -44,15 +44,15 @@ VignetteBuilder: knitr
 Encoding: UTF-8
 Language: en-US
 LazyData: true
-RoxygenNote: 7.3.2.9000
+RoxygenNote: 7.3.3
 Config/testthat/edition: 3
 Config/testthat/parallel: true
 Config/Needs/check: anthonynorth/roxyglobals
 Config/roxyglobals/unique: TRUE
 NeedsCompilation: no
-Packaged: 2025-05-09 23:23:17 UTC; indrajeetpatil
+Packaged: 2025-09-11 15:32:55 UTC; indrajeetpatil
 Author: Indrajeet Patil [cre, aut, cph] (ORCID:
     <https://orcid.org/0000-0003-1995-6531>),
   Chuck Powell [ctb] (ORCID: <https://orcid.org/0000-0002-3606-2188>)
 Repository: CRAN
-Date/Publication: 2025-05-09 23:40:02 UTC
+Date/Publication: 2025-09-11 16:50:08 UTC
