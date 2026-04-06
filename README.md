@@ -14,7 +14,7 @@
 > clear portrayal of complexity. Not the complication of the simple;
 > rather … the revelation of the complex.” - Edward R. Tufte
 
-[`{ggstatsplot}`](https://indrajeetpatil.github.io/ggstatsplot/) is an
+[`{ggstatsplot}`](https://www.indrapatil.com/ggstatsplot/) is an
 extension of [`{ggplot2}`](https://github.com/tidyverse/ggplot2) package
 for creating graphics with details from statistical tests included in
 the information-rich plots themselves. In a typical exploratory data
@@ -89,9 +89,9 @@ To see the detailed documentation for each function in the stable
 
 - [Publication](https://joss.theoj.org/papers/10.21105/joss.03167)
 
-- [Presentation](https://indrajeetpatil.github.io/intro-to-ggstatsplot/#/ggstatsplot-informative-statistical-visualizations)
+- [Presentation](https://www.indrapatil.com/intro-to-ggstatsplot/#/ggstatsplot-informative-statistical-visualizations)
 
-- [Vignettes](https://indrajeetpatil.github.io/ggstatsplot/articles/)
+- [Vignettes](https://www.indrapatil.com/ggstatsplot/articles/)
 
 ## Summary of available plots
 
@@ -152,7 +152,7 @@ example, here are results from Yuen’s test for trimmed means (robust
 Statistical analysis is carried out by `{statsExpressions}` package, and
 thus a summary table of all the statistical tests currently supported
 across various functions can be found in article for that package:
-<https://indrajeetpatil.github.io/statsExpressions/articles/stats_details.html>
+<https://www.indrapatil.com/statsExpressions/articles/stats_details.html>
 
 ## Primary functions
 
@@ -210,10 +210,10 @@ grouped_ggbetweenstats(
 Details about underlying functions used to create graphics and
 statistical tests carried out can be found in the function
 documentation:
-<https://indrajeetpatil.github.io/ggstatsplot/reference/ggbetweenstats.html>
+<https://www.indrapatil.com/ggstatsplot/reference/ggbetweenstats.html>
 
 For more, also read the following vignette:
-<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggbetweenstats.html>
+<https://www.indrapatil.com/ggstatsplot/articles/web_only/ggbetweenstats.html>
 
 ### `ggwithinstats()`
 
@@ -271,10 +271,10 @@ grouped_ggwithinstats(
 Details about underlying functions used to create graphics and
 statistical tests carried out can be found in the function
 documentation:
-<https://indrajeetpatil.github.io/ggstatsplot/reference/ggwithinstats.html>
+<https://www.indrapatil.com/ggstatsplot/reference/ggwithinstats.html>
 
 For more, also read the following vignette:
-<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggwithinstats.html>
+<https://www.indrapatil.com/ggstatsplot/articles/web_only/ggwithinstats.html>
 
 ### `gghistostats()`
 
@@ -327,10 +327,10 @@ grouped_gghistostats(
 Details about underlying functions used to create graphics and
 statistical tests carried out can be found in the function
 documentation:
-<https://indrajeetpatil.github.io/ggstatsplot/reference/gghistostats.html>
+<https://www.indrapatil.com/ggstatsplot/reference/gghistostats.html>
 
 For more, also read the following vignette:
-<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/gghistostats.html>
+<https://www.indrapatil.com/ggstatsplot/articles/web_only/gghistostats.html>
 
 ### `ggdotplotstats()`
 
@@ -385,10 +385,10 @@ grouped_ggdotplotstats(
 Details about underlying functions used to create graphics and
 statistical tests carried out can be found in the function
 documentation:
-<https://indrajeetpatil.github.io/ggstatsplot/reference/ggdotplotstats.html>
+<https://www.indrapatil.com/ggstatsplot/reference/ggdotplotstats.html>
 
 For more, also read the following vignette:
-<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggdotplotstats.html>
+<https://www.indrapatil.com/ggstatsplot/articles/web_only/ggdotplotstats.html>
 
 ### `ggscatterstats()`
 
@@ -440,10 +440,10 @@ grouped_ggscatterstats(
 Details about underlying functions used to create graphics and
 statistical tests carried out can be found in the function
 documentation:
-<https://indrajeetpatil.github.io/ggstatsplot/reference/ggscatterstats.html>
+<https://www.indrapatil.com/ggstatsplot/reference/ggscatterstats.html>
 
 For more, also read the following vignette:
-<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggscatterstats.html>
+<https://www.indrapatil.com/ggstatsplot/articles/web_only/ggscatterstats.html>
 
 ### `ggcorrmat`
 
@@ -496,10 +496,10 @@ grouped_ggcorrmat(
 Details about underlying functions used to create graphics and
 statistical tests carried out can be found in the function
 documentation:
-<https://indrajeetpatil.github.io/ggstatsplot/reference/ggcorrmat.html>
+<https://www.indrapatil.com/ggstatsplot/reference/ggcorrmat.html>
 
 For more, also read the following vignette:
-<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html>
+<https://www.indrapatil.com/ggstatsplot/articles/web_only/ggcorrmat.html>
 
 ### `ggpiestats()`
 
@@ -558,10 +558,10 @@ grouped_ggpiestats(
 Details about underlying functions used to create graphics and
 statistical tests carried out can be found in the function
 documentation:
-<https://indrajeetpatil.github.io/ggstatsplot/reference/ggpiestats.html>
+<https://www.indrapatil.com/ggstatsplot/reference/ggpiestats.html>
 
 For more, also read the following vignette:
-<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html>
+<https://www.indrapatil.com/ggstatsplot/articles/web_only/ggpiestats.html>
 
 ### `ggbarstats()`
 
@@ -618,10 +618,10 @@ grouped_ggbarstats(
 Details about underlying functions used to create graphics and
 statistical tests carried out can be found in the function
 documentation:
-<https://indrajeetpatil.github.io/ggstatsplot/reference/ggbarstats.html>
+<https://www.indrapatil.com/ggstatsplot/reference/ggbarstats.html>
 
 For more, also read the following vignette:
-<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggbarstats.html>
+<https://www.indrapatil.com/ggstatsplot/articles/web_only/ggbarstats.html>
 
 ### `ggcoefstats()`
 
@@ -650,10 +650,10 @@ ggcoefstats(mod)
 Details about underlying functions used to create graphics and
 statistical tests carried out can be found in the function
 documentation:
-<https://indrajeetpatil.github.io/ggstatsplot/reference/ggcoefstats.html>
+<https://www.indrapatil.com/ggstatsplot/reference/ggcoefstats.html>
 
 For more, also read the following vignette:
-<https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcoefstats.html>
+<https://www.indrapatil.com/ggstatsplot/articles/web_only/ggcoefstats.html>
 
 ### Extracting expressions and data frames with statistical details
 
@@ -668,14 +668,14 @@ p <- ggbetweenstats(mtcars, cyl, mpg)
 
 # extracting expression present in the subtitle
 extract_subtitle(p)
-#> list(italic("F")["Welch"](2, 18.03) == "31.62", italic(p) == 
-#>     "1.27e-06", widehat(omega["p"]^2) == "0.74", CI["95%"] ~ 
+#> list(italic("F")["Welch"](2, 18.03) == "31.62", italic(p) ==
+#>     "1.27e-06", widehat(omega["p"]^2) == "0.74", CI["95%"] ~
 #>     "[" * "0.53", "1.00" * "]", italic("n")["obs"] == "32")
 
 # extracting expression present in the caption
 extract_caption(p)
-#> list(log[e] * (BF["01"]) == "-14.92", widehat(italic(R^"2"))["Bayesian"]^"posterior" == 
-#>     "0.71", CI["95%"]^HDI ~ "[" * "0.57", "0.79" * "]", italic("r")["Cauchy"]^"JZS" == 
+#> list(log[e] * (BF["01"]) == "-14.92", widehat(italic(R^"2"))["Bayesian"]^"posterior" ==
+#>     "0.71", CI["95%"]^HDI ~ "[" * "0.57", "0.79" * "]", italic("r")["Cauchy"]^"JZS" ==
 #>     "0.71")
 
 # a list of tibbles containing statistical analysis summaries
@@ -689,9 +689,9 @@ extract_stats(p)
 #>   <chr>                                                    <chr>         <dbl>
 #> 1 One-way analysis of means (not assuming equal variances) Omega2        0.744
 #>   conf.level conf.low conf.high conf.method conf.distribution n.obs expression
-#>        <dbl>    <dbl>     <dbl> <chr>       <chr>             <int> <list>    
+#>        <dbl>    <dbl>     <dbl> <chr>       <chr>             <int> <list>
 #> 1       0.95    0.531         1 ncp         F                    32 <language>
-#> 
+#>
 #> $caption_data
 #> # A tibble: 6 × 17
 #>   term     pd prior.distribution prior.location prior.scale     bf10
@@ -711,45 +711,45 @@ extract_stats(p)
 #> 5 Bayes factors for linear models       14.9 Bayesian R-squared    0.714  0.0503
 #> 6 Bayes factors for linear models       14.9 Bayesian R-squared    0.714  0.0503
 #>   conf.level conf.low conf.high conf.method n.obs expression
-#>        <dbl>    <dbl>     <dbl> <chr>       <int> <list>    
+#>        <dbl>    <dbl>     <dbl> <chr>       <int> <list>
 #> 1       0.95    0.574     0.788 HDI            32 <language>
 #> 2       0.95    0.574     0.788 HDI            32 <language>
 #> 3       0.95    0.574     0.788 HDI            32 <language>
 #> 4       0.95    0.574     0.788 HDI            32 <language>
 #> 5       0.95    0.574     0.788 HDI            32 <language>
 #> 6       0.95    0.574     0.788 HDI            32 <language>
-#> 
+#>
 #> $pairwise_comparisons_data
 #> # A tibble: 3 × 9
 #>   group1 group2 statistic   p.value alternative distribution p.adjust.method
-#>   <chr>  <chr>      <dbl>     <dbl> <chr>       <chr>        <chr>          
-#> 1 4      6          -6.67 0.00110   two.sided   q            Holm           
-#> 2 4      8         -10.7  0.0000140 two.sided   q            Holm           
-#> 3 6      8          -7.48 0.000257  two.sided   q            Holm           
+#>   <chr>  <chr>      <dbl>     <dbl> <chr>       <chr>        <chr>
+#> 1 4      6          -6.67 0.00110   two.sided   q            Holm
+#> 2 4      8         -10.7  0.0000140 two.sided   q            Holm
+#> 3 6      8          -7.48 0.000257  two.sided   q            Holm
 #>   test         expression
-#>   <chr>        <list>    
+#>   <chr>        <list>
 #> 1 Games-Howell <language>
 #> 2 Games-Howell <language>
 #> 3 Games-Howell <language>
-#> 
+#>
 #> $descriptive_data
 #> NULL
-#> 
+#>
 #> $one_sample_data
 #> NULL
-#> 
+#>
 #> $tidy_data
 #> NULL
-#> 
+#>
 #> $glance_data
 #> NULL
-#> 
+#>
 #> attr(,"class")
 #> [1] "ggstatsplot_stats" "list"
 ```
 
 Note that all of this analysis is carried out by `{statsExpressions}`
-package: <https://indrajeetpatil.github.io/statsExpressions/>
+package: <https://www.indrapatil.com/statsExpressions/>
 
 ### Using `{ggstatsplot}` statistical details with custom plots
 
@@ -840,7 +840,7 @@ Here are some simple ways in which you can contribute (in the increasing
 order of commitment):
 
 - Read and correct any inconsistencies in the
-  [documentation](https://indrajeetpatil.github.io/ggstatsplot/)
+  [documentation](https://www.indrapatil.com/ggstatsplot/)
 - Raise issues about bugs or wanted features
 - Review code
 - Add new functionality (in the form of new plotting functions or

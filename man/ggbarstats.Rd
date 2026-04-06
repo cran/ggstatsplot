@@ -173,7 +173,7 @@ as a subtitle.
 }
 \details{
 For details, see:
-\url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html}
+\url{https://www.indrapatil.com/ggstatsplot/articles/web_only/ggpiestats.html}
 }
 \section{Summary of graphics}{
 \tabular{lll}{
@@ -247,6 +247,12 @@ p
 
 # extracting details from statistical tests
 extract_stats(p)
+
+# Bayesian analysis
+ggbarstats(mtcars, x = vs, y = cyl, type = "bayes")
+
+# using pre-aggregated data with counts
+ggbarstats(as.data.frame(Titanic), x = Survived, y = Sex, counts = Freq)
 \dontshow{\}) # examplesIf}
 }
 \seealso{

@@ -1,3 +1,9 @@
+# ggstatsplot 0.13.6
+
+## MINOR CHANGES
+
+- No user-facing changes (internal maintenance: dependency updates, CI/CD improvements).
+
 # ggstatsplot 0.13.5
 
 ## MINOR CHANGES
@@ -9,7 +15,7 @@
 N.B. All statistical analysis in `{ggstatsplot}` is carried out in
 `{statsExpressions}`. Thus, to see changes related to statistical expressions,
 read the `NEWS` for that package:
-<https://indrajeetpatil.github.io/statsExpressions/news/index.html>
+<https://www.indrapatil.com/statsExpressions/news/index.html>
 
 ## MINOR CHANGES
 
@@ -524,7 +530,7 @@ read the `NEWS` for that package:
 
   - `ggpiestats` and `ggbarstats` don't support returning dataframes. See FAQ
     vignette on how to get these dataframes:
-    <https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/faq.html#faq-1>
+    <https://www.indrapatil.com/ggstatsplot/articles/web_only/faq.html#faq-1>
 
   - `ggpiestats` and `ggbarstats` were not supposed to support returning Bayes
     Factor for paired contingency table analysis, which is not supported in
@@ -1057,7 +1063,7 @@ This uncoupling is designed to achieve two things:
     was retained for a while for backward compatibility.
 
 # ggstatsplot 0.0.11
- 
+
 ## BREAKING CHANGES
 
   - Instead of having two separate functions that dealt with repeated measures
@@ -1355,7 +1361,7 @@ This uncoupling is designed to achieve two things:
 
   - All vignettes have been removed from `CRAN` to reduce the size of the
     package. They are now available on the package website:
-    <https://indrajeetpatil.github.io/ggstatsplot/articles/>.
+    <https://www.indrapatil.com/ggstatsplot/articles/>.
 
   - `subtitle_t_robust` function can now handle dependent samples and gains
     `paired` argument.

@@ -165,7 +165,7 @@ as a subtitle.
 }
 \details{
 For details, see:
-\url{https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggpiestats.html}
+\url{https://www.indrapatil.com/ggstatsplot/articles/web_only/ggpiestats.html}
 }
 \section{Summary of graphics}{
 \tabular{lll}{
@@ -241,6 +241,21 @@ extract_stats(p)
 
 # association test (or contingency table analysis)
 ggpiestats(mtcars, vs, cyl)
+
+# Bayesian test
+ggpiestats(mtcars, vs, cyl, type = "bayes")
+
+# with repelled labels to avoid overlapping
+ggpiestats(mtcars, vs, label.repel = TRUE)
+
+# show counts instead of percentages
+ggpiestats(mtcars, vs, label = "counts")
+
+# show both counts and percentages
+ggpiestats(mtcars, vs, label = "both")
+
+# using pre-aggregated data with counts
+ggpiestats(as.data.frame(Titanic), Survived, counts = Freq)
 \dontshow{\}) # examplesIf}
 }
 \seealso{
