@@ -8,6 +8,9 @@
 | [![R build status](https://github.com/IndrajeetPatil/ggstatsplot/workflows/R-CMD-check/badge.svg)](https://github.com/IndrajeetPatil/ggstatsplot) | [![Total downloads](https://cranlogs.r-pkg.org/badges/grand-total/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot) | [![codecov](https://codecov.io/gh/IndrajeetPatil/ggstatsplot/branch/main/graph/badge.svg?token=ddrxwt0bj8)](https://app.codecov.io/gh/IndrajeetPatil/ggstatsplot) |
 | [![lifecycle](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html) | [![Daily downloads](https://cranlogs.r-pkg.org/badges/last-day/ggstatsplot?color=blue)](https://CRAN.R-project.org/package=ggstatsplot) | [![DOI](https://joss.theoj.org/papers/10.21105/joss.03167/status.svg)](https://doi.org/10.21105/joss.03167) |
 
+> [!NOTE]
+> This package supports R-devel, the current R release, and the previous R release.
+
 ## Raison d’être <img src="man/figures/logo.png" alt="ggstatsplot package logo" align="right" width="360" />
 
 > “What is to be sought in designs for the display of information is the
@@ -824,7 +827,8 @@ too complicated for effectively communicating results in
 time-constrained presentation settings, e.g. conference talks.)
 
 ❌ the only game in town<br> ✅ (GUI software alternatives:
-[JASP](https://jasp-stats.org/) and [jamovi](https://www.jamovi.org/)).
+[JASP](https://github.com/jasp-stats/jasp-desktop) and
+[jamovi](https://www.jamovi.org/)).
 
 ## Extensions
 
@@ -832,25 +836,3 @@ In case you use the GUI software [`jamovi`](https://www.jamovi.org/),
 you can install a module called
 [`jjstatsplot`](https://github.com/sbalci/jjstatsplot), which is a
 wrapper around `{ggstatsplot}`.
-
-## Contributing
-
-I’m happy to receive bug reports, suggestions, questions, and (most of
-all) contributions to fix problems and add features. I personally prefer
-using the `GitHub` issues system over trying to reach out to me in other
-ways (personal e-mail, Twitter, etc.). Pull Requests for contributions
-are encouraged.
-
-Here are some simple ways in which you can contribute (in the increasing
-order of commitment):
-
-- Read and correct any inconsistencies in the
-  [documentation](https://www.indrapatil.com/ggstatsplot/)
-- Raise issues about bugs or wanted features
-- Review code
-- Add new functionality (in the form of new plotting functions or
-  helpers for preparing subtitles)
-
-Please note that this project is released with a [Contributor Code of
-Conduct](https://www.contributor-covenant.org/version/3/0/code_of_conduct/).
-By participating in this project you agree to abide by its terms.

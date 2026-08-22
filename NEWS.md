@@ -1,3 +1,10 @@
+# ggstatsplot 1.1.0
+
+## MINOR CHANGES
+
+- The minimum supported R version is now 4.5. The project supports R-devel,
+  the current R release, and the previous R release.
+
 # ggstatsplot 1.0.0
 
 ## NEW FEATURES
@@ -800,7 +807,7 @@ read the `NEWS` for that package:
 
   - For changes related to subtitle details, see changes made in new version of
     `statsExpressions 4.0.0`:
-    <https://CRAN.R-project.org/package=statsExpressions/news/news.html>
+    <https://www.indrapatil.com/statsExpressions/news/index.html>
 
   - `ggbetweenstats` and `ggwithinstats` no longer print dataframes containing
     results from pairwise comparisons tests because this is too cluttering for

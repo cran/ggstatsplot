@@ -1,17 +1,3 @@
-# data for paired tests
-set.seed(123)
-survey_data <- dplyr::tibble(
-  `1st survey` = c("Approve", "Approve", "Disapprove", "Disapprove"),
-  `2nd survey` = c("Approve", "Disapprove", "Approve", "Disapprove"),
-  Counts = c(794L, 150L, 86L, 570L)
-)
-
-survey_data_NA <- dplyr::tibble(
-  `1st survey` = c("Approve", "Approve", "Disapprove", "Disapprove"),
-  `2nd survey` = c("Approve", "Disapprove", "Approve", "Disapprove"),
-  Counts = c(794L, 150L, NA_integer_, 570L)
-)
-
 # checking default outputs -----------------------------------------
 
 test_that("checking default outputs", {
@@ -181,7 +167,7 @@ test_that("pairwise comparisons data is returned for 3+ groups", {
   set.seed(123)
   stats_data <- extract_stats(ggpiestats(mtcars, cyl, am))
   expect_s3_class(stats_data$pairwise_comparisons_data, "tbl_df")
-  expect_identical(nrow(stats_data$pairwise_comparisons_data), 3L)
+  expect_shape(stats_data$pairwise_comparisons_data, nrow = 3L)
   expect_true(all(
     c("group1", "group2", "p.value") %in%
       names(stats_data$pairwise_comparisons_data)
@@ -193,7 +179,7 @@ test_that("pairwise comparisons data is returned for 3+ groups", {
     ggpiestats(mtcars, cyl, am, p.adjust.method = "bonferroni")
   )
   expect_s3_class(stats_bonf$pairwise_comparisons_data, "tbl_df")
-  expect_identical(nrow(stats_bonf$pairwise_comparisons_data), 3L)
+  expect_shape(stats_bonf$pairwise_comparisons_data, nrow = 3L)
 
   # 2 levels: no pairwise data
   set.seed(123)
