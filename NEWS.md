@@ -1,3 +1,10 @@
+# ggstatsplot 1.1.1
+
+## MINOR CHANGES
+
+- Pairwise significance brackets are now positioned correctly above outcomes
+  whose values are all negative.
+
 # ggstatsplot 1.1.0
 
 ## MINOR CHANGES
