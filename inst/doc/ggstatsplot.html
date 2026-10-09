@@ -369,6 +369,7 @@ The ‘ggstatsplot’ approach</h1>
 Need</a></li>
 <li><a href="#benefits" id="toc-benefits">Benefits</a></li>
 <li><a href="#future-scope" id="toc-future-scope">Future Scope</a></li>
+<li><a href="#learn-more" id="toc-learn-more">Learn More</a></li>
 <li><a href="#licensing-and-availability" id="toc-licensing-and-availability">Licensing and Availability</a></li>
 <li><a href="#acknowledgements" id="toc-acknowledgements">Acknowledgements</a></li>
 <li><a href="#references" id="toc-references">References</a></li>
@@ -443,7 +444,7 @@ hypothesis testing, Bayesian posterior estimate and its uncertainty.
 Moreover, these details are juxtaposed with informative and well-labeled
 visualizations. The defaults are designed to follow best practices in
 both data visualization <span class="citation">(<a href="#ref-cleveland1985">Cleveland, 1985</a>; <a href="#ref-grant2018data">Grant, 2018</a>; <a href="#ref-healy2018data">Healy, 2018</a>; <a href="#ref-tufte2001">Tufte, 2001</a>; <a href="#ref-wilke2019fundamentals">Wilke, 2019</a>)</span> and
-(frequentist/Bayesian) statistical reporting <span class="citation">(<a href="#ref-apa2019">American Psychological Association, 2019</a>; <a href="#ref-van2020jasp">van Doorn et al., 2020</a>)</span>. Without
+(frequentist/Bayesian) statistical reporting <span class="citation">(<a href="#ref-apa2019">American Psychological Association, 2019</a>; <a href="#ref-van2020jasp">van Doorn et al., 2021</a>)</span>. Without
 <code>{ggstatsplot}</code>, getting these statistical details and
 customizing a plot would require significant amount of time and effort.
 In other words, this package removes the trade-off often faced by
@@ -514,10 +515,21 @@ dot-and-whisker plot, pie chart, bar chart, etc.). It will continue
 expanding to support an increasing collection of statistical analyses
 and visualizations.</p>
 </div>
+<div id="learn-more" class="section level1">
+<h1>Learn More</h1>
+<ul>
+<li><p>Articles for each function, frequently asked questions, and other
+topics are available on the package website: <a href="https://www.indrapatil.com/ggstatsplot/articles/" class="uri">https://www.indrapatil.com/ggstatsplot/articles/</a></p></li>
+<li><p>The statistical details displayed in any plot can be retrieved as
+data frames with <code>extract_stats()</code> (and the expressions with
+<code>extract_subtitle()</code> and <code>extract_caption()</code>),
+e.g. <code>extract_stats(ggbetweenstats(iris, Species, Sepal.Length))</code>.</p></li>
+</ul>
+</div>
 <div id="licensing-and-availability" class="section level1">
 <h1>Licensing and Availability</h1>
-<p><code>{ggstatsplot}</code> is licensed under the GNU General Public
-License (v3.0), with all source code stored at <a href="https://github.com/IndrajeetPatil/ggstatsplot/">GitHub</a>. In the
+<p><code>{ggstatsplot}</code> is licensed under the MIT License, with
+all source code stored at <a href="https://github.com/IndrajeetPatil/ggstatsplot/">GitHub</a>. In the
 spirit of honest and open science, requests and suggestions for fixes,
 feature updates, as well as general questions and concerns are
 encouraged via direct interaction with contributors and developers by
@@ -610,9 +622,9 @@ van Doorn, J., van den Bergh, D., Böhm, U., Dablander, F., Derks, K.,
 Draws, T., Etz, A., Evans, N. J., Gronau, Q. F., Haaf, J. M., Hinne, M.,
 Kucharský, Š., Ly, A., Marsman, M., Matzke, D., Gupta, A. R. K. N.,
 Sarafoglou, A., Stefan, A., Voelkel, J. G., &amp; Wagenmakers, E.-J.
-(2020). The JASP guidelines for conducting and reporting a
+(2021). The JASP guidelines for conducting and reporting a
 <span>B</span>ayesian analysis. <em>Psychonomic Bulletin &amp;
-Review</em>, 1–14. <a href="https://doi.org/10.3758/s13423-020-01798-5">https://doi.org/10.3758/s13423-020-01798-5</a>
+Review</em>, <em>28</em>(3), 813–826. <a href="https://doi.org/10.3758/s13423-020-01798-5">https://doi.org/10.3758/s13423-020-01798-5</a>
 </div>
 <div id="ref-Wickham2016" class="csl-entry">
 Wickham, H. (2016). <em><span class="nocase">ggplot2</span>: Elegant
