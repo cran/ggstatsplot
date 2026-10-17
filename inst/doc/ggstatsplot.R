@@ -2,9 +2,6 @@
 source("setup.R")
 
 ## -----------------------------------------------------------------------------
-citation("ggstatsplot")
-
-## -----------------------------------------------------------------------------
 try({
 
 ggbetweenstats(iris, Species, Sepal.Length)
@@ -12,4 +9,7 @@ ggbetweenstats(iris, Species, Sepal.Length)
 
 ## -----------------------------------------------------------------------------
 knitr::include_graphics("../man/figures/stats_reporting_format.png")
+
+## -----------------------------------------------------------------------------
+citation("ggstatsplot")
 

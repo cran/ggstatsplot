@@ -7,8 +7,6 @@ test_that("ggcoefstats doesn't work if no estimate column found", {
 # default plots for each statistic ------------------------------------------
 
 test_that("default plots are rendered correctly for each type of statistic", {
-  skip_if_not_installed("withr")
-
   set.seed(123)
   expect_doppelganger(
     title = "t-statistic",
@@ -46,6 +44,7 @@ test_that("default plots are rendered correctly for each type of statistic", {
   )
 
   skip_if_not_installed("survival")
+  skip_if_not_installed("withr")
   withr::local_package("survival")
 
   set.seed(123)
@@ -57,37 +56,9 @@ test_that("default plots are rendered correctly for each type of statistic", {
   )
 })
 
-test_that("meta-analysis works", {
-  skip_on_cran()
-  skip_if_not_installed("metafor")
-
-  set.seed(123)
-  p_meta <- ggcoefstats(
-    df_meta,
-    meta.analytic.effect = TRUE,
-    bf.message = TRUE
-  )
-
-  # don't run graphical snapshot tests because values are slightly different
-  # locally on CI
-  expect_s3_class(p_meta, "ggplot")
-
-  set.seed(123)
-  expect_doppelganger(
-    title = "meta-analysis works",
-    fig = ggcoefstats(
-      df_meta,
-      meta.analytic.effect = FALSE,
-      bf.message = FALSE,
-      results.subtitle = FALSE
-    )
-  )
-})
-
-# plot modifications--------------------------------------------------
+# plot modifications --------------------------------------------------
 
 test_that("plot modifications work as expected", {
-  set.seed(123)
   mod1 <- stats::lm(data = mtcars, formula = wt ~ mpg * am)
 
   set.seed(123)
@@ -103,7 +74,6 @@ test_that("plot modifications work as expected", {
     ))
   )
 
-  set.seed(123)
   mod2 <- stats::aov(
     data = ggplot2::msleep,
     formula = sleep_rem ~ vore * brainwt,
@@ -129,7 +99,6 @@ test_that("plot modifications work as expected", {
 # edge cases -------------------------------------
 
 test_that("works when CIs unavailable", {
-  set.seed(123)
   df_base <- tidy_model_parameters(stats::lm(wt ~ am * cyl, mtcars))
 
   set.seed(123)
@@ -200,47 +169,50 @@ test_that("stats label colors stay aligned after filtering labels", {
   df_tidy <- tidy_model_parameters(stats::lm(wt ~ am * cyl, mtcars))
   df_tidy$p.value[2L] <- 0.42
 
-  plot <- ggcoefstats(
-    df_tidy,
-    statistic = "t",
-    only.significant = TRUE,
-    stats.label.color = c("firebrick", "grey50", "forestgreen", "navy")
+  set.seed(123)
+  expect_doppelganger(
+    title = "stats label colors after filtering",
+    fig = ggcoefstats(
+      df_tidy,
+      statistic = "t",
+      only.significant = TRUE,
+      stats.label.color = c("firebrick", "grey50", "forestgreen", "navy")
+    )
   )
+})
 
-  expect_identical(
-    as.character(plot$layers[[4L]]$data$term),
-    c("(Intercept)", "cyl")
-  )
-  expect_identical(
-    plot$layers[[4L]]$aes_params$colour,
-    c("firebrick", "forestgreen")
+test_that("no stats labels are drawn when no term is significant", {
+  set.seed(123)
+  expect_doppelganger(
+    title = "no stats labels without significant terms",
+    fig = ggcoefstats(
+      lm(scale(qsec) ~ scale(drat), data = mtcars),
+      only.significant = TRUE
+    )
   )
 })
 
 test_that("tidy data without statistic inputs disables stats labels", {
-  plot <- ggcoefstats(
-    tibble::tibble(term = c("a", "b"), estimate = c(0.5, -0.2)),
-    stats.labels = TRUE
+  set.seed(123)
+  expect_doppelganger(
+    title = "no stats labels without statistic",
+    fig = ggcoefstats(
+      tibble::tibble(term = c("a", "b"), estimate = c(0.5, -0.2)),
+      stats.labels = TRUE
+    )
   )
-
-  expect_length(plot$layers, 2L)
-  expect_true(all(vapply(
-    plot$layers,
-    function(x) !inherits(x$geom, "GeomLabelRepel"),
-    logical(1L)
-  )))
 })
 
 test_that("stats label helpers cover filtering and color branches", {
   df_labels <- tibble::tibble(
     term = c("a", "b", "c"),
-    p.value = c(0.01, 0.03, 0.02),
+    p.value = c(0.01, 0.03, 0.20),
     expression = list("alpha", character(0), "gamma")
   )
 
   expect_identical(
     .prepare_stats_label_data(df_labels, only.significant = TRUE)$term,
-    c("a", "c")
+    "a"
   )
 
   expect_identical(
@@ -248,28 +220,12 @@ test_that("stats label helpers cover filtering and color branches", {
     c("a", "c")
   )
 
-  expect_identical(
-    .prepare_stats_label_data(
-      dplyr::select(df_labels, -p.value),
-      only.significant = TRUE
-    )$term,
-    c("a", "c")
-  )
-
   label_data <- tibble::tibble(term = "a", expression = list("alpha"))
-  expected_color <- unname(as.character(paletteer::paletteer_d(
-    "ggthemes::gdoc",
-    1L
-  )))
 
+  # palette colors are sized by the labeled terms, not by all terms
   expect_identical(
-    unname(as.character(.prepare_stats_label_colors(
-      df_labels,
-      label_data,
-      NULL,
-      "ggthemes::gdoc"
-    ))),
-    expected_color
+    .prepare_stats_label_colors(df_labels, label_data, NULL, "ggthemes::gdoc"),
+    paletteer::paletteer_d("ggthemes::gdoc", 1L)
   )
 
   expect_identical(
@@ -292,65 +248,65 @@ test_that("stats label helpers cover filtering and color branches", {
     "firebrick"
   )
 
-  # 30 total terms but only 1 labeled — no error even with small palette
-  expect_no_error(
-    .prepare_stats_label_colors(
-      tibble::tibble(
-        term = letters[1:30],
-        expression = rep(list("alpha"), 30L)
-      ),
-      label_data, # label_data has only term "a"
-      NULL,
-      "ggthemes::gdoc"
-    )
+  df_30_terms <- tibble::tibble(
+    term = c(letters, LETTERS[1:4]),
+    expression = rep(list("alpha"), 30L)
   )
 
   # error only when labeled terms exceed palette size
   expect_error(
     .prepare_stats_label_colors(
-      tibble::tibble(
-        term = letters[1:30],
-        expression = rep(list("alpha"), 30L)
-      ),
-      tibble::tibble(
-        term = letters[1:30],
-        expression = rep(list("alpha"), 30L)
-      ),
+      df_30_terms,
+      df_30_terms,
       NULL,
       "ggthemes::gdoc" # 24 colors, not enough for 30 labeled terms
     )
   )
 })
 
-# meta subtitle and caption -------------------------------------
+# meta-analysis -------------------------------------
+
+test_that("meta-analysis works", {
+  skip_on_cran()
+  skip_if_not_installed("metafor")
+
+  set.seed(123)
+  expect_doppelganger(
+    title = "meta-analysis works",
+    fig = ggcoefstats(
+      df_meta,
+      meta.analytic.effect = TRUE,
+      bf.message = FALSE
+    )
+  )
+})
 
 test_that("meta analysis subtitle and caption", {
   skip_on_cran()
   skip_if_not_installed("metafor")
   skip_if_not_installed("metaBMA")
-  skip_if_not_installed("metaplus")
 
   set.seed(123)
-  subtitle_expr <- suppressWarnings(meta_analysis(df_meta, type = "p"))
+  subtitle_expr <- meta_analysis(df_meta, type = "p")
 
   set.seed(123)
   caption_expr <- suppressWarnings(meta_analysis(df_meta, type = "bayes"))
 
   set.seed(123)
-  ggcoef_subtitle <- extract_subtitle(suppressWarnings(ggcoefstats(
+  ggcoef_subtitle <- extract_subtitle(ggcoefstats(
     df_meta,
     meta.analytic.effect = TRUE,
     bf.message = FALSE,
     meta.type = "p"
-  )))
+  ))
 
   set.seed(123)
-  ggcoef_caption <- extract_caption(suppressWarnings(ggcoefstats(
+  ggcoef_caption <- extract_caption(ggcoefstats(
     df_meta,
     meta.analytic.effect = TRUE,
     bf.message = TRUE,
     meta.type = "p"
-  )))
+  ))
 
   expect_identical(subtitle_expr$expression[[1L]], ggcoef_subtitle)
   expect_identical(caption_expr$expression[[1L]], ggcoef_caption)

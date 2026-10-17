@@ -15,19 +15,19 @@ grouped_ggscatterstats(
 }
 \arguments{
 \item{data}{A data frame (or a tibble) from which variables specified are to
-be taken. Other data types (e.g., matrix,table, array, etc.) will \strong{not}
+be taken. Other data types (e.g., matrix, table, array, etc.) will \strong{not}
 be accepted. Additionally, grouped data frames from \code{{dplyr}} should be
 ungrouped before they are entered as \code{data}.}
 
 \item{...}{
   Arguments passed on to \code{\link{ggscatterstats}}
   \describe{
-    \item{\code{label.var}}{Variable to use for points labels entered as a symbol (e.g.
+    \item{\code{label.var}}{Variable to use for point labels entered as a symbol (e.g.
 \code{var1}).}
     \item{\code{label.expression}}{An expression evaluating to a logical vector that
 determines the subset of data points to label (e.g. \code{y < 4 & z < 20}).
 While using this argument with \code{\link[purrr:pmap]{purrr::pmap()}}, you will have to provide
-a quoted expression  (e.g. \code{quote(y < 4 & z < 20)}).}
+a quoted expression (e.g. \code{quote(y < 4 & z < 20)}).}
     \item{\code{point.label.args}}{A list of additional aesthetic arguments to be passed
 to \code{\link[ggrepel:geom_label_repel]{ggrepel::geom_label_repel()}} geom used to display the labels.}
     \item{\code{smooth.line.args}}{A list of additional aesthetic arguments to be passed
@@ -35,15 +35,16 @@ to \code{\link[ggplot2:geom_smooth]{ggplot2::geom_smooth()}} geom used to displa
 confidence band uses \code{conf.level}.}
     \item{\code{marginal}}{Decides whether marginal distributions will be plotted on
 axes using \code{{ggside}} functions. The default is \code{TRUE}.}
-    \item{\code{point.width.jitter,point.height.jitter}}{Degree of jitter in \code{x} and \code{y}
-direction, respectively. Defaults to \code{0} (0\%) of the resolution of the
-data. Note that the jitter should not be specified in the \code{point.args}
+    \item{\code{point.width.jitter,point.height.jitter}}{Amount of jitter (in data
+units) in \code{x} and \code{y} direction, respectively, passed to
+\code{\link[ggplot2:position_jitter]{ggplot2::position_jitter()}}. Defaults to \code{0} (no jitter). Note that the
+jitter should not be specified in the \code{point.args}
 because this information will be passed to two different \code{geom}s: one
 displaying the \strong{points} and the other displaying the \strong{labels} for
 these points.}
     \item{\code{xsidehistogram.args,ysidehistogram.args}}{A list of arguments passed to
 respective \code{geom_}s from the \code{{ggside}} package to change the marginal
-distribution histograms plots.}
+distribution histograms.}
     \item{\code{xsidehistogram.scale,ysidehistogram.scale}}{A list of arguments passed
 to \code{ggside::scale_xsidey_continuous()} and
 \code{ggside::scale_ysidex_continuous()}, respectively, to control the
@@ -61,7 +62,10 @@ be plotted on the \code{y}-axis.}
 \item \code{"bayes"}
 }
 
-You can specify just the initial letter.}
+You can specify just the initial letter (e.g. \code{"np"} or \code{"bf"}). Matching is
+on the initial lowercase letter only, so any other value (including
+capitalized values such as \code{"Bayes"}) falls back to \code{"parametric"} without a
+warning.}
     \item{\code{digits}}{Number of digits for rounding or significant figures. May also
 be \code{"signif"} to return significant figures or \code{"scientific"}
 to return scientific notation. Control the number of digits by adding the
@@ -69,8 +73,7 @@ value as suffix, e.g. \code{digits = "scientific4"} to have scientific
 notation with 4 decimal places, or \code{digits = "signif5"} for 5
 significant figures (see also \code{\link[=signif]{signif()}}).}
     \item{\code{conf.level}}{Scalar between \code{0} and \code{1} (default: \verb{95\%}
-confidence/credible intervals, \code{0.95}). If \code{NULL}, no confidence intervals
-will be computed.}
+confidence/credible intervals, \code{0.95}).}
     \item{\code{tr}}{Trim level for the mean when carrying out \code{robust} tests. In case
 of an error, try reducing the value of \code{tr}, which is by default set to
 \code{0.2}. Lowering the value might help.}
@@ -82,14 +85,15 @@ of \code{1/2}, \code{sqrt(2)/2}, and \code{1}, respectively. In case of an ANOVA
 value corresponds to scale for fixed effects.}
     \item{\code{xlab}}{Label for \code{x} axis variable. If \code{NULL} (default),
 variable name for \code{x} will be used.}
-    \item{\code{ylab}}{Labels for \code{y} axis variable. If \code{NULL} (default),
+    \item{\code{ylab}}{Label for \code{y} axis variable. If \code{NULL} (default),
 variable name for \code{y} will be used.}
     \item{\code{bf.message}}{Logical that decides whether to display Bayes Factor in
 favor of the \emph{null} hypothesis. This argument is relevant only \strong{for
 parametric test} (Default: \code{TRUE}).}
     \item{\code{results.subtitle}}{Decides whether the results of statistical tests are
-to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
-the plot will be returned.}
+to be displayed as a subtitle (Default: \code{TRUE}). Setting this to \code{FALSE}
+also skips the automatic Bayes Factor caption. See the individual
+annotation arguments to control other plot details.}
     \item{\code{subtitle}}{The text for the plot subtitle. Will work only if
 \code{results.subtitle = FALSE}.}
     \item{\code{caption}}{The text for the plot caption. It will be replaced by the
@@ -105,7 +109,7 @@ be entered as a \code{{ggplot2}} function or a list of \code{{ggplot2}} function
 \code{\link[ggplot2:theme_bw]{ggplot2::theme_bw()}}), or themes from extension packages are allowed
 (e.g., \code{ggthemes::theme_fivethirtyeight()}, \code{hrbrthemes::theme_ipsum_ps()},
 etc.). But note that sometimes these themes will remove some of the details
-that \code{{ggstatsplot}} plots typically contains. For example, if relevant,
+that \code{{ggstatsplot}} plots typically contain. For example, if relevant,
 \code{\link[=ggbetweenstats]{ggbetweenstats()}} shows details about multiple comparison test as a
 label on the secondary Y-axis. Some themes (e.g.
 \code{ggthemes::theme_fivethirtyeight()}) will remove the secondary Y-axis and

@@ -15,13 +15,14 @@ grouped_ggwithinstats(
 }
 \arguments{
 \item{data}{A data frame (or a tibble) from which variables specified are to
-be taken. Other data types (e.g., matrix,table, array, etc.) will \strong{not}
+be taken. Other data types (e.g., matrix, table, array, etc.) will \strong{not}
 be accepted. Additionally, grouped data frames from \code{{dplyr}} should be
 ungrouped before they are entered as \code{data}.}
 
 \item{...}{
   Arguments passed on to \code{\link{ggwithinstats}}
   \describe{
+    \item{\code{x}}{The condition (or repeated-measures) variable from \code{data}.}
     \item{\code{point.path,centrality.path}}{Logical that decides whether individual
 data points and means, respectively, should be connected using
 \code{\link[ggplot2:geom_path]{ggplot2::geom_path()}}. Both default to \code{TRUE}. Note that \code{point.path}
@@ -29,21 +30,22 @@ argument is relevant only when there are two groups (i.e., in case of a
 \emph{t}-test). In case of large number of data points, it is advisable to set
 \code{point.path = FALSE} as these lines can overwhelm the plot.}
     \item{\code{centrality.path.args,point.path.args}}{A list of additional aesthetic
-arguments passed on to \code{\link[ggplot2:geom_path]{ggplot2::geom_path()}} connecting raw data points
-and mean points.}
+arguments passed on to \code{\link[ggplot2:geom_path]{ggplot2::geom_path()}} connecting mean points and
+raw data points, respectively.}
     \item{\code{subject.id}}{Across repeated measures conditions, each row in the
 dataset must correspond to a unique unit (e.g., subject or participant).
 If your data frame is already in such a format, you can ignore the
 \code{subject.id} argument (the function will use row number to pair
 observations). \strong{But if you are not sure, it is always better to specify
-this argument.} Note that if there are any missing values (i.e., \code{NA}) in
-the dependent variable and the \code{subject.id} is not specified, they will be
-dropped using a list-wise approach. If you specify \code{subject.id}, partially
-observed subjects will still be shown in the plot, but inferential
-statistics will be computed using only complete repeated-measures pairs.}
+this argument.} Each subject must appear at most once per level of \code{x}.
+Rows with a missing \code{x} or \code{subject.id} are ignored, and subjects with a
+missing value (i.e., \code{NA}) of the dependent variable in any condition are
+dropped using a list-wise approach (see
+\code{\link[statsExpressions:complete_subjects]{statsExpressions::complete_subjects()}}), so the plot, its labels, and the
+statistical results are all based on the same complete subjects.}
     \item{\code{xlab}}{Label for \code{x} axis variable. If \code{NULL} (default),
 variable name for \code{x} will be used.}
-    \item{\code{ylab}}{Labels for \code{y} axis variable. If \code{NULL} (default),
+    \item{\code{ylab}}{Label for \code{y} axis variable. If \code{NULL} (default),
 variable name for \code{y} will be used.}
     \item{\code{p.adjust.method}}{Adjustment method for \emph{p}-values for multiple
 comparisons. Possible methods are: \code{"holm"} (default), \code{"hochberg"},
@@ -71,13 +73,14 @@ against \emph{p}-values adjusted using \code{p.adjust.method}.}
 favor of the \emph{null} hypothesis. This argument is relevant only \strong{for
 parametric test} (Default: \code{TRUE}).}
     \item{\code{results.subtitle}}{Decides whether the results of statistical tests are
-to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
-the plot will be returned.}
+to be displayed as a subtitle (Default: \code{TRUE}). Setting this to \code{FALSE}
+also skips the automatic Bayes Factor caption. See the individual
+annotation arguments to control other plot details.}
     \item{\code{subtitle}}{The text for the plot subtitle. Will work only if
 \code{results.subtitle = FALSE}.}
     \item{\code{caption}}{The text for the plot caption. It will be replaced by the
 Bayes Factor caption whenever that is displayed (see \code{bf.message}).}
-    \item{\code{centrality.plotting}}{Logical that decides whether centrality tendency
+    \item{\code{centrality.plotting}}{Logical that decides whether central tendency
 measure is to be displayed as a point with a label (Default: \code{TRUE}).
 Function decides which central tendency measure to show depending on the
 \code{type} argument.
@@ -107,8 +110,8 @@ the \code{\link[ggplot2:geom_point]{ggplot2::geom_point()}}.}
 \code{\link[ggplot2:geom_boxplot]{ggplot2::geom_boxplot()}}. By default, the whiskers extend to 1.5 times
 the interquartile range (IQR) from the box (Tukey-style). To customize
 whisker length, you can use the \code{coef} parameter, e.g.,
-\code{boxplot.args = list(coef = 3)} for whiskers extending to 3 * IQR, or
-\code{boxplot.args = list(coef = 0)} to show only the range of the data.}
+\code{boxplot.args = list(coef = 3)} for whiskers extending to the most extreme
+observations within 3 * IQR of the hinges.}
     \item{\code{violin.args}}{A list of additional aesthetic arguments to be passed to
 the \code{\link[ggplot2:geom_violin]{ggplot2::geom_violin()}}.}
     \item{\code{ggplot.component}}{A \code{ggplot} component to be added to the plot prepared
@@ -129,19 +132,11 @@ arguments to be passed to \code{\link[ggsignif:geom_signif]{ggsignif::geom_signi
 \code{\link[ggplot2:theme_bw]{ggplot2::theme_bw()}}), or themes from extension packages are allowed
 (e.g., \code{ggthemes::theme_fivethirtyeight()}, \code{hrbrthemes::theme_ipsum_ps()},
 etc.). But note that sometimes these themes will remove some of the details
-that \code{{ggstatsplot}} plots typically contains. For example, if relevant,
+that \code{{ggstatsplot}} plots typically contain. For example, if relevant,
 \code{\link[=ggbetweenstats]{ggbetweenstats()}} shows details about multiple comparison test as a
 label on the secondary Y-axis. Some themes (e.g.
 \code{ggthemes::theme_fivethirtyeight()}) will remove the secondary Y-axis and
 thus the details as well.}
-    \item{\code{x}}{The grouping (or independent) variable from \code{data}. In case of a
-repeated measures or within-subjects design, if \code{subject.id} argument is
-not available or not explicitly specified, the function assumes that the
-data has already been sorted by such an id by the user and creates an
-internal identifier. So if your data is \strong{not} sorted, the results \emph{can}
-be inaccurate when there are more than two levels in \code{x} and there are
-\code{NA}s present. The data is expected to be sorted by user in
-subject-1, subject-2, ..., pattern.}
     \item{\code{y}}{The response (or outcome or dependent) variable from \code{data}.}
     \item{\code{type}}{A character specifying the type of statistical approach:
 \itemize{
@@ -151,7 +146,10 @@ subject-1, subject-2, ..., pattern.}
 \item \code{"bayes"}
 }
 
-You can specify just the initial letter.}
+You can specify just the initial letter (e.g. \code{"np"} or \code{"bf"}). Matching is
+on the initial lowercase letter only, so any other value (including
+capitalized values such as \code{"Bayes"}) falls back to \code{"parametric"} without a
+warning.}
     \item{\code{digits}}{Number of digits for rounding or significant figures. May also
 be \code{"signif"} to return significant figures or \code{"scientific"}
 to return scientific notation. Control the number of digits by adding the
@@ -159,8 +157,7 @@ value as suffix, e.g. \code{digits = "scientific4"} to have scientific
 notation with 4 decimal places, or \code{digits = "signif5"} for 5
 significant figures (see also \code{\link[=signif]{signif()}}).}
     \item{\code{conf.level}}{Scalar between \code{0} and \code{1} (default: \verb{95\%}
-confidence/credible intervals, \code{0.95}). If \code{NULL}, no confidence intervals
-will be computed.}
+confidence/credible intervals, \code{0.95}).}
     \item{\code{bf.prior}}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
 width to use in calculating Bayes factors and posterior estimates. In
 addition to numeric arguments, several named values are also recognized:
@@ -194,7 +191,7 @@ A \code{patchwork} object combining one plot per level of
 it returns a list with the statistical details for each of these plots.
 }
 \description{
-A combined plot of comparison plot created for levels of a grouping variable.
+A combined plot of comparison plots created for levels of a grouping variable.
 }
 \examples{
 \dontshow{if (identical(Sys.getenv("NOT_CRAN"), "true") && requireNamespace("afex", quietly = TRUE)) withAutoprint(\{ # examplesIf}

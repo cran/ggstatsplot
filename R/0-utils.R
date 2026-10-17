@@ -1,3 +1,5 @@
+# grouped functions built without a `.pre` hook capture `.pre = NULL`, so
+# codetools reports `.pre(...)` as a call to an undefined global function
 utils::globalVariables(".pre")
 
 # nocov start
@@ -131,7 +133,7 @@ utils::globalVariables(".pre")
 
 #' @noRd
 .extract_expression <- function(data) {
-  purrr::pluck(data, "expression", 1L, .default = NULL)
+  purrr::pluck(data, "expression", 1L)
 }
 
 
@@ -144,18 +146,15 @@ utils::globalVariables(".pre")
   bf.condition = type == "parametric"
 ) {
   subtitle_df <- .eval_f(.f, !!!.f.args, type = type)
-  subtitle <- .extract_expression(subtitle_df)
   caption_df <- NULL
-  caption <- NULL
 
   if (bf.condition && bf.message) {
     caption_df <- .eval_f(.f, !!!.f.args, type = "bayes")
-    caption <- .extract_expression(caption_df)
   }
 
   list(
-    subtitle = subtitle,
-    caption = caption,
+    subtitle = .extract_expression(subtitle_df),
+    caption = .extract_expression(caption_df),
     subtitle_df = subtitle_df,
     caption_df = caption_df
   )

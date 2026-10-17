@@ -51,19 +51,18 @@ test_that("subtitle output", {
   ) |>
     extract_subtitle()
 
+  # nonparametric dot plots summarize each level of `y` by its median
   set.seed(123)
-  p_sub_gghist <-
-    morley |>
+  p_sub_gghist <- morley |>
     dplyr::group_by(Expt) |>
-    dplyr::summarise(mean = mean(Speed), .groups = "drop") |>
+    dplyr::summarise(median = median(Speed), .groups = "drop") |>
     gghistostats(
-      x = mean,
+      x = median,
       test.value = 800,
       type = "np"
     ) |>
     extract_subtitle()
 
-  set.seed(123)
   expect_identical(p_sub_ggdot, p_sub_gghist)
 })
 
@@ -93,7 +92,7 @@ test_that("grouped_ggdotplotstats works", {
   set.seed(123)
   expect_doppelganger(
     title = "further modification with ggplot works",
-    fig = grouped_ggdotplotstats(
+    fig = suppressMessages(grouped_ggdotplotstats(
       data = df,
       x = cty,
       y = manufacturer,
@@ -104,6 +103,6 @@ test_that("grouped_ggdotplotstats works", {
         sec.axis = ggplot2::dup_axis(name = "percentile score"),
         breaks = seq(0, 12, 2)
       )
-    )
+    ))
   )
 })

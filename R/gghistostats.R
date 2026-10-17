@@ -98,27 +98,25 @@ gghistostats <- function(
   # statistical analysis ------------------------------------------
 
   if (results.subtitle) {
-    .f.args <- list(
-      data = data,
-      x = {{ x }},
-      test.value = test.value,
-      alternative = alternative,
-      conf.level = conf.level,
-      digits = digits,
-      tr = tr,
-      bf.prior = bf.prior
+    stats_output <- .subtitle_caption(
+      one_sample_test,
+      list(
+        data = data,
+        x = {{ x }},
+        test.value = test.value,
+        alternative = alternative,
+        conf.level = conf.level,
+        digits = digits,
+        tr = tr,
+        bf.prior = bf.prior
+      ),
+      type,
+      bf.message
     )
-
-    stats <- .subtitle_caption(
-      .f = one_sample_test,
-      type = type,
-      bf.message = bf.message,
-      .f.args = .f.args
-    )
-    subtitle <- stats$subtitle
-    caption <- stats$caption %||% caption
-    subtitle_df <- stats$subtitle_df
-    caption_df <- stats$caption_df
+    subtitle <- stats_output$subtitle
+    caption <- stats_output$caption %||% caption
+    subtitle_df <- stats_output$subtitle_df
+    caption_df <- stats_output$caption_df
   }
 
   # plot -----------------------------------
@@ -145,7 +143,7 @@ gghistostats <- function(
     plot_hist <- .histo_labeller(
       plot_hist,
       x = x_vec,
-      type = extract_stats_type(centrality.type),
+      type = centrality.type,
       tr = tr,
       digits = digits,
       centrality.line.args = centrality.line.args
@@ -178,9 +176,9 @@ gghistostats <- function(
 #'
 #' @description
 #'
-#' Helper function for `ggstatsplot::gghistostats` to apply this function
+#' Helper function for `ggstatsplot::gghistostats()` to apply this function
 #' across multiple levels of a given factor and combining the resulting plots
-#' using `ggstatsplot::combine_plots`.
+#' using `ggstatsplot::combine_plots()`.
 #'
 #' @inheritParams gghistostats
 #' @inheritParams grouped_ggbetweenstats

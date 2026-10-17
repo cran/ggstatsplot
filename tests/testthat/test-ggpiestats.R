@@ -1,54 +1,7 @@
 # checking default outputs -----------------------------------------
 
 test_that("checking default outputs", {
-  set.seed(123)
-  expect_doppelganger(
-    title = "checking one-way table - without NA",
-    fig = ggpiestats(mtcars, cyl, ratio = c(0.2, 0.2, 0.6))
-  )
-
-  set.seed(123)
-  expect_doppelganger(
-    title = "checking one-way table - with NA",
-    fig = ggpiestats(ggplot2::msleep, vore)
-  )
-
-  set.seed(123)
-  expect_doppelganger(
-    title = "checking unpaired two-way table - without NA",
-    fig = ggpiestats(mtcars, am, vs, ratio = c(0.4, 0.6))
-  )
-
-  set.seed(123)
-  expect_doppelganger(
-    title = "checking unpaired two-way table - with NA",
-    fig = ggpiestats(ggplot2::msleep, conservation, vore)
-  )
-
-  set.seed(123)
-  expect_doppelganger(
-    title = "checking paired two-way table - without NA",
-    fig = ggpiestats(
-      survey_data,
-      `1st survey`,
-      `2nd survey`,
-      counts = Counts,
-      paired = TRUE,
-      ratio = c(0.4, 0.6)
-    )
-  )
-
-  set.seed(123)
-  expect_doppelganger(
-    title = "checking paired two-way table - with NA",
-    fig = ggpiestats(
-      survey_data_NA,
-      x = `1st survey`,
-      y = `2nd survey`,
-      counts = Counts,
-      paired = TRUE
-    )
-  )
+  expect_default_contingency_plots(ggpiestats)
 })
 
 # changing labels and aesthetics -------------------------------------------
@@ -136,71 +89,28 @@ test_that("edge cases", {
     title = "prop test fails with dropped levels",
     fig = ggpiestats(mtcars_small, am, cyl)
   )
+
+  smokers <- tibble::tibble(
+    smoker = factor(c("no", "no", "no", "no", "no"), levels = c("yes", "no"))
+  )
+
+  set.seed(123)
+  expect_doppelganger(
+    title = "empty groups in factors not dropped",
+    fig = ggpiestats(smokers, smoker)
+  )
 })
 
 # expression output --------------------------------------------------
 
 test_that("expression output", {
-  set.seed(123)
-  p_sub <- ggpiestats(
-    ggplot2::msleep,
-    x = conservation,
-    y = vore,
-    digits = 4L
-  ) |>
-    extract_subtitle()
-
-  set.seed(123)
-  stats_output <- suppressWarnings(contingency_table(
-    ggplot2::msleep,
-    x = conservation,
-    y = vore,
-    digits = 4L
-  ))$expression[[1L]]
-
-  expect_identical(p_sub, stats_output)
+  expect_contingency_subtitle(ggpiestats)
 })
 
 # pairwise comparisons --------------------------------------------------
 
 test_that("pairwise comparisons data is returned for 3+ groups", {
-  set.seed(123)
-  stats_data <- extract_stats(ggpiestats(mtcars, cyl, am))
-  expect_s3_class(stats_data$pairwise_comparisons_data, "tbl_df")
-  expect_shape(stats_data$pairwise_comparisons_data, nrow = 3L)
-  expect_true(all(
-    c("group1", "group2", "p.value") %in%
-      names(stats_data$pairwise_comparisons_data)
-  ))
-
-  # different p.adjust.method produces different adjusted p-values
-  set.seed(123)
-  stats_bonf <- extract_stats(
-    ggpiestats(mtcars, cyl, am, p.adjust.method = "bonferroni")
-  )
-  expect_s3_class(stats_bonf$pairwise_comparisons_data, "tbl_df")
-  expect_shape(stats_bonf$pairwise_comparisons_data, nrow = 3L)
-
-  # 2 levels: no pairwise data
-  set.seed(123)
-  stats_data2 <- extract_stats(ggpiestats(mtcars, am, vs))
-  expect_null(stats_data2$pairwise_comparisons_data)
-
-  # one-way test: no pairwise data
-  set.seed(123)
-  stats_data3 <- extract_stats(ggpiestats(mtcars, cyl))
-  expect_null(stats_data3$pairwise_comparisons_data)
-
-  # paired test: no pairwise data
-  set.seed(123)
-  stats_paired <- extract_stats(ggpiestats(
-    survey_data,
-    `1st survey`,
-    `2nd survey`,
-    counts = Counts,
-    paired = TRUE
-  ))
-  expect_null(stats_paired$pairwise_comparisons_data)
+  expect_pairwise_comparisons_data(ggpiestats)
 })
 
 # grouped_ggpiestats works as expected ---------------------
@@ -220,18 +130,8 @@ test_that("grouped_ggpiestats works", {
     )
   )
 
-  # creating a smaller data frame
-  mpg_short <- ggplot2::mpg |>
-    dplyr::filter(
-      drv %in% c("4", "f"),
-      class %in% c("suv", "midsize"),
-      trans %in% c("auto(l4)", "auto(l5)")
-    )
-
   # arm64 macOS and x86_64 Linux produce sub-pixel SVG coordinate differences
   # for this specific plot; use platform-specific snapshot variants.
-
-  # when arguments are entered as bare expressions
   set.seed(123)
   expect_doppelganger(
     title = "grouped_ggpiestats with two-way table",
@@ -249,18 +149,11 @@ test_that("grouped_ggpiestats works", {
 # grouped_ggpiestats edge cases --------------------
 
 test_that("edge case behavior", {
-  df <- data.frame(
-    dataset = c("a", "b", "c", "c", "c", "c"),
-    measurement = c("old", "old", "old", "old", "new", "new"),
-    flag = c("no", "no", "yes", "no", "yes", "no"),
-    count = c(6, 8, 8, 62, 6, 33)
-  )
-
   set.seed(123)
   expect_doppelganger(
     title = "common legend when levels are dropped",
     fig = grouped_ggpiestats(
-      df,
+      dropped_levels_counts,
       x = measurement,
       y = flag,
       grouping.var = dataset,
@@ -268,15 +161,5 @@ test_that("edge case behavior", {
       results.subtitle = FALSE,
       proportion.test = FALSE
     )
-  )
-
-  smokers <- tibble(
-    smoker = factor(c("no", "no", "no", "no", "no"), levels = c("yes", "no"))
-  )
-
-  set.seed(123)
-  expect_doppelganger(
-    title = "empty groups in factors not dropped",
-    fig = ggpiestats(smokers, smoker)
   )
 })

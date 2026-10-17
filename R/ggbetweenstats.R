@@ -14,7 +14,7 @@
 #'
 #' @param xlab Label for `x` axis variable. If `NULL` (default),
 #'   variable name for `x` will be used.
-#' @param ylab Labels for `y` axis variable. If `NULL` (default),
+#' @param ylab Label for `y` axis variable. If `NULL` (default),
 #'   variable name for `y` will be used.
 #' @param p.adjust.method Adjustment method for *p*-values for multiple
 #'   comparisons. Possible methods are: `"holm"` (default), `"hochberg"`,
@@ -40,14 +40,15 @@
 #'   favor of the *null* hypothesis. This argument is relevant only **for
 #'   parametric test** (Default: `TRUE`).
 #' @param results.subtitle Decides whether the results of statistical tests are
-#'   to be displayed as a subtitle (Default: `TRUE`). If set to `FALSE`, only
-#'   the plot will be returned.
+#'   to be displayed as a subtitle (Default: `TRUE`). Setting this to `FALSE`
+#'   also skips the automatic Bayes Factor caption. See the individual
+#'   annotation arguments to control other plot details.
 #' @param title The text for the plot title.
 #' @param subtitle The text for the plot subtitle. Will work only if
 #'   `results.subtitle = FALSE`.
 #' @param caption The text for the plot caption. It will be replaced by the
 #'   Bayes Factor caption whenever that is displayed (see `bf.message`).
-#' @param centrality.plotting Logical that decides whether centrality tendency
+#' @param centrality.plotting Logical that decides whether central tendency
 #'   measure is to be displayed as a point with a label (Default: `TRUE`).
 #'   Function decides which central tendency measure to show depending on the
 #'   `type` argument.
@@ -73,8 +74,8 @@
 #'   [`ggplot2::geom_boxplot()`]. By default, the whiskers extend to 1.5 times
 #'   the interquartile range (IQR) from the box (Tukey-style). To customize
 #'   whisker length, you can use the `coef` parameter, e.g.,
-#'   `boxplot.args = list(coef = 3)` for whiskers extending to 3 * IQR, or
-#'   `boxplot.args = list(coef = 0)` to show only the range of the data.
+#'   `boxplot.args = list(coef = 3)` for whiskers extending to the most extreme
+#'   observations within 3 * IQR of the hinges.
 #' @param violin.args A list of additional aesthetic arguments to be passed to
 #'   the [`ggplot2::geom_violin()`].
 #' @param ggplot.component A `ggplot` component to be added to the plot prepared
@@ -96,11 +97,12 @@
 #'   [`ggplot2::theme_bw()`]), or themes from extension packages are allowed
 #'   (e.g., `ggthemes::theme_fivethirtyeight()`, `hrbrthemes::theme_ipsum_ps()`,
 #'   etc.). But note that sometimes these themes will remove some of the details
-#'   that `{ggstatsplot}` plots typically contains. For example, if relevant,
+#'   that `{ggstatsplot}` plots typically contain. For example, if relevant,
 #'   [`ggbetweenstats()`] shows details about multiple comparison test as a
 #'   label on the secondary Y-axis. Some themes (e.g.
 #'   `ggthemes::theme_fivethirtyeight()`) will remove the secondary Y-axis and
 #'   thus the details as well.
+#' @param x The grouping (or independent) variable from `data`.
 #' @inheritParams statsExpressions::oneway_anova
 #' @inheritParams statsExpressions::two_sample_test
 #'
@@ -109,15 +111,12 @@
 #' This function uses statistically justified defaults that are not
 #' user-configurable:
 #'
-#' - **Effect sizes** are always *unbiased* (Hedges' *g* instead of Cohen's
-#'   *d*, omega-squared instead of eta-squared). Unbiased estimators correct
-#'   for the positive bias present in their biased counterparts, especially in
-#'   small samples, and are recommended for meta-analytic work.
+#' - For **parametric tests**, effect sizes use Hedges' *g* for two groups
+#'   and omega-squared for three or more groups. These estimators correct for
+#'   positive bias, which can be especially relevant in small samples.
 #'
 #' - **Welch's *t*-test and one-way test** are used instead of Student's
-#'   versions (i.e., equal variances are not assumed). Welch's test performs as
-#'   well as Student's when variances *are* equal and is substantially more
-#'   accurate when they are not, making it the unconditionally better default.
+#'   versions, so equal variances are not assumed.
 #'
 #' Users who need non-default values for these settings can call
 #' \code{{statsExpressions}} directly.
@@ -241,7 +240,7 @@ ggbetweenstats <- function(
 
   # statistical analysis ------------------------------------------
 
-  test <- ifelse(nlevels(pull(data, {{ x }})) < 3L, "t", "anova")
+  test <- if (nlevels(pull(data, {{ x }})) < 3L) "t" else "anova"
 
   if (results.subtitle) {
     stats_output <- .bw_subtitle_caption(
@@ -276,8 +275,8 @@ ggbetweenstats <- function(
   .bw_decorate(
     plot = plot_comparison,
     data = data,
-    x = {{ x }},
-    y = {{ y }},
+    x = x,
+    y = y,
     type = type,
     test = test,
     centrality.plotting = centrality.plotting,
@@ -289,13 +288,12 @@ ggbetweenstats <- function(
     pairwise.display = pairwise.display,
     pairwise.alpha = pairwise.alpha,
     pairwise_args = list(
-      data = data,
       paired = FALSE,
       p.adjust.method = p.adjust.method
     ),
     ggsignif.args = ggsignif.args,
-    xlab = xlab %||% as_name(x),
-    ylab = ylab %||% as_name(y),
+    xlab = xlab,
+    ylab = ylab,
     title = title,
     subtitle = subtitle,
     caption = caption,
@@ -313,7 +311,7 @@ ggbetweenstats <- function(
 #' @description
 #'
 #' Helper function for `ggstatsplot::ggbetweenstats` to apply this function
-#' across multiple levels of a given factor and combining the resulting plots
+#' across multiple levels of a given factor and combine the resulting plots
 #' using `ggstatsplot::combine_plots`.
 #'
 #' @inheritParams ggbetweenstats

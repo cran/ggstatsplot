@@ -82,6 +82,7 @@ test_that("checking if extract_stats works", {
 
 
 test_that("checking if extract_stats works for grouped plots", {
+  set.seed(123)
   expect_snapshot({
     p8 <- grouped_ggpiestats(mtcars, x = cyl, grouping.var = am)
     extracted_data <- extract_stats(p8)
@@ -102,6 +103,6 @@ test_that("checking if extract_stats works for grouped plots", {
   expect_length(caption_result, 3L)
 })
 
-test_that("checking if extract_stats produces NULL on supported objects", {
+test_that("checking if extract_stats produces NULL on unsupported objects", {
   expect_length(purrr::compact(extract_stats(iris)), 0L)
 })

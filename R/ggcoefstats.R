@@ -7,9 +7,9 @@
 #' confidence interval whiskers and other statistical details included as
 #' labels.
 #'
-#'  Although the statistical models displayed in the plot may differ based on the
-#'  class of models being investigated, there are few aspects of the plot that will
-#'  be invariant across models:
+#' Although the statistical models displayed in the plot may differ based on the
+#' class of models being investigated, there are a few aspects of the plot that
+#' will be invariant across models:
 #'
 #'   - The dot-whisker plot contains a dot representing the **estimate** and their
 #'     **confidence intervals** (`95%` is the default). The estimate can either be
@@ -19,7 +19,7 @@
 #'     clear up what estimates are being displayed. The confidence intervals can
 #'     sometimes be asymmetric if bootstrapping was used.
 #'
-#'   - The label attached to dot will provide more details from the statistical
+#'   - The label attached to each dot will provide more details from the statistical
 #'     test carried out and it will typically contain estimate, statistic, and
 #'     *p*-value.
 #'
@@ -217,14 +217,6 @@ ggcoefstats <- function(
 ) {
   palette <- .validate_palette(palette)
 
-  # model check -------------------------
-
-  # if a data frame is entered then `statistic` is necessary to create labels
-  if (!insight::is_model(x)) {
-    tidy_df <- as_tibble(x)
-    if (is.null(statistic)) stats.labels <- FALSE
-  }
-
   # tidy data frame -------------------------
 
   if (insight::is_model(x)) {
@@ -240,20 +232,23 @@ ggcoefstats <- function(
     )
 
     # anova objects need further cleaning
-    # nolint next: line_length_linter.
     if (all(c("df", "df.error") %in% names(tidy_df))) {
       tidy_df <- mutate(
         tidy_df,
         effectsize = paste0("partial ", effectsize.type, "-squared")
       )
     }
+  } else {
+    tidy_df <- as_tibble(x)
+    # if a data frame is entered then `statistic` is necessary to create labels
+    if (is.null(statistic)) stats.labels <- FALSE
   }
 
   tidy_df <- .preprocess_tidy_data(tidy_df, sort) |>
-    dplyr::filter(!is.na(estimate))
+    filter(!is.na(estimate))
 
   # if tidy data frame doesn't contain p-value or statistic column, no label
-  if (!(all(c("p.value", "statistic") %in% names(tidy_df)))) {
+  if (!all(c("p.value", "statistic") %in% names(tidy_df))) {
     stats.labels <- FALSE
   }
 
@@ -266,7 +261,7 @@ ggcoefstats <- function(
   }
 
   if (exclude.intercept) {
-    tidy_df <- filter(tidy_df, !grepl("(Intercept)", term, TRUE))
+    tidy_df <- filter(tidy_df, !grepl("(Intercept)", term, ignore.case = TRUE))
   }
 
   # label -------------------------
@@ -285,8 +280,7 @@ ggcoefstats <- function(
   glance_df <- performance::model_performance(x, verbose = FALSE) |>
     as_tibble()
 
-  if (!is.null(glance_df) && all(c("AIC", "BIC") %in% names(glance_df))) {
-    # nolint next: line_length_linter.
+  if (all(c("AIC", "BIC") %in% names(glance_df))) {
     glance_df <- mutate(
       glance_df,
       expression = list(parse(
@@ -328,7 +322,6 @@ ggcoefstats <- function(
     plot_coef <- plot_coef +
       exec(
         geom_errorbar,
-        data = tidy_df,
         mapping = aes(xmin = conf.low, xmax = conf.high),
         orientation = "y",
         !!!errorbar.args
@@ -343,6 +336,11 @@ ggcoefstats <- function(
 
   if (stats.labels) {
     tidy_df_labels <- .prepare_stats_label_data(tidy_df, only.significant)
+    # no label layer if no term is left to label (e.g. no significant effects)
+    stats.labels <- nrow(tidy_df_labels) > 0L
+  }
+
+  if (stats.labels) {
     stats.label.color <- .prepare_stats_label_colors(
       tidy_df,
       tidy_df_labels,
@@ -356,7 +354,7 @@ ggcoefstats <- function(
         data = tidy_df_labels,
         mapping = aes(x = estimate, y = term, label = expression),
         parse = TRUE,
-        color = stats.label.color %||% "black",
+        color = stats.label.color,
         !!!stats.label.args
       )
   }
@@ -413,20 +411,16 @@ ggcoefstats <- function(
 
   # `ggplot2` draws discrete y-axis levels from bottom to top, so reverse the
   # factor levels to preserve the data order in the plotted top-to-bottom order.
-  data |> dplyr::mutate(term = forcats::fct_rev(forcats::fct_inorder(term)))
+  mutate(data, term = forcats::fct_rev(forcats::fct_inorder(term)))
 }
 
 #' @noRd
 .prepare_stats_label_data <- function(data, only.significant) {
-  label_data <- data
-
-  if (only.significant && "p.value" %in% names(data)) {
-    label_data <- filter(label_data, p.value < 0.05)
+  if (only.significant) {
+    data <- filter(data, p.value < 0.05)
   }
 
-  label_data <- filter(label_data, lengths(expression) > 0L)
-
-  label_data
+  filter(data, lengths(expression) > 0L)
 }
 
 #' @noRd
@@ -436,15 +430,12 @@ ggcoefstats <- function(
   stats.label.color,
   palette
 ) {
-  label_rows <- data$term %in% label_data$term
-  n_labels <- sum(label_rows)
-
   if (is.null(stats.label.color)) {
-    return(paletteer::paletteer_d(palette, n_labels))
+    return(paletteer::paletteer_d(palette, nrow(label_data)))
   }
 
   if (length(stats.label.color) > 1L) {
-    return(stats.label.color[label_rows])
+    return(stats.label.color[data$term %in% label_data$term])
   }
 
   stats.label.color # nocov

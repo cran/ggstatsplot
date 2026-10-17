@@ -22,11 +22,11 @@
     data <- tidyr::uncount(data, weights = .counts)
   }
 
-  data <- mutate(data, across(.cols = everything(), .fns = ~ as.factor(.x)))
+  data <- mutate(data, across(everything(), as.factor))
 
-  test <- ifelse(quo_is_null(enquo(y)), "one.way", "two.way")
+  test <- if (quo_is_null(enquo(y))) "one.way" else "two.way"
   x_levels <- nlevels(pull(data, {{ x }}))
-  y_levels <- ifelse(test == "one.way", 0L, nlevels(pull(data, {{ y }})))
+  y_levels <- if (test == "one.way") 0L else nlevels(pull(data, {{ y }}))
 
   list(data = data, test = test, x_levels = x_levels, y_levels = y_levels)
 }
@@ -59,9 +59,6 @@
   conf.level,
   digits,
   ratio,
-  sampling.plan,
-  fixed.margin,
-  prior.concentration,
   x_levels,
   y_levels,
   p.adjust.method
@@ -75,9 +72,9 @@
     digits = digits,
     paired = paired,
     ratio = ratio,
-    sampling.plan = sampling.plan,
-    fixed.margin = fixed.margin,
-    prior.concentration = prior.concentration
+    sampling.plan = "indepMulti",
+    fixed.margin = "rows",
+    prior.concentration = 1
   )
 
   stats <- .subtitle_caption(
@@ -85,21 +82,25 @@
     .f.args,
     type,
     bf.message,
-    bf.condition = type != "bayes" && isFALSE(paired)
+    bf.condition = type != "bayes" && isFALSE(paired) && y_levels != 1L
   )
 
-  mpc_df <- .pairwise_contingency(
-    data,
-    {{ x }},
-    {{ y }},
-    x_levels,
-    y_levels,
-    paired,
-    digits,
-    conf.level,
-    alternative,
-    p.adjust.method
-  )
+  # pairwise tests only for unpaired two-way tables with 3+ `x` levels
+  mpc_df <- NULL
+  if (x_levels > 2L && y_levels > 1L && !isTRUE(paired)) {
+    mpc_df <- purrr::possibly(
+      function(...) suppressWarnings(pairwise_contingency_table(...)),
+      otherwise = NULL
+    )(
+      data = data,
+      x = {{ x }},
+      y = {{ y }},
+      digits = digits,
+      conf.level = conf.level,
+      alternative = alternative,
+      p.adjust.method = p.adjust.method
+    )
+  }
 
   c(stats, list(mpc_df = mpc_df))
 }
@@ -113,8 +114,7 @@ descriptive_data <- function(
   x,
   y = NULL,
   label.content = "percentage",
-  digits.perc = 1L,
-  ...
+  digits.perc = 1L
 ) {
   all_lvls <- levels(pull(data, {{ x }}))
 
@@ -144,10 +144,6 @@ descriptive_data <- function(
         } else {
           paste0(.prettyNum(counts), "\n", "(", round(perc, digits.perc), "%)")
         }
-      ),
-      {{ x }} := factor(
-        {{ x }},
-        if (length(all_lvls)) all_lvls else unique({{ x }})
       )
     )
 }
@@ -156,7 +152,7 @@ descriptive_data <- function(
 #' @title Counts and percentages across grouping variables
 #' @autoglobal
 #' @noRd
-.cat_counter <- function(data, x, y = NULL, ...) {
+.cat_counter <- function(data, x, y = NULL) {
   data |>
     ungroup() |>
     count({{ y }}, {{ x }}, .drop = TRUE, name = "counts") |>
@@ -167,7 +163,7 @@ descriptive_data <- function(
 #' @title A data frame with chi-squared test results
 #' @autoglobal
 #' @noRd
-onesample_data <- function(data, x, y, digits = 2L, ratio = NULL, ...) {
+onesample_data <- function(data, x, y, digits = 2L, ratio = NULL) {
   grouped_chi_squared_summary <- group_by(data, {{ y }}) |>
     group_modify(.f = ~ .chisq_test_safe(., {{ x }}, ratio)) |>
     ungroup()
@@ -211,36 +207,3 @@ onesample_data <- function(data, x, y, digits = 2L, ratio = NULL, ...) {
 
 #' @noRd
 .prettyNum <- function(x) prettyNum(x, big.mark = ",", scientific = FALSE)
-
-
-#' @autoglobal
-#' @noRd
-.pairwise_contingency <- function(
-  data,
-  x,
-  y,
-  x_levels,
-  y_levels,
-  paired,
-  digits,
-  conf.level,
-  alternative,
-  p.adjust.method
-) {
-  if (x_levels < 3L || y_levels < 2L || isTRUE(paired)) {
-    return(NULL)
-  }
-
-  purrr::possibly(
-    function(...) suppressWarnings(pairwise_contingency_table(...)),
-    otherwise = NULL
-  )(
-    data = data,
-    x = {{ x }},
-    y = {{ y }},
-    digits = digits,
-    conf.level = conf.level,
-    alternative = alternative,
-    p.adjust.method = p.adjust.method
-  )
-}

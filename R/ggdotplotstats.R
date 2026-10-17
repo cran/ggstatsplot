@@ -104,19 +104,17 @@ ggdotplotstats <- function(
 
   data <- .prep_data(data, {{ x }}, {{ y }})
 
-  data <-
-    suppressWarnings(centrality_description(
-      data,
-      {{ y }},
-      {{ x }},
-      type = type,
-      conf.level = conf.level,
-      digits = digits,
-      tr = tr,
-      bf.prior = bf.prior
-    ))
-
-  data <- data |>
+  # summarize `x` for each level of `y`, ordered by the summary value
+  data <- suppressWarnings(centrality_description(
+    data,
+    {{ y }},
+    {{ x }},
+    type = type,
+    conf.level = conf.level,
+    digits = digits,
+    tr = tr,
+    bf.prior = bf.prior
+  )) |>
     arrange({{ x }}) |>
     mutate(
       percent_rank = percent_rank({{ x }}),
@@ -126,27 +124,25 @@ ggdotplotstats <- function(
   # statistical analysis ------------------------------------------
 
   if (results.subtitle) {
-    .f.args <- list(
-      data = data,
-      x = {{ x }},
-      test.value = test.value,
-      alternative = alternative,
-      conf.level = conf.level,
-      digits = digits,
-      tr = tr,
-      bf.prior = bf.prior
+    stats_output <- .subtitle_caption(
+      one_sample_test,
+      list(
+        data = data,
+        x = {{ x }},
+        test.value = test.value,
+        alternative = alternative,
+        conf.level = conf.level,
+        digits = digits,
+        tr = tr,
+        bf.prior = bf.prior
+      ),
+      type,
+      bf.message
     )
-
-    stats <- .subtitle_caption(
-      .f = one_sample_test,
-      type = type,
-      bf.message = bf.message,
-      .f.args = .f.args
-    )
-    subtitle <- stats$subtitle
-    caption <- stats$caption %||% caption
-    subtitle_df <- stats$subtitle_df
-    caption_df <- stats$caption_df
+    subtitle <- stats_output$subtitle
+    caption <- stats_output$caption %||% caption
+    subtitle_df <- stats_output$subtitle_df
+    caption_df <- stats_output$caption_df
   }
 
   # plot -----------------------------------
@@ -180,7 +176,7 @@ ggdotplotstats <- function(
     plot_dot <- .histo_labeller(
       plot_dot,
       x = pull(data, {{ x }}),
-      type = extract_stats_type(centrality.type),
+      type = centrality.type,
       tr = tr,
       digits = digits,
       centrality.line.args = centrality.line.args

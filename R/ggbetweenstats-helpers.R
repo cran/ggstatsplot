@@ -50,7 +50,8 @@
     alternative = if (test == "t") alternative
   ))
 
-  .subtitle_caption(.f_switch(test), .f.args, type, bf.message)
+  .f <- if (test == "t") two_sample_test else oneway_anova
+  .subtitle_caption(.f, .f.args, type, bf.message)
 }
 
 
@@ -65,9 +66,11 @@
 #'
 #' @param plot A `ggplot` object to decorate.
 #' @param data Data frame used for plotting.
+#' @param x,y Column name symbols for the grouping and response variables.
+#' @param xlab,ylab Axis labels; `NULL` falls back to the names of `x` and `y`.
 #' @param pairwise_args A named list of extra arguments forwarded to
-#'   [statsExpressions::pairwise_comparisons()], typically containing `data`, `paired`,
-#'   `p.adjust.method`, and optionally `subject.id`.
+#'   [statsExpressions::pairwise_comparisons()]: `paired`, `p.adjust.method`,
+#'   and optionally `subject.id`.
 #' @inheritParams ggbetweenstats
 #' @inheritParams ggwithinstats
 #'
@@ -103,16 +106,13 @@
   centrality.path = FALSE,
   centrality.path.args = list()
 ) {
-  x <- ensym(x)
-  y <- ensym(y)
-
   # centrality tagging
   if (isTRUE(centrality.plotting)) {
     centrality_df <- suppressWarnings(centrality_description(
       data,
       !!x,
       !!y,
-      type = extract_stats_type(centrality.type),
+      type = centrality.type,
       digits = digits,
       tr = tr
     ))
@@ -140,7 +140,7 @@
 
   if (pairwise.display != "none" && test == "anova") {
     pw_args <- c(
-      list(x = x, y = y, type = type, tr = tr, digits = digits),
+      list(data = data, x = x, y = y, type = type, tr = tr, digits = digits),
       pairwise_args
     )
     mpc_df <- suppressWarnings(inject(pairwise_comparisons(!!!pw_args)))
@@ -160,7 +160,7 @@
 
     seclabel <- .pairwise_seclabel(
       test.description = unique(mpc_df$test),
-      pairwise.display = ifelse(type == "bayes", "all", pairwise.display),
+      pairwise.display = if (type == "bayes") "all" else pairwise.display,
       pairwise.alpha = pairwise.alpha
     )
   }
@@ -169,8 +169,8 @@
   .aesthetic_addon(
     plot = plot,
     x = pull(data, !!x),
-    xlab = xlab,
-    ylab = ylab,
+    xlab = xlab %||% as_name(x),
+    ylab = ylab %||% as_name(y),
     title = title,
     subtitle = subtitle,
     caption = caption,
@@ -182,7 +182,7 @@
 }
 
 
-#' @title Adding labels for mean values.
+#' @title Adding labels for centrality values
 #' @name .centrality_ggrepel
 #'
 #' @param plot A `ggplot` object for which means are to be displayed.
@@ -199,18 +199,10 @@
   centrality_df,
   x,
   y,
-  centrality.path = FALSE,
-  centrality.path.args = list(
-    linewidth = 1.0,
-    color = "red",
-    alpha = 0.5
-  ),
-  centrality.point.args = list(size = 5.0, color = "darkred"),
-  centrality.label.args = list(
-    size = 3.0,
-    nudge_x = 0.4,
-    segment.linetype = 4.0
-  )
+  centrality.path,
+  centrality.path.args,
+  centrality.point.args,
+  centrality.label.args
 ) {
   # lines connecting mean values across groups
   if (isTRUE(centrality.path)) {
@@ -245,8 +237,7 @@
 #' @title Adding `geom_signif` to `ggplot`
 #' @name .ggsignif_adder
 #'
-#' @param ... Currently ignored.
-#' @param plot A `ggplot` object on which `geom_signif` needed to be added.
+#' @param plot A `ggplot` object to which `geom_signif` is to be added.
 #' @param mpc_df A data frame containing results from pairwise comparisons
 #'   (produced by [`pairwise_comparisons()`] function).
 #' @inheritParams ggbetweenstats
@@ -285,31 +276,22 @@
   mpc_df,
   pairwise.display = "significant",
   pairwise.alpha = 0.05,
-  ggsignif.args = list(textsize = 3, tip_length = 0.01, na.rm = TRUE),
-  ...
+  ggsignif.args = list(textsize = 3, tip_length = 0.01, na.rm = TRUE)
 ) {
-  # creating a column for group combinations
-  mpc_df <- mutate(
-    mpc_df,
-    groups = purrr::map2(group1, group2, c)
-  )
-
-  # total number of group-pair comparisons, before any significance filtering;
-  # the legacy helper spaced brackets over this count regardless of how many
-  # were ultimately displayed, so bracket spacing stays stable across
-  # `pairwise.display` values
+  # count all comparisons before filtering, so that bracket spacing stays the
+  # same across `pairwise.display` values
   n_comps <- nrow(mpc_df)
 
   # for Bayes Factor, there will be no "p.value" column
   if ("p.value" %in% names(mpc_df)) {
-    if (startsWith(pairwise.display, "s")) {
-      mpc_df <- filter(mpc_df, p.value < pairwise.alpha)
-    } # sig
-    if (startsWith(pairwise.display, "n")) {
-      mpc_df <- filter(mpc_df, p.value >= pairwise.alpha)
-    } # non-sig
+    mpc_df <- switch(
+      .pairwise_display_level(pairwise.display),
+      significant = filter(mpc_df, p.value < pairwise.alpha),
+      `non-significant` = filter(mpc_df, p.value >= pairwise.alpha),
+      mpc_df
+    )
 
-    # proceed only if there are any significant comparisons to display
+    # proceed only if there are any comparisons left to display
     if (nrow(mpc_df) == 0L) {
       return(plot)
     } # nocov
@@ -326,8 +308,7 @@
   # all-negative outcomes.
   # The legacy helper spread all group-pair brackets over n_comps / 20 of the
   # outcome range, so dividing that span among n_comps - 1 gaps gives the
-  # equivalent step increase; using the total comparison count keeps spacing
-  # consistent regardless of how many brackets `pairwise.display` retains.
+  # equivalent step increase.
   # For a zero range, retain ggsignif's finite default instead of dividing by
   # zero; no range-based offset can separate identical outcomes.
   # User-supplied arguments override these compatibility defaults.
@@ -347,7 +328,7 @@
   plot +
     exec(
       ggsignif::geom_signif,
-      comparisons = mpc_df$groups,
+      comparisons = purrr::map2(mpc_df$group1, mpc_df$group2, c),
       map_signif_level = TRUE,
       annotations = as.character(mpc_df$expression),
       test = NULL,
@@ -362,8 +343,8 @@
 #' @description
 #'
 #' This returns an expression containing details about the pairwise comparison
-#' test and the *p*-value adjustment method. These details are typically
-#' included in the `{ggstatsplot}` package plots as a caption.
+#' test, which comparisons are shown, and the alpha threshold. These details
+#' are displayed as the secondary y-axis label in `{ggstatsplot}` plots.
 #'
 #' @param test.description Text describing the details of the test.
 #' @inheritParams ggbetweenstats
@@ -379,7 +360,6 @@
 #'
 #' # custom alpha threshold
 #' .pairwise_seclabel("Student's t-test", pairwise.alpha = 0.01)
-#' @keywords internal
 #' @autoglobal
 #' @noRd
 .pairwise_seclabel <- function(
@@ -391,14 +371,7 @@
   test <- sub("'", "\\'", test.description, fixed = TRUE)
   alpha_label <- format(pairwise.alpha, scientific = FALSE, trim = TRUE)
 
-  # which comparisons were displayed?
-  display <- if (startsWith(pairwise.display, "s")) {
-    "significant"
-  } else if (startsWith(pairwise.display, "n")) {
-    "non-significant"
-  } else {
-    "all"
-  }
+  display <- .pairwise_display_level(pairwise.display)
 
   parse(
     text = glue(
@@ -407,30 +380,49 @@
   )
 }
 
+#' @title Resolve which pairwise comparisons are displayed
+#'
+#' @description
+#'
+#' Maps a (possibly abbreviated) `pairwise.display` value to one of
+#' `"significant"`, `"non-significant"`, or `"all"`.
+#'
+#' @inheritParams ggbetweenstats
+#'
+#' @noRd
+.pairwise_display_level <- function(pairwise.display) {
+  if (startsWith(pairwise.display, "s")) {
+    "significant"
+  } else if (startsWith(pairwise.display, "n")) {
+    "non-significant"
+  } else {
+    "all"
+  }
+}
+
 
 #' @title Making aesthetic modifications to the plot
 #' @name .aesthetic_addon
 #'
 #' @param plot Plot to be aesthetically modified.
-#' @param x A numeric vector for `x` axis.
+#' @param x A factor with the `x` axis values; its number of levels sets how
+#'   many palette colors are needed.
 #' @param seclabel A label for secondary axis.
 #' @inheritParams ggbetweenstats
-#' @param ... Additional arguments.
 #'
 #' @noRd
 .aesthetic_addon <- function(
   plot,
   x,
-  xlab = NULL,
-  ylab = NULL,
-  title = NULL,
-  subtitle = NULL,
-  caption = NULL,
-  seclabel = NULL,
-  ggtheme = ggstatsplot::theme_ggstatsplot(),
-  palette = "ggthemes::gdoc",
-  ggplot.component = NULL,
-  ...
+  xlab,
+  ylab,
+  title,
+  subtitle,
+  caption,
+  seclabel,
+  ggtheme,
+  palette,
+  ggplot.component
 ) {
   # Validate the requested number of discrete colors before plot rendering.
   paletteer::paletteer_d(palette, nlevels(x))
@@ -454,7 +446,3 @@
     # this is the hail mary way for users to override these defaults
     ggplot.component
 }
-
-#' @title Switch expression making function
-#' @noRd
-.f_switch <- function(test) ifelse(test == "t", two_sample_test, oneway_anova)

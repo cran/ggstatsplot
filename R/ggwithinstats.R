@@ -15,6 +15,7 @@
 #' ```{r child="man/rmd-fragments/ggwithinstats_graphics.Rmd"}
 #' ```
 #'
+#' @param x The condition (or repeated-measures) variable from `data`.
 #' @inheritParams ggbetweenstats
 #' @param point.path,centrality.path Logical that decides whether individual
 #'   data points and means, respectively, should be connected using
@@ -23,18 +24,19 @@
 #'   *t*-test). In case of large number of data points, it is advisable to set
 #'   `point.path = FALSE` as these lines can overwhelm the plot.
 #' @param centrality.path.args,point.path.args A list of additional aesthetic
-#'   arguments passed on to [`ggplot2::geom_path()`] connecting raw data points
-#'   and mean points.
+#'   arguments passed on to [`ggplot2::geom_path()`] connecting mean points and
+#'   raw data points, respectively.
 #' @param subject.id Across repeated measures conditions, each row in the
 #'   dataset must correspond to a unique unit (e.g., subject or participant).
 #'   If your data frame is already in such a format, you can ignore the
 #'   `subject.id` argument (the function will use row number to pair
 #'   observations). **But if you are not sure, it is always better to specify
-#'   this argument.** Note that if there are any missing values (i.e., `NA`) in
-#'   the dependent variable and the `subject.id` is not specified, they will be
-#'   dropped using a list-wise approach. If you specify `subject.id`, partially
-#'   observed subjects will still be shown in the plot, but inferential
-#'   statistics will be computed using only complete repeated-measures pairs.
+#'   this argument.** Each subject must appear at most once per level of `x`.
+#'   Rows with a missing `x` or `subject.id` are ignored, and subjects with a
+#'   missing value (i.e., `NA`) of the dependent variable in any condition are
+#'   dropped using a list-wise approach (see
+#'   [statsExpressions::complete_subjects()]), so the plot, its labels, and the
+#'   statistical results are all based on the same complete subjects.
 #' @inheritParams statsExpressions::oneway_anova
 #'
 #' @inheritSection statsExpressions::centrality_description Centrality measures
@@ -65,7 +67,6 @@
 #'   type       = "np",
 #'   subject.id = subject
 #' )
-#'
 #'
 #' # looking at the plot
 #' p
@@ -162,40 +163,22 @@ ggwithinstats <- function(
   y <- ensym(y)
   type <- extract_stats_type(type)
 
-  subject.id <- if (!quo_is_null(enquo(subject.id))) ensym(subject.id)
-  sid_str <- if (!is.null(subject.id)) as_string(subject.id)
+  # keep only subjects observed in every condition, so that the plot, its
+  # labels, and the statistical tests are all based on the same observations
+  data <- complete_subjects(data, {{ x }}, {{ y }}, {{ subject.id }})
 
-  data <- data |>
-    select({{ x }}, {{ y }}, any_of(sid_str %||% character(0))) |>
-    mutate({{ x }} := droplevels(as.factor({{ x }})))
-
-  if (is.null(sid_str)) {
-    stats_data <- data
-
-    data <- data |>
-      mutate(.rowid = row_number(), .by = {{ x }}) |>
-      filter_out(anyNA({{ y }}), .by = .rowid)
-  } else {
-    data <- filter(data, !is.na(.data[[sid_str]]))
-
-    stats_data <- data
-
-    data <- data |>
-      mutate(.rowid = .data[[sid_str]]) |>
-      filter(!is.na({{ y }}))
+  # keep the subject identifier available to user-supplied layers
+  if (!quo_is_null(enquo(subject.id))) {
+    data[[as_name(enquo(subject.id))]] <- data$.rowid
   }
-
-  data <- mutate(data, {{ x }} := droplevels({{ x }}))
-
-  stats_data <- mutate(stats_data, {{ x }} := droplevels({{ x }}))
 
   # statistical analysis ------------------------------------------
 
-  test <- ifelse(nlevels(pull(data, {{ x }})) < 3L, "t", "anova")
+  test <- if (nlevels(pull(data, {{ x }})) < 3L) "t" else "anova"
 
   if (results.subtitle) {
     stats_output <- .bw_subtitle_caption(
-      data = stats_data,
+      data = data,
       x = x,
       y = y,
       test = test,
@@ -207,7 +190,7 @@ ggwithinstats <- function(
       tr = tr,
       alternative = alternative,
       paired = TRUE,
-      subject.id = subject.id
+      subject.id = quote(.rowid)
     )
     subtitle <- stats_output$subtitle
     caption <- stats_output$caption %||% caption
@@ -243,8 +226,8 @@ ggwithinstats <- function(
   .bw_decorate(
     plot = plot_comparison,
     data = data,
-    x = {{ x }},
-    y = {{ y }},
+    x = x,
+    y = y,
     type = type,
     test = test,
     centrality.plotting = centrality.plotting,
@@ -258,14 +241,13 @@ ggwithinstats <- function(
     pairwise.display = pairwise.display,
     pairwise.alpha = pairwise.alpha,
     pairwise_args = list(
-      data = stats_data,
       paired = TRUE,
-      subject.id = subject.id,
+      subject.id = quote(.rowid),
       p.adjust.method = p.adjust.method
     ),
     ggsignif.args = ggsignif.args,
-    xlab = xlab %||% as_name(x),
-    ylab = ylab %||% as_name(y),
+    xlab = xlab,
+    ylab = ylab,
     title = title,
     subtitle = subtitle,
     caption = caption,
@@ -282,7 +264,7 @@ ggwithinstats <- function(
 #'
 #' @description
 #'
-#' A combined plot of comparison plot created for levels of a grouping variable.
+#' A combined plot of comparison plots created for levels of a grouping variable.
 #'
 #' @inheritParams ggwithinstats
 #' @inheritDotParams ggwithinstats -title

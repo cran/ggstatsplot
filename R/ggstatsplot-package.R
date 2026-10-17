@@ -1,5 +1,3 @@
-#' \code{ggstatsplot}
-#'
 #' @title ggstatsplot: 'ggplot2' Based Plots with Statistical Details
 #'
 #' @description
@@ -27,7 +25,7 @@
 #'   the statistical tests in the subtitle.
 #'
 #'   - `ggscatterstats()` function to produce `{ggplot2}` scatterplots along
-#'   with a marginal distribution plots from `{ggside}` package and details from
+#'   with marginal distribution plots from `{ggside}` package and details from
 #'   the statistical tests in the subtitle.
 #'
 #'   - `ggpiestats()` function to produce pie chart with details from the
@@ -55,7 +53,6 @@
 #' For more documentation, see the dedicated
 #' \href{https://www.indrapatil.com/ggstatsplot/}{Website}.
 #'
-#' @docType package
 #' @keywords internal
 #' @aliases ggstatsplot ggstatsplot-package
 #' @name ggstatsplot-package
@@ -70,10 +67,6 @@
 #' @import insight
 #'
 #' @importFrom glue glue
-#' @importFrom paletteer scale_color_paletteer_d scale_fill_paletteer_d
-#' @importFrom purrr pmap map
-#' @importFrom correlation correlation
-#' @importFrom patchwork wrap_plots plot_annotation
 #'
 ## ggstatsplot namespace: end
 NULL

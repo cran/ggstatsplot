@@ -40,7 +40,7 @@ ggscatterstats(
 }
 \arguments{
 \item{data}{A data frame (or a tibble) from which variables specified are to
-be taken. Other data types (e.g., matrix,table, array, etc.) will \strong{not}
+be taken. Other data types (e.g., matrix, table, array, etc.) will \strong{not}
 be accepted. Additionally, grouped data frames from \code{{dplyr}} should be
 ungrouped before they are entered as \code{data}.}
 
@@ -58,11 +58,13 @@ be plotted on the \code{y}-axis.}
 \item \code{"bayes"}
 }
 
-You can specify just the initial letter.}
+You can specify just the initial letter (e.g. \code{"np"} or \code{"bf"}). Matching is
+on the initial lowercase letter only, so any other value (including
+capitalized values such as \code{"Bayes"}) falls back to \code{"parametric"} without a
+warning.}
 
 \item{conf.level}{Scalar between \code{0} and \code{1} (default: \verb{95\%}
-confidence/credible intervals, \code{0.95}). If \code{NULL}, no confidence intervals
-will be computed.}
+confidence/credible intervals, \code{0.95}).}
 
 \item{bf.prior}{A number between \code{0.5} and \code{2} (default \code{0.707}), the prior
 width to use in calculating Bayes factors and posterior estimates. In
@@ -87,16 +89,17 @@ notation with 4 decimal places, or \code{digits = "signif5"} for 5
 significant figures (see also \code{\link[=signif]{signif()}}).}
 
 \item{results.subtitle}{Decides whether the results of statistical tests are
-to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
-the plot will be returned.}
+to be displayed as a subtitle (Default: \code{TRUE}). Setting this to \code{FALSE}
+also skips the automatic Bayes Factor caption. See the individual
+annotation arguments to control other plot details.}
 
-\item{label.var}{Variable to use for points labels entered as a symbol (e.g.
+\item{label.var}{Variable to use for point labels entered as a symbol (e.g.
 \code{var1}).}
 
 \item{label.expression}{An expression evaluating to a logical vector that
 determines the subset of data points to label (e.g. \code{y < 4 & z < 20}).
 While using this argument with \code{\link[purrr:pmap]{purrr::pmap()}}, you will have to provide
-a quoted expression  (e.g. \code{quote(y < 4 & z < 20)}).}
+a quoted expression (e.g. \code{quote(y < 4 & z < 20)}).}
 
 \item{marginal}{Decides whether marginal distributions will be plotted on
 axes using \code{{ggside}} functions. The default is \code{TRUE}.}
@@ -104,9 +107,10 @@ axes using \code{{ggside}} functions. The default is \code{TRUE}.}
 \item{point.args}{A list of additional aesthetic arguments to be passed to
 the \code{\link[ggplot2:geom_point]{ggplot2::geom_point()}}.}
 
-\item{point.width.jitter, point.height.jitter}{Degree of jitter in \code{x} and \code{y}
-direction, respectively. Defaults to \code{0} (0\%) of the resolution of the
-data. Note that the jitter should not be specified in the \code{point.args}
+\item{point.width.jitter, point.height.jitter}{Amount of jitter (in data
+units) in \code{x} and \code{y} direction, respectively, passed to
+\code{\link[ggplot2:position_jitter]{ggplot2::position_jitter()}}. Defaults to \code{0} (no jitter). Note that the
+jitter should not be specified in the \code{point.args}
 because this information will be passed to two different \code{geom}s: one
 displaying the \strong{points} and the other displaying the \strong{labels} for
 these points.}
@@ -120,7 +124,7 @@ confidence band uses \code{conf.level}.}
 
 \item{xsidehistogram.args, ysidehistogram.args}{A list of arguments passed to
 respective \code{geom_}s from the \code{{ggside}} package to change the marginal
-distribution histograms plots.}
+distribution histograms.}
 
 \item{xsidehistogram.scale, ysidehistogram.scale}{A list of arguments passed
 to \code{ggside::scale_xsidey_continuous()} and
@@ -131,7 +135,7 @@ Default is \code{list()} (no modifications).}
 \item{xlab}{Label for \code{x} axis variable. If \code{NULL} (default),
 variable name for \code{x} will be used.}
 
-\item{ylab}{Labels for \code{y} axis variable. If \code{NULL} (default),
+\item{ylab}{Label for \code{y} axis variable. If \code{NULL} (default),
 variable name for \code{y} will be used.}
 
 \item{title}{The text for the plot title.}
@@ -147,7 +151,7 @@ Bayes Factor caption whenever that is displayed (see \code{bf.message}).}
 \code{\link[ggplot2:theme_bw]{ggplot2::theme_bw()}}), or themes from extension packages are allowed
 (e.g., \code{ggthemes::theme_fivethirtyeight()}, \code{hrbrthemes::theme_ipsum_ps()},
 etc.). But note that sometimes these themes will remove some of the details
-that \code{{ggstatsplot}} plots typically contains. For example, if relevant,
+that \code{{ggstatsplot}} plots typically contain. For example, if relevant,
 \code{\link[=ggbetweenstats]{ggbetweenstats()}} shows details about multiple comparison test as a
 label on the secondary Y-axis. Some themes (e.g.
 \code{ggthemes::theme_fivethirtyeight()}) will remove the secondary Y-axis and
@@ -166,7 +170,7 @@ functions. Use \code{\link[=extract_stats]{extract_stats()}} to get the statisti
 the plot as data frames.
 }
 \description{
-Scatterplots from \code{{ggplot2}} combined with marginal distributions plots
+Scatterplots from \code{{ggplot2}} combined with marginal distribution plots
 with statistical details.
 }
 \details{
@@ -178,7 +182,7 @@ For details, see:
 }
 \note{
 The plot uses \code{\link[ggrepel:geom_label_repel]{ggrepel::geom_label_repel()}} to attempt to keep labels
-from over-lapping to the largest degree possible. As a consequence plot
+from overlapping to the largest degree possible. As a consequence plot
 times will slow down massively (and the plot file will grow in size) if you
 have a lot of labels that overlap.
 }
@@ -203,7 +207,7 @@ The table below provides summary about:
 \item functions used internally to compute these details
 }
 
-\strong{Hypothesis testing} and \strong{Effect size estimation}\tabular{llll}{
+\strong{Hypothesis testing and effect size estimation}\tabular{llll}{
    Type \tab Test \tab CI available? \tab Function used \cr
    Parametric \tab Pearson's correlation coefficient \tab Yes \tab \code{correlation::correlation()} \cr
    Non-parametric \tab Spearman's rank correlation coefficient \tab Yes \tab \code{correlation::correlation()} \cr

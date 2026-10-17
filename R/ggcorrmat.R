@@ -72,7 +72,6 @@
 #'
 #' @examples
 #' set.seed(123)
-#' library(ggcorrplot)
 #' ggcorrmat(iris)
 #'
 #' # with data containing NAs (uses pairwise complete observations)
@@ -118,7 +117,7 @@ ggcorrmat <- function(
   mpc_df <- correlation::correlation(
     data = data,
     rename = cor.vars.names,
-    method = ifelse(type == "nonparametric", "spearman", "pearson"),
+    method = if (type == "nonparametric") "spearman" else "pearson",
     p_adjust = p.adjust.method,
     ci = conf.level,
     bayesian = type == "bayes",
@@ -126,47 +125,43 @@ ggcorrmat <- function(
     tr = tr,
     partial = partial,
     partial_bayesian = type == "bayes" && partial,
-    winsorize = ifelse(type == "robust", tr, FALSE)
+    winsorize = if (type == "robust") tr else FALSE
   )
 
   # type of correlation and if it is a partial correlation
   r.method.text <- gsub(" correlation", "", unique(mpc_df$Method), fixed = TRUE)
-  r.type <- ifelse(partial, "correlation (partial):", "correlation:")
+  r.type <- if (partial) "correlation (partial):" else "correlation:"
+  r.label <- bquote(atop(scriptstyle(bold(.(r.type))), .(r.method.text)))
 
   # plot ------------------------------------------
 
   # legend title with information about correlation type and sample size
   if (!anyNA(data) || partial) {
-    legend.title <- bquote(atop(
-      atop(
-        scriptstyle(bold("sample sizes:")),
-        italic(n) ~ "=" ~ .(.prettyNum(mpc_df$n_Obs[[1L]]))
-      ),
-      atop(scriptstyle(bold(.(r.type))), .(r.method.text))
+    n.label <- bquote(atop(
+      scriptstyle(bold("sample sizes:")),
+      italic(n) ~ "=" ~ .(.prettyNum(mpc_df$n_Obs[[1L]]))
     ))
   } else {
-    legend.title <- bquote(atop(
+    n.label <- bquote(atop(
       atop(
-        atop(
-          scriptstyle(bold("sample sizes:")),
-          italic(n)[min] ~ "=" ~ .(.prettyNum(min(mpc_df$n_Obs)))
-        ),
-        atop(
-          italic(n)[mode] ~ "=" ~ .(.prettyNum(datawizard::distribution_mode(
-            mpc_df$n_Obs
-          ))),
-          italic(n)[max] ~ "=" ~ .(.prettyNum(max(mpc_df$n_Obs)))
-        )
+        scriptstyle(bold("sample sizes:")),
+        italic(n)[min] ~ "=" ~ .(.prettyNum(min(mpc_df$n_Obs)))
       ),
-      atop(scriptstyle(bold(.(r.type))), .(r.method.text))
+      atop(
+        italic(n)[mode] ~ "=" ~ .(.prettyNum(datawizard::distribution_mode(
+          mpc_df$n_Obs
+        ))),
+        italic(n)[max] ~ "=" ~ .(.prettyNum(max(mpc_df$n_Obs)))
+      )
     ))
   }
+  legend.title <- bquote(atop(.(n.label), .(r.label)))
 
   plot_corr <- .eval_f(
     ggcorrplot::ggcorrplot,
     corr = as.matrix(select(mpc_df, matches("^parameter|^r"))),
     p.mat = as.matrix(select(mpc_df, matches("^parameter|^p"))),
-    sig.level = ifelse(type == "bayes", Inf, sig.level),
+    sig.level = if (type == "bayes") Inf else sig.level,
     ggtheme = ggtheme,
     colors = colors,
     type = matrix.type,
@@ -222,7 +217,7 @@ ggcorrmat <- function(
 }
 
 
-#' @title Visualization of a correlalogram (or correlation matrix) for all
+#' @title Visualization of a correlogram (or correlation matrix) for all
 #'   levels of a grouping variable
 #' @name grouped_ggcorrmat
 #'

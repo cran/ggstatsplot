@@ -42,18 +42,11 @@ ggbetweenstats(
 }
 \arguments{
 \item{data}{A data frame (or a tibble) from which variables specified are to
-be taken. Other data types (e.g., matrix,table, array, etc.) will \strong{not}
+be taken. Other data types (e.g., matrix, table, array, etc.) will \strong{not}
 be accepted. Additionally, grouped data frames from \code{{dplyr}} should be
 ungrouped before they are entered as \code{data}.}
 
-\item{x}{The grouping (or independent) variable from \code{data}. In case of a
-repeated measures or within-subjects design, if \code{subject.id} argument is
-not available or not explicitly specified, the function assumes that the
-data has already been sorted by such an id by the user and creates an
-internal identifier. So if your data is \strong{not} sorted, the results \emph{can}
-be inaccurate when there are more than two levels in \code{x} and there are
-\code{NA}s present. The data is expected to be sorted by user in
-subject-1, subject-2, ..., pattern.}
+\item{x}{The grouping (or independent) variable from \code{data}.}
 
 \item{y}{The response (or outcome or dependent) variable from \code{data}.}
 
@@ -65,7 +58,10 @@ subject-1, subject-2, ..., pattern.}
 \item \code{"bayes"}
 }
 
-You can specify just the initial letter.}
+You can specify just the initial letter (e.g. \code{"np"} or \code{"bf"}). Matching is
+on the initial lowercase letter only, so any other value (including
+capitalized values such as \code{"Bayes"}) falls back to \code{"parametric"} without a
+warning.}
 
 \item{pairwise.display}{Decides \emph{which} pairwise comparisons to display.
 Available options are:
@@ -104,13 +100,14 @@ favor of the \emph{null} hypothesis. This argument is relevant only \strong{for
 parametric test} (Default: \code{TRUE}).}
 
 \item{results.subtitle}{Decides whether the results of statistical tests are
-to be displayed as a subtitle (Default: \code{TRUE}). If set to \code{FALSE}, only
-the plot will be returned.}
+to be displayed as a subtitle (Default: \code{TRUE}). Setting this to \code{FALSE}
+also skips the automatic Bayes Factor caption. See the individual
+annotation arguments to control other plot details.}
 
 \item{xlab}{Label for \code{x} axis variable. If \code{NULL} (default),
 variable name for \code{x} will be used.}
 
-\item{ylab}{Labels for \code{y} axis variable. If \code{NULL} (default),
+\item{ylab}{Label for \code{y} axis variable. If \code{NULL} (default),
 variable name for \code{y} will be used.}
 
 \item{caption}{The text for the plot caption. It will be replaced by the
@@ -129,8 +126,7 @@ notation with 4 decimal places, or \code{digits = "signif5"} for 5
 significant figures (see also \code{\link[=signif]{signif()}}).}
 
 \item{conf.level}{Scalar between \code{0} and \code{1} (default: \verb{95\%}
-confidence/credible intervals, \code{0.95}). If \code{NULL}, no confidence intervals
-will be computed.}
+confidence/credible intervals, \code{0.95}).}
 
 \item{tr}{Trim level for the mean when carrying out \code{robust} tests. In case
 of an error, try reducing the value of \code{tr}, which is by default set to
@@ -141,7 +137,7 @@ of an error, try reducing the value of \code{tr}, which is by default set to
     \code{"greater"} or \code{"less"}.  You can specify just the initial
     letter.}
 
-\item{centrality.plotting}{Logical that decides whether centrality tendency
+\item{centrality.plotting}{Logical that decides whether central tendency
 measure is to be displayed as a point with a label (Default: \code{TRUE}).
 Function decides which central tendency measure to show depending on the
 \code{type} argument.
@@ -179,8 +175,8 @@ the \code{\link[ggplot2:geom_point]{ggplot2::geom_point()}}.}
 \code{\link[ggplot2:geom_boxplot]{ggplot2::geom_boxplot()}}. By default, the whiskers extend to 1.5 times
 the interquartile range (IQR) from the box (Tukey-style). To customize
 whisker length, you can use the \code{coef} parameter, e.g.,
-\code{boxplot.args = list(coef = 3)} for whiskers extending to 3 * IQR, or
-\code{boxplot.args = list(coef = 0)} to show only the range of the data.}
+\code{boxplot.args = list(coef = 3)} for whiskers extending to the most extreme
+observations within 3 * IQR of the hinges.}
 
 \item{violin.args}{A list of additional aesthetic arguments to be passed to
 the \code{\link[ggplot2:geom_violin]{ggplot2::geom_violin()}}.}
@@ -193,7 +189,7 @@ arguments to be passed to \code{\link[ggsignif:geom_signif]{ggsignif::geom_signi
 \code{\link[ggplot2:theme_bw]{ggplot2::theme_bw()}}), or themes from extension packages are allowed
 (e.g., \code{ggthemes::theme_fivethirtyeight()}, \code{hrbrthemes::theme_ipsum_ps()},
 etc.). But note that sometimes these themes will remove some of the details
-that \code{{ggstatsplot}} plots typically contains. For example, if relevant,
+that \code{{ggstatsplot}} plots typically contain. For example, if relevant,
 \code{\link[=ggbetweenstats]{ggbetweenstats()}} shows details about multiple comparison test as a
 label on the secondary Y-axis. Some themes (e.g.
 \code{ggthemes::theme_fivethirtyeight()}) will remove the secondary Y-axis and
@@ -245,14 +241,11 @@ For details, see:
 This function uses statistically justified defaults that are not
 user-configurable:
 \itemize{
-\item \strong{Effect sizes} are always \emph{unbiased} (Hedges' \emph{g} instead of Cohen's
-\emph{d}, omega-squared instead of eta-squared). Unbiased estimators correct
-for the positive bias present in their biased counterparts, especially in
-small samples, and are recommended for meta-analytic work.
+\item For \strong{parametric tests}, effect sizes use Hedges' \emph{g} for two groups
+and omega-squared for three or more groups. These estimators correct for
+positive bias, which can be especially relevant in small samples.
 \item \strong{Welch's \emph{t}-test and one-way test} are used instead of Student's
-versions (i.e., equal variances are not assumed). Welch's test performs as
-well as Student's when variances \emph{are} equal and is substantially more
-accurate when they are not, making it the unconditionally better default.
+versions, so equal variances are not assumed.
 }
 
 Users who need non-default values for these settings can call
@@ -288,7 +281,7 @@ The table below provides summary about:
 \item type of effect size estimate and a measure of uncertainty for this estimate
 \item functions used internally to compute these details
 }
-\subsection{between-subjects}{
+\subsection{Between-subjects}{
 
 \strong{Hypothesis testing}\tabular{llll}{
    Type \tab No. of groups \tab Test \tab Function used \cr
@@ -301,7 +294,7 @@ The table below provides summary about:
 
 \strong{Effect size estimation}\tabular{lllll}{
    Type \tab No. of groups \tab Effect size \tab CI available? \tab Function used \cr
-   Parametric \tab 2 \tab Cohen's \emph{d}, Hedge's \emph{g} \tab Yes \tab \code{effectsize::cohens_d()}, \code{effectsize::hedges_g()} \cr
+   Parametric \tab 2 \tab Cohen's \emph{d}, Hedges' \emph{g} \tab Yes \tab \code{effectsize::cohens_d()}, \code{effectsize::hedges_g()} \cr
    Non-parametric \tab 2 \tab \emph{r} (rank-biserial correlation) \tab Yes \tab \code{effectsize::rank_biserial()} \cr
    Robust \tab 2 \tab Algina-Keselman-Penfield robust standardized difference \tab Yes \tab \code{WRS2::akp.effect()} \cr
    Bayesian \tab 2 \tab difference \tab Yes \tab \code{bayestestR::describe_posterior()} \cr
@@ -309,11 +302,10 @@ The table below provides summary about:
 
 }
 
-\subsection{within-subjects}{
+\subsection{Within-subjects}{
 
-\strong{Data requirement}: Paired tests assume exactly \strong{one observation per subject
-per condition}. If your data has multiple trials per cell, aggregate first
-(e.g., take the mean).
+\strong{Paired data}: See \code{complete_subjects()} for subject matching, duplicate
+observations, and removal of incomplete subjects.
 
 \strong{Hypothesis testing}\tabular{llll}{
    Type \tab No. of groups \tab Test \tab Function used \cr
@@ -326,7 +318,7 @@ per condition}. If your data has multiple trials per cell, aggregate first
 
 \strong{Effect size estimation}\tabular{lllll}{
    Type \tab No. of groups \tab Effect size \tab CI available? \tab Function used \cr
-   Parametric \tab 2 \tab Cohen's \emph{d}, Hedge's \emph{g} \tab Yes \tab \code{effectsize::cohens_d()}, \code{effectsize::hedges_g()} \cr
+   Parametric \tab 2 \tab Cohen's \emph{d}, Hedges' \emph{g} \tab Yes \tab \code{effectsize::cohens_d()}, \code{effectsize::hedges_g()} \cr
    Non-parametric \tab 2 \tab \emph{r} (rank-biserial correlation) \tab Yes \tab \code{effectsize::rank_biserial()} \cr
    Robust \tab 2 \tab Algina-Keselman-Penfield robust standardized difference \tab Yes \tab \code{WRS2::wmcpAKP()} \cr
    Bayesian \tab 2 \tab difference \tab Yes \tab \code{bayestestR::describe_posterior()} \cr
@@ -346,7 +338,7 @@ The table below provides summary about:
 \item type of effect size estimate and a measure of uncertainty for this estimate
 \item functions used internally to compute these details
 }
-\subsection{between-subjects}{
+\subsection{Between-subjects}{
 
 \strong{Hypothesis testing}\tabular{llll}{
    Type \tab No. of groups \tab Test \tab Function used \cr
@@ -367,12 +359,10 @@ The table below provides summary about:
 
 }
 
-\subsection{within-subjects}{
+\subsection{Within-subjects}{
 
-\strong{Data requirement}: Repeated measures tests assume a \emph{complete} design with
-exactly \strong{one observation per subject per condition}. If your data has multiple
-trials per cell, aggregate first (e.g., take the mean). Verify with
-\code{table(data$subject, data$condition)} — every cell should equal \code{1}.
+\strong{Paired data}: See \code{complete_subjects()} for subject matching, duplicate
+observations, and removal of incomplete subjects.
 
 \strong{Hypothesis testing}\tabular{llll}{
    Type \tab No. of groups \tab Test \tab Function used \cr
@@ -405,7 +395,7 @@ The table below provides summary about:
 \item type of effect size estimate and a measure of uncertainty for this estimate
 \item functions used internally to compute these details
 }
-\subsection{between-subjects}{
+\subsection{Between-subjects}{
 
 \strong{Hypothesis testing}\tabular{lllll}{
    Type \tab Equal variance? \tab Test \tab \emph{p}-value adjustment? \tab Function used \cr
@@ -422,11 +412,10 @@ The table below provides summary about:
 Not supported.
 }
 
-\subsection{within-subjects}{
+\subsection{Within-subjects}{
 
-\strong{Data requirement}: Paired pairwise tests assume exactly \strong{one observation per
-subject per condition}. If your data has multiple trials per cell, aggregate
-first (e.g., take the mean).
+\strong{Paired data}: See \code{complete_subjects()} for subject matching, duplicate
+observations, and removal of incomplete subjects.
 
 \strong{Hypothesis testing}\tabular{llll}{
    Type \tab Test \tab \emph{p}-value adjustment? \tab Function used \cr

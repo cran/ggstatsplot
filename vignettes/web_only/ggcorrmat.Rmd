@@ -34,17 +34,6 @@ if (can_evaluate) {
 
 ---
 
-You can cite this package/vignette as:
-
-```{r}
-#| label = "citation",
-#| echo = FALSE,
-#| comment = ""
-citation("ggstatsplot")
-```
-
----
-
 Lifecycle: [![lifecycle](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 
 The function `ggcorrmat()` provides a quick way to produce
@@ -57,7 +46,7 @@ coefficient is computed: Pearson's *r* (`"parametric"`), Spearman's $\rho$
 Pearson's *r* (`"bayes"`).
 
 We will see examples of how to use this function in this vignette with the
-`gapminder` and `diamonds` dataset.
+`gapminder` and `diamonds` datasets.
 
 To begin with, here are some instances where you would want to use
 `ggcorrmat`-
@@ -69,7 +58,7 @@ To begin with, here are some instances where you would want to use
 ## Correlation matrix plot with `ggcorrmat()`
 
 For the first example, we will use the `gapminder` dataset (available in
-eponymous [package](https://CRAN.R-project.org/package=gapminder) on CRAN)
+eponymous [package](https://CRAN.R-project.org/package=gapminder) on CRAN), which
 provides values for life expectancy, Gross Domestic Product (GDP) per capita,
 and population, every five years, from 1952 to 2007, for each of 142 countries
 and was collected by the Gapminder Foundation. Let's have a look at the data-
@@ -284,15 +273,9 @@ correlation::correlation(dplyr::select(gapminder_2007, lifeExp:gdpPercap))
 
 ## Grouped analysis with `ggcorrmat()` + `{purrr}`
 
-Although `grouped_` function is good for quickly exploring the data, it reduces
-the flexibility with which this function can be used. This is because the
-common parameters used are applied to plots corresponding to all levels of the
-grouping variable and there is no way to customize the arguments for different
-levels of the grouping variable. We will see how this can be done using the
-`{purrr}` package.
-
-See the associated vignette here:
-<https://www.indrapatil.com/ggstatsplot/articles/web_only/purrr_examples.html>
+For group-specific arguments or multiple grouping variables, see the
+[programmatic plotting article](purrr_examples.html#why-purrr). It explains
+how to split the data, customize each call, and combine the resulting plots.
 
 ## Summary of graphics and tests
 
@@ -307,3 +290,14 @@ found in the function documentation:
 
 If you find any bugs or have any suggestions/remarks, please file an issue on
 `GitHub`: <https://github.com/IndrajeetPatil/ggstatsplot/issues>
+
+## Citation {#citation}
+
+You can cite this package/vignette as:
+
+```{r}
+#| label = "citation",
+#| echo = FALSE,
+#| comment = ""
+citation("ggstatsplot")
+```
