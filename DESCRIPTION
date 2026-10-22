@@ -1,7 +1,7 @@
 Type: Package
 Package: ggstatsplot
 Title: 'ggplot2' Based Plots with Statistical Details
-Version: 1.1.3
+Version: 1.1.4
 Authors@R: 
     person("Indrajeet", "Patil", , "patilindrajeet.science@gmail.com", role = c("cre", "aut", "cph"),
            comment = c(ORCID = "0000-0003-1995-6531"))
@@ -27,7 +27,7 @@ Imports: correlation (>= 0.8.8), datawizard (>= 1.4.0), dplyr (>=
         0.6.4), glue (>= 1.8.1), insight (>= 1.5.4), paletteer (>=
         1.7.0), parameters (>= 0.29.3), patchwork (>= 1.3.2),
         performance (>= 0.18.2), purrr (>= 1.2.2), rlang (>= 1.3.0),
-        statsExpressions (>= 2.2.0), tidyr (>= 1.3.2), utils
+        statsExpressions (>= 2.2.1), tidyr (>= 1.3.2), utils
 Suggests: afex (>= 1.5-1), BayesFactor (>= 0.9.12-4.8), bayestestR (>=
         0.19.0), gapminder (>= 1.0.1), knitr (>= 1.52), lme4 (>=
         2.0-6), MASS (>= 7.3-66), metaBMA (>= 0.6.9), metafor (>=
@@ -46,8 +46,8 @@ Encoding: UTF-8
 Language: en-US
 LazyData: true
 NeedsCompilation: no
-Packaged: 2026-10-17 17:36:29 UTC; runner
+Packaged: 2026-10-22 08:52:52 UTC; runner
 Author: Indrajeet Patil [cre, aut, cph] (ORCID:
     <https://orcid.org/0000-0003-1995-6531>)
 Repository: CRAN
-Date/Publication: 2026-10-17 19:10:10 UTC
+Date/Publication: 2026-10-22 13:10:02 UTC

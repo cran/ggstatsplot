@@ -113,7 +113,7 @@ robust test.
 ggbetweenstats(
   data = dplyr::filter(gapminder, year == 2007, continent != "Oceania"),
   x = continent, ## grouping/independent variable
-  y = lifeExp, ## dependent variables
+  y = lifeExp, ## dependent variable
   type = "robust", ## type of statistics
   xlab = "Continent", ## label for the x-axis
   ylab = "Life expectancy", ## label for the y-axis
@@ -136,8 +136,7 @@ given continent. For example, although Asian countries are doing much better
 than African countries, on average, Afghanistan has a particularly grim average
 for the Asian continent, possibly reflecting the war and the political turmoil.
 
-So far we have used the default box + violin plot, but there are other
-available options:
+Here are a few more options:
 
   - The `type` (of test) argument also accepts the following abbreviations:
     `"p"` (for *parametric*), `"np"` (for *nonparametric*), `"r"` (for
@@ -152,10 +151,11 @@ available options:
     string from `{paletteer}`).
 
 Let's use the `combine_plots` function to make one plot from four separate
-plots that demonstrates all of these options. Let's compare life expectancy for
-all countries between 1957 and 2007. We will generate the plots one by one and then use `combine_plots` to merge them
-into one plot with some common labeling. It is possible, but not necessarily
-recommended, to make each plot have different colors or themes.
+plots that demonstrate all of these options. Let's compare life expectancy for
+all countries between 1957 and 2007. We will generate the plots one by one and
+then use `combine_plots` to merge them into one plot with some common labeling.
+It is possible, but not necessarily recommended, to make each plot have
+different colors or themes.
 
 For example,
 ```{r}
@@ -163,8 +163,7 @@ For example,
 #| fig.height = 10,
 #| fig.width = 12
 
-## selecting subset of the data
-df_year <- dplyr::filter(gapminder::gapminder, year == 2007 | year == 1957)
+df_year <- dplyr::filter(gapminder::gapminder, year %in% c(1957, 2007))
 
 p1 <- ggbetweenstats(
   data = df_year,
@@ -322,7 +321,7 @@ extract_stats(p)$pairwise_comparisons_data
 ```{asis, file="../../man/md-fragments/reporting.md"}
 ```
 
-For example, let's see the following example:
+For example:
 
 ```{r}
 #| label = "reporting",

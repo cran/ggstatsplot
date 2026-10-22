@@ -19,7 +19,6 @@
 #' ```{r child="man/rmd-fragments/ggdotplotstats_graphics.Rmd"}
 #' ```
 #'
-#' @param ... Currently ignored.
 #' @param y Label or grouping variable. Each level of `y` is shown as a single
 #'   dot: if a level has several rows, `x` is summarized using the centrality
 #'   measure for the chosen `type` (see above), and the one-sample test is then
@@ -31,8 +30,8 @@
 #'
 #' @inheritSection statsExpressions::one_sample_test One-sample tests
 #'
-#' @seealso \code{\link{grouped_gghistostats}}, \code{\link{gghistostats}},
-#'  \code{\link{grouped_ggdotplotstats}}
+#' @seealso [grouped_ggdotplotstats()], [gghistostats()],
+#'   [grouped_gghistostats()]
 #'
 #' @autoglobal
 #'
@@ -116,10 +115,7 @@ ggdotplotstats <- function(
     bf.prior = bf.prior
   )) |>
     arrange({{ x }}) |>
-    mutate(
-      percent_rank = percent_rank({{ x }}),
-      rank = row_number()
-    )
+    mutate(rank = row_number())
 
   # statistical analysis ------------------------------------------
 
@@ -128,7 +124,7 @@ ggdotplotstats <- function(
       one_sample_test,
       list(
         data = data,
-        x = {{ x }},
+        x = x,
         test.value = test.value,
         alternative = alternative,
         conf.level = conf.level,
@@ -141,8 +137,6 @@ ggdotplotstats <- function(
     )
     subtitle <- stats_output$subtitle
     caption <- stats_output$caption %||% caption
-    subtitle_df <- stats_output$subtitle_df
-    caption_df <- stats_output$caption_df
   }
 
   # plot -----------------------------------
@@ -150,7 +144,6 @@ ggdotplotstats <- function(
   plot_dot <- ggplot(data, mapping = aes({{ x }}, y = rank)) +
     exec(geom_point, !!!point.args) +
     scale_y_continuous(
-      name = ylab,
       labels = pull(data, {{ y }}),
       breaks = data$rank,
       sec.axis = dup_axis(
@@ -203,20 +196,18 @@ ggdotplotstats <- function(
 #'
 #' @description
 #'
-#' Helper function for `ggstatsplot::ggdotplotstats()` to apply this function
-#' across multiple levels of a given factor and combining the resulting plots
-#' using `ggstatsplot::combine_plots()`.
+#' Applies [`ggdotplotstats()`] across all levels of `grouping.var` and combines
+#' the resulting plots using [`combine_plots()`].
 #'
 #' @inheritParams ggdotplotstats
 #' @inheritParams grouped_ggbetweenstats
 #' @inheritDotParams ggdotplotstats -title
 #'
-#' @seealso \code{\link{grouped_gghistostats}}, \code{\link{ggdotplotstats}},
-#'  \code{\link{gghistostats}}
+#' @seealso [ggdotplotstats()], [gghistostats()], [grouped_gghistostats()]
 #'
 #' @autoglobal
 #'
-#' @inherit ggdotplotstats references details
+#' @inherit ggdotplotstats details
 #' @inherit grouped_ggbetweenstats return
 #'
 #' @examplesIf identical(Sys.getenv("NOT_CRAN"), "true")
@@ -224,10 +215,9 @@ ggdotplotstats <- function(
 #' set.seed(123)
 #' library(dplyr, warn.conflicts = FALSE)
 #'
-#' # removing factor level with very few no. of observations
+#' # drop the 5-cylinder cars, which have very few observations
 #' df <- filter(ggplot2::mpg, cyl %in% c("4", "6", "8"))
 #'
-#' # plot
 #' grouped_ggdotplotstats(
 #'   data            = df,
 #'   x               = cty,

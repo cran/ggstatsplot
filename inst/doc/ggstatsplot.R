@@ -3,7 +3,6 @@ source("setup.R")
 
 ## -----------------------------------------------------------------------------
 try({
-
 ggbetweenstats(iris, Species, Sepal.Length)
 })
 

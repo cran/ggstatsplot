@@ -44,7 +44,8 @@
 #' @inheritParams ggpiestats
 #'
 #' @return A named list with elements `subtitle`, `caption`, `subtitle_df`,
-#'   `caption_df`, and `mpc_df`.
+#'   `caption_df`, and `mpc_df`. Callers store it as `stats_output`, where
+#'   `extract_stats()` looks up the data frames.
 #'
 #' @autoglobal
 #' @noRd
@@ -65,8 +66,8 @@
 ) {
   .f.args <- list(
     data = data,
-    x = {{ x }},
-    y = {{ y }},
+    x = x,
+    y = y,
     alternative = alternative,
     conf.level = conf.level,
     digits = digits,
@@ -86,15 +87,12 @@
   )
 
   # pairwise tests only for unpaired two-way tables with 3+ `x` levels
-  mpc_df <- NULL
-  if (x_levels > 2L && y_levels > 1L && !isTRUE(paired)) {
-    mpc_df <- purrr::possibly(
-      function(...) suppressWarnings(pairwise_contingency_table(...)),
-      otherwise = NULL
-    )(
+  mpc_df <- if (x_levels > 2L && y_levels > 1L && !isTRUE(paired)) {
+    .eval_f(
+      pairwise_contingency_table,
       data = data,
-      x = {{ x }},
-      y = {{ y }},
+      x = as_string(x),
+      y = as_string(y),
       digits = digits,
       conf.level = conf.level,
       alternative = alternative,

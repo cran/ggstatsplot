@@ -13,10 +13,10 @@
 #'
 #' @inheritParams ggpiestats
 #' @inheritParams ggbetweenstats
-#' @param label.args Additional aesthetic arguments that will be passed to
+#' @param label.args A list of additional aesthetic arguments passed to
 #'   [`ggplot2::geom_label()`].
-#' @param sample.size.label.args Additional aesthetic arguments that will be
-#'   passed to [`ggplot2::geom_text()`].
+#' @param sample.size.label.args A list of additional aesthetic arguments passed
+#'   to [`ggplot2::geom_text()`].
 #' @param xlab Label for `x` axis. If `NULL` (default), the name of the `y`
 #'   variable is used (no label if `y` is `NULL`), since bars are drawn for
 #'   each level of `y`.
@@ -26,8 +26,7 @@
 #'
 #' @inheritSection ggpiestats Pairwise comparisons
 #'
-#' @seealso \code{\link{grouped_ggbarstats}}, \code{\link{ggpiestats}},
-#'  \code{\link{grouped_ggpiestats}}
+#' @seealso [grouped_ggbarstats()], [ggpiestats()], [grouped_ggpiestats()]
 #'
 #' @inherit ggbetweenstats return
 #'
@@ -113,7 +112,7 @@ ggbarstats <- function(
   x_levels <- prep$x_levels
   y_levels <- prep$y_levels
 
-  if (type == "bayes" || y_levels < 2L) {
+  if (type == "bayes" || x_levels < 2L || y_levels < 2L) {
     proportion.test <- FALSE
   }
 
@@ -137,9 +136,6 @@ ggbarstats <- function(
     )
     subtitle <- stats_output$subtitle
     caption <- stats_output$caption %||% caption
-    subtitle_df <- stats_output$subtitle_df
-    caption_df <- stats_output$caption_df
-    mpc_df <- stats_output$mpc_df
   }
 
   # plot ------------------------------------------
@@ -220,7 +216,7 @@ ggbarstats <- function(
 
   plotBar +
     labs(
-      x = if (test == "two.way") (xlab %||% as_name(y)) else xlab,
+      x = if (test == "two.way") xlab %||% as_name(y) else xlab,
       y = ylab,
       subtitle = subtitle,
       title = title,
@@ -234,18 +230,16 @@ ggbarstats <- function(
 #'
 #' @description
 #'
-#' Helper function for `ggstatsplot::ggbarstats()` to apply this function across
-#' multiple levels of a given factor and combining the resulting plots using
-#' `ggstatsplot::combine_plots()`.
+#' Applies [`ggbarstats()`] across all levels of `grouping.var` and combines the
+#' resulting plots using [`combine_plots()`].
 #'
 #' @inheritParams ggbarstats
 #' @inheritParams grouped_ggbetweenstats
 #' @inheritDotParams ggbarstats -title
 #'
-#' @seealso \code{\link{ggbarstats}}, \code{\link{ggpiestats}},
-#'  \code{\link{grouped_ggpiestats}}
+#' @seealso [ggbarstats()], [ggpiestats()], [grouped_ggpiestats()]
 #'
-#' @inherit ggbarstats references details
+#' @inherit ggbarstats details
 #' @inherit grouped_ggbetweenstats return
 #'
 #' @autoglobal

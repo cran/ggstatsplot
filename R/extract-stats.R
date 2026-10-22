@@ -34,7 +34,7 @@
 #'
 #' For plots from `grouped_*` functions, a list with one such element per plot.
 #'
-#' @param p A plot from `{ggstatsplot}` package
+#' @param p A plot from `{ggstatsplot}`.
 #'
 #' @autoglobal
 #'
@@ -71,7 +71,12 @@ extract_stats <- function(p) .map_plots(p, .extract_stats)
   }
 }
 
-.pluck_plot_env <- function(p, data) purrr::pluck(p, "plot_env", data)
+# Statistical data frames are either bound directly in the plot environment or
+# kept in the `stats_output` list returned by the subtitle/caption helpers.
+.pluck_plot_env <- function(p, data) {
+  purrr::pluck(p, "plot_env", data) %||%
+    purrr::pluck(p, "plot_env", "stats_output", data)
+}
 
 .extract_stats <- function(p) {
   structure(
@@ -91,15 +96,12 @@ extract_stats <- function(p) .map_plots(p, .extract_stats)
 
 #' @rdname extract_stats
 #' @export
-extract_subtitle <- function(p) .extract_plot_expression(p, "subtitle_data")
+extract_subtitle <- function(p) .extract_plot_expression(p, "subtitle_df")
 
 #' @rdname extract_stats
 #' @export
-extract_caption <- function(p) .extract_plot_expression(p, "caption_data")
+extract_caption <- function(p) .extract_plot_expression(p, "caption_df")
 
 .extract_plot_expression <- function(p, data) {
-  .map_plots(
-    p,
-    \(x) purrr::pluck(.extract_stats(x), data, "expression", 1L)
-  )
+  .map_plots(p, \(x) .extract_expression(.pluck_plot_env(x, data)))
 }

@@ -127,8 +127,6 @@ Let's have a look at the data-
 
 ```{r}
 #| label = "diamonds"
-library(ggplot2)
-
 dplyr::glimpse(ggplot2::diamonds)
 ```
 
@@ -254,9 +252,6 @@ grouped_ggcorrmat(
   )
 )
 ```
-
-Note that this function also makes it easy to run the same correlation matrix
-across different levels of a factor/grouping variable.
 
 ## Data frame
 

@@ -29,7 +29,7 @@ test_that("aesthetic modifications work", {
       data = mtcars,
       x = wt,
       xlab = "weight",
-      title = "mtcars: car wights",
+      title = "mtcars: car weights",
       binwidth = 5,
       bin.args = list(
         col = "black",
@@ -104,5 +104,62 @@ test_that("grouped_gghistostats plotting works as expected", {
         sec.axis = ggplot2::dup_axis()
       )
     ))
+  )
+})
+
+test_that("default binwidth ignores missing values", {
+  expect_identical(.binwidth(c(1, 5, NA)), .binwidth(c(1, 5)))
+
+  # common binwidth for grouped plots is based on non-missing values only
+  p <- grouped_gghistostats(
+    data = ggplot2::msleep,
+    x = brainwt,
+    grouping.var = vore,
+    results.subtitle = FALSE
+  )
+  binwidths <- purrr::map_dbl(
+    as.list(p),
+    \(plot) plot$layers[[1L]]$stat_params$binwidth
+  )
+  expect_identical(
+    unique(binwidths),
+    .binwidth(stats::na.omit(ggplot2::msleep$brainwt))
+  )
+})
+
+test_that("histogram bins are drawn when all values are identical", {
+  binned_count <- function(values) {
+    p <- gghistostats(data.frame(x = values), x, results.subtitle = FALSE)
+    sum(ggplot2::layer_data(p)$count)
+  }
+
+  expect_identical(.binwidth(c(5, 5, NA)), 0.1)
+  expect_identical(binned_count(rep(5, 10L)), 10)
+  expect_identical(binned_count(3), 1)
+
+  # the fallback width is scaled up for values too large for `0.1` bins
+  expect_identical(.binwidth(rep(-1e20, 2L)), 1e17)
+  expect_identical(binned_count(rep(1e20, 10L)), 10)
+})
+
+test_that("histogram is drawn when all values are identical", {
+  set.seed(123)
+  expect_doppelganger(
+    title = "all values identical",
+    fig = gghistostats(
+      data.frame(x = rep(5, 10L)),
+      x,
+      results.subtitle = FALSE
+    )
+  )
+
+  set.seed(123)
+  expect_doppelganger(
+    title = "all values identical and large",
+    fig = gghistostats(
+      data.frame(x = rep(1e20, 10L)),
+      x,
+      results.subtitle = FALSE
+    )
   )
 })

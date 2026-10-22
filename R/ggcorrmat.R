@@ -12,7 +12,6 @@
 #' ```{r child="man/rmd-fragments/ggcorrmat_graphics.Rmd"}
 #' ```
 #'
-#' @param ... Currently ignored.
 #' @param data A data frame from which variables specified are to be taken.
 #' @param cor.vars Variables for which the correlation matrix is to be computed
 #'   and visualized, specified using `{tidyselect}` syntax (e.g.,
@@ -37,19 +36,16 @@
 #'   low (negative correlations), mid (zero), and high (positive correlations).
 #'   Must be a **diverging** palette so that the sign of the correlation is
 #'   visually obvious.
-#'   Default: `c("#EA4335", "white", "#4285F4")` (red–white–blue).
-#' @param ggcorrplot.args A list of additional (mostly aesthetic) arguments that
-#'   will be passed to [`ggcorrplot::ggcorrplot()`] function. The list should
-#'   avoid any of the following arguments since they are already internally
-#'   being used: `corr`, `p.mat`, `sig.level`, `ggtheme`, `colors`, `type`,
-#'   `lab`, `pch`, `legend.title`, `digits`.
+#'   Default: `c("#EA4335", "white", "#4285F4")` (red-white-blue).
+#' @param ggcorrplot.args A list of additional (mostly aesthetic) arguments
+#'   passed to [`ggcorrplot::ggcorrplot()`]. Do not include the following
+#'   arguments, which are set internally: `corr`, `p.mat`, `sig.level`,
+#'   `ggtheme`, `colors`, `type`, `lab`, `pch`, `legend.title`, `digits`.
 #' @param subtitle The text for the plot subtitle.
 #' @param caption The text for the plot caption. If the insignificance marker
 #'   caption is shown (see `pch`), this text is displayed above it.
 #' @inheritParams statsExpressions::corr_test
 #' @inheritParams ggbetweenstats
-#' @inheritParams ggcorrplot::ggcorrplot
-#' @inheritParams ggscatterstats
 #'
 #' @inheritSection statsExpressions::corr_test Correlation analyses
 #'
@@ -59,12 +55,12 @@
 #'   functions. Note that [`extract_stats()`] does not return statistical
 #'   details for this plot; use [`correlation::correlation()`] instead.
 #'
-#' @seealso \code{\link{grouped_ggcorrmat}} \code{\link{ggscatterstats}}
-#'   \code{\link{grouped_ggscatterstats}}
+#' @seealso [grouped_ggcorrmat()], [ggscatterstats()],
+#'   [grouped_ggscatterstats()]
 #'
 #' @details Missing values are handled using pairwise deletion (each
-#'   correlation uses all complete pairs of observations), in which case the
-#'   legend shows the minimum, mode, and maximum sample size across pairs.
+#'   correlation uses all complete pairs of observations). If sample sizes then
+#'   differ across pairs, the legend shows their minimum, mode, and maximum.
 #'   Partial correlations use only complete cases.
 #'
 #' For details, see:
@@ -108,7 +104,7 @@ ggcorrmat <- function(
   ...
 ) {
   type <- extract_stats_type(type)
-  if (!missing(cor.vars)) {
+  if (!quo_is_null(enquo(cor.vars))) {
     data <- select(data, {{ cor.vars }})
   }
 
@@ -135,8 +131,9 @@ ggcorrmat <- function(
 
   # plot ------------------------------------------
 
-  # legend title with information about correlation type and sample size
-  if (!anyNA(data) || partial) {
+  # legend title with information about correlation type and sample size;
+  # a single `n` is shown only when all pairs are based on the same sample size
+  if (length(unique(mpc_df$n_Obs)) == 1L) {
     n.label <- bquote(atop(
       scriptstyle(bold("sample sizes:")),
       italic(n) ~ "=" ~ .(.prettyNum(mpc_df$n_Obs[[1L]]))
@@ -217,15 +214,13 @@ ggcorrmat <- function(
 }
 
 
-#' @title Visualization of a correlogram (or correlation matrix) for all
-#'   levels of a grouping variable
+#' @title Grouped visualizations of correlation matrices
 #' @name grouped_ggcorrmat
 #'
 #' @description
 #'
-#' Helper function for `ggstatsplot::ggcorrmat()` to apply this function across
-#' multiple levels of a given factor and combining the resulting plots using
-#' `ggstatsplot::combine_plots()`.
+#' Applies [`ggcorrmat()`] across all levels of `grouping.var` and combines the
+#' resulting plots using [`combine_plots()`].
 #'
 #' @inheritParams ggcorrmat
 #' @inheritParams grouped_ggbetweenstats
@@ -233,10 +228,9 @@ ggcorrmat <- function(
 #'
 #' @autoglobal
 #'
-#' @seealso \code{\link{ggcorrmat}}, \code{\link{ggscatterstats}},
-#'   \code{\link{grouped_ggscatterstats}}
+#' @seealso [ggcorrmat()], [ggscatterstats()], [grouped_ggscatterstats()]
 #'
-#' @inherit ggcorrmat references details
+#' @inherit ggcorrmat details
 #'
 #' @returns A `patchwork` object combining one plot per level of
 #'   `grouping.var` (see [`combine_plots()`]).
@@ -249,7 +243,6 @@ ggcorrmat <- function(
 #'   grouping.var = Species,
 #'   type = "robust",
 #'   colors = c("#0072B2", "white", "#D55E00"),
-#'   p.adjust.method = "holm",
 #'   plotgrid.args = list(ncol = 1L),
 #'   annotation.args = list(tag_levels = "i")
 #' )
